@@ -12,6 +12,8 @@ export default function ModulePage() {
 
   const doneCount = mod.lessons.filter((l) => progress.isLessonComplete(l.id)).length;
   const totalLabs = mod.lessons.reduce((n, l) => n + labsForLesson(l.id).length, 0);
+  const pct = Math.round((doneCount / mod.lessons.length) * 100);
+  const weeks = Math.max(1, Math.ceil(mod.lessons.length / 3));
 
   return (
     <div className="max-w-3xl mx-auto px-8 py-14">
@@ -21,12 +23,14 @@ export default function ModulePage() {
         </span>
         <div>
           <h1 className="text-2xl font-extrabold text-[var(--color-heading)]">{mod.title}</h1>
-          <p className="text-sm text-[var(--color-text-dim)]">{mod.subtitle}</p>
+          <p className="text-sm text-[var(--color-text-dim)]">
+            {mod.subtitle} &middot; <span className="text-[var(--color-accent)] font-semibold">{weeks} week{weeks > 1 ? 's' : ''}</span>
+          </p>
         </div>
       </div>
       <p className="text-[var(--color-text-dim)] leading-relaxed mb-5">{mod.description}</p>
 
-      <div className="flex items-center gap-4 mb-8 text-sm">
+      <div className="flex items-center gap-4 mb-3 text-sm">
         <span className="text-[var(--color-text-dim)]">
           <strong className="text-[var(--color-heading)]">{doneCount}/{mod.lessons.length}</strong> lessons complete
         </span>
@@ -35,10 +39,15 @@ export default function ModulePage() {
         </span>
       </div>
 
+      <div className="h-1.5 rounded-full bg-[var(--color-surface-2)] overflow-hidden mb-8">
+        <div className="h-full rounded-full bg-[var(--color-accent)] transition-all" style={{ width: `${pct}%` }} />
+      </div>
+
       <div className="flex flex-col gap-2">
         {mod.lessons.map((lesson, i) => {
           const complete = progress.isLessonComplete(lesson.id);
           const labCount = labsForLesson(lesson.id).length;
+          const day = Math.floor(i / 2) + 1;
           return (
             <Link
               key={lesson.id}
@@ -47,7 +56,7 @@ export default function ModulePage() {
             >
               <span
                 className={`w-6 h-6 shrink-0 rounded-full text-[11px] font-bold flex items-center justify-center ${
-                  complete ? 'bg-[var(--color-accent)] text-white' : 'bg-[var(--color-surface-2)] text-[var(--color-text-dim)]'
+                  complete ? 'bg-[var(--color-success)] text-white' : 'bg-[var(--color-surface-2)] text-[var(--color-text-dim)]'
                 }`}
               >
                 {complete ? <IconCheck className="w-3 h-3" /> : i + 1}
@@ -57,11 +66,11 @@ export default function ModulePage() {
                 <div className="text-xs text-[var(--color-text-dim)] truncate">{lesson.summary}</div>
               </div>
               {labCount > 0 && (
-                <span className="pill bg-[var(--color-accent)]/10 text-[var(--color-navy)] shrink-0 flex items-center gap-1">
+                <span className="pill bg-[var(--color-accent)]/10 text-[var(--color-accent-dim)] shrink-0 flex items-center gap-1">
                   <IconFlask className="w-3 h-3" /> {labCount}
                 </span>
               )}
-              <span className="text-xs text-[var(--color-text-dim)] shrink-0">{lesson.minutes} min</span>
+              <span className="text-xs text-[var(--color-text-dim)] shrink-0 font-mono">Day {day} &middot; {lesson.minutes} min</span>
             </Link>
           );
         })}

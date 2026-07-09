@@ -1,9 +1,20 @@
+import { useState } from 'react';
+import { IconCheck } from '../layout/icons';
+
 interface CodeBlockProps {
   children: string;
   label?: string;
 }
 
 export default function CodeBlock({ children, label }: CodeBlockProps) {
+  const [copied, setCopied] = useState(false);
+
+  const copy = async () => {
+    await navigator.clipboard.writeText(children);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
   return (
     <div className="my-4 rounded-lg overflow-hidden border border-[var(--color-border)]">
       {label && (
@@ -11,9 +22,23 @@ export default function CodeBlock({ children, label }: CodeBlockProps) {
           {label}
         </div>
       )}
-      <pre className="bg-[#080b10] text-[#8be9b8] font-mono text-[0.85rem] p-4 overflow-x-auto leading-relaxed">
-        {children}
-      </pre>
+      <div className="relative group">
+        <pre className="bg-[#080b10] text-[#8be9b8] font-mono text-[0.85rem] p-4 pr-16 overflow-x-auto leading-relaxed">
+          {children}
+        </pre>
+        <button
+          onClick={copy}
+          className="absolute top-2 right-2 flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-white/10 text-white/70 hover:bg-white/20 hover:text-white transition-colors"
+        >
+          {copied ? (
+            <>
+              <IconCheck className="w-3 h-3" /> Copied
+            </>
+          ) : (
+            'Copy'
+          )}
+        </button>
+      </div>
     </div>
   );
 }

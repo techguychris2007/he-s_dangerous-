@@ -95,26 +95,61 @@ export default function Sidebar() {
       <div className="border-t border-[var(--color-border)] pt-4 flex-1">
         {currentModule ? (
           <>
-            <div className="px-2 mb-2 text-[10px] font-mono font-bold uppercase tracking-widest text-[var(--color-text-dim)]">
-              {currentModule.title}
+            <div className="px-2 mb-3">
+              <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[var(--color-text-dim)] mb-0.5">
+                {currentModule.title}
+              </div>
+              <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[var(--color-accent)]">
+                {Math.max(1, Math.ceil(currentModule.lessons.length / 3))} week{Math.max(1, Math.ceil(currentModule.lessons.length / 3)) > 1 ? 's' : ''}
+              </div>
+              <div className="flex items-center justify-between text-[11px] text-[var(--color-text-dim)] mt-2 mb-1">
+                <span>Your progress</span>
+                <span className="font-mono font-bold text-[var(--color-heading)]">
+                  {Math.round((currentModule.lessons.filter((l) => progress.isLessonComplete(l.id)).length / currentModule.lessons.length) * 100)}%
+                </span>
+              </div>
+              <div className="h-1.5 rounded-full bg-[var(--color-surface-2)] overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-[var(--color-accent)] transition-all"
+                  style={{
+                    width: `${Math.round((currentModule.lessons.filter((l) => progress.isLessonComplete(l.id)).length / currentModule.lessons.length) * 100)}%`,
+                  }}
+                />
+              </div>
             </div>
             <div className="flex flex-col gap-0.5">
               {currentModule.lessons.map((lesson, i) => {
                 const complete = progress.isLessonComplete(lesson.id);
+                const day = Math.floor(i / 2) + 1;
                 return (
                   <NavLink key={lesson.id} to={`/module/${currentModule.slug}/lesson/${lesson.slug}`} className={navItemClass}>
                     <span
                       className={`w-5 h-5 shrink-0 rounded-full text-[10px] font-bold flex items-center justify-center ${
-                        complete ? 'bg-[var(--color-accent)] text-white' : 'bg-[var(--color-surface-2)] text-[var(--color-text-dim)]'
+                        complete ? 'bg-[var(--color-success)] text-white' : 'bg-[var(--color-surface-2)] text-[var(--color-text-dim)]'
                       }`}
                     >
                       {complete ? <IconCheck className="w-2.5 h-2.5" /> : i + 1}
                     </span>
-                    <span className="truncate">{lesson.title}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate">{lesson.title}</span>
+                      <span className="block text-[10px] text-[var(--color-text-dim)] font-mono">
+                        {lesson.minutes} min &middot; Day {day}
+                      </span>
+                    </span>
                   </NavLink>
                 );
               })}
             </div>
+            <button
+              onClick={() => {
+                if (window.confirm(`Reset your progress for "${currentModule.title}"? This clears completed lessons and quiz scores for this module only.`)) {
+                  progress.resetModuleProgress(currentModule.lessons.map((l) => l.id));
+                }
+              }}
+              className="mt-3 w-full text-center text-[11px] font-semibold text-[var(--color-text-dim)] hover:text-[var(--color-danger)] transition-colors py-1.5"
+            >
+              Reset this module's progress
+            </button>
           </>
         ) : (
           <>

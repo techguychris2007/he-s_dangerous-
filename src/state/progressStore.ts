@@ -29,6 +29,7 @@ interface ProgressApi extends ProgressState {
   flagCount: (labId: string) => number;
   recordQuizScore: (lessonId: string, score: number) => void;
   resetAll: () => void;
+  resetModuleProgress: (lessonIds: string[]) => void;
   login: (name: string) => void;
   logout: () => void;
   toggleBookmark: (labId: string) => void;
@@ -76,6 +77,18 @@ export function useProgressState(): ProgressApi {
     setState((s) => ({ ...EMPTY_STATE, learnerName: s.learnerName }));
   }, []);
 
+  const resetModuleProgress = useCallback((lessonIds: string[]) => {
+    setState((s) => {
+      const completedLessons = { ...s.completedLessons };
+      const quizScores = { ...s.quizScores };
+      for (const id of lessonIds) {
+        delete completedLessons[id];
+        delete quizScores[id];
+      }
+      return { ...s, completedLessons, quizScores };
+    });
+  }, []);
+
   const login = useCallback((name: string) => {
     setState((s) => ({ ...s, learnerName: name.trim() }));
   }, []);
@@ -100,12 +113,13 @@ export function useProgressState(): ProgressApi {
       flagCount,
       recordQuizScore,
       resetAll,
+      resetModuleProgress,
       login,
       logout,
       toggleBookmark,
       isBookmarked,
     }),
-    [state, completeLesson, isLessonComplete, captureFlag, hasFlag, flagCount, recordQuizScore, resetAll, login, logout, toggleBookmark, isBookmarked],
+    [state, completeLesson, isLessonComplete, captureFlag, hasFlag, flagCount, recordQuizScore, resetAll, resetModuleProgress, login, logout, toggleBookmark, isBookmarked],
   );
 }
 
