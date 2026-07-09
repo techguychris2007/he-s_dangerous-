@@ -16,6 +16,7 @@ import AnnouncementsPage from './pages/AnnouncementsPage';
 import ProfilePage from './pages/ProfilePage';
 import SecurityPage from './pages/SecurityPage';
 import HelpFaqPage from './pages/HelpFaqPage';
+import InstallPrompt from './components/layout/InstallPrompt';
 import { ProgressContext, useProgressState, useProgress } from './state/progressStore';
 
 function RequireLogin({ children }: { children: React.ReactNode }) {
@@ -29,6 +30,7 @@ function App() {
 
   return (
     <ProgressContext.Provider value={progress}>
+      <InstallPrompt />
       <HashRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />

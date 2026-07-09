@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProgress } from '../state/progressStore';
+import Logo from '../components/layout/Logo';
 
 export default function LoginPage() {
   const progress = useProgress();
@@ -20,10 +21,7 @@ export default function LoginPage() {
     <div className="min-h-screen w-full flex items-center justify-center bg-[var(--color-bg)] px-4">
       <div className="w-full max-w-md rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-8 shadow-sm">
         <div className="flex justify-center mb-5">
-          <svg viewBox="0 0 24 24" className="w-14 h-14">
-            <path d="M12 2l8 3.5v6c0 5.2-3.4 8.6-8 10.5-4.6-1.9-8-5.3-8-10.5v-6L12 2Z" fill="var(--color-navy)" />
-            <path d="M12 2l8 3.5v6c0 5.2-3.4 8.6-8 10.5V2Z" fill="var(--color-accent)" />
-          </svg>
+          <Logo className="w-14 h-14" />
         </div>
         <div className="text-center text-[10px] font-mono font-bold uppercase tracking-widest text-[var(--color-accent)] mb-2">
           Cybersecurity Learner Portal

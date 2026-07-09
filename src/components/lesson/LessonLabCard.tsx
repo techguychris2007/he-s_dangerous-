@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Terminal from '../terminal/Terminal';
 import StepChecklist from './StepChecklist';
+import ShareWriteupModal from '../labs/ShareWriteupModal';
 import { useProgress } from '../../state/progressStore';
 import { findLab } from '../../data/labs';
 import { IconFlask, IconFlag, IconCheck } from '../layout/icons';
@@ -14,6 +15,7 @@ const DIFFICULTY_CLASS: Record<string, string> = {
 
 export default function LessonLabCard({ labSlug }: { labSlug: string }) {
   const [open, setOpen] = useState(false);
+  const [sharing, setSharing] = useState(false);
   const progress = useProgress();
   const entry = findLab(labSlug);
   if (!entry) return null;
@@ -50,6 +52,14 @@ export default function LessonLabCard({ labSlug }: { labSlug: string }) {
           >
             Open full screen
           </Link>
+          {done && (
+            <button
+              onClick={() => setSharing(true)}
+              className="px-3.5 py-2 rounded-lg bg-white/10 text-white text-xs font-semibold hover:bg-white/20 transition"
+            >
+              Share this win
+            </button>
+          )}
           <button
             onClick={() => setOpen((o) => !o)}
             className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[var(--color-accent)] text-white text-sm font-semibold hover:brightness-110 transition"
@@ -69,6 +79,7 @@ export default function LessonLabCard({ labSlug }: { labSlug: string }) {
           </div>
         </div>
       )}
+      {sharing && <ShareWriteupModal entry={entry} onClose={() => setSharing(false)} />}
     </div>
   );
 }

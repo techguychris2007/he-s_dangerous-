@@ -1,13 +1,16 @@
+import { useState } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
 import { findLab } from '../data/labs';
 import { useProgress } from '../state/progressStore';
 import Terminal from '../components/terminal/Terminal';
 import StepChecklist from '../components/lesson/StepChecklist';
+import ShareWriteupModal from '../components/labs/ShareWriteupModal';
 import { IconFlag, IconCheck } from '../components/layout/icons';
 
 export default function LabPage() {
   const { labSlug } = useParams();
   const progress = useProgress();
+  const [sharing, setSharing] = useState(false);
   const entry = findLab(labSlug);
   if (!entry) return <Navigate to="/" replace />;
   const { scenario } = entry;
@@ -48,8 +51,16 @@ export default function LabPage() {
         </div>
 
         {captured >= scenario.totalFlags && (
-          <div className="mt-5 flex items-center gap-2 text-sm font-semibold text-[var(--color-success)]">
-            <IconCheck className="w-4 h-4" /> Lab complete — all flags captured!
+          <div className="mt-5">
+            <div className="flex items-center gap-2 text-sm font-semibold text-[var(--color-success)] mb-3">
+              <IconCheck className="w-4 h-4" /> Lab complete — all flags captured!
+            </div>
+            <button
+              onClick={() => setSharing(true)}
+              className="w-full px-4 py-2.5 rounded-lg bg-[var(--color-navy)] text-white text-sm font-semibold hover:brightness-110 transition"
+            >
+              Generate shareable documentation &rarr;
+            </button>
           </div>
         )}
       </div>
@@ -57,6 +68,8 @@ export default function LabPage() {
       <div className="flex-1 min-h-[420px] p-4">
         <Terminal scenario={scenario} onFlagCaptured={(flag) => progress.captureFlag(scenario.id, flag)} />
       </div>
+
+      {sharing && <ShareWriteupModal entry={entry} onClose={() => setSharing(false)} />}
     </div>
   );
 }

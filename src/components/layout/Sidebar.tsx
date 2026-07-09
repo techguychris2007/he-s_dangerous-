@@ -2,6 +2,7 @@ import { NavLink, useParams, useNavigate } from 'react-router-dom';
 import { MODULES, findModule } from '../../data/curriculum';
 import { LABS } from '../../data/labs';
 import { useProgress } from '../../state/progressStore';
+import Logo from './Logo';
 import {
   ModuleIcon,
   IconDashboard,
@@ -37,10 +38,7 @@ export default function Sidebar() {
   return (
     <aside className="w-72 shrink-0 h-full overflow-y-auto border-r border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-5 flex flex-col">
       <NavLink to="/" className="flex items-center gap-2.5 px-2 mb-1">
-        <svg viewBox="0 0 24 24" className="w-7 h-7 shrink-0">
-          <path d="M12 2l8 3.5v6c0 5.2-3.4 8.6-8 10.5-4.6-1.9-8-5.3-8-10.5v-6L12 2Z" fill="var(--color-navy)" />
-          <path d="M12 2l8 3.5v6c0 5.2-3.4 8.6-8 10.5V2Z" fill="var(--color-accent)" />
-        </svg>
+        <Logo className="w-7 h-7 shrink-0" />
         <span className="font-extrabold text-[var(--color-heading)] tracking-tight text-lg">HackerHub</span>
       </NavLink>
       <div className="px-2 mb-5">
