@@ -46,7 +46,7 @@ export default function MyTasksPage() {
             onClick={() => setFilter(key)}
             className={`px-3.5 py-1.5 rounded-full text-sm font-medium border transition-colors ${
               filter === key
-                ? 'bg-[var(--color-navy)] border-[var(--color-navy)] text-white'
+                ? 'bg-[var(--color-accent)] border-[var(--color-accent)] text-white'
                 : 'border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-dim)] hover:text-[var(--color-heading)] hover:border-[var(--color-accent)]/50'
             }`}
           >

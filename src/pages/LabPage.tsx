@@ -57,7 +57,7 @@ export default function LabPage() {
             </div>
             <button
               onClick={() => setSharing(true)}
-              className="w-full px-4 py-2.5 rounded-lg bg-[var(--color-navy)] text-white text-sm font-semibold hover:brightness-110 transition"
+              className="w-full px-4 py-2.5 rounded-lg bg-[var(--color-accent)] text-white text-sm font-semibold hover:brightness-110 transition"
             >
               Generate shareable documentation &rarr;
             </button>

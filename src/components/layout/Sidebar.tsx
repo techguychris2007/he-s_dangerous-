@@ -134,7 +134,7 @@ export default function Sidebar() {
       </div>
 
       <div className="border-t border-[var(--color-border)] pt-3 mt-3 flex items-center gap-2.5 px-2">
-        <span className="w-8 h-8 rounded-full bg-[var(--color-navy)] text-white text-xs font-bold flex items-center justify-center shrink-0">
+        <span className="w-8 h-8 rounded-full bg-[var(--color-accent)] text-white text-xs font-bold flex items-center justify-center shrink-0">
           {initial}
         </span>
         <div className="min-w-0 flex-1">

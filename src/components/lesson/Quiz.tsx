@@ -67,7 +67,7 @@ export default function Quiz({ questions, onComplete }: QuizProps) {
         <button
           onClick={handleSubmit}
           disabled={!allAnswered}
-          className="mt-6 px-5 py-2 rounded-lg bg-[var(--color-navy)] text-white font-semibold text-sm disabled:opacity-30 disabled:cursor-not-allowed hover:brightness-110 transition"
+          className="mt-6 px-5 py-2 rounded-lg bg-[var(--color-accent)] text-white font-semibold text-sm disabled:opacity-30 disabled:cursor-not-allowed hover:brightness-110 transition"
         >
           Submit Answers
         </button>

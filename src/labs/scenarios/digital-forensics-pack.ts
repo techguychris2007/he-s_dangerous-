@@ -112,7 +112,7 @@ export const forensicsLabs: LabScenario[] = [
       'snapshot taken at capture time and the SOC\'s threat-intelligence feed to actually confirm it.',
     objectives: [
       {
-        text: 'grep -i "http" ~/memdump_strings.txt',
+        text: 'grep -i "http://" ~/memdump_strings.txt',
         why: 'Extracted memory strings mix a handful of real network indicators with a large amount of loaded-library and API-call noise — filtering for URL-like strings surfaces every outbound destination the process touched without reading dozens of irrelevant lines.',
       },
       {
@@ -129,7 +129,7 @@ export const forensicsLabs: LabScenario[] = [
       },
     ],
     hints: [
-      'grep -i "http" ~/memdump_strings.txt — isolates three URL-like strings out of roughly twenty noise lines.',
+      'grep -i "http://" ~/memdump_strings.txt — isolates three URL-like strings out of roughly twenty noise lines.',
       'cat ~/network-connections.txt — only one of those three destinations shows State=ESTABLISHED at capture time, and it\'s a process that has no normal reason to be reaching out to a raw IP.',
       'grep "185.220.101.47" ~/threat-intel-feed.txt — check the actively-connected IP specifically against the intel feed; try the other two candidate IPs too and see why they come back clean.',
       'cat ~/threat-intel-feed.txt — read the full feed to see the confirmed-malicious entry and capture the flag.',

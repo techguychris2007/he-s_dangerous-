@@ -17,8 +17,10 @@ export const networkReconLab: LabScenario = {
   ],
   hints: [
     'nmap -sV 10.10.20.5 will show you every open port and fingerprint its version.',
+    'Prefer speed first? masscan 10.10.20.5 or rustscan 10.10.20.5 finds open ports fast, then feed them into nmap -sV for the actual service/version detail.',
     "FTP (port 21) often allows anonymous login — try: ftp 10.10.20.5",
     "Once connected, use: ftp-get 10.10.20.5 <filename>  to pull and view a file's contents.",
+    'Curious what filesrv01 resolves to by name? dig filesrv01 shows the DNS record HackerHub tracks for this host.',
   ],
   totalFlags: 1,
   attacker: {

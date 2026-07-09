@@ -73,7 +73,7 @@ export default function HomePage() {
         })}
       </div>
 
-      <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-navy)] p-6 flex items-center justify-between flex-wrap gap-3">
+      <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-accent)] p-6 flex items-center justify-between flex-wrap gap-3">
         <div>
           <h2 className="text-base font-bold text-white mb-1">Full curriculum roadmap</h2>
           <p className="text-sm text-white/70">

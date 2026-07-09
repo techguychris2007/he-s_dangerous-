@@ -43,7 +43,7 @@ export default function ProfilePage() {
       <h1 className="text-3xl font-bold text-[var(--color-heading)] mb-8">Profile</h1>
 
       <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 flex items-center gap-4 mb-8">
-        <span className="w-16 h-16 rounded-full bg-[var(--color-navy)] text-white text-2xl font-bold flex items-center justify-center shrink-0">
+        <span className="w-16 h-16 rounded-full bg-[var(--color-accent)] text-white text-2xl font-bold flex items-center justify-center shrink-0">
           {initial}
         </span>
         <div className="min-w-0">

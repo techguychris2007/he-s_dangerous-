@@ -25,13 +25,17 @@ export const bugBountyLabs: LabScenario[] = [
     ],
     hints: [
       'nmap -sV 10.10.105.1',
+      'gobuster dir -u 10.10.105.1 -w /root/wordlists/common-dirs.txt (or ffuf -u 10.10.105.1 -w /root/wordlists/common-dirs.txt) surfaces /debug and /changelog.txt directly, no robots.txt guesswork needed.',
       'curl 10.10.105.1/robots.txt — one Disallow entry points straight at a hidden console.',
       'curl 10.10.105.1/debug — it exists, but it refuses you. Note exactly what it says it wants.',
       'curl 10.10.105.1/changelog.txt — old dev notes left in the web root document the "temporary" auth header in full.',
       'curl -H "X-Staging-Token: qa-9f31-legacy" 10.10.105.1/debug',
     ],
     totalFlags: 1,
-    attacker: attacker(),
+    attacker: {
+      hostname: 'kali', user: 'root',
+      root: dir({ root: dir({ wordlists: dir({ 'common-dirs.txt': file('admin\nbackup\ndebug\nchangelog.txt\nconfig\ntest\nold\ndev\n') }) }) }),
+    },
     network: [
       {
         hostname: 'staging-old', ip: '10.10.105.1', os: 'Ubuntu 18.04',

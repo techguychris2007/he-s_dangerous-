@@ -106,10 +106,10 @@ export default function Terminal({ scenario, onFlagCaptured }: TerminalProps) {
 
   return (
     <div
-      className="flex flex-col h-full bg-[#1c1408] border-2 border-[var(--color-accent-2)]/60 rounded-lg overflow-hidden font-mono text-sm shadow-2xl"
+      className="flex flex-col h-full bg-[#0c0d10] border-2 border-[var(--color-accent)]/50 rounded-lg overflow-hidden font-mono text-sm shadow-[0_0_40px_-12px_var(--color-accent)]"
       onClick={focusInput}
     >
-      <div className="flex items-center gap-1.5 px-3 py-2 bg-[#241a0c] border-b border-[var(--color-accent-2)]/40">
+      <div className="flex items-center gap-1.5 px-3 py-2 bg-[#15171c] border-b border-[var(--color-accent)]/30">
         <span className="w-3 h-3 rounded-full bg-[#ff5f56]" />
         <span className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
         <span className="w-3 h-3 rounded-full bg-[#27c93f]" />

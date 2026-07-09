@@ -5,9 +5,9 @@ import { IconBookmark, IconCertificate, IconCheck } from '../layout/icons';
 import ModuleBanner from '../layout/ModuleBanner';
 
 const DIFFICULTY_CLASS: Record<string, string> = {
-  Easy: 'bg-[var(--color-success)]/15 text-[var(--color-success)]',
-  Medium: 'bg-[var(--color-warn)]/15 text-[var(--color-warn)]',
-  Hard: 'bg-[var(--color-danger)]/15 text-[var(--color-danger)]',
+  Easy: 'bg-[var(--color-success)]/20 text-[var(--color-success)] border border-[var(--color-success)]/30',
+  Medium: 'bg-[var(--color-warn)]/20 text-[var(--color-warn)] border border-[var(--color-warn)]/30',
+  Hard: 'bg-[var(--color-danger)]/20 text-[var(--color-danger)] border border-[var(--color-danger)]/30',
 };
 
 const POINTS: Record<string, number> = { Easy: 10, Medium: 20, Hard: 30 };
@@ -41,7 +41,7 @@ export default function LabCard({ lab, variant = 'catalog' }: { lab: LabEntry; v
     variant === 'task' ? (done ? 'Review task' : captured > 0 ? 'Continue task' : 'Start task') : 'Launch lab';
 
   return (
-    <div className="rounded-xl overflow-hidden border border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-accent)]/50 hover:shadow-md transition-all flex flex-col">
+    <div className="group rounded-xl overflow-hidden border border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-accent)]/60 hover:-translate-y-0.5 hover:shadow-[0_8px_30px_-8px_var(--color-accent)] transition-all duration-200 flex flex-col">
       <div className="relative">
         <Link to={labUrl}>
           <ModuleBanner icon="flag" moduleId={CATEGORY_BANNER[lab.scenario.category] ?? 'linux'} className="h-28 w-full" />
@@ -106,7 +106,7 @@ export default function LabCard({ lab, variant = 'catalog' }: { lab: LabEntry; v
           </div>
           <Link
             to={labUrl}
-            className="w-full px-4 py-2.5 rounded-lg bg-[var(--color-navy)] text-white font-semibold text-sm text-center hover:brightness-110 transition flex items-center justify-center gap-1.5"
+            className="w-full px-4 py-2.5 rounded-lg bg-[var(--color-accent)] text-white font-semibold text-sm text-center hover:brightness-110 transition flex items-center justify-center gap-1.5"
           >
             {ctaLabel} &rarr;
           </Link>

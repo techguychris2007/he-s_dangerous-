@@ -55,8 +55,8 @@ export default function StepChecklist({ steps, title = 'Guided Steps' }: StepChe
                   {step.text}
                 </span>
                 {step.why && (
-                  <span className="block text-xs text-[var(--color-accent-dim)] mt-0.5 leading-snug">
-                    <span className="font-semibold">Why: </span>
+                  <span className="block text-xs text-[var(--color-text-dim)] mt-0.5 leading-snug">
+                    <span className="font-semibold text-[var(--color-accent-dim)]">Why: </span>
                     {step.why}
                   </span>
                 )}

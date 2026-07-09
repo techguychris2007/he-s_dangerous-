@@ -11,7 +11,7 @@ export default function CodeBlock({ children, label }: CodeBlockProps) {
           {label}
         </div>
       )}
-      <pre className="bg-[#080b10] text-[var(--color-accent)] font-mono text-[0.85rem] p-4 overflow-x-auto leading-relaxed">
+      <pre className="bg-[#080b10] text-[#8be9b8] font-mono text-[0.85rem] p-4 overflow-x-auto leading-relaxed">
         {children}
       </pre>
     </div>

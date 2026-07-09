@@ -55,7 +55,7 @@ export default function LessonPage() {
         <button
           onClick={() => progress.completeLesson(lesson.id)}
           disabled={complete}
-          className="mt-10 flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[var(--color-navy)] text-white font-semibold text-sm disabled:opacity-50 hover:brightness-110 transition"
+          className="mt-10 flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[var(--color-accent)] text-white font-semibold text-sm disabled:opacity-50 hover:brightness-110 transition"
         >
           {complete ? (
             <>

@@ -57,7 +57,7 @@ export default function ModulePage() {
                 <div className="text-xs text-[var(--color-text-dim)] truncate">{lesson.summary}</div>
               </div>
               {labCount > 0 && (
-                <span className="pill bg-[var(--color-navy)]/10 text-[var(--color-navy)] shrink-0 flex items-center gap-1">
+                <span className="pill bg-[var(--color-accent)]/10 text-[var(--color-navy)] shrink-0 flex items-center gap-1">
                   <IconFlask className="w-3 h-3" /> {labCount}
                 </span>
               )}

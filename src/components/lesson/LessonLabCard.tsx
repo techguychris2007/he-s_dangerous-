@@ -24,8 +24,8 @@ export default function LessonLabCard({ labSlug }: { labSlug: string }) {
   const done = captured >= scenario.totalFlags;
 
   return (
-    <div className="my-5 rounded-xl overflow-hidden border border-[var(--color-navy)]/20">
-      <div className="bg-[var(--color-navy)] px-5 py-4 flex items-center justify-between gap-4 flex-wrap">
+    <div className="my-5 rounded-xl overflow-hidden border border-[var(--color-accent)]/20">
+      <div className="bg-[var(--color-accent)] px-5 py-4 flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-start gap-3 min-w-0">
           <span className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center text-white shrink-0">
             <IconFlask className="w-4.5 h-4.5" />

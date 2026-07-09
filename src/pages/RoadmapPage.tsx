@@ -32,7 +32,7 @@ export default function RoadmapPage() {
             const nodeColor = complete
               ? 'bg-[var(--color-success)] border-[var(--color-success)] text-white'
               : available
-              ? 'bg-[var(--color-navy)] border-[var(--color-navy)] text-white'
+              ? 'bg-[var(--color-accent)] border-[var(--color-accent)] text-white'
               : 'bg-[var(--color-surface)] border-[var(--color-border)] text-[var(--color-text-dim)]';
 
             return (

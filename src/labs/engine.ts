@@ -162,7 +162,7 @@ export class TerminalEngine {
    *  or (for buffer-overflow-style labs) if its LENGTH reaches a minimum overflow threshold. */
   private tryRunCrackme(cmd: string, args: string[], onFlag: (flag: string) => void): OutLine[] | null {
     const cleaned = cmd.replace(/^\.\//, '');
-    const resolved = this.resolveInSession(cleaned.startsWith('/') ? cleaned : cleaned);
+    const resolved = this.resolveInSession(cleaned);
     const node = getNode(this.fsRoot(), resolved);
     if (!node || node.type !== 'file') return null;
     const pwLine = node.content.split('\n').find((l) => l.startsWith('#CRACKME_PASSWORD:'));
@@ -310,10 +310,22 @@ export class TerminalEngine {
 
   private grep(args: string[]): OutLine[] {
     const recursive = args.includes('-r') || args.includes('-R');
+    const ignoreCase = args.includes('-i');
     const positional = args.filter((a) => !a.startsWith('-'));
-    if (positional.length < 2) return [{ kind: 'error', text: 'usage: grep [-r] <pattern> <file|dir>' }];
+    if (positional.length < 2) return [{ kind: 'error', text: 'usage: grep [-r] [-i] [-E] <pattern> <file|dir>' }];
     const [rawPattern, targetPath] = positional;
     const clean = rawPattern.replace(/^["']|["']$/g, '');
+    // grep patterns in these labs are sometimes plain literal text and sometimes a real regex
+    // (e.g. "any.*any.*any" or -E "[0-9]{3}-[0-9]{2}-[0-9]{4}") — compile as a regex when possible,
+    // falling back to a literal substring check if the pattern isn't valid regex syntax.
+    let regex: RegExp | null = null;
+    try {
+      regex = new RegExp(clean, ignoreCase ? 'i' : undefined);
+    } catch {
+      regex = null;
+    }
+    const needle = ignoreCase ? clean.toLowerCase() : clean;
+    const matchesLine = (l: string) => (regex ? regex.test(l) : (ignoreCase ? l.toLowerCase() : l).includes(needle));
     const resolved = this.resolveInSession(targetPath);
     const node = getNode(this.fsRoot(), resolved);
     if (!node) return [{ kind: 'error', text: `grep: ${targetPath}: No such file or directory` }];
@@ -324,7 +336,7 @@ export class TerminalEngine {
       const walk = (n: FsNode, path: string[]) => {
         if (n.type === 'file') {
           n.content.split('\n').forEach((l) => {
-            if (l.includes(clean)) out.push({ kind: 'output', text: `${pathToString(path)}:${l}` });
+            if (matchesLine(l)) out.push({ kind: 'output', text: `${pathToString(path)}:${l}` });
           });
         } else {
           for (const [name, child] of Object.entries(n.children)) walk(child, [...path, name]);
@@ -334,16 +346,18 @@ export class TerminalEngine {
       return out.length ? out : [];
     }
 
-    const matches = node.content.split('\n').filter((l) => l.includes(clean));
+    const matches = node.content.split('\n').filter(matchesLine);
     return matches.length
       ? matches.map((l) => ({ kind: 'output' as const, text: l }))
       : [];
   }
 
-  private nmap(args: string[]): OutLine[] {
+  private nmap(args: string[], onFlag: (flag: string) => void): OutLine[] {
     const verbose = args.includes('-sV');
+    const cidrArg = args.find((a) => /^\d+\.\d+\.\d+\.\d+\/\d{1,2}$/.test(a));
+    if (cidrArg) return this.nmapSweep(cidrArg);
     const ip = args.find((a) => /^\d+\.\d+\.\d+\.\d+$/.test(a));
-    if (!ip) return [{ kind: 'error', text: 'usage: nmap [-sV] [-p-] <ip>' }];
+    if (!ip) return [{ kind: 'error', text: 'usage: nmap [-sV] [-p-] <ip>[/cidr]' }];
     const host = this.findHostByIp(ip);
     const out: OutLine[] = [];
     out.push({ kind: 'system', text: `Starting Nmap 7.94 ( https://nmap.org ) at ${new Date().toUTCString()}` });
@@ -359,11 +373,38 @@ export class TerminalEngine {
       const portStr = `${svc.port}/tcp`.padEnd(9);
       if (verbose) {
         out.push({ kind: 'output', text: `${portStr}open  ${svc.name.padEnd(7)} ${svc.version}` });
+        // A handful of compliance/banner-identification labs embed the flag directly in the version
+        // string itself, since the whole point of the exercise is spotting it via -sV fingerprinting.
+        const match = svc.version.match(FLAG_RE);
+        if (match) onFlag(match[0]);
       } else {
         out.push({ kind: 'output', text: `${portStr}open  ${svc.name}` });
       }
     }
     out.push({ kind: 'system', text: `Nmap done: 1 IP address (1 host up) scanned in 4.21 seconds` });
+    return out;
+  }
+
+  /** `nmap -sn <ip>/<cidr>` — ping-sweep/host-discovery only (no port scan), used to find undocumented hosts on a subnet. */
+  private nmapSweep(cidrArg: string): OutLine[] {
+    const [baseIp, prefixStr] = cidrArg.split('/');
+    const prefix = Number(prefixStr);
+    const out: OutLine[] = [];
+    out.push({ kind: 'system', text: `Starting Nmap 7.94 ( https://nmap.org ) at ${new Date().toUTCString()}` });
+    if (Number.isNaN(prefix) || prefix < 0 || prefix > 32 || ipToInt(baseIp) === null) {
+      out.push({ kind: 'error', text: `nmap: invalid target specification '${cidrArg}'` });
+      return out;
+    }
+    const found = this.scenario.network.filter((h) => ipInCidr(h.ip, baseIp, prefix));
+    if (found.length === 0) {
+      out.push({ kind: 'output', text: `Nmap done: ${2 ** (32 - prefix)} IP addresses (0 hosts up) scanned in 2.10 seconds` });
+      return out;
+    }
+    for (const host of found) {
+      out.push({ kind: 'output', text: `Nmap scan report for ${host.hostname} (${host.ip})` });
+      out.push({ kind: 'output', text: `Host is up (0.0031s latency).` });
+    }
+    out.push({ kind: 'system', text: `Nmap done: ${2 ** (32 - prefix)} IP addresses (${found.length} host${found.length === 1 ? '' : 's'} up) scanned in 2.10 seconds` });
     return out;
   }
 
@@ -440,6 +481,209 @@ export class TerminalEngine {
     const match = body.match(FLAG_RE);
     if (match) onFlag(match[0]);
     return body.split('\n').map((l) => ({ kind: 'output' as const, text: l }));
+  }
+
+  /** dig/nslookup — resolves a lab hostname (e.g. shop01) to the IP configured on its HostDef. */
+  private dig(args: string[]): OutLine[] {
+    const name = args.find((a) => !a.startsWith('-'));
+    if (!name) return [{ kind: 'error', text: 'usage: dig <hostname>' }];
+    const host = this.scenario.network.find((h) => h.hostname.toLowerCase() === name.toLowerCase());
+    if (!host) {
+      return [
+        { kind: 'system', text: `; <<>> DiG 9.18.1 <<>> ${name}` },
+        { kind: 'output', text: ';; ->>HEADER<<- opcode: QUERY, status: NXDOMAIN' },
+      ];
+    }
+    return [
+      { kind: 'system', text: `; <<>> DiG 9.18.1 <<>> ${name}` },
+      { kind: 'output', text: ';; ->>HEADER<<- opcode: QUERY, status: NOERROR' },
+      { kind: 'output', text: ';; ANSWER SECTION:' },
+      { kind: 'success', text: `${name}.\t300\tIN\tA\t${host.ip}` },
+    ];
+  }
+
+  /** gobuster/ffuf/dirsearch — directory/file brute-forcing against a target's HTTP routes using a wordlist file. */
+  private webFuzz(tool: string, args: string[]): OutLine[] {
+    const urlArg = args.find((a) => /^\d+\.\d+\.\d+\.\d+/.test(a.replace(/^https?:\/\//, '')));
+    const wIdx = args.indexOf('-w');
+    const wordlistPath = wIdx >= 0 ? args[wIdx + 1] : args.find((a) => a.includes('/') && !/^\d/.test(a) && !a.startsWith('http'));
+    if (!urlArg || !wordlistPath) {
+      return [{ kind: 'error', text: `usage: ${tool} -u <ip>[:port] -w <wordlist>` }];
+    }
+    const m = urlArg.match(/^(?:https?:\/\/)?(\d+\.\d+\.\d+\.\d+)(?::(\d+))?/);
+    if (!m) return [{ kind: 'error', text: `${tool}: invalid target URL` }];
+    const [, ip, portStr] = m;
+    const port = portStr ? Number(portStr) : 80;
+    const host = this.findHostByIp(ip);
+    const svc = host?.services.find((s) => s.port === port && (s.http || s.vulnRoutes));
+    if (!host || !svc) return [{ kind: 'error', text: `${tool}: unable to connect to ${ip}:${port}` }];
+
+    const wordlistNode = getNode(this.fsRoot(), this.resolveInSession(wordlistPath));
+    if (!wordlistNode || wordlistNode.type !== 'file') return [{ kind: 'error', text: `${tool}: cannot read wordlist '${wordlistPath}'` }];
+    const words = wordlistNode.content.split('\n').map((w) => w.trim()).filter(Boolean);
+
+    const knownPaths = new Set<string>([...Object.keys(svc.http ?? {}), ...(svc.vulnRoutes ?? []).map((r) => r.path)]);
+    const out: OutLine[] = [{ kind: 'system', text: `${tool} — wordlist: ${words.length} entries, target: ${ip}:${port}` }];
+    let found = 0;
+    for (const path of knownPaths) {
+      const bare = path.replace(/^\//, '');
+      if (words.includes(bare)) {
+        found += 1;
+        out.push({ kind: 'success', text: `${path.padEnd(30)} (Status: 200)` });
+      }
+    }
+    out.push({ kind: found ? 'system' : 'muted', text: found ? `${tool}: ${found} result(s) found.` : `${tool}: no results — nothing in this wordlist matched.` });
+    return out;
+  }
+
+  /** nikto/whatweb — quick web fingerprint/vuln-scanner flavor, reusing the service banner already modeled for nmap -sV. */
+  private webScan(tool: string, args: string[]): OutLine[] {
+    const ip = args.find((a) => /^\d+\.\d+\.\d+\.\d+$/.test(a));
+    if (!ip) return [{ kind: 'error', text: `usage: ${tool} -h <ip>` }];
+    const host = this.findHostByIp(ip);
+    const svc = host?.services.find((s) => s.http || s.vulnRoutes);
+    if (!host || !svc) return [{ kind: 'error', text: `${tool}: could not connect to ${ip}` }];
+    return [
+      { kind: 'system', text: `${tool === 'whatweb' ? 'WhatWeb' : 'Nikto'} v2.5 scanning ${ip} ...` },
+      { kind: 'output', text: `Target IP: ${ip}` },
+      { kind: 'output', text: `Server: ${svc.version}` },
+      { kind: 'output', text: `Port: ${svc.port}` },
+      { kind: 'muted', text: `(this is a fingerprinting pass only — use curl/gobuster/sqlmap to actually enumerate and exploit specific findings)` },
+    ];
+  }
+
+  /** sqlmap — automated SQLi confirmation/dump against an existing 'sqli' VulnRoute. */
+  private sqlmap(args: string[], onFlag: (flag: string) => void): OutLine[] {
+    const uIdx = args.indexOf('-u');
+    const target = uIdx >= 0 ? args[uIdx + 1] : args.find((a) => /^https?:\/\//.test(a) || /^\d+\.\d+\.\d+\.\d+/.test(a));
+    if (!target) return [{ kind: 'error', text: 'usage: sqlmap -u "<url>" --batch [--dump]' }];
+    const m = target.match(/^(?:https?:\/\/)?(\d+\.\d+\.\d+\.\d+)(?::(\d+))?(\/[^?]*)?(?:\?(.*))?$/);
+    if (!m) return [{ kind: 'error', text: 'sqlmap: invalid target URL' }];
+    const [, ip, portStr, rawPath, rawQuery] = m;
+    const port = portStr ? Number(portStr) : 80;
+    const path = rawPath ?? '/';
+    const host = this.findHostByIp(ip);
+    const svc = host?.services.find((s) => s.port === port && s.vulnRoutes);
+    const route = svc?.vulnRoutes?.find((r) => r.path === path && r.kind === 'sqli');
+    const out: OutLine[] = [{ kind: 'system', text: `sqlmap resuming/starting against ${target}` }];
+    if (!host || !svc || !route) {
+      out.push({ kind: 'error', text: `[CRITICAL] all tested parameters do not appear to be injectable.` });
+      return out;
+    }
+    out.push({ kind: 'success', text: `[INFO] GET parameter '${route.param}' appears to be injectable` });
+    out.push({ kind: 'output', text: `Parameter: ${route.param} (GET)` });
+    out.push({ kind: 'output', text: `    Type: UNION query` });
+    if (args.includes('--dump')) {
+      const params = parseParams(rawQuery ?? '');
+      const value = params[route.param] ?? '';
+      const triggered = route.triggerSubstrings.some((s) => value.toLowerCase().includes(s.toLowerCase()));
+      const body = triggered ? route.vulnerableResponse : route.normalResponse;
+      const match = body.match(FLAG_RE);
+      if (match) onFlag(match[0]);
+      out.push({ kind: 'system', text: '[INFO] fetching data...' });
+      body.split('\n').forEach((l) => out.push({ kind: 'success', text: l }));
+    } else {
+      out.push({ kind: 'muted', text: `re-run with --dump (and the confirmed payload in the URL) to actually extract data.` });
+    }
+    return out;
+  }
+
+  /** john — CPU-based hash cracking, an alternate front-end to the same #HASHCAT_* markers hashcat reads. */
+  private john(args: string[], onFlag: (flag: string) => void): OutLine[] {
+    const wIdx = args.indexOf('--wordlist');
+    const hashArg = args.find((a, i) => !a.startsWith('-') && args[i - 1] !== '--wordlist');
+    const wordlistArg = wIdx >= 0 ? args[wIdx + 1]?.replace('--wordlist=', '') : undefined;
+    const wordlistPath = args.find((a) => a.startsWith('--wordlist='))?.replace('--wordlist=', '') ?? wordlistArg;
+    if (!hashArg || !wordlistPath) return [{ kind: 'error', text: 'usage: john --wordlist=<wordlist> <hashfile>' }];
+    const hashNode = getNode(this.fsRoot(), this.resolveInSession(hashArg));
+    const wordlistNode = getNode(this.fsRoot(), this.resolveInSession(wordlistPath));
+    if (!hashNode || hashNode.type !== 'file') return [{ kind: 'error', text: `john: ${hashArg}: No such file or directory` }];
+    if (!wordlistNode || wordlistNode.type !== 'file') return [{ kind: 'error', text: `john: ${wordlistPath}: No such file or directory` }];
+    const hashValue = this.extractMarkerBlock(hashNode.content, '#HASHCAT_HASH:');
+    const plaintext = this.extractMarkerBlock(hashNode.content, '#HASHCAT_PLAINTEXT:');
+    const out: OutLine[] = [{ kind: 'system', text: 'Using default input encoding: UTF-8' }, { kind: 'muted', text: 'Loaded 1 password hash' }];
+    if (!hashValue || !plaintext) {
+      out.push({ kind: 'error', text: '0g 0:00:00:00 DONE — no hashes loaded' });
+      return out;
+    }
+    const words = wordlistNode.content.split('\n').map((w) => w.trim()).filter(Boolean);
+    if (!words.includes(plaintext)) {
+      out.push({ kind: 'error', text: '0g 0:00:00:03 DONE (2026) 0g/s — no matches in this wordlist' });
+      return out;
+    }
+    out.push({ kind: 'success', text: `${plaintext}          (?)` });
+    out.push({ kind: 'success', text: '1g 0:00:00:01 DONE — use --show to display cracked passwords' });
+    const flagMarker = this.extractMarkerBlock(hashNode.content, '#HASHCAT_FLAG:');
+    if (flagMarker) out.push({ kind: 'success', text: flagMarker });
+    const match = (flagMarker ?? '').match(FLAG_RE) ?? plaintext.match(FLAG_RE) ?? hashNode.content.match(FLAG_RE);
+    if (match) onFlag(match[0]);
+    return out;
+  }
+
+  /** cewl — generates a target-specific wordlist from a site's own HTML content. */
+  private cewl(args: string[]): OutLine[] {
+    const target = args.find((a) => /^https?:\/\//.test(a) || /^\d+\.\d+\.\d+\.\d+/.test(a));
+    if (!target) return [{ kind: 'error', text: 'usage: cewl <url> [-w outputfile]' }];
+    const m = target.match(/^(?:https?:\/\/)?(\d+\.\d+\.\d+\.\d+)/);
+    const ip = m?.[1];
+    const host = ip ? this.findHostByIp(ip) : undefined;
+    if (!host) return [{ kind: 'error', text: `cewl: could not connect to ${target}` }];
+    const words = new Set<string>();
+    for (const svc of host.services) {
+      for (const body of Object.values(svc.http ?? {})) {
+        (body.match(/[A-Za-z][A-Za-z'-]{3,}/g) ?? []).forEach((w) => words.add(w));
+      }
+    }
+    const list = [...words].slice(0, 12);
+    return [
+      { kind: 'system', text: `CeWL 6.1 crawling ${target}` },
+      ...list.map((w) => ({ kind: 'output' as const, text: w })),
+      { kind: 'muted', text: `${list.length} words extracted — combine with a base wordlist for a targeted hydra/hashcat run.` },
+    ];
+  }
+
+  /** enum4linux/smbclient — lists top-level share-like directories on a host exposing SMB (445). */
+  private smbEnum(tool: string, args: string[]): OutLine[] {
+    const ip = args.find((a) => /^\d+\.\d+\.\d+\.\d+$/.test(a));
+    if (!ip) return [{ kind: 'error', text: `usage: ${tool} <ip>` }];
+    const host = this.findHostByIp(ip);
+    if (!host || !host.services.some((s) => s.port === 445)) {
+      return [{ kind: 'error', text: `${tool}: session setup failed: NT_STATUS_CONNECTION_REFUSED` }];
+    }
+    const shares = Object.keys(host.root.type === 'dir' ? host.root.children : {});
+    return [
+      { kind: 'system', text: `${tool === 'smbclient' ? 'Anonymous login successful' : `Starting enum4linux v0.9.1 on ${ip}`}` },
+      { kind: 'output', text: `Sharename       Type      Comment` },
+      { kind: 'output', text: `---------       ----      -------` },
+      ...shares.map((s) => ({ kind: 'output' as const, text: `${s.padEnd(15)} Disk` })),
+      { kind: 'muted', text: `Use ftp/ftp-get in this simulated environment to actually pull files from a share.` },
+    ];
+  }
+
+  /** masscan/rustscan — high-speed port discovery: open ports only, no service/version banner (that's nmap -sV's job). */
+  private fastScan(tool: string, args: string[]): OutLine[] {
+    const ip = args.find((a) => /^\d+\.\d+\.\d+\.\d+$/.test(a));
+    if (!ip) return [{ kind: 'error', text: `usage: ${tool} -p1-65535 <ip>` }];
+    const host = this.findHostByIp(ip);
+    const out: OutLine[] = [{ kind: 'system', text: `${tool === 'masscan' ? 'Starting masscan 1.3.2' : 'RustScan 2.1.1'} — ultra-fast port scan of ${ip}` }];
+    if (!host) {
+      out.push({ kind: 'error', text: `${ip} appears to be down.` });
+      return out;
+    }
+    for (const svc of host.services) out.push({ kind: 'success', text: `Discovered open port ${svc.port}/tcp on ${ip}` });
+    out.push({ kind: 'muted', text: `${host.services.length} open port(s) — pipe these into nmap -sV for service/version detection.` });
+    return out;
+  }
+
+  /** nc/netcat — raw TCP connect + banner grab against any modeled service. */
+  private netcat(args: string[]): OutLine[] {
+    const ip = args.find((a) => /^\d+\.\d+\.\d+\.\d+$/.test(a));
+    const port = Number(args.find((a) => /^\d+$/.test(a) && a !== ip));
+    if (!ip || !port) return [{ kind: 'error', text: 'usage: nc <ip> <port>' }];
+    const host = this.findHostByIp(ip);
+    const svc = host?.services.find((s) => s.port === port);
+    if (!host || !svc) return [{ kind: 'error', text: `nc: connect to ${ip} port ${port} (tcp) failed: Connection refused` }];
+    return [{ kind: 'output', text: svc.banner ?? `${svc.name} ${svc.version}` }];
   }
 
   private exploit(args: string[]): OutLine[] {
@@ -725,9 +969,14 @@ export class TerminalEngine {
       { kind: 'system', text: 'Available commands:' },
       { kind: 'output', text: 'pwd, ls [-la], cd, cat, echo, find, grep      — filesystem' },
       { kind: 'output', text: 'whoami, id, ifconfig, netstat -tulpn          — recon (local)' },
-      { kind: 'output', text: 'ping, nmap [-sV] <ip>, curl <ip>/path         — recon (network)' },
+      { kind: 'output', text: 'ping, nmap [-sV] <ip>, dig <hostname>         — recon (network)' },
+      { kind: 'output', text: 'masscan/rustscan <ip>, nc <ip> <port>         — fast scan / raw connect' },
+      { kind: 'output', text: 'curl <ip>/path, gobuster/ffuf/dirsearch -u.. -w.. — web enum' },
+      { kind: 'output', text: 'nikto/whatweb -h <ip>, sqlmap -u ".." --batch — web scanning / SQLi' },
       { kind: 'output', text: 'ftp <ip>, ftp-get <ip> <file>                 — anonymous FTP' },
+      { kind: 'output', text: 'enum4linux/smbclient <ip>                     — SMB share enumeration' },
       { kind: 'output', text: 'ssh user@ip, hydra -l user -P list ssh://ip   — access' },
+      { kind: 'output', text: 'hashcat/john -m/--wordlist .., cewl <url>     — password cracking' },
       { kind: 'output', text: 'sudo -l, sudo <cmd>, exit                     — privesc / sessions' },
       { kind: 'output', text: 'objectives, hint, clear, history               — lab helpers' },
     ];
@@ -784,7 +1033,7 @@ export class TerminalEngine {
       case 'ping':
         return this.ping(args);
       case 'nmap':
-        return this.nmap(args);
+        return this.nmap(args, onFlag);
       case 'curl':
       case 'wget':
         return this.curl(args, onFlag);
@@ -798,11 +1047,37 @@ export class TerminalEngine {
         return this.hydra(args);
       case 'crackmapexec':
       case 'cme':
+      case 'netexec':
         return this.crackmapexec(args);
       case 'exploit':
         return this.exploit(args);
       case 'secretsdump':
         return this.secretsdump(args, onFlag);
+      case 'dig':
+      case 'nslookup':
+        return this.dig(args);
+      case 'gobuster':
+      case 'ffuf':
+      case 'dirsearch':
+        return this.webFuzz(cmd, args);
+      case 'nikto':
+      case 'whatweb':
+        return this.webScan(cmd, args);
+      case 'sqlmap':
+        return this.sqlmap(args, onFlag);
+      case 'john':
+        return this.john(args, onFlag);
+      case 'cewl':
+        return this.cewl(args);
+      case 'enum4linux':
+      case 'smbclient':
+        return this.smbEnum(cmd, args);
+      case 'masscan':
+      case 'rustscan':
+        return this.fastScan(cmd, args);
+      case 'nc':
+      case 'netcat':
+        return this.netcat(args);
       case 'sudo':
         return this.sudo(args);
       case 'su':
@@ -838,6 +1113,22 @@ export class TerminalEngine {
 
 function escapeRe(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/** Converts a dotted-quad IPv4 string to its 32-bit numeric form, or null if malformed. */
+function ipToInt(ip: string): number | null {
+  const parts = ip.split('.').map(Number);
+  if (parts.length !== 4 || parts.some((p) => Number.isNaN(p) || p < 0 || p > 255)) return null;
+  return ((parts[0] << 24) | (parts[1] << 16) | (parts[2] << 8) | parts[3]) >>> 0;
+}
+
+/** True if `ip` falls within the `baseIp/prefix` CIDR range. */
+function ipInCidr(ip: string, baseIp: string, prefix: number): boolean {
+  const ipNum = ipToInt(ip);
+  const baseNum = ipToInt(baseIp);
+  if (ipNum === null || baseNum === null) return false;
+  const mask = prefix === 0 ? 0 : (0xffffffff << (32 - prefix)) >>> 0;
+  return (ipNum & mask) === (baseNum & mask);
 }
 
 /** Shell-like tokenizer: splits on whitespace but keeps "..."/'...' groups (with spaces) as one token. */

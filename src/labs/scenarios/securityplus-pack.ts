@@ -30,7 +30,7 @@ export const securityPlusLabs: LabScenario[] = [
     network: [
       {
         hostname: 'payment-gw-legacy', ip: '10.10.111.1', os: 'CentOS 6 (legacy, unpatched TLS stack)',
-        services: [{ port: 443, name: 'https', version: 'Apache 2.2 mod_ssl (SSLv3 and TLS 1.0 enabled — PCI DSS non-compliant)' }],
+        services: [{ port: 443, name: 'https', version: 'Apache 2.2 mod_ssl (SSLv3 and TLS 1.0 enabled — PCI DSS non-compliant — flag{sslv3_and_tls1_0_pci_dss_non_compliant})' }],
         users: [], root: dir({}),
       } as HostDef,
     ],

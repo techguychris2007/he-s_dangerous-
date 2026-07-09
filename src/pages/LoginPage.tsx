@@ -41,7 +41,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={!name.trim()}
-            className="w-full px-4 py-3 rounded-lg bg-[var(--color-navy)] text-white font-semibold text-sm disabled:opacity-40 hover:brightness-110 transition"
+            className="w-full px-4 py-3 rounded-lg bg-[var(--color-accent)] text-white font-semibold text-sm disabled:opacity-40 hover:brightness-110 transition"
           >
             Start learning &rarr;
           </button>

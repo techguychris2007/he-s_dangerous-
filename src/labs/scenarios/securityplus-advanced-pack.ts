@@ -23,6 +23,7 @@ export const securityPlusAdvancedLabs: LabScenario[] = [
     hints: [
       'cat ~/dc-hash-export.txt',
       'hashcat -m 1000 ~/dc-hash-export.txt ~/wordlists/mini-rockyou.txt',
+      'Prefer a CPU-based cracker? john --wordlist=~/wordlists/mini-rockyou.txt ~/dc-hash-export.txt runs the same audit the classic way.',
       'The cracked password is a common dictionary word under 12 characters — a direct policy violation.',
     ],
     totalFlags: 1,
@@ -84,7 +85,7 @@ export const securityPlusAdvancedLabs: LabScenario[] = [
     ],
     hints: [
       'cat ~/dmz-firewall-rules.txt',
-      'grep "any.*any.*any" ~/dmz-firewall-rules.txt',
+      'grep -i "any.*any.*any" ~/dmz-firewall-rules.txt',
       'Note the rule number and the comment explaining why it was added.',
     ],
     totalFlags: 1,

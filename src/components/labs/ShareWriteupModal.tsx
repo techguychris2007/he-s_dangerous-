@@ -117,7 +117,7 @@ export default function ShareWriteupModal({ entry, onClose }: { entry: LabEntry;
           </button>
           <button
             onClick={copy}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[var(--color-navy)] text-white text-sm font-semibold hover:brightness-110 transition"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[var(--color-accent)] text-white text-sm font-semibold hover:brightness-110 transition"
           >
             {copied ? (
               <>

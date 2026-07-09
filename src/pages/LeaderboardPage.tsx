@@ -32,7 +32,7 @@ export default function LeaderboardPage() {
         <span className="w-8 h-8 rounded-full bg-[var(--color-accent)]/15 text-[var(--color-accent-dim)] font-bold flex items-center justify-center text-sm shrink-0">
           1
         </span>
-        <span className="w-14 h-14 rounded-full bg-[var(--color-navy)] text-white text-xl font-bold flex items-center justify-center shrink-0">
+        <span className="w-14 h-14 rounded-full bg-[var(--color-accent)] text-white text-xl font-bold flex items-center justify-center shrink-0">
           {initial}
         </span>
         <div className="flex-1 min-w-0">

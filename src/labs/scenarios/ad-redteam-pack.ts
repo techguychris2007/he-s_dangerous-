@@ -33,6 +33,7 @@ export const adRedteamLabs: LabScenario[] = [
     ],
     hints: [
       'nmap -sV 10.10.104.1',
+      'enum4linux 10.10.104.1 or smbclient 10.10.104.1 lists what SMB shares exist on the box before you dive in.',
       'ftp 10.10.104.1 then ftp-get 10.10.104.1 migration-config.txt',
       'crackmapexec smb 10.10.104.1 -u svc_backup -p <password-you-found>',
       'crackmapexec smb 10.10.104.50 -u svc_backup -p <password-you-found>, then ssh svc_backup@10.10.104.50',
