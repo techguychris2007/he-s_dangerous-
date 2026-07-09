@@ -64,7 +64,7 @@ dirsearch -u https://target.com -e php`}</CodeBlock>
 
       <h2>Authentication flaws worth checking on every target</h2>
       <CodeBlock label="the standard auth checklist">{`- Can you register with an already-taken username/email and get a different error than expected?
-- Does the password reset token predictable, reusable, or leaked in a Referer header?
+- Is the password reset token predictable, reusable, or leaked in a Referer header?
 - Is there no rate limiting on login -> brute-forceable
 - Does changing "role":"user" to "role":"admin" in a request body get honored by the server?
 - Does the app trust a client-side "isAdmin" cookie/localStorage value instead of a server-side check?`}</CodeBlock>

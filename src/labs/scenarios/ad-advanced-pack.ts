@@ -100,6 +100,7 @@ export const adAdvancedLabs: LabScenario[] = [
       'cat ~/dcsync-loot.txt on your attack box for the krbtgt hash.',
       'ssh administrator@10.10.107.3 then supply the krbtgt hash value as the password when prompted.',
       'A Golden Ticket bypasses normal password authentication entirely — this lab represents that by accepting the krbtgt hash as a stand-in credential.',
+      'Once logged in, cat root.txt for the flag.',
     ],
     totalFlags: 1,
     attacker: attacker({

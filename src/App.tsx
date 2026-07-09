@@ -56,6 +56,7 @@ function App() {
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/security" element={<SecurityPage />} />
             <Route path="/help" element={<HelpFaqPage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>
       </HashRouter>

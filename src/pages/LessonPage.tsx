@@ -20,6 +20,7 @@ export default function LessonPage() {
   const complete = progress.isLessonComplete(lesson.id);
   const { Content } = lesson;
   const labSlugs = labsForLesson(lesson.id);
+  const quiz = lesson.quiz;
 
   return (
     <div className="max-w-3xl mx-auto px-8 py-12">
@@ -43,11 +44,13 @@ export default function LessonPage() {
         </div>
       )}
 
-      {lesson.quiz ? (
+      {quiz ? (
         <Quiz
-          questions={lesson.quiz}
+          key={lesson.id}
+          questions={quiz}
           onComplete={(score) => {
-            progress.recordQuizScore(lesson.id, score);
+            const pct = Math.round((score / quiz.length) * 100);
+            progress.recordQuizScore(lesson.id, pct);
             progress.completeLesson(lesson.id);
           }}
         />

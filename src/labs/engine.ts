@@ -308,7 +308,7 @@ export class TerminalEngine {
       : [{ kind: 'muted', text: '(no matches)' }];
   }
 
-  private grep(args: string[]): OutLine[] {
+  private grep(args: string[], onFlag: (flag: string) => void): OutLine[] {
     const recursive = args.includes('-r') || args.includes('-R');
     const ignoreCase = args.includes('-i');
     const positional = args.filter((a) => !a.startsWith('-'));
@@ -326,6 +326,12 @@ export class TerminalEngine {
     }
     const needle = ignoreCase ? clean.toLowerCase() : clean;
     const matchesLine = (l: string) => (regex ? regex.test(l) : (ignoreCase ? l.toLowerCase() : l).includes(needle));
+    // A flag surfaced by grep (the whole point of many "find the flag in this log" labs) still has
+    // to be reported through onFlag — grep printing the line isn't enough on its own to capture it.
+    const reportFlags = (text: string) => {
+      const match = text.match(FLAG_RE);
+      if (match) onFlag(match[0]);
+    };
     const resolved = this.resolveInSession(targetPath);
     const node = getNode(this.fsRoot(), resolved);
     if (!node) return [{ kind: 'error', text: `grep: ${targetPath}: No such file or directory` }];
@@ -336,7 +342,10 @@ export class TerminalEngine {
       const walk = (n: FsNode, path: string[]) => {
         if (n.type === 'file') {
           n.content.split('\n').forEach((l) => {
-            if (matchesLine(l)) out.push({ kind: 'output', text: `${pathToString(path)}:${l}` });
+            if (matchesLine(l)) {
+              out.push({ kind: 'output', text: `${pathToString(path)}:${l}` });
+              reportFlags(l);
+            }
           });
         } else {
           for (const [name, child] of Object.entries(n.children)) walk(child, [...path, name]);
@@ -347,6 +356,7 @@ export class TerminalEngine {
     }
 
     const matches = node.content.split('\n').filter(matchesLine);
+    matches.forEach(reportFlags);
     return matches.length
       ? matches.map((l) => ({ kind: 'output' as const, text: l }))
       : [];
@@ -463,7 +473,10 @@ export class TerminalEngine {
     const svc = host.services.find((s) => s.port === port && (s.http || s.vulnRoutes));
     if (!svc) return [{ kind: 'error', text: `curl: (7) Failed to connect to ${ip} port ${port}: Connection refused` }];
 
-    const params = parseParams(postBody ?? rawQuery ?? '');
+    // A request can carry a query string on the URL AND a -d POST body at the same time (e.g. a POST
+    // upload endpoint whose target key is in the query but the payload is in the body) — merge both
+    // rather than picking one, so a vulnRoute's tested param is found regardless of which side it's on.
+    const params = { ...parseParams(rawQuery ?? ''), ...parseParams(postBody ?? '') };
     const route = svc.vulnRoutes?.find((r) => r.path === path);
     if (route) {
       const value = route.location === 'header' ? headers[route.param.toLowerCase()] : params[route.param];
@@ -1020,7 +1033,7 @@ export class TerminalEngine {
       case 'find':
         return this.find(args);
       case 'grep':
-        return this.grep(args);
+        return this.grep(args, onFlag);
       case 'whoami':
         return this.whoami();
       case 'id':

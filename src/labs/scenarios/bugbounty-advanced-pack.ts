@@ -70,10 +70,13 @@ export const bugBountyAdvancedLabs: LabScenario[] = [
         hostname: 'graphql-api', ip: '10.10.108.2', os: 'Ubuntu 22.04',
         services: [{
           port: 80, name: 'http', version: 'Apollo GraphQL Server 3.6',
-          http: {
-            '/graphql?introspect=true': '{"types":["User","Order","Product"],"userFields":["id","name","email","adminNotes"],"note":"adminNotes is undocumented and unused by the official app"}',
-            '/graphql?query=adminNotes&id=1': '{"id":1,"adminNotes":"VIP customer, do not suspend. Internal risk score: 2. flag{graphql_introspection_leaks_undocumented_field}"}',
-          },
+          http: { '/': '<html><body><h1>Meridian GraphQL API</h1></body></html>' },
+          vulnRoutes: [{
+            kind: 'idor', path: '/graphql', param: 'query',
+            triggerSubstrings: ['adminnotes'],
+            vulnerableResponse: '{"id":1,"adminNotes":"VIP customer, do not suspend. Internal risk score: 2. flag{graphql_introspection_leaks_undocumented_field}"}',
+            normalResponse: '{"types":["User","Order","Product"],"userFields":["id","name","email","adminNotes"],"note":"adminNotes is undocumented and unused by the official app"}',
+          }],
         }],
         users: [], root: dir({}),
       } as HostDef,

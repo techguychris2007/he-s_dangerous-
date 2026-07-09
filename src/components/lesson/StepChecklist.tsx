@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { IconCheck } from '../layout/icons';
 
 export interface GuidedStep {
@@ -20,6 +20,15 @@ function normalize(step: StepInput): GuidedStep {
 export default function StepChecklist({ steps, title = 'Guided Steps' }: StepChecklistProps) {
   const items = steps.map(normalize);
   const [checked, setChecked] = useState<boolean[]>(() => items.map(() => false));
+
+  // `steps` can change (e.g. navigating directly from one lab/lesson to another without this
+  // component unmounting, since the route component instance is reused). Without this, `checked`
+  // would keep stale completion state from the previous set of steps.
+  useEffect(() => {
+    setChecked(items.map(() => false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [steps]);
+
   const toggle = (i: number) => setChecked((c) => c.map((v, idx) => (idx === i ? !v : v)));
   const doneCount = checked.filter(Boolean).length;
 

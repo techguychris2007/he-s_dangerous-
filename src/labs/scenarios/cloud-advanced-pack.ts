@@ -35,8 +35,8 @@ export const cloudAdvancedLabs: LabScenario[] = [
         services: [{
           port: 80, name: 'http', version: 'Custom WAF proxy service',
           http: {
-            '/s3/list?role=waf-role': '{"buckets":["waf-config-internal","customer-records"],"note":"waf-role should only reach waf-config-internal"}',
-            '/s3/object?bucket=customer-records&key=full-export.csv': 'customer_id,name,card_last4\n10441,J. Alvarez,4242\nflag{overprivileged_iam_role_plus_ssrf_equals_full_breach}',
+            '/s3/list': '{"buckets":["waf-config-internal","customer-records"],"note":"waf-role should only reach waf-config-internal"}',
+            '/s3/object': 'customer_id,name,card_last4\n10441,J. Alvarez,4242\nflag{overprivileged_iam_role_plus_ssrf_equals_full_breach}',
           },
           vulnRoutes: [{
             kind: 'ssrf', path: '/waf/proxy', param: 'url',
@@ -197,8 +197,8 @@ export const cloudAdvancedLabs: LabScenario[] = [
         services: [{
           port: 80, name: 'http', version: 'Cloud IAM policy simulator',
           http: {
-            '/s3/sensitive-data?role=developer-readonly': '{"error":"AccessDenied","message":"developer-readonly cannot read this bucket directly"}',
-            '/iam/passable-roles?user=developer-readonly': '{"passable_roles":["data-admin-role"],"note":"developer-readonly can attach data-admin-role to new EC2 instances via iam:PassRole, even though it cannot assume that role itself"}',
+            '/s3/sensitive-data': '{"error":"AccessDenied","message":"developer-readonly cannot read this bucket directly"}',
+            '/iam/passable-roles': '{"passable_roles":["data-admin-role"],"note":"developer-readonly can attach data-admin-role to new EC2 instances via iam:PassRole, even though it cannot assume that role itself"}',
           },
           vulnRoutes: [{
             kind: 'auth-bypass', path: '/ec2/launch', param: 'role',

@@ -378,13 +378,13 @@ export const networkServiceLabs: LabScenario[] = [
       'Recognizing the version number from a banner grab is the entire skill this lab tests.',
     objectives: [
       { text: 'nmap -sV 10.10.102.10', why: 'The version string alone — "vsftpd 2.3.4" — is the single most important piece of information here; recognizing famous vulnerable version strings from a banner is a core, fast recon skill.' },
-      { text: 'curl 10.10.102.10:21', why: 'Grabbing the raw service banner confirms the exact build before committing to an exploit — real engagements always verify the version before firing an exploit that could otherwise crash the service for no reason.' },
+      { text: 'nc 10.10.102.10 21', why: 'Grabbing the raw service banner confirms the exact build before committing to an exploit — real engagements always verify the version before firing an exploit that could otherwise crash the service for no reason.' },
       { text: 'exploit vsftpd-234-backdoor 10.10.102.10', why: 'This models sending the `:)` smiley trigger in the USER field, which the trojaned code interprets as a command to spawn a root shell listener on port 6200 — the real, documented mechanism behind CVE-2011-2523.' },
       { text: 'Once the session opens, read /root/root.txt to capture the flag', why: 'Confirms full unauthenticated remote root — the maximum-impact outcome this famous backdoor is known for.' },
     ],
     hints: [
       'nmap -sV 10.10.102.10 — the version number is the whole lab.',
-      'curl 10.10.102.10:21 to confirm the raw banner reads exactly "vsftpd 2.3.4".',
+      'nc 10.10.102.10 21 to confirm the raw banner reads exactly "vsftpd 2.3.4".',
       'exploit vsftpd-234-backdoor 10.10.102.10 — models the famous `:)` smiley-face backdoor trigger (CVE-2011-2523).',
       'Once the session opens you are root — check /root/root.txt for the flag.',
     ],
