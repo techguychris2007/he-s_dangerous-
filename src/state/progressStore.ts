@@ -5,10 +5,11 @@ interface ProgressState {
   labFlags: Record<string, string[]>;
   quizScores: Record<string, number>;
   learnerName: string | null;
+  bookmarkedLabs: Record<string, boolean>;
 }
 
 const STORAGE_KEY = 'hackerhub.progress.v1';
-const EMPTY_STATE: ProgressState = { completedLessons: {}, labFlags: {}, quizScores: {}, learnerName: null };
+const EMPTY_STATE: ProgressState = { completedLessons: {}, labFlags: {}, quizScores: {}, learnerName: null, bookmarkedLabs: {} };
 
 function loadState(): ProgressState {
   try {
@@ -30,6 +31,8 @@ interface ProgressApi extends ProgressState {
   resetAll: () => void;
   login: (name: string) => void;
   logout: () => void;
+  toggleBookmark: (labId: string) => void;
+  isBookmarked: (labId: string) => boolean;
 }
 
 export const ProgressContext = createContext<ProgressApi | null>(null);
@@ -81,6 +84,12 @@ export function useProgressState(): ProgressApi {
     setState({ ...EMPTY_STATE });
   }, []);
 
+  const toggleBookmark = useCallback((labId: string) => {
+    setState((s) => ({ ...s, bookmarkedLabs: { ...s.bookmarkedLabs, [labId]: !s.bookmarkedLabs[labId] } }));
+  }, []);
+
+  const isBookmarked = useCallback((labId: string) => Boolean(state.bookmarkedLabs[labId]), [state.bookmarkedLabs]);
+
   return useMemo(
     () => ({
       ...state,
@@ -93,8 +102,10 @@ export function useProgressState(): ProgressApi {
       resetAll,
       login,
       logout,
+      toggleBookmark,
+      isBookmarked,
     }),
-    [state, completeLesson, isLessonComplete, captureFlag, hasFlag, flagCount, recordQuizScore, resetAll, login, logout],
+    [state, completeLesson, isLessonComplete, captureFlag, hasFlag, flagCount, recordQuizScore, resetAll, login, logout, toggleBookmark, isBookmarked],
   );
 }
 

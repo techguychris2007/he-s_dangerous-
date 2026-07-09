@@ -66,6 +66,22 @@ Month 6:  Start submitting on HackerOne and Bugcrowd; read disclosed public repo
         </p>
       </Callout>
 
+      <Callout variant="info">
+        <p>
+          <strong>Further reading &amp; real-world references:</strong> once you've worked through this
+          course, three books are worth owning outright — <em>Real-World Bug Hunting</em> by Peter
+          Yaworski (vulnerability classes taught entirely through real disclosed reports), <em>Bug Bounty
+          Bootcamp</em> by Vickie Li (a broader end-to-end methodology and career guide), and <em>Web
+          Security for Developers</em> by Malcolm McDonald (short, sharp, excellent for understanding the
+          defender's side of every bug you find). For continued hands-on practice, the sites this roadmap
+          already leans on — <strong>PortSwigger Web Security Academy</strong>, <strong>OWASP</strong>'s own
+          projects and testing guides, <strong>Hack The Box Academy</strong>, <strong>TryHackMe</strong>, and
+          the older but still excellent <strong>OverTheWire</strong> wargames and <strong>PentesterLab</strong>
+          exercises — cover everything from first-principles fundamentals to realistic, guided vulnerable
+          applications, and remain the field's default answer to "what do I do after finishing a course."
+        </p>
+      </Callout>
+
       <h2>Course complete (for now)</h2>
       <p>
         You've now covered networking, Linux, reconnaissance methodology, Python tooling, web application

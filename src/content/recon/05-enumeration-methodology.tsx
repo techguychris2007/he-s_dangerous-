@@ -53,6 +53,20 @@ export default function EnumerationMethodology() {
         </p>
       </Callout>
 
+      <Callout variant="info">
+        <p>
+          <strong>Further reading &amp; real-world references:</strong> the modular framework approach in
+          <code> Recon-ng</code> is worth revisiting once these fundamentals are automatic — it's built
+          around exactly this recon-to-report loop. For how this methodology plays out against real,
+          currently-patched vulnerabilities, the <strong>Google Project Zero blog</strong> and
+          <strong> PortSwigger Research</strong> publish detailed technical write-ups of real bugs found
+          using this same enumerate-everything mindset. And when you're ready to apply it against realistic
+          web targets, the <strong>OWASP</strong> project and the <strong>PortSwigger Web Security
+          Academy</strong> are the two most respected free places to practice — both are referenced again in
+          this course's Web Application Hacking module.
+        </p>
+      </Callout>
+
       <h2>You're ready for the labs</h2>
       <p>
         You now have the full foundation: networking (Module 1), Linux (Module 2), and the recon/

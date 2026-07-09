@@ -1,9 +1,15 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useProgress } from '../state/progressStore';
 
 export default function LoginPage() {
   const progress = useProgress();
+  const navigate = useNavigate();
   const [name, setName] = useState('');
+
+  useEffect(() => {
+    if (progress.learnerName) navigate('/', { replace: true });
+  }, [progress.learnerName, navigate]);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +30,7 @@ export default function LoginPage() {
         </div>
         <h1 className="text-center text-2xl font-extrabold text-[var(--color-heading)] mb-2">HackerHub</h1>
         <p className="text-center text-sm text-[var(--color-text-dim)] mb-6 leading-relaxed">
-          10 modules, 95 hands-on labs, hidden flags and quizzes. What should we call you?
+          14 modules, 142 hands-on labs, hidden flags and quizzes. What should we call you?
         </p>
         <form onSubmit={submit} className="flex flex-col gap-3">
           <input

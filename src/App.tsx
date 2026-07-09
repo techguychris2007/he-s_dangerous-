@@ -8,6 +8,14 @@ import LabsIndexPage from './pages/LabsIndexPage';
 import RoadmapPage from './pages/RoadmapPage';
 import ProgressPage from './pages/ProgressPage';
 import LoginPage from './pages/LoginPage';
+import MyTasksPage from './pages/MyTasksPage';
+import SchedulePage from './pages/SchedulePage';
+import LeaderboardPage from './pages/LeaderboardPage';
+import ResourcesPage from './pages/ResourcesPage';
+import AnnouncementsPage from './pages/AnnouncementsPage';
+import ProfilePage from './pages/ProfilePage';
+import SecurityPage from './pages/SecurityPage';
+import HelpFaqPage from './pages/HelpFaqPage';
 import { ProgressContext, useProgressState, useProgress } from './state/progressStore';
 
 function RequireLogin({ children }: { children: React.ReactNode }) {
@@ -38,6 +46,14 @@ function App() {
             <Route path="/module/:moduleSlug/lesson/:lessonSlug" element={<LessonPage />} />
             <Route path="/labs" element={<LabsIndexPage />} />
             <Route path="/lab/:labSlug" element={<LabPage />} />
+            <Route path="/tasks" element={<MyTasksPage />} />
+            <Route path="/schedule" element={<SchedulePage />} />
+            <Route path="/leaderboard" element={<LeaderboardPage />} />
+            <Route path="/resources" element={<ResourcesPage />} />
+            <Route path="/announcements" element={<AnnouncementsPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/security" element={<SecurityPage />} />
+            <Route path="/help" element={<HelpFaqPage />} />
           </Route>
         </Routes>
       </HashRouter>

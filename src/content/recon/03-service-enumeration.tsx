@@ -22,6 +22,30 @@ nikto -h http://10.10.10.5                     # automated vuln/misconfig scanne
         administrators considered sensitive enough to hide.
       </p>
 
+      <h3>Probing web services at scale: httpx &amp; Katana</h3>
+      <p>
+        The tools above work great against one host. Once you've enumerated a subdomain list with the
+        tools from the previous lesson, you need something that checks HTTP(S) status, titles, and tech
+        stack across hundreds of hosts in one pass — that's exactly what <strong>httpx</strong> (from
+        ProjectDiscovery, not to be confused with the Python HTTP client of the same name) is built for.
+      </p>
+      <CodeBlock label="httpx — bulk HTTP probing">{`subfinder -d target.com -silent | httpx -silent -status-code -title -tech-detect
+# feeds a subdomain list straight in, prints only the hosts that actually respond,
+# along with status code, page title, and fingerprinted technology per host`}</CodeBlock>
+      <p>
+        <strong>Katana</strong> (also ProjectDiscovery) is the crawling complement to httpx — instead of
+        just checking if a host responds, it follows links, forms, and JavaScript-referenced endpoints to
+        map out everything reachable on a site, which is often where the interesting attack surface (API
+        routes, forgotten admin paths, JS files leaking endpoint names) actually lives.
+      </p>
+      <CodeBlock label="katana — endpoint discovery via crawling">{`katana -u https://target.com -jc -d 3
+# -jc also parses JavaScript files for additional endpoints, -d 3 limits crawl depth`}</CodeBlock>
+      <p>
+        The natural pipeline: subdomain enumeration → httpx (which hosts are alive, what are they running)
+        → katana (what's actually reachable on the interesting ones) → gobuster/nikto for deeper brute
+        forcing on specific targets that stood out.
+      </p>
+
       <h2>FTP enumeration</h2>
       <CodeBlock>{`ftp 10.10.10.5
 Name: anonymous

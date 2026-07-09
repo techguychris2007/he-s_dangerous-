@@ -17,7 +17,7 @@ export const LESSON_LABS: Record<string, string[]> = {
   // Reconnaissance & Enumeration
   'rec-1': ['bb-forgotten-staging', 'bb-js-secret-leak'],
   'rec-2': ['network-recon'],
-  'rec-3': ['enum-bruteforce'],
+  'rec-3': ['enum-bruteforce', 'cve-2025-32433-erlang-otp-ssh', 'cve-2025-64446-fortiweb-authbypass'],
   'rec-4': ['net-postgres-weak'],
   'rec-5': ['capstone-box'],
 
@@ -32,11 +32,11 @@ export const LESSON_LABS: Record<string, string[]> = {
   'web-2': ['web-sqli-product', 'web-sqli-login-bypass', 'web-sqli-search-filter'],
   'web-3': ['web-xss-search', 'web-xss-feedback'],
   'web-4': ['web-idor-profile-api', 'web-idor-coupon', 'web-auth-bypass-admin'],
-  'web-5': ['web-ssrf-fetch', 'web-ssrf-metadata', 'web-ssrf-image-proxy', 'log4shell-jndi-rce', 'shellshock-cgi-rce'],
+  'web-5': ['web-ssrf-fetch', 'web-ssrf-metadata', 'web-ssrf-image-proxy', 'log4shell-jndi-rce', 'shellshock-cgi-rce', 'cve-2025-53770-sharepoint-toolshell', 'cve-2025-3248-langflow-rce'],
 
   // Red Teaming & Active Directory
   'rt-1': ['ad-credential-reuse-lateral', 'ad-worm-lateral-spread'],
-  'rt-2': ['ad-smb-anon-domain-creds', 'eternalblue-smb-rce', 'ad-printnightmare-cve-2021-34527'],
+  'rt-2': ['ad-smb-anon-domain-creds', 'eternalblue-smb-rce', 'ad-printnightmare-cve-2021-34527', 'scattered-spider-helpdesk-to-domain-admin'],
   'rt-3': ['ad-kerberoast-crack', 'ad-dcsync-attack'],
   'rt-4': ['ad-asrep-roast', 'ad-workstation-to-dc', 'ad-zerologon-cve-2020-1472', 'ad-golden-ticket-persistence'],
 
@@ -48,7 +48,7 @@ export const LESSON_LABS: Record<string, string[]> = {
 
   // SOC & Threat Hunting
   'soc-1': ['soc-ssh-bruteforce-investigation', 'soc-phishing-header-analysis', 'soc-insider-threat-bulk-access', 'soc-bec-mailbox-rule-fraud', 'soc-credential-stuffing-detection'],
-  'soc-2': ['soc-web-log-sqli-detection', 'soc-cobalt-strike-beacon', 'soc-dns-tunneling-exfil', 'soc-lolbin-certutil-abuse', 'soc-supply-chain-compromise-indicator'],
+  'soc-2': ['soc-web-log-sqli-detection', 'soc-cobalt-strike-beacon', 'soc-dns-tunneling-exfil', 'soc-lolbin-certutil-abuse', 'soc-supply-chain-compromise-indicator', 'ai-orchestrated-ransomware-investigation'],
 
   // Digital Forensics
   'for-1': ['forensics-timeline-analysis', 'forensics-deleted-file-recovery', 'forensics-ransomware-note-analysis', 'forensics-usb-exfiltration-history', 'forensics-browser-history-insider', 'forensics-webshell-discovery'],
@@ -56,7 +56,7 @@ export const LESSON_LABS: Record<string, string[]> = {
 
   // Cloud Security
   'cloud-1': ['cloud-public-s3-bucket', 'cloud-metadata-ssrf', 'cloud-exposed-kubernetes-dashboard', 'cloud-exposed-docker-api', 'cloud-public-write-bucket'],
-  'cloud-2': ['cloud-exposed-terraform-state', 'cloud-waf-ssrf-breach-chain', 'cloud-lambda-overpermissioned-role', 'cloud-iam-passrole-privesc', 'cloud-disabled-logging-coverup'],
+  'cloud-2': ['cloud-exposed-terraform-state', 'cloud-waf-ssrf-breach-chain', 'cloud-lambda-overpermissioned-role', 'cloud-iam-passrole-privesc', 'cloud-disabled-logging-coverup', 'saas-oauth-token-theft-chain'],
 
   // Security+ Deep Dive
   'secplus-1': ['secplus-breach-notification-timeline', 'secplus-firewall-rule-audit', 'secplus-cvss-triage'],
@@ -73,7 +73,7 @@ export const LESSON_LABS: Record<string, string[]> = {
   'bin-5': ['binary-encoded-password-crackme', 'binary-rop-gadget-chain'],
 
   // Practical Malware Analysis
-  'mal-1': ['malware-static-triage-sample', 'malware-yara-family-classification', 'malware-hash-threat-intel-lookup'],
+  'mal-1': ['malware-static-triage-sample', 'malware-yara-family-classification', 'malware-hash-threat-intel-lookup', 'shai-hulud-npm-supply-chain-worm'],
   'mal-2': ['malware-anti-vm-detection-strings'],
   'mal-3': ['malware-persistence-hunt'],
   'mal-4': ['malware-c2-config-decode', 'malware-powershell-deobfuscation', 'malware-worm-propagation-analysis'],

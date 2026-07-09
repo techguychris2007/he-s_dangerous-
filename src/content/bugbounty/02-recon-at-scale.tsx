@@ -53,6 +53,80 @@ cat subs.txt | httpx -silent -status-code       # check which subdomains actuall
         </p>
       </Callout>
 
+      <h2>API recon: the modern bug bounty frontier</h2>
+      <p>
+        Most in-scope targets today are APIs first and HTML pages second — a mobile app, a single-page
+        frontend, and a partner integration are usually all calling the same underlying REST or GraphQL
+        API. <strong>Postman</strong> and <strong>Insomnia</strong> are the manual-exploration workhorses
+        here: both let you organize requests into collections, save auth tokens as environment variables,
+        and replay/modify a captured request without retyping headers every time. A common workflow is
+        proxying a mobile app's traffic once (Module 3's interception techniques), then importing the
+        captured requests into a Postman collection so the whole API surface is browsable and re-testable
+        without the app itself.
+      </p>
+      <p>
+        Documented endpoints are only half the surface. <strong>Kiterunner</strong> (<code>kr</code>) is
+        purpose-built for finding the undocumented half — it brute-forces API routes using wordlists built
+        from real-world OpenAPI/Swagger specs and route patterns scraped from public API definitions,
+        which makes it dramatically more effective against REST APIs than a generic directory wordlist:
+      </p>
+      <CodeBlock label="Kiterunner against an API host">{`kr scan https://api.example.com -w routes-large.kite -x 20
+# -w: a Kiterunner wordlist built from real API route patterns (routes-large.kite ships with the tool)
+# -x: concurrency — number of simultaneous requests
+# output flags routes that return anything other than a generic 404, including ones that
+# differ only by HTTP method (POST /users/{id}/admin existing when GET does not, for example)`}</CodeBlock>
+      <p>
+        Once you're inside an API, most modern auth is a JSON Web Token (JWT) — a base64-encoded header,
+        payload, and signature. <strong>JWT Tool</strong> (<code>jwt_tool</code>) automates the standard
+        attacks against them: decoding the payload to inspect claims, testing whether the server accepts an
+        unsigned token by switching the algorithm to <code>none</code>, checking for algorithm confusion
+        (tricking an RS256-verifying server into accepting a token signed with its own public key as an
+        HMAC secret), and brute-forcing weak HMAC signing secrets against a wordlist:
+      </p>
+      <CodeBlock label="jwt_tool — the standard JWT attack menu">{`jwt_tool eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoiYWRtaW4ifQ.abc123 -T
+# -T: interactive tampering — walks through editing claims and re-signing
+
+jwt_tool eyJhbGciOiJIUzI1NiJ9... -X a
+# -X a: "alg" attack mode — tests the none-algorithm bypass and common algorithm-confusion variants
+
+jwt_tool eyJhbGciOiJIUzI1NiJ9... -C -d /usr/share/wordlists/rockyou.txt
+# -C -d: crack mode — brute-forces the HMAC secret against a wordlist offline`}</CodeBlock>
+
+      <h2>OSINT for people: when the target isn't just infrastructure</h2>
+      <p>
+        A growing share of real-world findings — business email compromise chains, credential-stuffing
+        entry points, social-engineering-adjacent reports programs increasingly reward — start with
+        reconnaissance on humans, not servers. A handful of tools cover this specifically:
+      </p>
+      <ul>
+        <li><strong>Sherlock</strong> — enumerates a given username across hundreds of platforms at once,
+        useful for building a picture of an employee's or executive's public footprint from a single
+        handle: <code>python3 sherlock.py johndoe</code>.</li>
+        <li><strong>Holehe</strong> — checks whether a given email address is registered on dozens of
+        services (often revealing which platforms an employee reuses credentials on, directly relevant to
+        credential-stuffing risk): <code>holehe target@example.com</code>.</li>
+        <li><strong>GHunt</strong> — OSINT specifically against Google accounts; given a Gmail address it
+        can surface an associated public Google Maps reviews history, YouTube channel, and other linked
+        Google properties an account owner may not realize are correlatable.</li>
+        <li><strong>PhoneInfoga</strong> — OSINT against phone numbers, identifying carrier, line type, and
+        cross-referencing the number against search engines and social platforms for a linked identity:
+        <code>phoneinfoga scan -n "+15555555555"</code>.</li>
+        <li><strong>Maltego</strong> — a link-analysis platform rather than a single-purpose tool: you feed
+        it a starting entity (a domain, an email, a name) and its "transforms" pull and graph related
+        entities from dozens of data sources, visually mapping how a company's infrastructure, employees,
+        and third parties connect — the tool of choice when you need to see relationships, not just a flat
+        list of results.</li>
+      </ul>
+      <Callout variant="warn">
+        <p>
+          People-focused OSINT sits closer to the ethical and legal edge than infrastructure recon — most
+          bug bounty program scopes explicitly exclude social engineering and testing against employees
+          directly. Use this category of tooling to understand exposure (what's already public and
+          correlatable) for a report, not to actually run a phishing or pretexting attempt against staff
+          unless a program's scope explicitly authorizes it.
+        </p>
+      </Callout>
+
       <h2>Automation without losing the manual edge</h2>
       <p>
         Fully automated scanning (running every tool against every subdomain nightly) catches the easy,

@@ -17,6 +17,10 @@ const BANNERS: Record<string, BannerConfig> = {
   soc: { from: '#062633', to: '#0d7d94', pattern: 'scan' },
   forensics: { from: '#1a1220', to: '#4a2d63', pattern: 'grid' },
   cloud: { from: '#0a2a4f', to: '#2f6fed', pattern: 'dots' },
+  securityplus: { from: '#1a2a1a', to: '#16305c', pattern: 'grid' },
+  binaryanalysis: { from: '#1a1a2e', to: '#3a1f5c', pattern: 'circuit' },
+  malware: { from: '#1a0d0d', to: '#4a1f1f', pattern: 'scan' },
+  secengineering: { from: '#0d1a2a', to: '#2a4a6e', pattern: 'dots' },
 };
 
 function PatternDefs({ id, pattern }: { id: string; pattern: BannerConfig['pattern'] }) {

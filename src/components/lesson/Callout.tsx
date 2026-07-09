@@ -1,12 +1,13 @@
 import type { ReactNode } from 'react';
 
-type Variant = 'info' | 'warn' | 'danger' | 'tip';
+type Variant = 'info' | 'warn' | 'danger' | 'tip' | 'incident';
 
 const STYLES: Record<Variant, { border: string; bg: string; label: string; labelColor: string }> = {
   info: { border: 'border-[var(--color-accent-2)]/40', bg: 'bg-[var(--color-accent-2)]/5', label: 'NOTE', labelColor: 'text-[var(--color-accent-2)]' },
   tip: { border: 'border-[var(--color-accent)]/40', bg: 'bg-[var(--color-accent)]/5', label: 'TIP', labelColor: 'text-[var(--color-accent)]' },
   warn: { border: 'border-[var(--color-warn)]/40', bg: 'bg-[var(--color-warn)]/5', label: 'CAUTION', labelColor: 'text-[var(--color-warn)]' },
   danger: { border: 'border-[var(--color-danger)]/40', bg: 'bg-[var(--color-danger)]/5', label: 'LEGAL / ETHICS', labelColor: 'text-[var(--color-danger)]' },
+  incident: { border: 'border-[var(--color-danger)]/40', bg: 'bg-[var(--color-danger)]/5', label: 'REAL-WORLD INCIDENT', labelColor: 'text-[var(--color-danger)]' },
 };
 
 export default function Callout({ variant = 'info', children }: { variant?: Variant; children: ReactNode }) {

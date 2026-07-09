@@ -41,6 +41,21 @@ export default function CryptographicEngineeringPitfalls() {
         </p>
       </Callout>
 
+      <Callout variant="incident">
+        <p>
+          <strong>Real incident — Sony PlayStation 3, 2010:</strong> Sony used ECDSA to sign code and
+          firmware so only Sony-approved software would run on the console, a well-chosen algorithm applied
+          correctly in every respect except one — the "random" nonce (<code>k</code>) required for every
+          ECDSA signature was implemented as a fixed, constant value instead of a fresh random number per
+          signature. The hacking group fail0verflow demonstrated that reusing the same nonce across two or
+          more ECDSA signatures lets an attacker solve directly for the private signing key using basic
+          algebra, no brute-forcing required. The result: Sony's entire root code-signing private key was
+          recoverable from public signatures Sony itself had shipped, permanently defeating the console's
+          entire software-authenticity model. Nothing was wrong with ECDSA the algorithm — the entire break
+          was one implementation detail, exactly the class of failure this lesson opened with.
+        </p>
+      </Callout>
+
       <h2>Padding oracle attacks</h2>
       <p>
         Block ciphers require padding to fill the last block to the correct size. If a system reveals —
@@ -50,6 +65,20 @@ export default function CryptographicEngineeringPitfalls() {
         many different products for over a decade, purely because "tell the user why decryption failed"
         felt like reasonable, helpful error handling.
       </p>
+      <Callout variant="incident">
+        <p>
+          <strong>Real incident — the ASP.NET padding oracle attack, 2010:</strong> researchers Juliano
+          Rizzo and Thai Duong showed that ASP.NET's default error handling leaked exactly this signal —
+          a distinguishable server response when decrypted padding was invalid versus when it was valid but
+          the underlying data was malformed. Because ASP.NET used this same encryption to protect
+          <code>ViewState</code> and other internal tokens across effectively every ASP.NET web application
+          in existence at the time, the technique let an attacker decrypt encrypted data and, in many
+          configurations, forge valid encrypted tokens from scratch — enough in some deployments to read
+          arbitrary files off the server. Microsoft shipped an out-of-band patch (MS10-070) rather than
+          waiting for its normal update cycle, underscoring how severe a "the error message is slightly too
+          informative" bug can become at that scale.
+        </p>
+      </Callout>
 
       <h2>Protocol composition errors</h2>
       <p>

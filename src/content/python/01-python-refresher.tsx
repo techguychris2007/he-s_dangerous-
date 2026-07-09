@@ -68,6 +68,25 @@ with open("targets.txt") as f:
         </p>
       </Callout>
 
+      <h2>Context managers &amp; the GIL: two concepts that quietly govern every tool you'll write</h2>
+      <p>
+        The <code>with socket.create_connection(...) as sock:</code> pattern above is a context manager —
+        it guarantees the socket gets closed even if an exception fires partway through, without you writing
+        a manual <code>finally: sock.close()</code> every time. You'll use this constantly for sockets,
+        files, and locks throughout this module.
+      </p>
+      <p>
+        The other concept worth internalizing before you write a scanner: Python's <strong>Global
+        Interpreter Lock (GIL)</strong> means only one thread executes Python bytecode at any instant, so
+        threading does <em>not</em> speed up CPU-bound work (e.g. hashing millions of password guesses).
+        What it does speed up dramatically is <strong>I/O-bound</strong> work — and network calls are the
+        textbook case, because a thread blocked waiting on <code>socket.connect()</code> or
+        <code>requests.get()</code> releases the GIL while it waits, letting hundreds of other threads make
+        progress at the same time. That's precisely why the <code>ThreadPoolExecutor</code> pattern in the
+        next lesson turns an 8-minute sequential port scan into a few seconds — the bottleneck was always
+        network latency, not CPU, so threading was the correct tool for the job.
+      </p>
+
       <h2>Virtual environments (so your tools don't fight each other)</h2>
       <CodeBlock>{`python3 -m venv venv
 source venv/bin/activate

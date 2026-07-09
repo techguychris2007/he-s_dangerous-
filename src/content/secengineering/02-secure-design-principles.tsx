@@ -37,6 +37,22 @@ Open Design                   — security should not depend on the design being
 Psychological Acceptability    — if a secure way of doing something is more annoying than an
                                 insecure shortcut, users will find and use the shortcut`}</CodeBlock>
 
+      <Callout variant="incident">
+        <p>
+          <strong>Real incident — Capital One, 2019:</strong> a former AWS employee exploited a
+          misconfigured web application firewall in front of Capital One's cloud infrastructure using
+          exactly the SSRF technique covered in the Web Application Hacking module — tricking the WAF
+          server into requesting AWS's internal instance metadata endpoint and handing back temporary
+          security credentials for the IAM role attached to it. The role itself is the least-privilege
+          failure: it was provisioned with far broader S3 access than the WAF ever needed to do its job,
+          including read access to buckets holding over 100 million customers' credit applications, Social
+          Security numbers, and bank account numbers. The SSRF was the entry technique, but the reason it
+          escalated into one of the largest financial-sector breaches on record was a single
+          over-permissioned role — a textbook case of what Least Privilege is actually defending against:
+          not preventing every possible exploit, but capping the blast radius when one inevitably lands.
+        </p>
+      </Callout>
+
       <h2>Fail-secure vs. fail-open — a critical distinction</h2>
       <CodeBlock label="the same failure, two very different outcomes">{`Physical door lock:
   Fail-secure  — power failure -> door stays LOCKED (safe from intruders, but a fire-safety risk)
@@ -53,6 +69,19 @@ Firewall:
           risk, not defaulting to one pattern everywhere.
         </p>
       </Callout>
+
+      <p>
+        Economy of Mechanism and Open Design pair together in practice more than the list above suggests.
+        Libraries like <strong>libsodium</strong> deliberately expose a tiny, opinionated API (one way to
+        do authenticated encryption, not a dozen configurable options) precisely because every extra knob
+        is a place an implementer can pick the insecure setting — a large, flexible API surface like
+        OpenSSL's classic <code>EVP</code> interface has historically produced far more misuse
+        vulnerabilities than libsodium's minimal one, not because OpenSSL's cryptography is weaker, but
+        because there's simply more surface for a caller to get wrong. Open Design is the reason you should
+        trust that argument at all: libsodium, OpenSSL, and virtually every algorithm this course discusses
+        are fully public — their security has survived because thousands of researchers have tried to break
+        the published design and failed, not because the design was hidden from them.
+      </p>
 
       <h2>The principle of least astonishment</h2>
       <p>

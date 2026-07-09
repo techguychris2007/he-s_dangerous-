@@ -13,11 +13,32 @@ export default function HowBugBountyWorks() {
 
       <h2>The platforms</h2>
       <ul>
-        <li><strong>HackerOne</strong> — the largest platform, hosts programs from companies of every size.</li>
-        <li><strong>Bugcrowd</strong> — similar model, slightly different program mix and triage process.</li>
-        <li><strong>Company-run programs</strong> — some large companies (Google, Meta, etc.) run their
-        own program infrastructure directly.</li>
+        <li><strong>HackerOne</strong> — the largest platform by researcher count and program volume, with a
+        heavy skew toward large public programs (tech companies, US federal vulnerability disclosure
+        programs) and its own in-house triage team.</li>
+        <li><strong>Bugcrowd</strong> — a similar model with a comparable mix of public and private programs;
+        historically leaned harder into managed/curated private programs and its own "Bugcrowd University"
+        training content.</li>
+        <li><strong>Intigriti</strong> — Europe-based, with a program mix weighted toward European
+        companies and GDPR-conscious organizations; pays in a mix of points-based and direct cash rewards
+        depending on the program.</li>
+        <li><strong>YesWeHack</strong> — another Europe-based platform (French), strong presence with
+        European public-sector and enterprise programs, plus its own "Dojo" free training platform.</li>
+        <li><strong>Company-run programs</strong> — some large companies (Google, Meta, Apple, Microsoft,
+        etc.) run their own program infrastructure directly rather than through a third-party platform,
+        often with the highest ceiling payouts (Google and Apple's top-tier awards run well into six
+        figures for the most severe classes of bugs).</li>
       </ul>
+      <p>
+        The platforms differ less in the underlying technical work than in program mix and payout
+        mechanics: HackerOne and Bugcrowd have the largest catalogs of major US tech company programs and
+        the deepest public disclosure archives to learn from; Intigriti and YesWeHack have a higher
+        concentration of European enterprises and public-sector programs, which matters if you're
+        targeting industries (finance, government) that skew toward those regions. Payout models vary too
+        — some programs pay flat bounties per severity tier, others run point-based leaderboard systems
+        that convert to cash or prizes, and a growing number blend a bounty with a revenue-share or
+        "managed bug bounty" retainer paid to the platform itself rather than the researcher.
+      </p>
 
       <h2>Public vs. private programs</h2>
       <p>
@@ -33,6 +54,15 @@ export default function HowBugBountyWorks() {
         compounds. Early wins are usually low-severity findings (a few hundred dollars); the real payouts
         come once you've built deep expertise on specific target types (a particular CMS, a particular
         API framework) and can spot patterns others miss.
+      </p>
+      <p>
+        The distribution of earnings across the hunter population is heavily skewed, not evenly spread —
+        a small number of top researchers (HackerOne and Bugcrowd both publish leaderboards and, at times,
+        aggregate earnings figures) account for a disproportionate share of total payouts, largely because
+        severity, not volume, drives income: one Critical-rated report often pays more than dozens of Low
+        or Informational ones combined. This is why experienced hunters increasingly specialize — going
+        deep on GraphQL APIs, or OAuth implementations, or a specific SaaS platform's admin panels — rather
+        than spreading thin across every program and vulnerability class available.
       </p>
       <Callout variant="tip">
         <p>

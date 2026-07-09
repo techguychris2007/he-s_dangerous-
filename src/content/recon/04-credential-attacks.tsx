@@ -20,6 +20,16 @@ cewl http://target.com -w custom-wordlist.txt   # generate a wordlist from a web
         password list in security testing because human password habits haven't changed much — build the
         habit of trying it first.
       </p>
+      <p>
+        <strong>CeWL</strong> solves a different problem: instead of a generic breach list, it spiders a
+        target's own website and builds a wordlist out of the words actually used there — product names,
+        employee names, internal jargon, a company slogan. Organizations frequently base passwords on words
+        specific to themselves, so a wordlist generated from <code>cewl https://target.com -d 2 -m 5 -w
+        custom.txt</code> (crawl depth 2, minimum word length 5) often succeeds where rockyou.txt alone
+        fails — it's the standard lead-in step before reaching for the general-purpose password-auditing
+        tools this course covers elsewhere (Hashcat/John the Ripper for cracking hashes offline, once you've
+        got something to crack).
+      </p>
 
       <h2>Attack types</h2>
       <ul>

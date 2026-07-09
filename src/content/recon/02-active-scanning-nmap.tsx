@@ -54,6 +54,44 @@ nmap --script vuln 10.10.10.5   # run the vuln-detection NSE script category`}</
         </p>
       </Callout>
 
+      <h2>When nmap is too slow: Masscan &amp; RustScan</h2>
+      <p>
+        Nmap's port-scan engine is thorough but stateful and comparatively slow — scanning a /8 (16 million
+        hosts) with nmap is impractical. Two other tools exist specifically to solve the "huge range, fast"
+        problem, and the professional workflow is to use them <em>together</em> with nmap, not instead of it.
+      </p>
+      <CodeBlock label="masscan — an asynchronous, internet-scale port scanner">{`masscan -p1-65535 10.0.0.0/8 --rate 100000
+# masscan uses its own custom TCP/IP stack, bypassing the kernel's network stack entirely,
+# which is how it can transmit hundreds of thousands of packets per second — the same
+# engineering behind the original "scan the whole internet in under 6 minutes" research`}</CodeBlock>
+      <CodeBlock label="rustscan — modern, fast, and designed to hand off to nmap automatically">{`rustscan -a 10.10.10.5 -- -sV -sC
+# rustscan finds open ports in seconds using an adaptive scan-rate algorithm,
+# then pipes just those ports into nmap for the deep service/script detection
+# nmap alone is slower at — you get masscan-like discovery speed with nmap-quality results`}</CodeBlock>
+      <p>
+        The pattern that scales to real engagements: use masscan or rustscan to find <em>which</em> ports
+        are open across a huge range in seconds, then run <code>nmap -sV -sC -p &lt;discovered-ports&gt;</code>
+        against just those hosts/ports for accurate version and vulnerability detection. Masscan trades
+        accuracy for raw speed (it's easy to overwhelm a network with its default rate and get dropped
+        packets/false negatives), so treat its output as a fast first pass, not a final answer.
+      </p>
+
+      <h2>Verifying what a scan actually sent: tcpdump &amp; Wireshark</h2>
+      <p>
+        Nmap's terminal output tells you what it <em>concluded</em>; a packet capture tells you what it
+        <em> actually transmitted</em>. Running a capture alongside a scan is the fastest way to build real
+        intuition for what a "SYN scan" or a fragmented scan is actually doing on the wire, and it's
+        essential when a scan behaves unexpectedly against a firewall or IDS.
+      </p>
+      <CodeBlock label="capturing your own scan traffic">{`sudo tcpdump -i eth0 host 10.10.10.5 -w scan.pcap    # capture to a file while nmap runs in another terminal
+sudo tcpdump -i eth0 tcp[tcpflags] & tcp-syn != 0 and host 10.10.10.5   # SYN packets only`}</CodeBlock>
+      <p>
+        Open that same capture in Wireshark and you can see, frame by frame, exactly why <code>-sS</code>
+        is called a "half-open" scan: nmap sends a SYN, the target answers SYN/ACK, and nmap sends a RST
+        instead of completing the handshake with an ACK — the connection is never fully established, which
+        is both faster and quieter in logs than a full TCP connect scan.
+      </p>
+
       <Callout variant="danger">
         <p>
           Nmap sends real packets to real hosts — this is active reconnaissance and must be inside written

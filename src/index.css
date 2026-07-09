@@ -22,6 +22,24 @@
   --color-text-dim: #8790a8;
 }
 
+:root[data-theme="dark"] {
+  --color-bg: #0d1220;
+  --color-surface: #141b2d;
+  --color-surface-2: #1c2438;
+  --color-border: #2a3452;
+  --color-heading: #eef1f8;
+  --color-navy: #3a5da8;
+  --color-navy-dim: #4d70bd;
+  --color-accent: #ff8a7d;
+  --color-accent-dim: #ff6f60;
+  --color-accent-2: #6a9dff;
+  --color-warn: #e0a530;
+  --color-danger: #f2665c;
+  --color-success: #37c17b;
+  --color-text: #b7c0da;
+  --color-text-dim: #7885a8;
+}
+
 html, body, #root {
   height: 100%;
   margin: 0;
@@ -32,6 +50,7 @@ body {
   color: var(--color-text);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 ::selection {

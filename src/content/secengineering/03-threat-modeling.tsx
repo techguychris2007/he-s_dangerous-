@@ -8,7 +8,12 @@ export default function ThreatModeling() {
       <p>
         Threat modeling is the structured practice of asking "what could go wrong with this system, and
         what should we do about it" BEFORE it ships — turning the intuitive design review from the previous
-        lesson into a repeatable process a whole engineering team can run consistently.
+        lesson into a repeatable process a whole engineering team can run consistently. STRIDE, the
+        checklist below, was originally developed inside Microsoft in the late 1990s by Loren Kohnfelder and
+        Praerit Garg specifically to give developers — not just dedicated security staff — a memorable way
+        to reason about threats during design, and it's remained the industry's default starting framework
+        ever since for exactly that reason: it's simple enough that a non-specialist engineer can actually
+        apply it consistently.
       </p>
 
       <h2>STRIDE: a category checklist for finding threats</h2>
@@ -45,6 +50,25 @@ Elevation of Privilege           — gaining capabilities beyond what was author
 At the trust boundary: can this input be spoofed (fake login form)? Tampered with (modified request)?
 Does the auth service properly authenticate before touching the database (elevation of privilege)?
 Is every failed/successful login attempt logged (repudiation)?`}</CodeBlock>
+
+      <Callout variant="incident">
+        <p>
+          <strong>Real incident — the SolarWinds Orion supply chain attack, discovered December 2020:</strong>{' '}
+          a nation-state actor (widely attributed to Russia's SVR, tracked as APT29/Cozy Bear) compromised
+          SolarWinds' software build environment and inserted a backdoor (later named SUNBURST) directly
+          into signed, legitimate updates of the Orion IT-monitoring platform — updates that roughly 18,000
+          customers, including multiple US federal agencies and Fortune 500 companies, then installed
+          themselves, trusting the vendor's own signed update channel. Diagrammed as a data flow, the
+          failure sits exactly at a trust boundary nobody had threat-modeled seriously: the boundary between
+          "SolarWinds' internal build system" and "every customer's production network," which every
+          customer implicitly treated as fully trusted simply because the binary was signed and came from
+          the official update mechanism. It's a Tampering threat (the build output was modified without
+          authorization) that was only findable by asking, at design time, "what if the build system itself
+          is the thing that gets compromised" — a trust boundary most 2020-era organizations' threat models
+          didn't even draw, because "our own vendor's signed update" wasn't treated as a boundary crossing
+          at all.
+        </p>
+      </Callout>
 
       <h2>DREAD: scoring threats once you've found them</h2>
       <CodeBlock label="a simple 1-10 scoring model for prioritization">{`Damage           — how bad is the impact if this is exploited?

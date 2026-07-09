@@ -24,6 +24,15 @@ export default function IncidentResponseBcdr() {
         the SOC labs earlier in this course emphasized identifying scope before acting, since containing
         too early can destroy evidence, and too late lets an incident spread further.
       </p>
+      <p>
+        Eradication deserves special emphasis because it's the phase most often shortchanged under
+        pressure: re-imaging one compromised laptop feels like resolution, but if the actual root cause was
+        a stolen service account credential, a missed scheduled task used for persistence, or a web shell
+        dropped on a second, undiscovered host, the "resolved" incident simply resumes once attention moves
+        on. Mature IR teams treat eradication as unfinished until they can answer, with evidence, exactly
+        how the attacker got in, everywhere they went, and everything they touched — not just where they
+        were first noticed.
+      </p>
 
       <h2>Evidence handling: chain of custody</h2>
       <p>
@@ -44,6 +53,54 @@ export default function IncidentResponseBcdr() {
           This "order of volatility" is why memory forensics (covered hands-on in the Digital Forensics
           module) is captured before disk imaging whenever possible — RAM contents disappear the moment a
           machine powers off, while a disk image can wait.
+        </p>
+      </Callout>
+
+      <h2>Confirming real exposure: password auditing during an investigation</h2>
+      <p>
+        A common moment in a real incident: you've recovered a dump of password hashes — from a
+        compromised database, a memory capture, or an attacker's own staging directory found during the
+        investigation — and you need to answer a very concrete question fast: how exposed is the
+        organization actually? A hash sitting in a file isn't automatically a compromised credential; the
+        question is whether it's crackable in practice, and how quickly. This is exactly the job of
+        offline password-cracking tools during IR — not offense for its own sake, but a fast, defensible
+        way to size the real blast radius of a credential exposure.
+      </p>
+      <CodeBlock label="Hashcat — GPU-accelerated cracking against a recovered hash dump">{`hashcat -m 1000 hashes.txt rockyou.txt
+# -m 1000 tells hashcat the hash format (1000 = NTLM here — the mode number must match
+#   the algorithm, e.g. 0 = raw MD5, 1800 = sha512crypt, 13100 = Kerberos 5 TGS-REP)
+# hashes.txt   the recovered hash dump
+# rockyou.txt   a wordlist — cracked-in-seconds results here mean those accounts are
+#               using genuinely weak, previously-breached passwords
+
+hashcat -m 1000 hashes.txt rockyou.txt -r rules/best64.rule
+# applying a rule file (case changes, appended digits, leetspeak substitutions) dramatically
+# increases crack rate against passwords that are "almost" in the wordlist but not exact`}</CodeBlock>
+      <CodeBlock label="John the Ripper — the classic CPU-based alternative, strong format auto-detection">{`john --wordlist=rockyou.txt hashes.txt
+# john auto-detects the hash format in most cases, which makes it a fast first pass
+# before reaching for hashcat's more precise, GPU-accelerated mode-specific cracking
+
+john --show hashes.txt
+# reveals which hashes have already been cracked in a prior run, formatted for a report`}</CodeBlock>
+      <p>
+        Neither tool is useful without a good wordlist tailored to the target organization, which is where
+        <strong> CeWL</strong> comes in — it crawls a company's own website (and can be pointed at other
+        text sources) to build a custom wordlist out of the words actually used there, on the theory that
+        employees' password choices are influenced by their own company's product names, internal jargon,
+        and branding far more than a generic list like rockyou.txt captures:
+      </p>
+      <CodeBlock label="CeWL — building a target-specific wordlist for the crack attempt">{`cewl https://www.example-corp.com -d 2 -m 5 -w example-corp-wordlist.txt
+# -d 2   crawl depth (follow links two levels deep from the starting page)
+# -m 5   minimum word length to include
+# -w     output file — feed this directly into hashcat or john as a supplemental wordlist`}</CodeBlock>
+      <Callout variant="tip">
+        <p>
+          Framed for IR specifically: if a recovered hash dump cracks against a standard wordlist like
+          rockyou.txt in seconds, that's evidence the organization's password policy is failing in
+          practice, not just on paper — a finding that belongs directly in the incident's root-cause and
+          Lessons Learned writeup, alongside a concrete, measurable recommendation (enforce a password
+          manager, raise minimum length/entropy requirements, mandate MFA so a cracked password alone stops
+          being sufficient for account access).
         </p>
       </Callout>
 

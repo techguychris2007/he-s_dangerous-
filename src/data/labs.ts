@@ -24,6 +24,8 @@ import { secEngineeringAdvancedLabs } from '../labs/scenarios/secengineering-adv
 import { securityPlusAdvancedLabs } from '../labs/scenarios/securityplus-advanced-pack';
 import { binaryAnalysisAdvancedLabs } from '../labs/scenarios/binaryanalysis-advanced-pack';
 import { malwareAdvancedLabs } from '../labs/scenarios/malware-advanced-pack';
+import { currentThreatsLabs } from '../labs/scenarios/current-threats-pack';
+import { modernAttackChainsLabs } from '../labs/scenarios/modern-attack-chains-pack';
 import type { LabScenario } from '../labs/types';
 
 export interface LabEntry {
@@ -59,6 +61,8 @@ export const LABS: LabEntry[] = [
   ...toEntries(securityPlusAdvancedLabs),
   ...toEntries(binaryAnalysisAdvancedLabs),
   ...toEntries(malwareAdvancedLabs),
+  ...toEntries(currentThreatsLabs),
+  ...toEntries(modernAttackChainsLabs),
 ];
 
 export const LAB_CATEGORIES = [

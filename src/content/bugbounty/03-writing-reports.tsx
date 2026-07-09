@@ -56,6 +56,20 @@ STRONG: "Any authenticated user can access this endpoint with an arbitrary ID pa
         pay attention to how the strongest ones frame impact and reproduction steps, not just the technical
         payload used.
       </p>
+      <p>
+        Beyond bounty-platform disclosures, a handful of research blogs are worth studying purely as
+        writing exemplars, independent of the bug bounty context they were published in: the{' '}
+        <strong>Google Project Zero Blog</strong> is the gold standard for root-cause depth — its writeups
+        routinely trace a bug all the way from the crash to the exact line of vulnerable logic and explain
+        why every mitigation that should have stopped it didn't. <strong>PortSwigger Research</strong>
+        (the team behind Burp Suite) writes some of the clearest explanations of novel web vulnerability
+        classes anywhere, consistently pairing a plain-English mental model with the exact request/response
+        that proves it. <strong>Trail of Bits' blog</strong> is the standard for how to write up
+        cryptographic and infrastructure-level findings for a technical but non-specialist audience — worth
+        studying specifically for how much unnecessary jargon they cut. None of these are bug bounty
+        reports in the strict sense, but the underlying skill — impact-first, precisely reproducible,
+        respectful of the reader's time — is identical.
+      </p>
 
       <Callout variant="tip">
         <p>

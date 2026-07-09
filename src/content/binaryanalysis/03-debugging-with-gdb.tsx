@@ -17,12 +17,23 @@ export default function DebuggingWithGdb() {
 (gdb) break check_password  # set a breakpoint at a function name
 (gdb) break *0x401166        # set a breakpoint at a specific address
 (gdb) run                     # start execution
+(gdb) run < input.txt          # start execution, feeding a file as stdin — essential for scripted crash repro
 (gdb) next                     # step over the current line (doesn't enter function calls)
 (gdb) step                      # step into the current line (enters function calls)
 (gdb) continue                   # resume execution until the next breakpoint
 (gdb) info registers               # dump all register values at the current point
 (gdb) x/10xw $rsp                    # examine memory: 10 words, hex format, starting at the stack pointer
-(gdb) disassemble check_password       # show disassembly of the current function`}</CodeBlock>
+(gdb) x/20i $rip                      # examine memory as 20 INSTRUCTIONS starting at the instruction pointer
+(gdb) disassemble check_password       # show disassembly of the current function
+(gdb) bt                                # backtrace — show the full call stack (which function called which)
+(gdb) info proc mappings                 # show the process's memory map (base addresses, permissions per region)`}</CodeBlock>
+      <p>
+        <code>x</code> (examine memory) is the single command worth the most practice time — its format is
+        <code> x/NFU address</code>: a count (<code>N</code>), a format letter (<code>x</code> hex,
+        <code>s</code> string, <code>i</code> instruction, <code>d</code> decimal), and a unit size
+        (<code>b</code>yte, <code>h</code>alfword, <code>w</code>ord, <code>g</code>iant/quadword). Once that
+        syntax is second nature, you can inspect almost anything in a running process from one command.
+      </p>
 
       <h2>A worked debugging session</h2>
       <p>
@@ -68,6 +79,49 @@ $1 = "sup3rs3cr3t_2026"       <- there's the real password, straight from memory
         (is ASLR on? is the stack executable?), and helper commands for pattern-matching buffer offsets —
         dramatically speeding up the exact workflow this module builds toward.
       </p>
+
+      <h2>Beyond GDB: Frida for dynamic instrumentation</h2>
+      <p>
+        GDB is fundamentally an <em>interactive, stop-the-world</em> debugger — you set a breakpoint, the
+        process halts, you inspect it by hand. That's perfect for the kind of one-off investigation this
+        lesson has covered so far. But a lot of real reverse-engineering work needs the opposite: observing
+        or altering a function's behavior automatically, every single time it's called, without pausing
+        execution or recompiling anything. That's the job of <strong>Frida</strong>, a dynamic
+        instrumentation toolkit that injects a JavaScript (or Python-controlled) engine directly into a
+        running process and lets you hook any function at runtime.
+      </p>
+      <CodeBlock label="a minimal Frida hook — logging every call to a function's arguments and return value">{`// hook.js — attach with: frida -p <PID> -l hook.js   (or -f ./target -l hook.js to spawn fresh)
+Interceptor.attach(Module.getExportByName(null, "check_password"), {
+  onEnter(args) {
+    console.log("check_password called with input: " + args[0].readCString());
+  },
+  onLeave(retval) {
+    console.log("check_password returned: " + retval);
+  }
+});`}</CodeBlock>
+      <p>
+        Where GDB requires you to manually break, inspect, and continue every time you want to see a
+        function's arguments, a Frida hook like this fires automatically on every single invocation for the
+        life of the process — practical for functions called thousands of times, or for building a
+        repeatable instrumentation script you re-run across many binary versions without touching GDB
+        commands by hand at all. Frida also works across process boundaries in ways GDB does not: it can
+        attach to a process without ever stopping it (no breakpoint, no pause), and the same core engine
+        runs on Windows, Linux, macOS, iOS, and Android binaries alike.
+      </p>
+      <Callout variant="tip">
+        <p>
+          Frida is not a replacement for GDB — it's a complementary tool for a different job. Use GDB when
+          you need to stop and manually reason about a single crash or a single comparison, the way this
+          lesson has been doing. Reach for Frida when you need to instrument a function's behavior
+          repeatedly, programmatically, or across a runtime GDB doesn't natively understand. That second
+          case is overwhelmingly common in one specific domain: mobile application reverse engineering,
+          where Frida (often paired with Objection, a tool built directly on top of it) is the de facto
+          standard for hooking into a running Android or iOS app — bypassing certificate pinning or
+          root-detection checks at runtime exactly the way you'd patch a check here with GDB, just without
+          ever needing source access or a recompile. The module's closing lesson covers this mobile side in
+          detail.
+        </p>
+      </Callout>
 
       <Callout variant="danger">
         <p>

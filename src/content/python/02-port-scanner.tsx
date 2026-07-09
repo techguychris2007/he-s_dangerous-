@@ -72,7 +72,53 @@ if __name__ == "__main__":
       <p>
         100 concurrent workers turns an 8-minute scan into a few seconds. This <code>ThreadPoolExecutor</code>
         pattern — submit many jobs, collect results as they complete — is the backbone of nearly every
-        tool you'll write in this module, not just scanners.
+        tool you'll write in this module, not just scanners. As covered in the previous lesson, this works
+        despite the GIL specifically because each thread spends nearly all its time blocked on
+        <code>connect_ex</code> waiting for the network, not executing Python bytecode.
+      </p>
+      <Callout variant="info">
+        <p>
+          <code>max_workers=100</code> isn't free — past a few hundred concurrent connection attempts you
+          start hitting your own OS's ephemeral port/file-descriptor limits, and the target's TCP backlog can
+          start silently dropping SYNs under enough concurrent load, producing false "closed" results that
+          are really just drops. Tune worker count to the target and treat surprisingly-fast "all closed"
+          results with suspicion — that's usually a sign to slow down, not a real answer.
+        </p>
+      </Callout>
+
+      <h2>What connect() can't do: raw sockets and why nmap needs root</h2>
+      <p>
+        The scanner above uses <code>SOCK_STREAM</code> — a normal, kernel-managed TCP socket that performs
+        a full three-way handshake for every port. That's why it's called a "connect scan" (nmap's
+        <code>-sT</code>): the OS does all the TCP bookkeeping for you, which is simple but slow and loud
+        (a fully-established connection to a closed port still shows up cleanly in the target's logs).
+      </p>
+      <p>
+        Nmap's default SYN scan (<code>-sS</code>) works differently: it crafts a raw TCP packet with only
+        the SYN flag set, reads the raw reply, and sends a RST instead of completing the handshake —
+        never letting the connection fully establish. Building that in Python means opening a
+        <code>socket.SOCK_RAW</code> socket (or, more practically, using <strong>Scapy</strong> to construct
+        the packet for you) instead of a normal stream socket:
+      </p>
+      <CodeBlock label="a minimal SYN probe with Scapy — this is what -sS is doing under the hood">{`from scapy.all import sr1, IP, TCP
+
+def syn_scan_port(ip, port, timeout=1):
+    pkt = IP(dst=ip) / TCP(dport=port, flags="S")
+    resp = sr1(pkt, timeout=timeout, verbose=0)
+    if resp is None:
+        return "filtered"          # no reply — likely dropped by a firewall
+    if resp.haslayer(TCP) and resp[TCP].flags == 0x12:   # SYN/ACK
+        return "open"
+    if resp.haslayer(TCP) and resp[TCP].flags == 0x14:   # RST/ACK
+        return "closed"
+    return "unknown"`}</CodeBlock>
+      <p>
+        Two things make this categorically different from the scanner above: it requires
+        <code>SOCK_RAW</code>, which the OS only grants to root/<code>CAP_NET_RAW</code> — which is exactly
+        why nmap needs <code>sudo</code> for a SYN scan but not for <code>-sT</code> — and it never lets
+        the kernel's TCP stack complete the handshake, so the connection never gets logged as "established"
+        the way a full connect does. Understanding this is what turns "nmap -sS is faster" from a fact you
+        memorized into something you actually understand at the packet level.
       </p>
 
       <h2>Grabbing a banner once you know a port is open</h2>

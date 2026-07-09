@@ -62,7 +62,7 @@ Cookie: session=YToyOntzOjQ6InVzZXIiO3M6NToiYWRtaW4iO30=   <- PHP serialized dat
         confirmed an endpoint deserializes attacker-controlled data.
       </p>
 
-      <Callout variant="danger">
+      <Callout variant="incident">
         <p>
           <strong>Real incident — CVE-2025-53770 ("ToolShell"), July 2025:</strong> an unauthenticated
           remote code execution vulnerability in on-premises Microsoft SharePoint Server, rooted in exactly

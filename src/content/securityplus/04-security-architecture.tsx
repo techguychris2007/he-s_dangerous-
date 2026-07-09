@@ -14,13 +14,22 @@ export default function SecurityArchitecture() {
       <h2>Defense in depth</h2>
       <p>
         No single control is ever assumed sufficient. A properly designed network has multiple independent
-        layers, so that a failure or bypass of one layer doesn't mean total compromise.
+        layers, so that a failure or bypass of one layer doesn't mean total compromise — the whole point is
+        that an attacker who defeats layer one (a phished credential, say) still has to defeat every layer
+        behind it before reaching anything valuable.
       </p>
       <CodeBlock label="a layered defense, outside in">{`Perimeter firewall  ->  DMZ (public-facing services isolated from internal network)
    -> Internal network segmentation (VLANs separating finance, HR, engineering)
       -> Host-based firewall + EDR on each endpoint
          -> Application-level controls (input validation, auth checks)
             -> Data-level controls (encryption at rest, DLP)`}</CodeBlock>
+      <p>
+        Each layer should assume the ones outside it have already failed. This is why a well-designed
+        internal network still enforces authentication between internal services (rather than trusting
+        "it's inside the firewall, so it's fine") — a single phished laptop or exposed VPN credential should
+        not be enough, on its own, to reach the finance VLAN, a domain controller, or a production database.
+
+      </p>
 
       <h2>Network segmentation &amp; zero trust</h2>
       <p>
@@ -28,11 +37,29 @@ export default function SecurityArchitecture() {
         assumption that made the lateral-movement labs in this course's Red Team module so effective once a
         single host was compromised. Zero Trust architecture flips this: no request is trusted by default
         based on network location alone; every request is authenticated and authorized on its own merits,
-        continuously, regardless of whether it originates "inside" or "outside."
+        continuously, regardless of whether it originates "inside" or "outside." Google's internal
+        <strong> BeyondCorp</strong> model — built after Google itself was targeted in the 2009
+        "Operation Aurora" intrusions — is the most cited production example: employees at Google
+        authenticate every request based on device and user identity rather than which network they're
+        plugged into, with no privileged "corporate VPN" network to compromise in the first place.
       </p>
       <CodeBlock label="zero trust core principles">{`- Verify explicitly (every request, every time — not just at initial login)
 - Use least privilege access (scoped tightly, time-limited where possible)
 - Assume breach (design as if an attacker is already inside the network)`}</CodeBlock>
+      <Callout variant="incident">
+        <p>
+          <strong>Real incident — Target Corporation, 2013:</strong> attackers gained an initial foothold
+          using network credentials stolen from an HVAC/refrigeration vendor, Fazio Mechanical, who had
+          remote access for billing and system monitoring. The vendor connection should never have been
+          able to reach anywhere near payment systems — but Target's network was not meaningfully
+          segmented between the vendor-facing environment and the point-of-sale network, so attackers
+          pivoted from a third-party HVAC contractor's stolen login all the way to memory-scraping malware
+          on cash registers across thousands of stores, exposing roughly 40 million payment card records.
+          It remains one of the most cited real-world cases for why network segmentation cannot be
+          treated as a "nice to have" — the vendor credential compromise was arguably unavoidable, but the
+          flat network that let it reach POS systems was an architectural choice.
+        </p>
+      </Callout>
 
       <h2>High availability &amp; redundancy</h2>
       <CodeBlock label="patterns for eliminating single points of failure">{`Active-Active  — multiple systems handle load simultaneously; if one fails, others absorb the traffic
@@ -54,6 +81,22 @@ Differential backup   — only changes since the last FULL backup (a middle grou
           recovery — this is exactly why immutable/offline backup copies (a true "air gap," not just a
           separate folder on the same network) are now considered a baseline control, not an optional
           extra.
+        </p>
+      </Callout>
+      <Callout variant="incident">
+        <p>
+          <strong>Real incident — Maersk and NotPetya, June 2017:</strong> the NotPetya wiper (disguised as
+          ransomware but designed purely to destroy, spreading via a hijacked Ukrainian tax software
+          update) reached Maersk's global network and destroyed effectively every domain controller the
+          company had online in under an hour, threatening the shipping giant's entire IT backbone across
+          more than 100 countries. Maersk was saved by pure chance rather than a designed DR plan: one
+          domain controller, in a branch office in Ghana, happened to be offline during the outbreak due to
+          a local power cut, which left it as the sole surviving unencrypted copy of Active Directory in
+          the entire company. Staff physically flew a hard drive from that office back to headquarters to
+          rebuild from it. The incident cost Maersk an estimated $200-300 million and is now the textbook
+          argument for deliberately engineered redundancy and offline/immutable backups — Maersk's recovery
+          worked, but it worked by accident, which is precisely the outcome resilience planning exists to
+          stop being true.
         </p>
       </Callout>
 

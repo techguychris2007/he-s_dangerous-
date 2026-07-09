@@ -426,7 +426,7 @@ export const ROADMAP: RoadmapStage[] = [
   { title: 'Binary Analysis & Reverse Engineering', status: 'available', moduleSlug: 'binaryanalysis', sourceBooks: ['Practical Binary Analysis', 'Hacking: The Art of Exploitation'] },
   { title: 'Practical Malware Analysis', status: 'available', moduleSlug: 'malware', sourceBooks: ['Practical Malware Analysis'] },
   { title: 'Security Engineering', status: 'available', moduleSlug: 'secengineering', sourceBooks: ['Security Engineering — Ross Anderson'] },
-  { title: 'Guided Hands-On Labs (104 labs)', status: 'available', href: '/labs', sourceBooks: ['Applied practice across every module above'] },
+  { title: 'Guided Hands-On Labs (142 labs)', status: 'available', href: '/labs', sourceBooks: ['Applied practice across every module above'] },
 ];
 
 export function findModule(slug?: string) {

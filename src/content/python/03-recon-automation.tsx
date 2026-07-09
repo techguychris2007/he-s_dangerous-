@@ -26,6 +26,30 @@ resp = requests.post("http://10.10.10.5/login", data={"user": "admin", "pass": "
 headers = {"User-Agent": "Mozilla/5.0", "Authorization": "Bearer <token>"}
 resp = requests.get("http://10.10.10.5/api/data", headers=headers)`}</CodeBlock>
 
+      <h2>Sessions: reusing connections instead of paying handshake cost every request</h2>
+      <p>
+        Calling <code>requests.get()</code> repeatedly opens a fresh TCP (and TLS, for HTTPS) connection
+        every single time. A <code>requests.Session</code> reuses the underlying connection pool between
+        requests to the same host — a meaningful speedup once you're making hundreds of requests — and also
+        persists cookies automatically across requests, which matters the moment a target sets a session
+        cookie after login that later requests need to carry.
+      </p>
+      <CodeBlock label="session reuse + a real retry/backoff strategy">{`import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+
+session = requests.Session()
+retries = Retry(total=3, backoff_factor=0.5, status_forcelist=[500, 502, 503, 504])
+session.mount("https://", HTTPAdapter(max_retries=retries))
+session.mount("http://", HTTPAdapter(max_retries=retries))
+
+resp = session.get("http://10.10.10.5/dashboard", timeout=3)   # reuses the pooled connection, retries on 5xx`}</CodeBlock>
+      <p>
+        That retry strategy matters in practice: a flaky lab VM or a target briefly rate-limiting you
+        shouldn't make your whole scan report false negatives — three retries with exponential backoff
+        (0.5s, 1s, 2s) absorbs transient failures without hammering a struggling service.
+      </p>
+
       <h2>A directory brute-forcer</h2>
       <CodeBlock label="dirbrute.py">{`import requests
 from concurrent.futures import ThreadPoolExecutor
@@ -88,6 +112,36 @@ def check_with_delay(path):
           by default, not as an afterthought.
         </p>
       </Callout>
+
+      <h2>Beyond threads: when asyncio/aiohttp is the better tool</h2>
+      <p>
+        <code>ThreadPoolExecutor</code> is simple and works well into the hundreds of concurrent requests,
+        but each thread still carries real OS overhead (its own stack, scheduling cost). For truly
+        high-volume HTTP work — probing tens of thousands of URLs, the kind of job tools like httpx are built
+        for — <code>asyncio</code> with <code>aiohttp</code> scales further, because coroutines are
+        cooperatively scheduled inside a single thread instead of relying on OS thread scheduling:
+      </p>
+      <CodeBlock label="the same directory brute-forcer, async style">{`import asyncio
+import aiohttp
+
+async def check_path(session, base, path):
+    try:
+        async with session.get(f"{base}/{path}", allow_redirects=False, timeout=2) as r:
+            if r.status != 404:
+                print(f"[{r.status}] {base}/{path}")
+    except aiohttp.ClientError:
+        pass
+
+async def main(base, paths):
+    async with aiohttp.ClientSession() as session:
+        await asyncio.gather(*(check_path(session, base, p) for p in paths))
+
+asyncio.run(main("http://10.10.10.5", ["admin", "login", "backup.zip"]))`}</CodeBlock>
+      <p>
+        Know both patterns rather than picking a favorite: threading is easier to reason about and plenty
+        fast for most engagement-sized targets; asyncio is the right call once you're scaling into the
+        thousands-of-requests territory where thread overhead itself becomes the bottleneck.
+      </p>
 
       <p>
         With scanning and HTTP automation covered, the final lesson in this module turns to writing the

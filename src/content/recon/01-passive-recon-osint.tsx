@@ -42,6 +42,81 @@ site:pastebin.com "target.com"`}</CodeBlock>
 dig MX target.com
 dig TXT target.com          # SPF records often list mail infrastructure`}</CodeBlock>
 
+      <h2>Subdomain enumeration at scale</h2>
+      <p>
+        Certificate transparency and DNS give you a starting handful of subdomains; real engagements need
+        dozens to thousands. A handful of purpose-built tools now dominate this space, and they are not
+        interchangeable — each trades off speed, depth, and passive-vs-active differently.
+      </p>
+      <CodeBlock label="subfinder — fast, purely passive, the default first move">{`subfinder -d target.com -silent
+subfinder -d target.com -all -o subs.txt   # -all pulls from every configured source, not just the fast ones`}</CodeBlock>
+      <CodeBlock label="amass — the deepest option, built for full attack-surface mapping">{`amass enum -passive -d target.com          # passive mode — dozens of OSINT sources, no direct target contact
+amass enum -active -d target.com -brute     # active mode — adds DNS brute forcing and zone walking, touches the target's DNS`}</CodeBlock>
+      <CodeBlock label="assetfinder &amp; findomain — lightweight, script-friendly alternatives">{`assetfinder --subs-only target.com          # quick, no config, good for chaining into other tools
+findomain -t target.com -q                    # fast Rust-based enumerator with many API source integrations`}</CodeBlock>
+      <p>
+        The practical distinction: <strong>subfinder</strong> is optimized for speed and clean output —
+        it's what you run first, every time. <strong>Amass</strong> is heavier and slower but genuinely
+        the most thorough (it's an OWASP project purpose-built for attack surface mapping, not just
+        subdomain lists — it also maps ASNs, netblocks, and relationships between assets). <strong>Assetfinder</strong>
+        and <strong>Findomain</strong> sit in between — fast, minimal, easy to drop into a pipeline. A
+        realistic workflow chains several of them together and de-duplicates the result:
+      </p>
+      <CodeBlock label="chaining tools — this is the real-world pattern, not any single tool alone">{`subfinder -d target.com -silent > subs.txt
+amass enum -passive -d target.com >> subs.txt
+assetfinder --subs-only target.com >> subs.txt
+sort -u subs.txt -o subs.txt`}</CodeBlock>
+
+      <h2>theHarvester: aggregating emails, hosts &amp; public info in one pass</h2>
+      <CodeBlock>{`theHarvester -d target.com -b all -l 500
+# -b selects the data source (google, bing, linkedin, shodan, dnsdumpster, all, ...)
+# -l caps how many results to pull per source`}</CodeBlock>
+      <p>
+        theHarvester's role is different from the subdomain-focused tools above: it's aggregating
+        <em> emails</em>, employee names, hostnames, and open ports/banners it can find via search engines,
+        PGP key servers, and (optionally) Shodan — one command that used to take manually querying half a
+        dozen sites by hand.
+      </p>
+
+      <h2>Shodan &amp; Censys: search engines for the internet itself</h2>
+      <p>
+        Regular search engines index web pages. Shodan and Censys index <em>devices</em> — they
+        continuously scan the entire IPv4 address space and record what service banner answered on every
+        port, then let you search that dataset like a database instead of scanning it yourself.
+      </p>
+      <CodeBlock label="Shodan — query syntax examples">{`shodan search "product:nginx" country:US       # nginx servers geolocated to the US
+shodan search "port:502" "Modbus"                # exposed industrial (ICS/SCADA) Modbus devices
+shodan host 10.10.10.5                             # everything Shodan knows about one specific IP
+shodan search 'org:"Target Corp"'                 # every device Shodan has fingerprinted as belonging to an org`}</CodeBlock>
+      <CodeBlock label="Censys — similar goal, different query language">{`censys search 'services.service_name: "HTTP" and services.http.response.status_code: 200'
+censys search 'services.tls.certificates.leaf_data.subject.organization: "target.com"'`}</CodeBlock>
+      <p>
+        Both are why "I didn't expose that publicly" is often wrong — a device only needs to answer a
+        probe once for Shodan/Censys to record it. For attackers, this means entire categories of internal
+        infrastructure (misconfigured databases, forgotten admin panels, ICS equipment) get discovered
+        without sending the target a single packet yourself. For defenders, periodically searching your own
+        org's footprint on both is a legitimate, standard exposure-check habit.
+      </p>
+
+      <h2>SpiderFoot &amp; Recon-ng: automated OSINT frameworks</h2>
+      <p>
+        Running WHOIS, cert transparency, theHarvester, and subdomain tools one at a time works, but it
+        doesn't scale past a handful of targets. <strong>SpiderFoot</strong> and <strong>Recon-ng</strong>
+        exist to automate that correlation.
+      </p>
+      <CodeBlock label="SpiderFoot — point-and-go automation across 200+ modules">{`spiderfoot -s target.com -m sfp_dnsresolve,sfp_crt,sfp_shodan
+# or run its web UI (default http://127.0.0.1:5001) and drive it visually`}</CodeBlock>
+      <CodeBlock label="Recon-ng — a modular, Metasploit-style recon framework">{`recon-ng
+[recon-ng][default] > marketplace install recon/domains-hosts/hackertarget
+[recon-ng][default] > modules load recon/domains-hosts/hackertarget
+[recon-ng][default][hackertarget] > options set SOURCE target.com
+[recon-ng][default][hackertarget] > run`}</CodeBlock>
+      <p>
+        Recon-ng's value is structure: results land in a workspace database you can query and export later,
+        instead of scrollback you have to grep through — the same workflow discipline Metasploit brings to
+        exploitation, applied to recon.
+      </p>
+
       <h2>People &amp; org intelligence</h2>
       <p>
         LinkedIn employee lists reveal naming conventions for later username generation (
