@@ -1,0 +1,868 @@
+import { getNode, pathToString, resolvePath, type FsNode } from './vfs';
+import type { HostDef, LabScenario } from './types';
+
+export type LineKind = 'input' | 'output' | 'error' | 'success' | 'system' | 'muted';
+
+export interface OutLine {
+  kind: LineKind;
+  text: string;
+}
+
+interface Session {
+  isAttacker: boolean;
+  host?: HostDef;
+  user: string;
+  cwd: string[];
+  isRoot: boolean;
+}
+
+const FLAG_RE = /flag\{[^}]+\}/i;
+
+function homeOf(session: Session): string[] {
+  const user = session.isRoot ? 'root' : session.user;
+  return user === 'root' ? ['root'] : ['home', session.user];
+}
+
+export class TerminalEngine {
+  private scenario: LabScenario;
+  private attackerRoot: FsNode;
+  private stack: Session[];
+  private hintIndex = 0;
+  private awaitingAuth: { ip: string; user: string; host: HostDef } | null = null;
+
+  constructor(scenario: LabScenario) {
+    this.scenario = scenario;
+    this.attackerRoot = scenario.attacker.root;
+    const base: Session = {
+      isAttacker: true,
+      user: scenario.attacker.user,
+      cwd: scenario.attacker.user === 'root' ? ['root'] : ['home', scenario.attacker.user],
+      isRoot: scenario.attacker.user === 'root',
+    };
+    (base as any).__attackerRoot = this.attackerRoot;
+    this.stack = [base];
+  }
+
+  private get session(): Session {
+    return this.stack[this.stack.length - 1];
+  }
+
+  private fsRoot(): FsNode {
+    const s = this.session;
+    return s.isAttacker ? this.attackerRoot : (s.host as HostDef).root;
+  }
+
+  private effectiveUser(): string {
+    const s = this.session;
+    return s.isRoot ? 'root' : s.user;
+  }
+
+  getPrompt(): string {
+    if (this.awaitingAuth) return `Password for ${this.awaitingAuth.user}@${this.awaitingAuth.ip}:`;
+    const s = this.session;
+    const host = s.isAttacker ? this.scenario.attacker.hostname : (s.host as HostDef).hostname;
+    const marker = this.effectiveUser() === 'root' ? '#' : '$';
+    return `${this.effectiveUser()}@${host}:${pathToString(s.cwd)}${marker}`;
+  }
+
+  isAwaitingPassword(): boolean {
+    return this.awaitingAuth !== null;
+  }
+
+  private findHostByIp(ip: string): HostDef | undefined {
+    return this.scenario.network.find((h) => h.ip === ip);
+  }
+
+  private resolveInSession(input: string): string[] {
+    const s = this.session;
+    return resolvePath(s.cwd, input, homeOf(s));
+  }
+
+  private ls(args: string[]): OutLine[] {
+    const long = args.includes('-la') || args.includes('-l') || args.includes('-al');
+    const positional = args.filter((a) => !a.startsWith('-'));
+    const target = positional[0] ? this.resolveInSession(positional[0]) : this.session.cwd;
+    const node = getNode(this.fsRoot(), target);
+    if (!node) return [{ kind: 'error', text: `ls: cannot access '${positional[0] ?? '.'}': No such file or directory` }];
+    if (node.type === 'file') return [{ kind: 'output', text: positional[0] ?? '' }];
+    const names = Object.keys(node.children);
+    if (names.length === 0) return [];
+    if (!long) {
+      return [{ kind: 'output', text: names.join('  ') }];
+    }
+    const lines: OutLine[] = names.map((name) => {
+      const child = node.children[name];
+      const isDir = child.type === 'dir';
+      const perms = child.mode ?? (isDir ? 'drwxr-xr-x' : '-rw-r--r--');
+      const size = child.type === 'file' ? child.content.length : 4096;
+      return {
+        kind: 'output',
+        text: `${perms} 1 ${this.effectiveUser()} ${this.effectiveUser()} ${String(size).padStart(6)} ${name}${isDir ? '/' : ''}`,
+      };
+    });
+    return lines;
+  }
+
+  private cd(args: string[]): OutLine[] {
+    const target = args[0] ?? '~';
+    const resolved = this.resolveInSession(target);
+    const node = getNode(this.fsRoot(), resolved);
+    if (!node) return [{ kind: 'error', text: `bash: cd: ${target}: No such file or directory` }];
+    if (node.type !== 'dir') return [{ kind: 'error', text: `bash: cd: ${target}: Not a directory` }];
+    this.session.cwd = resolved;
+    return [];
+  }
+
+  private cat(args: string[], onFlag: (flag: string) => void): OutLine[] {
+    if (args.length === 0) return [{ kind: 'error', text: 'cat: missing operand' }];
+    const out: OutLine[] = [];
+    for (const arg of args) {
+      const resolved = this.resolveInSession(arg);
+      const node = getNode(this.fsRoot(), resolved);
+      if (!node) {
+        out.push({ kind: 'error', text: `cat: ${arg}: No such file or directory` });
+        continue;
+      }
+      if (node.type === 'dir') {
+        out.push({ kind: 'error', text: `cat: ${arg}: Is a directory` });
+        continue;
+      }
+      node.content.split('\n').forEach((l) => out.push({ kind: 'output', text: l }));
+      const match = node.content.match(FLAG_RE);
+      if (match) onFlag(match[0]);
+    }
+    return out;
+  }
+
+  /** Simulated `strings` — our "binaries" are stored pre-extracted as text, so this surfaces that content. */
+  private strings(args: string[], onFlag: (flag: string) => void): OutLine[] {
+    if (args.length === 0) return [{ kind: 'error', text: 'strings: missing operand' }];
+    const resolved = this.resolveInSession(args[0]);
+    const node = getNode(this.fsRoot(), resolved);
+    if (!node || node.type !== 'file') return [{ kind: 'error', text: `strings: ${args[0]}: No such file or directory` }];
+    const lines = node.content.split('\n').filter((l) => !l.startsWith('#FILETYPE:') && !l.startsWith('#CRACKME_'));
+    const match = node.content.match(FLAG_RE);
+    if (match) onFlag(match[0]);
+    return lines.map((l) => ({ kind: 'output' as const, text: l }));
+  }
+
+  /** Simulated `file` — reads a #FILETYPE: marker line lab authors embed, falling back to a generic guess. */
+  private fileCmd(args: string[]): OutLine[] {
+    if (args.length === 0) return [{ kind: 'error', text: 'file: missing operand' }];
+    const resolved = this.resolveInSession(args[0]);
+    const node = getNode(this.fsRoot(), resolved);
+    if (!node) return [{ kind: 'error', text: `file: ${args[0]}: No such file or directory` }];
+    if (node.type === 'dir') return [{ kind: 'output', text: `${args[0]}: directory` }];
+    const marker = node.content.split('\n').find((l) => l.startsWith('#FILETYPE:'));
+    const desc = marker ? marker.replace('#FILETYPE:', '').trim() : 'ASCII text';
+    return [{ kind: 'output', text: `${args[0]}: ${desc}` }];
+  }
+
+  /** Local "crackme" execution: `./binary <guess>` succeeds if the guess matches the password marker,
+   *  or (for buffer-overflow-style labs) if its LENGTH reaches a minimum overflow threshold. */
+  private tryRunCrackme(cmd: string, args: string[], onFlag: (flag: string) => void): OutLine[] | null {
+    const cleaned = cmd.replace(/^\.\//, '');
+    const resolved = this.resolveInSession(cleaned.startsWith('/') ? cleaned : cleaned);
+    const node = getNode(this.fsRoot(), resolved);
+    if (!node || node.type !== 'file') return null;
+    const pwLine = node.content.split('\n').find((l) => l.startsWith('#CRACKME_PASSWORD:'));
+    const minlenLine = node.content.split('\n').find((l) => l.startsWith('#CRACKME_MINLEN:'));
+    if (!pwLine && !minlenLine) return null;
+    const guess = args[0];
+    if (guess === undefined) return [{ kind: 'error', text: `usage: ${cmd} <input>` }];
+
+    let ok: boolean;
+    if (pwLine) {
+      ok = guess === pwLine.replace('#CRACKME_PASSWORD:', '').trim();
+    } else {
+      const minlen = Number(minlenLine!.replace('#CRACKME_MINLEN:', '').trim());
+      ok = guess.length >= minlen;
+    }
+    if (!ok) {
+      return [{ kind: 'error', text: pwLine ? 'Access denied: incorrect password.' : `Input accepted (${guess.length} bytes). No crash.` }];
+    }
+    const successLine = node.content.split('\n').find((l) => l.startsWith('#CRACKME_SUCCESS:'));
+    const successText = successLine ? successLine.replace('#CRACKME_SUCCESS:', '').trim() : 'Access granted.';
+    const match = successText.match(FLAG_RE);
+    if (match) onFlag(match[0]);
+    return successText.split('\\n').map((l) => ({ kind: 'success' as const, text: l }));
+  }
+
+  /** Generic helper: pull a `#MARKER:` line out of a file's content and unescape its literal \n sequences. */
+  private extractMarkerBlock(content: string, marker: string): string | null {
+    const line = content.split('\n').find((l) => l.startsWith(marker));
+    if (!line) return null;
+    return line.replace(marker, '').trim();
+  }
+
+  private checksec(args: string[], onFlag: (flag: string) => void): OutLine[] {
+    const fileFlag = args.find((a) => a.startsWith('--file='));
+    const target = fileFlag ? fileFlag.slice('--file='.length) : args.find((a) => !a.startsWith('-'));
+    if (!target) return [{ kind: 'error', text: 'usage: checksec --file=<binary>' }];
+    const resolved = this.resolveInSession(target);
+    const node = getNode(this.fsRoot(), resolved);
+    if (!node || node.type !== 'file') return [{ kind: 'error', text: `checksec: ${target}: No such file or directory` }];
+    const block = this.extractMarkerBlock(node.content, '#CHECKSEC:');
+    if (!block) {
+      return [{ kind: 'output', text: `RELRO           STACK CANARY      NX            PIE` }, { kind: 'output', text: `Full RELRO      Canary found      NX enabled    PIE enabled` }];
+    }
+    const match = block.match(FLAG_RE);
+    if (match) onFlag(match[0]);
+    return block.split('\\n').map((l) => ({ kind: 'output' as const, text: l }));
+  }
+
+  private objdump(args: string[]): OutLine[] {
+    const target = args.find((a) => !a.startsWith('-'));
+    if (!target) return [{ kind: 'error', text: 'usage: objdump -d <binary>' }];
+    const resolved = this.resolveInSession(target);
+    const node = getNode(this.fsRoot(), resolved);
+    if (!node || node.type !== 'file') return [{ kind: 'error', text: `objdump: ${target}: No such file or directory` }];
+    const block = this.extractMarkerBlock(node.content, '#OBJDUMP:');
+    if (!block) return [{ kind: 'error', text: `objdump: ${target}: File format not recognized` }];
+    return block.split('\\n').map((l) => ({ kind: 'output' as const, text: l }));
+  }
+
+  private gdb(args: string[]): OutLine[] {
+    const target = args.find((a) => !a.startsWith('-'));
+    if (!target) return [{ kind: 'error', text: 'usage: gdb <binary>' }];
+    const resolved = this.resolveInSession(target);
+    const node = getNode(this.fsRoot(), resolved);
+    if (!node || node.type !== 'file') return [{ kind: 'error', text: `gdb: ${target}: No such file or directory` }];
+    const block = this.extractMarkerBlock(node.content, '#GDB_SESSION:');
+    if (!block) return [{ kind: 'system', text: `GNU gdb (Ubuntu 12.1) — Reading symbols from ${target}...` }, { kind: 'muted', text: '(no debug info found)' }];
+    return [
+      { kind: 'system', text: `GNU gdb (Ubuntu 12.1) — Reading symbols from ${target}...` },
+      ...block.split('\\n').map((l) => ({ kind: 'output' as const, text: l })),
+    ];
+  }
+
+  private yara(args: string[], onFlag: (flag: string) => void): OutLine[] {
+    const positional = args.filter((a) => !a.startsWith('-'));
+    const [ruleArg, targetArg] = positional;
+    if (!ruleArg || !targetArg) return [{ kind: 'error', text: 'usage: yara <rulefile.yar> <target>' }];
+    const ruleNode = getNode(this.fsRoot(), this.resolveInSession(ruleArg));
+    if (!ruleNode) return [{ kind: 'error', text: `yara: can't open rule file ${ruleArg}` }];
+    const targetNode = getNode(this.fsRoot(), this.resolveInSession(targetArg));
+    if (!targetNode || targetNode.type !== 'file') return [{ kind: 'error', text: `yara: ${targetArg}: No such file or directory` }];
+    const block = this.extractMarkerBlock(targetNode.content, '#YARA_MATCH:');
+    if (!block) return [{ kind: 'muted', text: '(no matches)' }];
+    const match = block.match(FLAG_RE);
+    if (match) onFlag(match[0]);
+    return block.split('\\n').map((l) => ({ kind: 'success' as const, text: l }));
+  }
+
+  private hashcat(args: string[], onFlag: (flag: string) => void): OutLine[] {
+    const positional = args.filter((a) => !a.startsWith('-') && !/^\d+$/.test(a));
+    const [hashArg, wordlistArg] = positional;
+    if (!hashArg || !wordlistArg) return [{ kind: 'error', text: 'usage: hashcat -m <mode> <hashfile> <wordlist>' }];
+    const hashNode = getNode(this.fsRoot(), this.resolveInSession(hashArg));
+    if (!hashNode || hashNode.type !== 'file') return [{ kind: 'error', text: `hashcat: ${hashArg}: No such file or directory` }];
+    const wordlistNode = getNode(this.fsRoot(), this.resolveInSession(wordlistArg));
+    if (!wordlistNode || wordlistNode.type !== 'file') return [{ kind: 'error', text: `hashcat: ${wordlistArg}: No such file or directory` }];
+    const hashValue = this.extractMarkerBlock(hashNode.content, '#HASHCAT_HASH:');
+    const plaintext = this.extractMarkerBlock(hashNode.content, '#HASHCAT_PLAINTEXT:');
+    const out: OutLine[] = [
+      { kind: 'system', text: 'hashcat (v6.2.6) starting...' },
+      { kind: 'muted', text: `Dictionary cache built: ${wordlistNode.content.split('\n').filter(Boolean).length} words` },
+    ];
+    if (!hashValue || !plaintext) {
+      out.push({ kind: 'error', text: 'No hashes loaded.' });
+      return out;
+    }
+    const words = wordlistNode.content.split('\n').map((w) => w.trim()).filter(Boolean);
+    if (!words.includes(plaintext)) {
+      out.push({ kind: 'error', text: `${hashValue}:?  Status...........: Exhausted (not found in this wordlist)` });
+      return out;
+    }
+    out.push({ kind: 'success', text: `${hashValue}:${plaintext}` });
+    out.push({ kind: 'success', text: 'Status...........: Cracked' });
+    const flagMarker = this.extractMarkerBlock(hashNode.content, '#HASHCAT_FLAG:');
+    if (flagMarker) out.push({ kind: 'success', text: flagMarker });
+    const match = (flagMarker ?? '').match(FLAG_RE) ?? plaintext.match(FLAG_RE) ?? hashNode.content.match(FLAG_RE);
+    if (match) onFlag(match[0]);
+    return out;
+  }
+
+  private find(args: string[]): OutLine[] {
+    let startArg = args[0] && !args[0].startsWith('-') ? args[0] : '.';
+    const nameIdx = args.indexOf('-name');
+    const pattern = nameIdx >= 0 ? args[nameIdx + 1]?.replace(/^["']|["']$/g, '') : undefined;
+    const wantsSuid = args.includes('-perm') && (args.includes('-4000') || args.includes('/4000') || args.includes('-4000,u+s'));
+    const start = this.resolveInSession(startArg);
+    const startNode = getNode(this.fsRoot(), start);
+    if (!startNode) return [{ kind: 'error', text: `find: '${startArg}': No such file or directory` }];
+    const regex = pattern ? new RegExp('^' + pattern.split('*').map(escapeRe).join('.*') + '$', 'i') : null;
+    const results: string[] = [];
+    const walk = (node: FsNode, path: string[]) => {
+      const name = path[path.length - 1] ?? '';
+      const nameOk = !regex || regex.test(name);
+      const suidOk = !wantsSuid || (node.type === 'file' && /^-rws/.test(node.mode ?? ''));
+      if (nameOk && suidOk && (regex || wantsSuid)) results.push(pathToString(path));
+      if (node.type === 'dir') {
+        for (const [child_name, child] of Object.entries(node.children)) walk(child, [...path, child_name]);
+      }
+    };
+    walk(startNode, start);
+    return results.length
+      ? results.map((r) => ({ kind: 'output' as const, text: r }))
+      : [{ kind: 'muted', text: '(no matches)' }];
+  }
+
+  private grep(args: string[]): OutLine[] {
+    const recursive = args.includes('-r') || args.includes('-R');
+    const positional = args.filter((a) => !a.startsWith('-'));
+    if (positional.length < 2) return [{ kind: 'error', text: 'usage: grep [-r] <pattern> <file|dir>' }];
+    const [rawPattern, targetPath] = positional;
+    const clean = rawPattern.replace(/^["']|["']$/g, '');
+    const resolved = this.resolveInSession(targetPath);
+    const node = getNode(this.fsRoot(), resolved);
+    if (!node) return [{ kind: 'error', text: `grep: ${targetPath}: No such file or directory` }];
+
+    if (node.type === 'dir') {
+      if (!recursive) return [{ kind: 'error', text: `grep: ${targetPath}: Is a directory` }];
+      const out: OutLine[] = [];
+      const walk = (n: FsNode, path: string[]) => {
+        if (n.type === 'file') {
+          n.content.split('\n').forEach((l) => {
+            if (l.includes(clean)) out.push({ kind: 'output', text: `${pathToString(path)}:${l}` });
+          });
+        } else {
+          for (const [name, child] of Object.entries(n.children)) walk(child, [...path, name]);
+        }
+      };
+      walk(node, resolved);
+      return out.length ? out : [];
+    }
+
+    const matches = node.content.split('\n').filter((l) => l.includes(clean));
+    return matches.length
+      ? matches.map((l) => ({ kind: 'output' as const, text: l }))
+      : [];
+  }
+
+  private nmap(args: string[]): OutLine[] {
+    const verbose = args.includes('-sV');
+    const ip = args.find((a) => /^\d+\.\d+\.\d+\.\d+$/.test(a));
+    if (!ip) return [{ kind: 'error', text: 'usage: nmap [-sV] [-p-] <ip>' }];
+    const host = this.findHostByIp(ip);
+    const out: OutLine[] = [];
+    out.push({ kind: 'system', text: `Starting Nmap 7.94 ( https://nmap.org ) at ${new Date().toUTCString()}` });
+    if (!host) {
+      out.push({ kind: 'error', text: `Note: Host seems down. If it is really up, but blocking our ping probes, try -Pn` });
+      out.push({ kind: 'error', text: `Nmap done: 1 IP address (0 hosts up) scanned` });
+      return out;
+    }
+    out.push({ kind: 'output', text: `Nmap scan report for ${host.hostname} (${host.ip})` });
+    out.push({ kind: 'output', text: `Host is up (0.0021s latency).` });
+    out.push({ kind: 'output', text: verbose ? 'PORT     STATE SERVICE VERSION' : 'PORT     STATE SERVICE' });
+    for (const svc of host.services) {
+      const portStr = `${svc.port}/tcp`.padEnd(9);
+      if (verbose) {
+        out.push({ kind: 'output', text: `${portStr}open  ${svc.name.padEnd(7)} ${svc.version}` });
+      } else {
+        out.push({ kind: 'output', text: `${portStr}open  ${svc.name}` });
+      }
+    }
+    out.push({ kind: 'system', text: `Nmap done: 1 IP address (1 host up) scanned in 4.21 seconds` });
+    return out;
+  }
+
+  private ping(args: string[]): OutLine[] {
+    const ip = args[0];
+    if (!ip) return [{ kind: 'error', text: 'usage: ping <ip>' }];
+    const host = this.findHostByIp(ip);
+    if (!host) {
+      return [
+        { kind: 'output', text: `PING ${ip} (${ip}) 56(84) bytes of data.` },
+        { kind: 'error', text: `From 10.10.14.1 icmp_seq=1 Destination Host Unreachable` },
+        { kind: 'system', text: `--- ${ip} ping statistics ---\n4 packets transmitted, 0 received, 100% packet loss` },
+      ];
+    }
+    return [
+      { kind: 'output', text: `PING ${ip} (${ip}) 56(84) bytes of data.` },
+      { kind: 'output', text: `64 bytes from ${ip}: icmp_seq=1 ttl=63 time=2.14 ms` },
+      { kind: 'output', text: `64 bytes from ${ip}: icmp_seq=2 ttl=63 time=1.98 ms` },
+      { kind: 'system', text: `--- ${ip} ping statistics ---\n2 packets transmitted, 2 received, 0% packet loss` },
+    ];
+  }
+
+  private curl(args: string[], onFlag: (flag: string) => void): OutLine[] {
+    // Walk args and pull out -H/-d and their values first, so whatever's left is the URL —
+    // otherwise a header value that doesn't start with '-' gets mistaken for the target.
+    const consumed = new Set<number>();
+    let postBody: string | undefined;
+    const headers: Record<string, string> = {};
+    args.forEach((a, i) => {
+      if (a === '-H' && args[i + 1] !== undefined) {
+        consumed.add(i);
+        consumed.add(i + 1);
+        const [name, ...rest] = args[i + 1].replace(/^["']|["']$/g, '').split(':');
+        if (name) headers[name.trim().toLowerCase()] = rest.join(':').trim();
+      } else if (a === '-d' && args[i + 1] !== undefined) {
+        consumed.add(i);
+        consumed.add(i + 1);
+        postBody = args[i + 1].replace(/^["']|["']$/g, '');
+      } else if (a === '-X' && args[i + 1] !== undefined) {
+        // HTTP method flag — doesn't change simulated behavior here, but its value must not be mistaken for the URL.
+        consumed.add(i);
+        consumed.add(i + 1);
+      }
+    });
+
+    const target = args.find((a, i) => !consumed.has(i) && !a.startsWith('-'));
+    if (!target) return [{ kind: 'error', text: 'usage: curl [-H "Name: value"] [-d "a=b&c=d"] <ip>[:port][/path[?query]]' }];
+
+    const m = target.match(/^(?:https?:\/\/)?(\d+\.\d+\.\d+\.\d+)(?::(\d+))?(\/[^?]*)?(?:\?(.*))?$/);
+    if (!m) return [{ kind: 'error', text: `curl: (3) URL using bad/illegal format or missing URL` }];
+    const [, ip, portStr, rawPath, rawQuery] = m;
+    const port = portStr ? Number(portStr) : 80;
+    const path = rawPath ?? '/';
+    const host = this.findHostByIp(ip);
+    if (!host) return [{ kind: 'error', text: `curl: (7) Failed to connect to ${ip} port ${port}: Connection refused` }];
+    const svc = host.services.find((s) => s.port === port && (s.http || s.vulnRoutes));
+    if (!svc) return [{ kind: 'error', text: `curl: (7) Failed to connect to ${ip} port ${port}: Connection refused` }];
+
+    const params = parseParams(postBody ?? rawQuery ?? '');
+    const route = svc.vulnRoutes?.find((r) => r.path === path);
+    if (route) {
+      const value = route.location === 'header' ? headers[route.param.toLowerCase()] : params[route.param];
+      const triggered = value !== undefined && route.triggerSubstrings.some((s) => value.toLowerCase().includes(s.toLowerCase()));
+      const body = triggered ? route.vulnerableResponse : route.normalResponse;
+      const match = body.match(FLAG_RE);
+      if (match) onFlag(match[0]);
+      return body.split('\n').map((l) => ({ kind: 'output' as const, text: l }));
+    }
+
+    const body = svc.http?.[path];
+    if (body === undefined) {
+      return [{ kind: 'output', text: '<html><body><h1>404 Not Found</h1></body></html>' }];
+    }
+    const match = body.match(FLAG_RE);
+    if (match) onFlag(match[0]);
+    return body.split('\n').map((l) => ({ kind: 'output' as const, text: l }));
+  }
+
+  private exploit(args: string[]): OutLine[] {
+    const moduleName = args[0];
+    const ip = args.find((a) => /^\d+\.\d+\.\d+\.\d+$/.test(a));
+    if (!moduleName || !ip) return [{ kind: 'error', text: 'usage: exploit <module-name> <target-ip>' }];
+    const host = this.findHostByIp(ip);
+    if (!host) return [{ kind: 'error', text: `exploit: no route to host ${ip}` }];
+    if (!host.exploitableAs || host.exploitableAs !== moduleName) {
+      return [
+        { kind: 'system', text: `[*] Started reverse handler` },
+        { kind: 'error', text: `[-] ${ip}:445 - Exploit failed: target is not vulnerable to '${moduleName}', or the module name is wrong.` },
+      ];
+    }
+    const rootSession: Session = {
+      isAttacker: false,
+      host,
+      user: 'SYSTEM',
+      cwd: ['root'],
+      isRoot: true,
+    };
+    this.stack.push(rootSession);
+    return [
+      { kind: 'system', text: `[*] Started reverse handler on 10.10.14.1:4444` },
+      { kind: 'system', text: `[*] ${ip}:445 - Sending exploit packet...` },
+      { kind: 'success', text: `[+] ${ip}:445 - Exploit completed, session opened` },
+      { kind: 'success', text: `[*] Meterpreter session 1 opened (SYSTEM)` },
+    ];
+  }
+
+  private ftp(args: string[]): OutLine[] {
+    const ip = args[0];
+    if (!ip) return [{ kind: 'error', text: 'usage: ftp <ip>' }];
+    const host = this.findHostByIp(ip);
+    const svc = host?.services.find((s) => s.port === 21);
+    if (!host || !svc) return [{ kind: 'error', text: `ftp: connect: Connection refused` }];
+    if (!svc.ftpAnonymous) {
+      return [
+        { kind: 'output', text: `Connected to ${ip}.` },
+        { kind: 'output', text: `220 ${svc.banner ?? 'FTP server ready'}` },
+        { kind: 'error', text: `530 Login incorrect. (anonymous login disabled)` },
+      ];
+    }
+    const ftpDir = getNode(host.root, ['srv', 'ftp']);
+    const names = ftpDir && ftpDir.type === 'dir' ? Object.keys(ftpDir.children) : [];
+    return [
+      { kind: 'output', text: `Connected to ${ip}.` },
+      { kind: 'output', text: `220 ${svc.banner ?? 'FTP server ready'}` },
+      { kind: 'success', text: `230 Login successful. (anonymous)` },
+      { kind: 'muted', text: `Remote directory /srv/ftp:` },
+      ...names.map((n) => ({ kind: 'output' as const, text: n })),
+      { kind: 'system', text: `Use: ftp-get ${ip} <file>  to download & view a file` },
+    ];
+  }
+
+  private ftpGet(args: string[], onFlag: (f: string) => void): OutLine[] {
+    const [ip, filename] = args;
+    if (!ip || !filename) return [{ kind: 'error', text: 'usage: ftp-get <ip> <file>' }];
+    const host = this.findHostByIp(ip);
+    if (!host) return [{ kind: 'error', text: 'ftp-get: connection refused' }];
+    const node = getNode(host.root, ['srv', 'ftp', filename]);
+    if (!node || node.type !== 'file') return [{ kind: 'error', text: `ftp-get: ${filename}: No such file` }];
+    const out: OutLine[] = [{ kind: 'system', text: `226 Transfer complete. --- ${filename} ---` }];
+    node.content.split('\n').forEach((l) => out.push({ kind: 'output', text: l }));
+    const match = node.content.match(FLAG_RE);
+    if (match) onFlag(match[0]);
+    return out;
+  }
+
+  private crackmapexec(args: string[]): OutLine[] {
+    const proto = args[0];
+    const ip = args.find((a) => /^\d+\.\d+\.\d+\.\d+$/.test(a));
+    const uIdx = args.indexOf('-u');
+    const pIdx = args.indexOf('-p');
+    if (proto !== 'smb' || !ip || uIdx < 0 || pIdx < 0) {
+      return [{ kind: 'error', text: 'usage: crackmapexec smb <ip> -u <user> -p <password>' }];
+    }
+    const user = args[uIdx + 1];
+    const password = args[pIdx + 1];
+    const host = this.findHostByIp(ip);
+    if (!host || !host.services.some((s) => s.port === 445)) {
+      return [{ kind: 'error', text: `SMB         ${ip}      445    -                [-] Connection refused` }];
+    }
+    const account = host.users.find((u) => u.username === user);
+    const ok = account && account.password === password;
+    const status = ok ? (account?.sudo ? '(Pwn3d!)' : '[+]') : '[-]';
+    return [
+      {
+        kind: ok ? 'success' : 'error',
+        text: `SMB         ${ip}      445    ${host.hostname.toUpperCase().padEnd(15)} ${status} ${host.hostname}\\${user}:${password} ${ok ? (account?.sudo ? 'Pwn3d!' : '') : 'STATUS_LOGON_FAILURE'}`,
+      },
+    ];
+  }
+
+  private secretsdump(args: string[], onFlag: (flag: string) => void): OutLine[] {
+    const target = args.find((a) => a.includes('@'));
+    const uIdx = args.indexOf('-u');
+    const pIdx = args.indexOf('-p');
+    let ip: string | undefined;
+    let user: string | undefined;
+    let password: string | undefined;
+    if (target) {
+      const m = target.match(/^([^:@]+):?([^@]*)@(\d+\.\d+\.\d+\.\d+)$/);
+      if (m) {
+        user = m[1];
+        password = m[2];
+        ip = m[3];
+      }
+    } else {
+      ip = args.find((a) => /^\d+\.\d+\.\d+\.\d+$/.test(a));
+      user = uIdx >= 0 ? args[uIdx + 1] : undefined;
+      password = pIdx >= 0 ? args[pIdx + 1] : undefined;
+    }
+    if (!ip || !user || password === undefined) {
+      return [{ kind: 'error', text: 'usage: secretsdump user:password@<ip>  (or -u <user> -p <password> <ip>)' }];
+    }
+    const host = this.findHostByIp(ip);
+    if (!host) return [{ kind: 'error', text: `secretsdump: no route to host ${ip}` }];
+    const account = host.users.find((u) => u.username === user);
+    if (!account || account.password !== password) {
+      return [{ kind: 'error', text: `[-] ${ip}: STATUS_LOGON_FAILURE` }];
+    }
+    if (!account.canDcsync || !host.ntdsHashes) {
+      return [{ kind: 'error', text: `[-] ${user} does not have replication rights (DS-Replication-Get-Changes) on ${host.hostname} — DCSync denied.` }];
+    }
+    const match = host.ntdsHashes.match(FLAG_RE);
+    if (match) onFlag(match[0]);
+    return [
+      { kind: 'system', text: `[*] Dumping Domain Credentials (domain\\uid:rid:lmhash:nthash)` },
+      { kind: 'system', text: `[*] Using the DRSUAPI method to get NTDS.DIT secrets` },
+      ...host.ntdsHashes.split('\n').map((l) => ({ kind: 'success' as const, text: l })),
+    ];
+  }
+
+  private beginSsh(args: string[]): OutLine[] {
+    const target = args.find((a) => a.includes('@'));
+    if (!target) return [{ kind: 'error', text: 'usage: ssh user@ip' }];
+    const [user, ip] = target.split('@');
+    const host = this.findHostByIp(ip);
+    if (!host || !host.services.some((s) => s.port === 22)) {
+      return [{ kind: 'error', text: `ssh: connect to host ${ip} port 22: Connection refused` }];
+    }
+    this.awaitingAuth = { ip, user, host };
+    return [{ kind: 'system', text: `The authenticity of host '${ip}' can't be established. Connecting...` }];
+  }
+
+  private submitPassword(password: string): OutLine[] {
+    if (!this.awaitingAuth) return [];
+    const { user, host } = this.awaitingAuth;
+    this.awaitingAuth = null;
+    const account = host.users.find((u) => u.username === user);
+    if (!account || account.password !== password) {
+      return [{ kind: 'error', text: `Permission denied, please try again.` }];
+    }
+    const newSession: Session = {
+      isAttacker: false,
+      host,
+      user,
+      cwd: user === 'root' ? ['root'] : ['home', user],
+      isRoot: user === 'root',
+    };
+    this.stack.push(newSession);
+    return [
+      { kind: 'success', text: `Welcome to ${host.os}` },
+      { kind: 'success', text: `Last login: ${new Date().toUTCString()} from 10.10.14.1` },
+    ];
+  }
+
+  private hydra(args: string[]): OutLine[] {
+    const userIdx = args.indexOf('-l');
+    const listIdx = args.indexOf('-P');
+    const target = args.find((a) => a.startsWith('ssh://') || /^\d+\.\d+\.\d+\.\d+$/.test(a));
+    if (userIdx < 0 || listIdx < 0 || !target) {
+      return [{ kind: 'error', text: 'usage: hydra -l <user> -P <wordlist> ssh://<ip>' }];
+    }
+    const user = args[userIdx + 1];
+    const wordlistPath = args[listIdx + 1];
+    const ip = target.replace('ssh://', '');
+    const host = this.findHostByIp(ip);
+    const resolved = this.resolveInSession(wordlistPath);
+    const node = getNode(this.fsRoot(), resolved);
+    if (!node || node.type !== 'file') {
+      return [{ kind: 'error', text: `hydra: cannot read wordlist '${wordlistPath}'` }];
+    }
+    if (!host) return [{ kind: 'error', text: `hydra: target ${ip} unreachable` }];
+    const words = node.content.split('\n').map((w) => w.trim()).filter(Boolean);
+    const account = host.users.find((u) => u.username === user);
+    const out: OutLine[] = [
+      { kind: 'system', text: `Hydra v9.5 starting at ${new Date().toUTCString()}` },
+      { kind: 'system', text: `[DATA] max 4 tasks per 1 server, overall 4 tasks, ${words.length} login tries` },
+    ];
+    words.slice(0, 4).forEach((w, i) => out.push({ kind: 'muted', text: `[ATTEMPT] target ${ip} - login "${user}" - pass "${w}" - ${i + 1} of ${words.length}` }));
+    if (words.length > 4) out.push({ kind: 'muted', text: `...` });
+    if (account && words.includes(account.password)) {
+      out.push({ kind: 'success', text: `[22][ssh] host: ${ip}   login: ${user}   password: ${account.password}` });
+      out.push({ kind: 'system', text: `1 of 1 target successfully completed, 1 valid password found` });
+    } else {
+      out.push({ kind: 'error', text: `0 of 1 target successfully completed, 0 valid passwords found` });
+    }
+    return out;
+  }
+
+  private sudo(args: string[]): OutLine[] {
+    const s = this.session;
+    if (s.isAttacker) return [{ kind: 'muted', text: `${s.user} is already root on the attack box.` }];
+    const host = s.host as HostDef;
+    const account = host.users.find((u) => u.username === s.user);
+    if (args[0] === '-l') {
+      if (!account?.sudo) return [{ kind: 'output', text: `User ${s.user} may not run sudo on ${host.hostname}.` }];
+      if (account.sudo.nopasswdAll) {
+        return [{ kind: 'output', text: `User ${s.user} may run the following commands:\n    (ALL : ALL) NOPASSWD: ALL` }];
+      }
+      const cmds = account.sudo.nopasswdCommands ?? [];
+      return [{ kind: 'output', text: `User ${s.user} may run the following commands:\n` + cmds.map((c) => `    (root) NOPASSWD: ${c}`).join('\n') }];
+    }
+    const cmdline = args.join(' ');
+    const baseBin = args[0];
+    const allowed =
+      account?.sudo?.nopasswdAll ||
+      (account?.sudo?.nopasswdCommands ?? []).some((c) => c === baseBin || cmdline.startsWith(c));
+    if (!allowed) {
+      return [{ kind: 'error', text: `Sorry, user ${s.user} is not allowed to execute '${cmdline}' as root on ${host.hostname}.` }];
+    }
+    const rootSession: Session = { ...s, isRoot: true };
+    this.stack.push(rootSession);
+    return [{ kind: 'success', text: `# spawned root shell via '${baseBin}' (GTFOBins)` }];
+  }
+
+  /** Directly executing a SUID-root binary (no sudo involved) — a distinct privesc path from misconfigured sudoers. */
+  private runSuidBinary(cmd: string): OutLine[] | null {
+    const s = this.session;
+    if (s.isAttacker || !s.host?.suidBinary || cmd !== s.host.suidBinary) return null;
+    const rootSession: Session = { ...s, isRoot: true };
+    this.stack.push(rootSession);
+    return [{ kind: 'success', text: `# ${cmd} is SUID root — spawned a root shell (GTFOBins)` }];
+  }
+
+  private exit(): OutLine[] {
+    if (this.stack.length <= 1) {
+      return [{ kind: 'muted', text: `This is your attack machine — there's nowhere left to exit to.` }];
+    }
+    const closing = this.stack.pop() as Session;
+    return [{ kind: 'system', text: closing.isAttacker ? 'logout' : `Connection to ${closing.host?.ip} closed.` }];
+  }
+
+  private whoami(): OutLine[] {
+    return [{ kind: 'output', text: this.effectiveUser() }];
+  }
+
+  private id(): OutLine[] {
+    const s = this.session;
+    if (this.effectiveUser() === 'root') return [{ kind: 'output', text: 'uid=0(root) gid=0(root) groups=0(root)' }];
+    const account = !s.isAttacker ? (s.host as HostDef).users.find((u) => u.username === s.user) : undefined;
+    const groups = account?.sudo ? `1000(${s.user}),27(sudo)` : `1000(${s.user})`;
+    return [{ kind: 'output', text: `uid=1000(${s.user}) gid=1000(${s.user}) groups=${groups}` }];
+  }
+
+  private ifconfig(): OutLine[] {
+    const s = this.session;
+    const ip = s.isAttacker ? '10.10.14.1' : (s.host as HostDef).ip;
+    return [
+      { kind: 'output', text: `eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500` },
+      { kind: 'output', text: `        inet ${ip}  netmask 255.255.255.0` },
+    ];
+  }
+
+  private netstat(): OutLine[] {
+    const s = this.session;
+    if (s.isAttacker) return [{ kind: 'muted', text: '(no listening services on the attack box)' }];
+    const host = s.host as HostDef;
+    return [
+      { kind: 'output', text: 'Active Internet connections (only servers)' },
+      { kind: 'output', text: 'Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name' },
+      ...host.services.map((svc) => ({
+        kind: 'output' as const,
+        text: `tcp        0      0 0.0.0.0:${svc.port}${' '.repeat(Math.max(1, 24 - String(svc.port).length))}0.0.0.0:*               LISTEN      -/${svc.name}`,
+      })),
+    ];
+  }
+
+  private help(): OutLine[] {
+    return [
+      { kind: 'system', text: 'Available commands:' },
+      { kind: 'output', text: 'pwd, ls [-la], cd, cat, echo, find, grep      — filesystem' },
+      { kind: 'output', text: 'whoami, id, ifconfig, netstat -tulpn          — recon (local)' },
+      { kind: 'output', text: 'ping, nmap [-sV] <ip>, curl <ip>/path         — recon (network)' },
+      { kind: 'output', text: 'ftp <ip>, ftp-get <ip> <file>                 — anonymous FTP' },
+      { kind: 'output', text: 'ssh user@ip, hydra -l user -P list ssh://ip   — access' },
+      { kind: 'output', text: 'sudo -l, sudo <cmd>, exit                     — privesc / sessions' },
+      { kind: 'output', text: 'objectives, hint, clear, history               — lab helpers' },
+    ];
+  }
+
+  run(raw: string, onFlag: (flag: string) => void): OutLine[] {
+    const line = raw.trim();
+    if (this.awaitingAuth) {
+      return this.submitPassword(line);
+    }
+    if (!line) return [];
+    const [cmd, ...args] = tokenize(line);
+
+    switch (cmd) {
+      case 'help':
+        return this.help();
+      case 'pwd':
+        return [{ kind: 'output', text: pathToString(this.session.cwd) }];
+      case 'ls':
+        return this.ls(args);
+      case 'cd':
+        return this.cd(args);
+      case 'cat':
+        return this.cat(args, onFlag);
+      case 'strings':
+        return this.strings(args, onFlag);
+      case 'file':
+        return this.fileCmd(args);
+      case 'checksec':
+        return this.checksec(args, onFlag);
+      case 'objdump':
+        return this.objdump(args);
+      case 'gdb':
+        return this.gdb(args);
+      case 'yara':
+        return this.yara(args, onFlag);
+      case 'hashcat':
+        return this.hashcat(args, onFlag);
+      case 'echo':
+        return [{ kind: 'output', text: args.join(' ').replace(/^["']|["']$/g, '') }];
+      case 'find':
+        return this.find(args);
+      case 'grep':
+        return this.grep(args);
+      case 'whoami':
+        return this.whoami();
+      case 'id':
+        return this.id();
+      case 'ifconfig':
+      case 'ip':
+        return this.ifconfig();
+      case 'netstat':
+        return this.netstat();
+      case 'ping':
+        return this.ping(args);
+      case 'nmap':
+        return this.nmap(args);
+      case 'curl':
+      case 'wget':
+        return this.curl(args, onFlag);
+      case 'ftp':
+        return this.ftp(args);
+      case 'ftp-get':
+        return this.ftpGet(args, onFlag);
+      case 'ssh':
+        return this.beginSsh(args);
+      case 'hydra':
+        return this.hydra(args);
+      case 'crackmapexec':
+      case 'cme':
+        return this.crackmapexec(args);
+      case 'exploit':
+        return this.exploit(args);
+      case 'secretsdump':
+        return this.secretsdump(args, onFlag);
+      case 'sudo':
+        return this.sudo(args);
+      case 'su':
+        return [{ kind: 'muted', text: 'su: use sudo instead in this lab environment.' }];
+      case 'exit':
+      case 'logout':
+        return this.exit();
+      case 'clear':
+        return [{ kind: 'system', text: '__CLEAR__' }];
+      case 'objectives':
+        return [
+          { kind: 'system', text: 'Objectives:' },
+          ...this.scenario.objectives.map((o) => ({ kind: 'output' as const, text: `  - ${typeof o === 'string' ? o : o.text}` })),
+        ];
+      case 'hint': {
+        if (this.scenario.hints.length === 0) return [{ kind: 'muted', text: 'No hints available.' }];
+        const h = this.scenario.hints[Math.min(this.hintIndex, this.scenario.hints.length - 1)];
+        this.hintIndex = Math.min(this.hintIndex + 1, this.scenario.hints.length - 1);
+        return [{ kind: 'system', text: `Hint: ${h}` }];
+      }
+      case 'chmod':
+        return [{ kind: 'output', text: '' }];
+      default: {
+        const suidResult = this.runSuidBinary(cmd);
+        if (suidResult) return suidResult;
+        const crackmeResult = this.tryRunCrackme(cmd, args, onFlag);
+        if (crackmeResult) return crackmeResult;
+        return [{ kind: 'error', text: `${cmd}: command not found` }];
+      }
+    }
+  }
+}
+
+function escapeRe(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/** Shell-like tokenizer: splits on whitespace but keeps "..."/'...' groups (with spaces) as one token. */
+function tokenize(line: string): string[] {
+  const tokens: string[] = [];
+  const re = /"([^"]*)"|'([^']*)'|(\S+)/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(line))) {
+    tokens.push(m[1] ?? m[2] ?? m[3]);
+  }
+  return tokens;
+}
+
+function parseParams(qs: string): Record<string, string> {
+  const params: Record<string, string> = {};
+  for (const pair of qs.split('&')) {
+    if (!pair) continue;
+    const eqIdx = pair.indexOf('=');
+    const k = eqIdx === -1 ? pair : pair.slice(0, eqIdx);
+    const v = eqIdx === -1 ? '' : pair.slice(eqIdx + 1);
+    try {
+      params[decodeURIComponent(k)] = decodeURIComponent(v);
+    } catch {
+      params[k] = v;
+    }
+  }
+  return params;
+}

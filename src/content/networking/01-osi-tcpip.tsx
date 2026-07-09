@@ -1,0 +1,81 @@
+import CodeBlock from '../../components/lesson/CodeBlock';
+import Callout from '../../components/lesson/Callout';
+
+export default function OsiTcpIp() {
+  return (
+    <div className="prose-hh">
+      <h1>How Networks Actually Work: OSI &amp; TCP/IP</h1>
+      <p>
+        Every attack you will ever run — a port scan, a reverse shell, a man-in-the-middle — is just
+        traffic moving through layers of abstraction. If you don't understand the layers, you're
+        memorizing commands instead of understanding what they do. This lesson builds the mental model
+        everything else in this course sits on top of.
+      </p>
+
+      <h2>The OSI Model (7 layers)</h2>
+      <p>The OSI model is a conceptual map. You won't run "layer 4" as a command, but you will constantly
+      reason in these terms ("that's an L7 issue", "this is failing at L3").</p>
+      <ul>
+        <li><strong>Layer 7 — Application</strong>: HTTP, DNS, FTP, SSH. The protocols tools actually speak.</li>
+        <li><strong>Layer 6 — Presentation</strong>: Encoding/encryption (TLS lives roughly here/L4-L7 in practice).</li>
+        <li><strong>Layer 5 — Session</strong>: Establishing/maintaining a conversation between two hosts.</li>
+        <li><strong>Layer 4 — Transport</strong>: TCP and UDP. Ports live here. Reliability lives here.</li>
+        <li><strong>Layer 3 — Network</strong>: IP addressing and routing. "How do I get from A to B."</li>
+        <li><strong>Layer 2 — Data Link</strong>: MAC addresses, switches, ARP. Local segment delivery.</li>
+        <li><strong>Layer 1 — Physical</strong>: Cables, radio, voltage. The actual bits on the wire.</li>
+      </ul>
+
+      <h2>TCP/IP: the model that actually runs the internet</h2>
+      <p>
+        In practice, engineers use the simpler 4-layer TCP/IP model, which maps roughly onto OSI:
+      </p>
+      <ul>
+        <li><strong>Application</strong> (OSI 5-7): HTTP, DNS, SSH, FTP, SMB</li>
+        <li><strong>Transport</strong> (OSI 4): TCP, UDP</li>
+        <li><strong>Internet</strong> (OSI 3): IP, ICMP, routing</li>
+        <li><strong>Link</strong> (OSI 1-2): Ethernet, Wi-Fi, MAC addressing</li>
+      </ul>
+      <p>
+        As a pentester, you live mostly at the Application and Transport layers day-to-day — that's where
+        nmap, curl, ssh, and every exploit you'll write operates — but privilege comes from understanding
+        what's happening underneath (ARP spoofing, IP spoofing, routing attacks all live lower down).
+      </p>
+
+      <h2>Encapsulation: what actually happens to your data</h2>
+      <p>
+        When you run <code>curl http://10.10.10.5</code>, your HTTP request gets wrapped (encapsulated) in
+        a TCP segment, which gets wrapped in an IP packet, which gets wrapped in an Ethernet frame. Each
+        layer adds a header. The receiving host un-wraps it in reverse. This is why a packet capture
+        (Wireshark/tcpdump) shows you nested headers — Ethernet → IP → TCP → HTTP, outside in.
+      </p>
+      <CodeBlock label="conceptual packet structure">{`[ Ethernet Header | IP Header | TCP Header | HTTP Data ]
+     L2 (MAC)        L3 (IP)     L4 (Port)     L7 (App)`}</CodeBlock>
+
+      <Callout variant="tip">
+        <p>
+          When you troubleshoot "why won't this exploit connect," work the stack bottom-up: Is there
+          physical/link connectivity (are you even on the network)? Is there routing (can you ping the
+          IP)? Is the port open (L4)? Is the service actually responding correctly (L7)? This is the same
+          methodology whether you're debugging code or attacking a box.
+        </p>
+      </Callout>
+
+      <h2>Why this matters for offensive work</h2>
+      <p>
+        Almost every category of attack maps to a layer:
+      </p>
+      <ul>
+        <li><strong>L2 attacks</strong>: ARP spoofing/poisoning, MAC flooding, VLAN hopping.</li>
+        <li><strong>L3 attacks</strong>: IP spoofing, ICMP tunneling, routing manipulation.</li>
+        <li><strong>L4 attacks</strong>: Port scanning, SYN floods, TCP session hijacking.</li>
+        <li><strong>L7 attacks</strong>: SQL injection, XSS, auth bypass, command injection — most of the
+        web app hacking you'll do lives here.</li>
+      </ul>
+      <p>
+        In the next lesson we'll get concrete about Layer 3 — IP addressing and subnetting — because you
+        cannot scope a network, plan lateral movement, or read a <code>nmap</code> output confidently
+        without it.
+      </p>
+    </div>
+  );
+}
