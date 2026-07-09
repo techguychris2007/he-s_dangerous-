@@ -44,7 +44,25 @@ export default function ForensicsFundamentals() {
         find.
       </p>
       <CodeBlock label="reading timestamps during an investigation">{`ls -la --time-style=full-iso /var/www/html    # long listing with full timestamp precision
-find / -newer /etc/hostname -type f 2>/dev/null   # files modified more recently than a known-good reference`}</CodeBlock>
+find / -newer /etc/hostname -type f 2>/dev/null   # files modified more recently than a known-good reference
+stat /var/www/html/upload.php                       # MAC(B) times for a single file of interest — Modify, Access, Change (and Birth, if the filesystem records it)
+find / -mtime -1 -type f 2>/dev/null                  # everything modified in the last 24 hours, system-wide`}</CodeBlock>
+      <p>
+        A single timestamp is a data point; a <strong>timeline</strong> is dozens of data points from
+        different sources — filesystem metadata, log entries, registry key last-write times, browser
+        history — laid out on one shared axis so patterns become visible that no individual artifact would
+        reveal alone. Conceptually, this is what timeline-correlation tooling in a real DFIR case does: it
+        ingests filesystem metadata, event logs, and other timestamped artifacts, normalizes them all to one
+        clock, and produces a single merged, sortable timeline (sometimes called a "super timeline"). The
+        value isn't the tool itself — it's that correlation across sources turns "this file changed" and
+        "this account logged in" from two unrelated facts into "this account logged in, then two minutes
+        later this file changed," which is a very different, much more actionable finding. Reconstructing
+        that timeline has gotten harder in one specific way industry-wide: as attacker dwell time compresses
+        — AI-accelerated intrusions can now move from initial access to impact in hours rather than the
+        days-to-weeks that used to be typical — the window of relevant events an examiner needs to correlate
+        gets narrower and denser, and second-level timestamp precision across sources matters more than it
+        used to.
+      </p>
 
       <Callout variant="tip">
         <p>
@@ -54,9 +72,36 @@ find / -newer /etc/hostname -type f 2>/dev/null   # files modified more recently
         </p>
       </Callout>
 
+      <h2>Persistence artifacts: what to look for and why</h2>
+      <p>
+        Once an attacker is in, they rarely want to re-exploit the same vulnerability every time a machine
+        reboots — so they install a persistence mechanism, and persistence mechanisms are some of the most
+        reliable artifacts a forensic examiner can find, because they're designed to survive precisely so
+        they'll still be there when you look.
+      </p>
+      <CodeBlock label="common persistence locations, mapped to MITRE ATT&CK">{`Registry Run keys / Startup folder     — T1547.001 (Boot or Logon Autostart Execution)
+reg query "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run"
+reg query "HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run"
+
+Scheduled tasks / cron jobs             — T1053 (Scheduled Task/Job)
+schtasks /query /fo LIST /v            # Windows
+crontab -l -u <username>               # Linux, per-user
+cat /etc/cron.d/*                      # Linux, system-wide
+
+New/modified services                  — T1543 (Create or Modify System Process)
+sc query state= all                    # Windows service enumeration`}</CodeBlock>
+      <p>
+        Tying a finding to a specific ATT&amp;CK ID like <code>T1547.001</code> isn't just jargon for its
+        own sake — it's what lets this finding slot directly into the same shared vocabulary the SOC module
+        covers, so a hunt hypothesis, a detection rule, and a forensic finding about the exact same
+        technique can all reference each other unambiguously.
+      </p>
+
       <h2>Memory forensics in one paragraph</h2>
       <p>
-        Malware increasingly runs entirely in memory to avoid leaving traces on disk ("fileless" malware).
+        Malware increasingly runs entirely in memory to avoid leaving traces on disk ("fileless" malware) —
+        a technique that also frequently pairs with process injection (ATT&amp;CK <code>T1055</code>) to
+        hide inside a legitimate process's memory space rather than running as its own visible process.
         Tools like Volatility parse a memory image to reconstruct running processes, open network
         connections, and even recover encryption keys still resident in RAM. The simpler technique covered
         in this module's second lab — running <code>strings</code> across a memory dump to surface

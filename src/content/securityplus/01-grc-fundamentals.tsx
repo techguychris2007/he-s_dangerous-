@@ -53,6 +53,47 @@ ALE = $20,000 x 0.2 = $4,000/year`}</CodeBlock>
         costs $10,000/year to prevent a $4,000/year expected loss, the numbers say accept the risk instead.
       </p>
 
+      <h2>Qualitative vs. quantitative risk assessment</h2>
+      <p>
+        The ALE math above is quantitative — it produces a dollar figure. Not every risk can be priced that
+        precisely (what's the "exposure factor" of reputational damage?), which is why real organizations
+        also run <strong>qualitative</strong> assessments: ranking risks on a simple scale (Low/Medium/High,
+        or a 1-5 matrix of likelihood x impact) using expert judgment rather than hard numbers. Security+
+        expects you to recognize both are legitimate and often used together — quantitative where good data
+        exists (known asset values, historical incident frequency), qualitative where it doesn't.
+      </p>
+      <CodeBlock label="a simple qualitative risk matrix">{`             Impact: Low    Impact: Medium   Impact: High
+Likelihood:
+Low            Low risk        Low risk         Medium risk
+Medium         Low risk        Medium risk      High risk
+High           Medium risk     High risk        Critical risk`}</CodeBlock>
+
+      <h2>Third-party and vendor risk management</h2>
+      <p>
+        An organization's own controls are only half the picture — every vendor, SaaS integration, and
+        supply-chain dependency inherits a share of that organization's risk. This is exactly the pattern
+        the Cloud Security module's Salesloft/Drift case study illustrates: a compromise at a trusted
+        third-party vendor gave attackers access to over 700 downstream customer organizations without
+        touching any of their own perimeters directly. GRC programs formalize this as vendor risk
+        management — due diligence before signing a contract (does this vendor hold a current SOC 2 report?
+        what data will they touch?), and ongoing monitoring after (do they notify us promptly if they're
+        breached?), not just a one-time checkbox at procurement.
+      </p>
+      <CodeBlock label="assessment types Security+ expects you to distinguish">{`Vulnerability assessment  — identifies and ranks weaknesses, does NOT attempt to exploit them
+Penetration test          — actively attempts exploitation, with defined scope and rules of engagement
+Security audit            — checks compliance against a specific standard/policy (are controls implemented as documented?)
+SOC 2 Type I              — are controls suitably DESIGNED, as of a point in time
+SOC 2 Type II             — are controls OPERATING EFFECTIVELY over a period (typically 6-12 months) — a materially stronger assurance`}</CodeBlock>
+      <Callout variant="warn">
+        <p>
+          A frequent exam trap: treating a vulnerability scan and a penetration test as interchangeable.
+          A vulnerability scan is broad, automated, and non-invasive; a penetration test is scoped, requires
+          explicit written authorization (the same rules of engagement covered across this course's offensive
+          modules), and can include actual exploitation. Confusing which one a scenario describes is one of
+          the most commonly missed question types on the real exam.
+        </p>
+      </Callout>
+
       <h2>Compliance frameworks you'll encounter constantly</h2>
       <CodeBlock label="the major ones and what they actually govern">{`PCI DSS   — payment card data (any org that handles credit card transactions)
 HIPAA     — healthcare data (US) — patient records, protected health information

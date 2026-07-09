@@ -28,11 +28,19 @@ pkill -f "python3 server"   # kill by matching command line
 jobs                        # background jobs in current shell
 bg / fg                     # resume a job in background/foreground
 nohup long_command &        # run detached from the terminal (survives logout)`}</CodeBlock>
+      <p>
+        <code>kill -9</code> (SIGKILL) is a blunt instrument — it terminates a process immediately with no
+        chance to clean up open files or child processes. <code>kill</code> without <code>-9</code> sends
+        SIGTERM first, which well-behaved programs catch to shut down gracefully; reach for <code>-9</code>
+        only once a plain <code>kill</code> has failed to end something that's actually hung.
+      </p>
       <Callout variant="tip">
         <p>
           On a freshly compromised host, <code>ps aux</code> and <code>ps -ef</code> are often your first
           move — spotting cron jobs, monitoring agents, or a root process with a predictable restart
-          pattern (a classic privesc vector) all start here.
+          pattern (a classic privesc vector) all start here. Also check <code>ps -eo pid,ppid,user,cmd</code>
+          to see the parent/child relationship between processes — a root-owned parent spawning a
+          user-writable script on an interval is exactly the shape of a cron-based privesc path.
         </p>
       </Callout>
 
@@ -42,13 +50,28 @@ ifconfig                  # legacy equivalent
 ip route                  # routing table
 ping -c 4 10.10.10.5       # 4 ICMP echo requests`}</CodeBlock>
       <CodeBlock label="what's listening / connected">{`netstat -tulpn            # listening TCP/UDP ports + owning process (needs root for PID)
-ss -tulpn                  # modern replacement for netstat, faster
-lsof -i :443                # what process owns port 443`}</CodeBlock>
+ss -tulpn                  # modern replacement for netstat, faster and lower-overhead
+ss -t state established     # only currently-established TCP connections — see who you're actually talking to
+lsof -i :443                # what process owns port 443
+lsof -p 1234                 # every file/socket a specific PID has open`}</CodeBlock>
+      <p>
+        <code>ss</code> reads directly from the kernel's netlink interface rather than parsing
+        <code>/proc</code> the way older <code>netstat</code> does, which is why it's noticeably faster on
+        busy hosts — most modern distros ship <code>ss</code> by default and treat <code>netstat</code> as
+        legacy, but you'll still meet older boxes where only <code>netstat</code> is installed.
+      </p>
       <CodeBlock label="transferring data &amp; raw connections">{`nc -lvnp 4444              # netcat listener — classic reverse shell catcher
 nc 10.10.10.5 80             # raw TCP connect — manual banner grabbing
 curl -s http://10.10.10.5    # fetch a URL
+curl -sI http://10.10.10.5    # headers only (-I / --head) — quick tech-stack fingerprinting without the body
 wget http://10.10.10.5/x.sh  # download a file
 scp file.txt user@10.10.10.5:/tmp/   # copy a file over SSH`}</CodeBlock>
+      <p>
+        <code>/etc/hosts</code> is worth knowing about too — it's checked before DNS on every Linux (and
+        Windows) box, so adding a line like <code>10.10.10.5  target.local</code> there lets you reach a
+        lab target by name even with no real DNS record for it, which matters once you start working with
+        HTTP virtual hosts that key off the <code>Host</code> header.
+      </p>
 
       <h2>Redirection &amp; piping — the glue of every one-liner</h2>
       <CodeBlock>{`cmd > file.txt        # stdout to file (overwrite)

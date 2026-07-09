@@ -68,6 +68,39 @@ curl "http://10.10.60.5/product?id=1' OR '1'='1"        # if this returns MORE d
         when automated tools get blocked by a WAF.
       </p>
 
+      <h2>Automating exploitation: SQLMap</h2>
+      <p>
+        SQLMap is the tool that automates everything covered above — detection, UNION-based extraction,
+        and blind boolean/time-based inference — against a target far faster and more thoroughly than doing
+        it by hand. It's the tool every one of the manual techniques in this lesson exists to help you
+        understand, not replace.
+      </p>
+      <CodeBlock label="a typical sqlmap session">{`# step 1: point it at a parameter and let it detect the injection + enumerate databases
+sqlmap -u "https://target.com/product?id=1" --batch --dbs
+
+# step 2: once you've picked a database, list its tables
+sqlmap -u "https://target.com/product?id=1" --batch -D shopdb --tables
+
+# step 3: dump a specific table's contents
+sqlmap -u "https://target.com/product?id=1" --batch --dump -T users`}</CodeBlock>
+      <p>
+        <code>--batch</code> accepts sqlmap's default answer to every prompt so it runs unattended;
+        <code>--dbs</code>, <code>--tables</code>, and <code>--dump</code> walk down the same
+        database → table → row hierarchy you'd explore manually with UNION SELECT. Under the hood sqlmap is
+        running the exact same family of techniques from this lesson — testing for error-based, UNION-based,
+        boolean-blind, and time-based injection in turn, then automating the tedious per-character extraction
+        loop.
+      </p>
+      <Callout variant="danger">
+        <p>
+          SQLMap is a powerful, noisy tool — it sends a very large number of requests very quickly and is
+          trivially detected by any WAF or half-decent logging setup. It is for authorized testing only,
+          against targets explicitly in scope, and even then many engagements require throttling it
+          (<code>--delay</code>, <code>--threads 1</code>) to avoid degrading a production database's
+          performance.
+        </p>
+      </Callout>
+
       <h2>The only real fix</h2>
       <p>
         Parameterized queries (prepared statements) — where user input is passed as a bound parameter, never

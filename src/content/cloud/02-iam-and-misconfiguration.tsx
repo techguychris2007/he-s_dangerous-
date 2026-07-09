@@ -63,6 +63,51 @@ export default function IamAndMisconfiguration() {
         </p>
       </Callout>
 
+      <h2>Cloud security auditing tools</h2>
+      <p>
+        Everything covered so far in this lesson describes what can go wrong. In practice, both defenders
+        and authorized testers rarely check every one of these misconfigurations by hand — they run a
+        scanner built specifically to check hundreds of known-bad patterns at once. It's worth knowing the
+        major tools by name, since they show up constantly in real cloud security job postings and audit
+        reports.
+      </p>
+      <CodeBlock label="Prowler — open-source AWS best-practices & compliance scanner">{`prowler aws
+# checks hundreds of controls against CIS benchmarks and other frameworks
+# (PCI DSS, GDPR, SOC 2, and more) — outputs a pass/fail report per check,
+# e.g. "is S3 bucket versioning enabled," "is root account MFA enabled"`}</CodeBlock>
+      <CodeBlock label="ScoutSuite — multi-cloud auditing (AWS / Azure / GCP / and more)">{`scout aws
+scout azure
+scout gcp
+# produces a single browsable HTML report highlighting misconfigurations
+# across every service in the account — a good first-pass overview across
+# providers, where Prowler goes deeper AWS-specifically`}</CodeBlock>
+      <p>
+        <strong>CloudSploit</strong> is another configuration security scanner in the same category,
+        historically one of the strongest open-source options specifically for AWS before being folded into
+        a commercial platform — you'll still see it referenced in older audit tooling and reports.
+      </p>
+      <p>
+        All three of the tools above are <strong>defensive/auditing</strong> tools: they read configuration
+        and report on it, they don't exploit anything. <strong>Pacu</strong> is different in kind — it's an
+        AWS exploitation framework for POST-compromise offensive testing, used once you already have some
+        foothold (a set of credentials) inside an AWS account and want to enumerate and actually exploit IAM
+        misconfigurations, privilege escalation paths, and exfiltration techniques from the inside, the same
+        way a real attacker who obtained those credentials would.
+      </p>
+      <CodeBlock label="Pacu — conceptual usage, offensive AWS post-exploitation">{`pacu
+> import_keys --all              # load discovered/compromised AWS credentials into the session
+> run iam__enum_permissions       # figure out exactly what this identity can actually do
+> run iam__privesc_scan           # check for known IAM privilege-escalation paths from here`}</CodeBlock>
+      <Callout variant="danger">
+        <p>
+          Pacu is explicitly an attack tool and must only ever be run against an AWS account you own or have
+          documented, written authorization to test — it is not a defensive scanner, and running it against
+          an account without that authorization is unauthorized computer access, full stop. Prowler,
+          ScoutSuite, and CloudSploit are safe to run against your own accounts for legitimate auditing
+          purposes since they only read configuration; Pacu actively exploits.
+        </p>
+      </Callout>
+
       <h2>Module complete</h2>
       <p>
         The three labs in this module let you exploit exactly the misconfigurations covered here: a public

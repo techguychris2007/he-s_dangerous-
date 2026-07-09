@@ -74,6 +74,26 @@ years of exposure — often far larger in aggregate than what Company X itself p
         engineering roadmap.
       </p>
 
+      <h2>A 2026 postscript: AI-orchestrated attack chains</h2>
+      <p>
+        A newer pattern worth naming through this exact economic lens: by 2026, security teams began
+        reporting intrusions where an AI/LLM orchestrator, not a human operator, chained together
+        familiar individual techniques — exploiting an exposed service, harvesting credentials, moving
+        laterally, and destroying backups — end to end, faster and more consistently than a typical human-
+        driven attack chain. None of the individual techniques were new; every one of them appears
+        elsewhere in this course.
+      </p>
+      <p>
+        What changed is exactly what this lesson argues matters most: not a new vulnerability, but the
+        economics of attack. Automating the orchestration of already-known techniques collapses the cost,
+        time, and skill an attack chain requires — the same "who benefits, who bears the cost" calculus
+        above, except now the cost of executing a full multi-stage intrusion has dropped sharply, which
+        shifts the whole incentive landscape toward more frequent, more automated attempts. Security
+        economics predicts this is precisely the kind of shift that matters more over time than any single
+        clever new exploit — because it changes the attacker's cost structure at scale, not just one
+        target's exposure.
+      </p>
+
       <p>
         With the economic lens established, the next lesson turns to the actual engineering principles —
         the design patterns that hold up well specifically because they account for these economic and

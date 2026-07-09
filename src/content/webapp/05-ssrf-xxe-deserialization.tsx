@@ -62,6 +62,24 @@ Cookie: session=YToyOntzOjQ6InVzZXIiO3M6NToiYWRtaW4iO30=   <- PHP serialized dat
         confirmed an endpoint deserializes attacker-controlled data.
       </p>
 
+      <Callout variant="danger">
+        <p>
+          <strong>Real incident — CVE-2025-53770 ("ToolShell"), July 2025:</strong> an unauthenticated
+          remote code execution vulnerability in on-premises Microsoft SharePoint Server, rooted in exactly
+          this class of bug — the server insecurely deserialized untrusted data submitted to a web service
+          endpoint, letting a crafted payload execute arbitrary code the moment it was reconstructed into an
+          object, with no valid credentials required at all. Attackers used it as a zero-day (before a patch
+          existed) against government agencies and financial institutions, chaining it with a related
+          authentication-bypass flaw just to reach the vulnerable endpoint in the first place. Once inside,
+          they didn't stop at dropping a webshell — they stole the server's ASP.NET machine keys, the
+          cryptographic material SharePoint uses to sign and validate session state. That theft let them
+          forge trusted requests and maintain persistent access that survived the organization later
+          patching the original vulnerability, because the stolen keys themselves were never rotated. It's a
+          textbook illustration of why insecure deserialization is rated as severely as it is: the flaw
+          isn't a data leak, it's the server agreeing to run whatever object structure you hand it.
+        </p>
+      </Callout>
+
       <Callout variant="tip">
         <p>
           All three categories in this lesson share one test instinct: find anywhere the server reaches

@@ -24,6 +24,32 @@ export default function UsersPermissions() {
 chmod 644 notes.txt      # rw-r--r--  — owner read/write, others read-only
 chmod +x script.sh       # add execute for everyone (symbolic form)
 chmod u+w,g-w file       # owner gets write, group loses write`}</CodeBlock>
+      <p>
+        Why this matters beyond memorizing octal math: a web server misconfigured to run uploaded files as
+        executable (world-writable directory plus execute permission for the web server's user) is one of
+        the most common real-world web-to-shell paths. Reading a permission string fluently is how you spot
+        that combination the moment you land on a box, instead of after a lot of trial and error.
+      </p>
+
+      <h3>umask: the default permission calculator</h3>
+      <p>
+        Every new file/directory gets created with a default permission set, computed by subtracting the
+        current <strong>umask</strong> from a base (666 for files, 777 for directories). The default umask
+        of <code>022</code> is why new files are typically <code>644</code> and new directories
+        <code> 755</code> — knowing this explains why a script you'd expect to be executable sometimes
+        isn't until you <code>chmod +x</code> it yourself.
+      </p>
+      <CodeBlock>{`umask              # show the current umask (commonly 022 or 002)
+umask 077            # tighten default permissions — new files become owner-only`}</CodeBlock>
+
+      <h3>ACLs: permissions beyond owner/group/other</h3>
+      <p>
+        The classic owner/group/other model only allows one group to have special access. When you need to
+        grant a specific extra user or group access without changing ownership, Access Control Lists (ACLs)
+        let you do that precisely:
+      </p>
+      <CodeBlock>{`getfacl file.txt                    # show any ACLs set on a file
+setfacl -m u:bob:rw file.txt          # grant bob read+write specifically, without changing the owner/group`}</CodeBlock>
 
       <h2>The special bits: SUID, SGID, sticky</h2>
       <p>
@@ -63,6 +89,23 @@ id                         # UID, GID, and all group memberships
 sudo useradd -m bob        # create a user with a home directory
 sudo usermod -aG sudo bob  # add bob to the sudo group
 sudo -l                    # list what the current user is allowed to run as root`}</CodeBlock>
+      <p>
+        The password itself never lives in <code>/etc/passwd</code> — that file is world-readable, so
+        storing hashes there would let any local user attempt to crack every password on the box. Instead,
+        hashes live in <code>/etc/shadow</code>, which is readable only by root:
+      </p>
+      <CodeBlock label="/etc/shadow fields (root-only readable)">{`alice:$6$randomsalt$longhashvalue...:19700:0:99999:7:::
+│     │                              │     │  │     └ warning period (days before expiry)
+│     │                              │     │  └ max password age (days)
+│     │                              │     └ min password age (days)
+│     │                              └ last change (days since epoch)
+│     └ hash: $6$ = SHA-512, followed by salt and the hash itself
+└ username`}</CodeBlock>
+      <p>
+        This is exactly why privilege escalation to root is such a valuable milestone: once you can read
+        <code> /etc/shadow</code>, you can pull every local password hash off the box and attempt to crack
+        it offline with a tool like Hashcat or John the Ripper, completely outside any online lockout policy.
+      </p>
 
       <h2>sudo: the other half of the privilege story</h2>
       <p>

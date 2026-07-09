@@ -63,6 +63,36 @@ export default function CloudSecurityFundamentals() {
         meant to stay private and are frequently, accidentally, not.
       </p>
 
+      <h2>Case study: one compromised SaaS integration, 700+ downstream victims</h2>
+      <p>
+        In August 2025, a threat actor tracked as UNC6395 compromised the GitHub environment belonging to
+        Salesloft, a sales-engagement SaaS vendor. From there, the actor pivoted into the AWS environment
+        of Drift, a chatbot product Salesloft owns, and stole OAuth refresh tokens that Drift held on behalf
+        of every customer who had connected the Drift-to-Salesforce integration. Those stolen tokens let the
+        attacker impersonate the trusted Drift application itself and use its already-granted API access to
+        reach Salesforce data across more than 700 downstream customer organizations — in some cases
+        including API keys and cloud credentials that support staff had innocently pasted into support-case
+        text fields, handing the attacker a second wave of credentials to abuse well beyond Salesforce
+        itself.
+      </p>
+      <p>
+        No firewall was breached, no password was guessed, and no perimeter defense at any of those 700+
+        victim organizations was ever tested — because the attacker never touched their perimeter or login
+        page at all. A single OAuth integration, trusted and pre-authorized by each of those organizations,
+        was itself the access path. This is a distinctly cloud/SaaS-era supply chain risk worth naming
+        explicitly: the security of every app you connect via OAuth becomes, transitively, part of your own
+        attack surface, and it's a dependency most organizations never think to audit the way they audit
+        their own infrastructure.
+      </p>
+      <Callout variant="danger">
+        <p>
+          The practical lesson: treat every third-party OAuth grant and API integration as a credential of
+          its own that needs an inventory, an owner, and a revocation plan — "we don't control that vendor's
+          security" is true and also irrelevant, because their compromise becomes your breach the moment a
+          token they hold grants access to your data.
+        </p>
+      </Callout>
+
       <Callout variant="tip">
         <p>
           Notice the pattern across all three techniques in this module: cloud security failures are

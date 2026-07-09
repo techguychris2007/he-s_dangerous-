@@ -39,13 +39,26 @@ smbclient -L //10.10.40.5/ -U jdoe%Password123!                    # list access
         membership, etc).
       </p>
 
-      <h2>BloodHound: mapping attack paths, conceptually</h2>
+      <h2>BloodHound: attack paths, not just misconfigurations</h2>
       <p>
         BloodHound is the industry-standard tool for visualizing AD as a graph — users, groups, computers,
-        and sessions as nodes, permissions and trust relationships as edges. It answers the question no
-        manual enumeration easily can: "what is the shortest path from the account I have right now to
-        Domain Admin?" Real engagements almost always run BloodHound immediately after gaining any domain
-        foothold, because the answer is rarely obvious from just reading group names.
+        and sessions as nodes, permissions and trust relationships as edges connecting them. Data collection
+        happens via its companion collector, <strong>SharpHound</strong>, which runs on a domain-joined host
+        (or remotely with just domain credentials) and pulls the raw relationship data — group memberships,
+        ACLs, active sessions, local admin rights — that BloodHound then renders as a graph.
+      </p>
+      <CodeBlock label="the typical BloodHound workflow">{`# 1. collect data from inside the domain (or remotely with valid creds)
+SharpHound.exe -c All
+
+# 2. import the resulting JSON into the BloodHound GUI
+# 3. query: "Shortest Paths to Domain Admins" from the node representing your current foothold`}</CodeBlock>
+      <p>
+        The mental model that makes BloodHound so effective is "attack paths, not just misconfigurations."
+        A single misconfigured permission in isolation (one account with GenericAll rights over one group)
+        often looks harmless when reviewed on its own — it's the <em>chain</em> of individually
+        unremarkable permissions across multiple hops that adds up to a route to Domain Admin. Manual review
+        checks configurations one at a time; BloodHound's graph traversal finds the multi-hop path that no
+        human reviewing an access control list line by line would ever piece together.
       </p>
 
       <Callout variant="tip">
@@ -55,6 +68,23 @@ smbclient -L //10.10.40.5/ -U jdoe%Password123!                    # list access
           invisible to manual review but immediately visible on the graph.
         </p>
       </Callout>
+
+      <h2>PingCastle: the defender's-eye view of the same terrain</h2>
+      <p>
+        Where BloodHound is built for the red team question — "what's my path to Domain Admin from here?"
+        — <strong>PingCastle</strong> is built for the blue team question: "how healthy is our AD
+        environment overall, and where should we invest hardening effort first?" It runs a broad battery of
+        checks against a domain — stale trusts, weak password policies, dangerous delegation settings,
+        obsolete protocol support — and produces a scored, risk-graded health-check report rather than an
+        interactive attack-path graph.
+      </p>
+      <p>
+        The two tools are complementary rather than competing: a defensive team runs PingCastle
+        periodically as an audit/scoring exercise to track risk trend over time, while a red team runs
+        BloodHound against the same domain to find the specific exploitable path an attacker with a single
+        foothold would take. Seeing both perspectives on the same domain is one of the fastest ways to
+        understand why "no critical CVEs" and "actually secure" are not the same thing in AD environments.
+      </p>
 
       <h2>Common AD misconfigurations to always check</h2>
       <ul>

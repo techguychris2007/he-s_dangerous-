@@ -47,6 +47,32 @@ ABAC (Attribute-Based Access Control) — access decided by a policy evaluating 
         vendor record it pays).
       </p>
 
+      <h2>MFA is strong, but not unbeatable — real attack patterns</h2>
+      <p>
+        MFA closes off simple credential-stuffing attacks, which is why attackers shifted to attacking the
+        second factor itself rather than trying to defeat MFA head-on. Security+ expects you to recognize
+        these by name, since "the organization has MFA enabled" is no longer, by itself, a sufficient answer
+        to "are we protected?"
+      </p>
+      <CodeBlock label="MFA-targeting attack patterns worth knowing">{`MFA fatigue / push bombing  — attacker who already has a valid password spams the victim's
+                              authenticator app with approval requests until they tap "Approve"
+                              out of annoyance or confusion
+SIM swapping                — attacker social-engineers a mobile carrier into porting the victim's
+                              phone number to a SIM they control, intercepting SMS-based MFA codes
+Adversary-in-the-middle (AiTM) phishing — a reverse-proxy phishing kit sits between the victim
+                              and the real login page, relaying the session token/cookie AFTER MFA
+                              succeeds — the attacker never needed the password or the MFA code
+                              directly, just the resulting authenticated session`}</CodeBlock>
+      <Callout variant="warn">
+        <p>
+          AiTM phishing is why "we require MFA" and "we are phishing-resistant" are not the same claim.
+          Phishing-resistant MFA specifically means factors like FIDO2/WebAuthn hardware keys that bind the
+          authentication to the legitimate origin domain cryptographically — a relayed cookie from a
+          look-alike domain simply doesn't work against them the way it does against an OTP code a user can
+          be tricked into typing into the wrong site.
+        </p>
+      </Callout>
+
       <h2>Federation &amp; SSO protocols</h2>
       <CodeBlock label="what actually moves identity between systems">{`SAML   — XML-based, common in enterprise SSO (browser redirects with signed assertions)
 OAuth 2.0 — an AUTHORIZATION framework (delegated access — "let this app read my calendar"), not authentication itself

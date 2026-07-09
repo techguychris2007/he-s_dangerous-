@@ -67,6 +67,52 @@ Full-scope incident, disproportionate to how "small" the original shortcut felt`
         indefinitely.
       </p>
 
+      <h2>Case study: Scattered Spider and the help desk as an unpatched attack surface</h2>
+      <p>
+        Scattered Spider (also tracked as Octo Tempest, or UNC3944) built its reputation on a technique
+        that bypasses essentially every technical MFA control in existence: calling or SMS-ing a target
+        company's own IT help desk, impersonating a real employee using personal details gathered from
+        social media or prior breaches, and simply asking for a password reset or an MFA re-enrollment onto
+        a device the attacker controls. No exploit, no malware, no phishing page — just a phone call to a
+        process that exists on paper as an identity-verification control.
+      </p>
+      <p>
+        Once inside, the group abuses identity providers to mint backdoor admin accounts and forge SAML
+        tokens, escalates to Domain Admin, and deploys ransomware — in this case DragonForce, used in the
+        April-May 2025 intrusions against major UK retailers Marks &amp; Spencer and Harrods, which caused
+        significant operational disruption.
+      </p>
+      <Callout variant="warn">
+        <p>
+          This is Pattern 1 in its purest form. The help desk's password-reset procedure is, on paper, an
+          identity-verification security boundary. In practice, the actual verification step is a human
+          under time pressure making a judgment call about whether a caller "sounds legitimate" — not a
+          technical control at all. A boundary that exists in a policy document but is trivially bypassable
+          by anyone willing to make a confident phone call is not a real boundary, no matter how strong the
+          MFA behind it looks on an architecture diagram.
+        </p>
+      </Callout>
+
+      <h2>Case study: the Salesloft Drift OAuth breach and transitive trust</h2>
+      <p>
+        In August 2025, attackers tracked as UNC6395 compromised Salesloft's GitHub environment, used that
+        foothold to pivot into Drift's AWS environment, and stole OAuth refresh tokens that Drift held on
+        behalf of every customer using the Drift-Salesforce integration. With those tokens, the attackers
+        could impersonate the trusted Drift application itself and access Salesforce data across more than
+        700 downstream organizations — none of whom had been directly breached themselves.
+      </p>
+      <p>
+        This is a distinct failure pattern from the other four in this lesson, worth naming on its own:
+        transitive trust. Each individual victim organization may well have correctly secured their own
+        Salesforce instance, their own users, their own endpoints. But every one of them implicitly trusted
+        the Drift integration's entire security posture wholesale, with no way to observe, limit, or
+        contain what that trusted third party could do on their behalf once granted access. This is exactly
+        the Secure Design Principles lesson's Least Privilege and blast-radius containment ideas, just
+        applied to a third-party integration instead of an internal account or process — and it's a
+        reminder that a system is only as secure as the weakest link in every chain of trust it accepts,
+        including chains it never directly reviewed.
+      </p>
+
       <Callout variant="tip">
         <p>
           If you take exactly one idea from this entire course into your career, make it this: security is
@@ -85,6 +131,85 @@ Full-scope incident, disproportionate to how "small" the original shortcut felt`
         finally the systems-level security engineering principles tying all of it together. Every module
         paired real conceptual depth with a genuine hands-on lab — the same combination that makes security
         expertise actually transfer to systems you haven't seen before.
+      </p>
+
+      <h2>Where to go next: books, sites, and communities</h2>
+      <p>
+        Finishing this course is a starting point, not an end point — the field moves fast, and staying
+        current means continuing to read and practice past today. The list below is organized by category
+        so you can pick up where your own interests point.
+      </p>
+
+      <h3>Books</h3>
+      <p><strong>Beginner</strong></p>
+      <ul>
+        <li>The Web Application Hacker's Handbook &mdash; Dafydd Stuttard &amp; Marcus Pinto</li>
+        <li>Hacking: The Art of Exploitation &mdash; Jon Erickson</li>
+        <li>Black Hat Python &mdash; Justin Seitz</li>
+      </ul>
+      <p><strong>Intermediate</strong></p>
+      <ul>
+        <li>Real-World Bug Hunting &mdash; Peter Yaworski</li>
+        <li>Bug Bounty Bootcamp &mdash; Vickie Li</li>
+        <li>Web Security for Developers &mdash; Malcolm McDonald</li>
+      </ul>
+      <p><strong>Advanced</strong></p>
+      <ul>
+        <li>The Tangled Web &mdash; Michal Zalewski</li>
+        <li>Practical Binary Analysis &mdash; Dennis Andriesse</li>
+        <li>The Art of Software Security Assessment &mdash; Mark Dowd, John McDonald &amp; Justin Schuh</li>
+      </ul>
+
+      <h3>Learning platforms</h3>
+      <ul>
+        <li><a href="https://portswigger.net/web-security" target="_blank" rel="noreferrer">PortSwigger Web Security Academy</a></li>
+        <li><a href="https://owasp.org" target="_blank" rel="noreferrer">OWASP</a></li>
+        <li><a href="https://academy.hackthebox.com" target="_blank" rel="noreferrer">Hack The Box Academy</a></li>
+        <li><a href="https://tryhackme.com" target="_blank" rel="noreferrer">TryHackMe</a></li>
+        <li><a href="https://overthewire.org" target="_blank" rel="noreferrer">OverTheWire</a></li>
+        <li><a href="https://pentesterlab.com" target="_blank" rel="noreferrer">PentesterLab</a></li>
+      </ul>
+
+      <h3>Bug bounty platforms</h3>
+      <ul>
+        <li><a href="https://hackerone.com" target="_blank" rel="noreferrer">HackerOne</a></li>
+        <li><a href="https://bugcrowd.com" target="_blank" rel="noreferrer">Bugcrowd</a></li>
+        <li><a href="https://intigriti.com" target="_blank" rel="noreferrer">Intigriti</a></li>
+        <li><a href="https://yeswehack.com" target="_blank" rel="noreferrer">YesWeHack</a></li>
+      </ul>
+
+      <h3>Research blogs</h3>
+      <ul>
+        <li><a href="https://googleprojectzero.blogspot.com" target="_blank" rel="noreferrer">Google Project Zero Blog</a></li>
+        <li><a href="https://portswigger.net/research" target="_blank" rel="noreferrer">PortSwigger Research</a></li>
+        <li><a href="https://www.microsoft.com/en-us/security/blog/" target="_blank" rel="noreferrer">Microsoft Security Research</a></li>
+        <li><a href="https://blog.trailofbits.com" target="_blank" rel="noreferrer">Trail of Bits Blog</a></li>
+      </ul>
+
+      <h3>News</h3>
+      <ul>
+        <li><a href="https://thehackernews.com" target="_blank" rel="noreferrer">The Hacker News</a></li>
+        <li><a href="https://www.bleepingcomputer.com" target="_blank" rel="noreferrer">BleepingComputer</a></li>
+        <li><a href="https://www.darkreading.com" target="_blank" rel="noreferrer">Dark Reading</a></li>
+        <li><a href="https://krebsonsecurity.com" target="_blank" rel="noreferrer">Krebs on Security</a></li>
+        <li><a href="https://www.securityweek.com" target="_blank" rel="noreferrer">SecurityWeek</a></li>
+        <li><a href="https://isc.sans.edu" target="_blank" rel="noreferrer">SANS Internet Storm Center</a></li>
+      </ul>
+
+      <h3>CVE &amp; threat intel references</h3>
+      <ul>
+        <li><a href="https://www.cve.org" target="_blank" rel="noreferrer">MITRE CVE Database</a></li>
+        <li><a href="https://nvd.nist.gov" target="_blank" rel="noreferrer">NIST National Vulnerability Database (NVD)</a></li>
+        <li><a href="https://www.exploit-db.com" target="_blank" rel="noreferrer">Exploit Database</a></li>
+        <li><a href="https://www.cisa.gov/known-exploited-vulnerabilities-catalog" target="_blank" rel="noreferrer">CISA Known Exploited Vulnerabilities Catalog</a></li>
+        <li><a href="https://attack.mitre.org" target="_blank" rel="noreferrer">MITRE ATT&amp;CK Framework</a></li>
+      </ul>
+
+      <p>
+        This course's own labs and lessons drew on exactly these kinds of sources — real research blogs,
+        real CVE and ATT&amp;CK references, real incident write-ups from outlets like these. Continuing to
+        follow them, long after finishing this course, is how a working security practitioner keeps their
+        skills current in a field that never stops moving.
       </p>
     </div>
   );

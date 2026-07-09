@@ -49,6 +49,48 @@ A10 Server-Side Request Forgery (SSRF) — tricking the server into making reque
         </p>
       </Callout>
 
+      <h2>The modern web testing toolkit</h2>
+      <p>
+        Reading the OWASP categories is the theory. In practice, professional testers reach for a
+        consistent set of tools to find where each category applies on a real target, fast enough to cover
+        a wide scope within a limited engagement window.
+      </p>
+      <ul>
+        <li><strong>Burp Suite</strong> — the intercepting proxy nearly every web pentester runs all day,
+        every day. It sits between your browser and the target, letting you see and edit every request
+        before it leaves your machine. The <strong>Proxy</strong> tab captures traffic live; <strong>Repeater</strong>{' '}
+        lets you resend and tweak a single request over and over while you probe a parameter; <strong>Intruder</strong>{' '}
+        automates sending many variations of a request (a wordlist against a parameter, for example) and
+        diffs the responses. The free <strong>Community</strong> edition covers Proxy/Repeater with a
+        throttled Intruder; the paid <strong>Professional</strong> edition removes that throttle and adds the
+        active/passive vulnerability scanner most firms build their methodology around.</li>
+        <li><strong>OWASP ZAP</strong> (Zed Attack Proxy) — the leading free and open-source alternative to
+        Burp, maintained by the OWASP Foundation itself. It covers the same core proxy/repeater/scanner
+        workflow, and its scriptable automation framework makes it the tool of choice for wiring web
+        security testing directly into a CI/CD pipeline rather than running it as a one-off manual pass.</li>
+      </ul>
+      <CodeBlock label="template-based scanning with Nuclei">{`nuclei -u https://target.com -t cves/ -severity critical
+# runs the community's YAML-based vulnerability templates against a target —
+# includes templates for specific named CVEs, misconfigurations, exposed panels, default creds, and more`}</CodeBlock>
+      <p>
+        <strong>Nuclei</strong> doesn't understand your target's business logic the way a human does, but
+        it checks thousands of known issues in minutes using a huge, constantly-updated community template
+        library — genuinely useful as a first pass across a large scope, and as a way to instantly re-check
+        every asset the moment a new critical CVE template is published.
+      </p>
+      <CodeBlock label="fast mass HTTP probing with httpx">{`httpx -l hosts.txt -sc -title -tech-detect
+# feed it a list of hosts/subdomains — it reports the status code, page title, and detected
+# tech stack (framework, server, CMS) for every one of them, in seconds`}</CodeBlock>
+      <CodeBlock label="crawling a modern JS-heavy site with Katana">{`katana -u https://target.com -jc
+# -jc follows links discovered inside JavaScript, not just static HTML —
+# builds the endpoint list that feeds straight into Nuclei, httpx, or manual testing`}</CodeBlock>
+      <p>
+        These four command-line tools are typically chained together: Katana crawls a target to build a
+        full URL/endpoint list, httpx probes that list to see what's alive and what it's running, and Nuclei
+        scans the result for known vulnerability patterns — all before a human ever opens Burp to dig into
+        the interesting findings by hand.
+      </p>
+
       <h2>What's ahead in this module</h2>
       <p>
         The next three lessons go deep on the categories with the highest real-world hit rate: Injection

@@ -82,10 +82,51 @@ Padding oracle     — exploits how a system responds differently to valid vs. i
         </p>
       </Callout>
 
+      <h2>Password auditing tools: putting bcrypt/Argon2 to the test</h2>
       <p>
-        With cryptography's building blocks in place, the next lesson turns to Identity &amp; Access
-        Management — the practical system that decides who gets to use these cryptographic guarantees in
-        the first place.
+        The bcrypt/Argon2-vs-SHA-256 distinction above isn't just theoretical — it's exactly what
+        password-cracking tools exploit or get defeated by, and knowing the major tools by name is standard
+        Security+ and real-world GRC/audit knowledge, since "how strong is our actual password hygiene"
+        is a question organizations are expected to test empirically, not just assume.
+      </p>
+      <CodeBlock label="Hashcat — GPU-accelerated password recovery">{`hashcat -m 1000 hashes.txt wordlist.txt -O
+# -m 1000  selects the HASH MODE — 1000 is NTLM (Windows), 1800 is sha512crypt,
+#          3200 is bcrypt, 0 is raw MD5 — Hashcat supports hundreds of these
+# -O       optimized kernel — faster, with some length limitations
+# wordlist.txt   the candidate password list to try, e.g. rockyou.txt
+
+hashcat -m 1000 hashes.txt wordlist.txt -r rules/best64.rule
+# -r applies a RULE FILE — mutates each wordlist entry (capitalize, append "123",
+#    swap letters for numbers) to catch predictable human password variations
+#    without needing a wordlist that already contains every variant literally`}</CodeBlock>
+      <CodeBlock label="John the Ripper — the longer-established alternative/complement to Hashcat">{`john --format=nt hashes.txt --wordlist=wordlist.txt
+# --format selects the hash type, much like Hashcat's -m — "nt" is NTLM here
+# John's "jumbo" community-patched build is particularly strong on exotic/legacy
+# hash formats Hashcat doesn't cover out of the box, making the two complementary
+# rather than strictly redundant tools in a real audit`}</CodeBlock>
+      <CodeBlock label="CeWL — custom wordlist generation from the target's own website">{`cewl https://target.com -d 2 -m 5 -w wordlist.txt
+# -d 2   spider depth of 2 links from the starting page
+# -m 5   minimum word length of 5 characters
+# -w     write the resulting wordlist to a file
+
+# The idea: employees often base passwords on company- or product-specific
+# terminology (product names, internal project codenames, founder names) that a
+# generic wordlist like rockyou.txt was never built to contain — CeWL builds a
+# wordlist from words that actually appear on the target's own site instead.`}</CodeBlock>
+      <Callout variant="danger">
+        <p>
+          Hashcat, John the Ripper, and CeWL are for AUTHORIZED password-policy auditing only — running them
+          against credentials you don't own or lack explicit written permission to test is unauthorized
+          access. In a legitimate engagement, the output typically feeds a report, not further action: "12%
+          of accounts cracked within an hour using a company-specific wordlist" is a finding that drives a
+          password-policy fix, not a foothold to keep using unilaterally.
+        </p>
+      </Callout>
+
+      <p>
+        With cryptography's building blocks — and the tools used to test how well password-based controls
+        actually hold up — in place, the next lesson turns to Identity &amp; Access Management: the
+        practical system that decides who gets to use these cryptographic guarantees in the first place.
       </p>
     </div>
   );

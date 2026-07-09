@@ -41,6 +41,33 @@ export default function OsiTcpIp() {
         what's happening underneath (ARP spoofing, IP spoofing, routing attacks all live lower down).
       </p>
 
+      <h2>Every layer, one real command each</h2>
+      <p>
+        The fastest way to make the model concrete is to run one command per layer against your own
+        machine and read the output through that layer's lens:
+      </p>
+      <CodeBlock label="one command per layer">{`arp -a                     # L2 — the MAC addresses your machine has resolved on the local segment
+ip route                    # L3 — how your machine decides where to send a packet (gateway, interface)
+ss -tulpn                    # L4 — which local ports are open and which process owns them
+curl -sI https://example.com  # L7 — an actual application-layer request/response`}</CodeBlock>
+      <p>
+        Notice how each command operates on a completely different kind of address: MAC address (L2), IP
+        address (L3), port number (L4), and a URL/hostname (L7). Confusing which layer a problem lives at
+        is the single most common beginner debugging mistake — "the website won't load" could be a DNS
+        failure (L7), a firewall dropping the port (L4), no route to the host (L3), or a cable/Wi-Fi issue
+        (L1/L2), and each has a completely different fix.
+      </p>
+
+      <h3>MTU and fragmentation, briefly</h3>
+      <p>
+        Every link layer has a Maximum Transmission Unit (MTU) — Ethernet's default is 1500 bytes. If a
+        packet is larger than the MTU of a link it needs to cross, it gets fragmented (IPv4) or rejected
+        with an ICMP "packet too big" message (IPv6, which doesn't allow in-transit fragmentation). This
+        matters offensively: nmap's <code>-f</code> fragmentation flag deliberately splits packets across
+        multiple IP fragments specifically to slip past simplistic packet-inspection firewalls that only
+        look at the first fragment.
+      </p>
+
       <h2>Encapsulation: what actually happens to your data</h2>
       <p>
         When you run <code>curl http://10.10.10.5</code>, your HTTP request gets wrapped (encapsulated) in
@@ -65,12 +92,26 @@ export default function OsiTcpIp() {
         Almost every category of attack maps to a layer:
       </p>
       <ul>
-        <li><strong>L2 attacks</strong>: ARP spoofing/poisoning, MAC flooding, VLAN hopping.</li>
+        <li><strong>L2 attacks</strong>: ARP spoofing/poisoning (tools: <code>arpspoof</code>, Ettercap,
+        bettercap), MAC flooding, VLAN hopping.</li>
         <li><strong>L3 attacks</strong>: IP spoofing, ICMP tunneling, routing manipulation.</li>
-        <li><strong>L4 attacks</strong>: Port scanning, SYN floods, TCP session hijacking.</li>
+        <li><strong>L4 attacks</strong>: Port scanning (nmap, masscan), SYN floods, TCP session hijacking.</li>
         <li><strong>L7 attacks</strong>: SQL injection, XSS, auth bypass, command injection — most of the
         web app hacking you'll do lives here.</li>
       </ul>
+      <p>
+        This layer mapping is also exactly how packet analysis tools like tcpdump and Wireshark present
+        traffic to you — every capture you'll take in this course shows nested layer headers, which we
+        cover hands-on once you've got DNS and HTTP under your belt in lesson 5.
+      </p>
+      <Callout variant="info">
+        <p>
+          A quick sanity check that ties the whole model together: when you run <code>nmap -sV target</code>,
+          nmap uses L3 (IP) to reach the host, L4 (TCP/UDP) to find open ports, and then L7 (sending real
+          protocol probes and reading the response) to identify the exact service and version. One command,
+          three layers, three completely different techniques working together.
+        </p>
+      </Callout>
       <p>
         In the next lesson we'll get concrete about Layer 3 — IP addressing and subnetting — because you
         cannot scope a network, plan lateral movement, or read a <code>nmap</code> output confidently

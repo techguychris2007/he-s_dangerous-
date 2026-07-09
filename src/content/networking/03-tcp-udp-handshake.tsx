@@ -25,6 +25,33 @@ export default function TcpUdpHandshake() {
         making it faster and quieter than a full connect scan.
       </p>
 
+      <h2>TCP flags: the actual bits that drive every scan type</h2>
+      <p>
+        Every TCP segment carries a set of control flags in its header. Nmap's various scan modes are
+        really just different combinations of these flags sent deliberately:
+      </p>
+      <CodeBlock label="the flags you'll see referenced constantly">{`SYN   synchronize — "start a connection" / initiates the handshake
+ACK   acknowledge — "I received your last segment"
+FIN   finish — graceful "I'm done sending" close request
+RST   reset — abrupt "this port/connection doesn't exist, stop"
+PSH   push — "deliver this data to the application immediately, don't buffer it"
+URG   urgent — marks data that should be processed out of band (rarely used today)`}</CodeBlock>
+      <p>
+        Reading these directly explains scan behavior: a SYN scan (<code>-sS</code>) sends only SYN; an ACK
+        scan (<code>-sA</code>) sends only ACK (useful for mapping stateful firewall rules, since a
+        stateless firewall will let an ACK through where it would have blocked a SYN); a "Xmas scan"
+        (<code>-sX</code>) sets FIN, PSH, and URG all at once — an unusual combination that closed ports
+        answer with RST but many firewalls/older stacks handle inconsistently, which is exactly the
+        ambiguity that scan type is trying to exploit.
+      </p>
+      <p>
+        TCP also tracks a <strong>sequence number</strong> (byte-ordering, so out-of-order segments can be
+        reassembled correctly) and a <strong>window size</strong> (how many unacknowledged bytes the sender
+        is allowed to have in flight — this is how TCP does flow control without a fixed rate limit). When
+        a segment is lost, the receiver's missing ACK triggers retransmission after a timeout — this
+        retry behavior is part of why lossy or filtered connections feel "slow" rather than simply broken.
+      </p>
+
       <h2>UDP: fast, connectionless, no guarantees</h2>
       <p>
         UDP just sends datagrams with no handshake, no acknowledgment, no ordering guarantee. This makes it
@@ -48,6 +75,11 @@ export default function TcpUdpHandshake() {
         RST. You'll see RST constantly in scan traffic — it means "closed port, nobody's listening, stop
         talking to me."
       </p>
+      <CodeBlock label="the graceful four-way close">{`Client                          Server
+  |------ FIN ------------------>|   "I'm done sending"
+  |<----- ACK --------------------|   "acknowledged"
+  |<----- FIN --------------------|   "I'm done too"
+  |------ ACK ------------------->|   "acknowledged, connection closed"`}</CodeBlock>
 
       <Callout variant="tip">
         <p>
@@ -63,6 +95,9 @@ nmap -sT 10.10.10.5      # TCP full-connect scan — completes the handshake, no
 nmap -sU 10.10.10.5      # UDP scan — slow, but catches DNS/SNMP/NTP`}</CodeBlock>
       <p>
         You'll run real versions of these commands against a live simulated target in the Module 3 labs.
+        The next lesson closes out this module by showing you how to actually <em>capture and read</em>
+        this exact handshake off the wire with tcpdump and Wireshark, so the diagrams above stop being
+        theory and become something you can point at in a real packet trace.
       </p>
     </div>
   );

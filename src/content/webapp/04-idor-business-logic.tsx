@@ -36,6 +36,32 @@ curl "http://10.10.60.7/invoice?id=1002" -H "Cookie: session=<your-session>"
         <li>API endpoints never meant to be called directly, found via JS file analysis</li>
       </ul>
 
+      <h2>Fuzzing for IDOR and hidden endpoints at scale</h2>
+      <p>
+        Manually incrementing an ID by one and re-requesting it proves the concept, but real APIs can have
+        millions of possible IDs, and UUIDs can't be "incremented" at all. <strong>ffuf</strong> is a fast
+        web fuzzer built for exactly this: point it at a wordlist of IDs (sequential numbers, leaked UUIDs,
+        common usernames) and let it substitute each one into the request automatically.
+      </p>
+      <CodeBlock label="fuzzing a numeric/UUID ID parameter with ffuf">{`ffuf -u https://target.com/api/user/FUZZ -w ids.txt -mc 200
+# -w   the wordlist of candidate IDs to substitute in place of FUZZ
+# -mc  only show responses matching this status code (200 = found something) — filters the noise`}</CodeBlock>
+      <p>
+        The same tool works for discovering endpoints that were never linked anywhere in the app's visible
+        UI. <strong>Gobuster</strong> and <strong>dirsearch</strong> serve a related purpose — directory and
+        file brute-forcing to surface hidden paths a generic crawler would never find:
+      </p>
+      <CodeBlock label="directory/file brute-forcing">{`gobuster dir -u https://target.com -w /usr/share/wordlists/dirb/common.txt -x php,txt
+dirsearch -u https://target.com -e php`}</CodeBlock>
+      <p>
+        Gobuster is written in Go and prized for raw speed and simplicity; dirsearch is Python-based and
+        ships with a larger default wordlist and more built-in output/reporting options out of the box. Most
+        testers pick whichever is already installed and comfortable — the two overlap enough in practice
+        that neither is a wrong choice. Either one turns up admin panels, backup files, and forgotten API
+        versions that a business-logic review then has to check for exactly the IDOR-style flaws this
+        lesson covers.
+      </p>
+
       <h2>Authentication flaws worth checking on every target</h2>
       <CodeBlock label="the standard auth checklist">{`- Can you register with an already-taken username/email and get a different error than expected?
 - Does the password reset token predictable, reusable, or leaked in a Referer header?

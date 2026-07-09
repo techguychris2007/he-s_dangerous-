@@ -40,7 +40,14 @@ export default function PortsServices() {
         trust the port number, it sends protocol-specific probes and reads the actual response to identify
         what's really there.
       </p>
-      <CodeBlock>{`nmap -sV -p- 10.10.10.5   # scan ALL 65535 ports, then fingerprint whatever answers`}</CodeBlock>
+      <CodeBlock>{`nmap -sV -p- 10.10.10.5              # scan ALL 65535 ports, then fingerprint whatever answers
+nmap -sV --version-intensity 9 -p8443 10.10.10.5   # throw every probe nmap has at one weird port`}</CodeBlock>
+      <p>
+        The <code>--version-intensity</code> scale runs 0-9: lower numbers only try the probes most likely
+        to match common services (faster, quieter); 9 throws every signature in nmap's probe database at
+        the port (slower, thorough) — reach for it specifically on unusual, non-standard ports where the
+        default guess comes back empty or wrong.
+      </p>
 
       <Callout variant="tip">
         <p>
@@ -68,6 +75,23 @@ SSH-2.0-OpenSSH_7.2p2 Ubuntu-4ubuntu2.10`}</CodeBlock>
         search for a matching public exploit. Enumeration is largely the disciplined collection of details
         like this, which we build into a full methodology in Module 3.
       </p>
+      <p>
+        Not every service volunteers a banner over plain TCP — TLS-wrapped services (HTTPS, and anything
+        else layered on TLS) need the handshake completed first before you can see anything meaningful:
+      </p>
+      <CodeBlock label="banner grabbing through TLS">{`openssl s_client -connect 10.10.10.5:443 -quiet
+# completes the TLS handshake, then drops you into a raw stream —
+# type "GET / HTTP/1.0" and press enter twice to see the HTTP response and headers`}</CodeBlock>
+
+      <h2>UDP services deserve equal attention</h2>
+      <p>
+        Because TCP dominates most checklists, UDP services get skipped far too often — and they leak just
+        as much. SNMP with a default community string of <code>public</code> can dump an entire device's
+        configuration; DNS (UDP/53) reveals infrastructure through zone transfers; NTP (UDP/123) can even be
+        abused for reflection/amplification DDoS. Always run a UDP sweep on the top ports even under time
+        pressure:
+      </p>
+      <CodeBlock>{`nmap -sU --top-ports 20 10.10.10.5     # a fast, targeted UDP pass instead of skipping UDP entirely`}</CodeBlock>
     </div>
   );
 }

@@ -51,6 +51,29 @@ export default function IpSubnetting() {
       <CodeBlock>{`10.0.0.0/8        10.0.0.0     – 10.255.255.255
 172.16.0.0/12     172.16.0.0   – 172.31.255.255
 192.168.0.0/16    192.168.0.0  – 192.168.255.255`}</CodeBlock>
+      <p>
+        Because these ranges aren't publicly routable, organizations rely on NAT (Network Address
+        Translation) at their perimeter to let internal hosts reach the internet through one or a handful
+        of public IPs. Practically: if you're testing from outside and only see one public IP responding,
+        there is very likely an entire internal network sitting behind it that only becomes visible once
+        you get an initial foothold and start pivoting.
+      </p>
+
+      <h2>Letting the computer do the math</h2>
+      <p>
+        You should be able to subnet by hand, but on a real engagement you'll usually just double-check
+        with a tool — mistyping a mask under time pressure is an easy way to scan the wrong range entirely.
+      </p>
+      <CodeBlock label="ipcalc — quick sanity-check any CIDR block">{`ipcalc 10.10.10.128/25
+Address:   10.10.10.128
+Netmask:   255.255.255.128 = 25
+Network:   10.10.10.128/25
+HostMin:   10.10.10.129
+HostMax:   10.10.10.254
+Broadcast: 10.10.10.255
+Hosts/Net: 126`}</CodeBlock>
+      <CodeBlock label="expanding a CIDR block into a target list for tooling">{`prips 10.10.10.0/24 > targets.txt          # one IP per line, ready to feed into a loop or nmap -iL
+nmap -sn -iL targets.txt                     # or just hand nmap the CIDR directly — it expands it itself`}</CodeBlock>
 
       <Callout variant="warn">
         <p>
@@ -76,6 +99,19 @@ export default function IpSubnetting() {
         Corporate networks are increasingly dual-stack. Many scanners default to IPv4-only — a classic
         recon gap is forgetting to check for IPv6 services listening on the same host.
       </p>
+      <CodeBlock label="don't forget the -6 flag exists">{`nmap -6 2001:db8::5              # nmap won't touch IPv6 targets unless you explicitly ask
+ping6 fe80::1%eth0                  # link-local addresses require specifying the interface`}</CodeBlock>
+
+      <h2>Subnetting mistakes that waste real engagement time</h2>
+      <ul>
+        <li>Scanning <code>/24</code> when the client's scope document actually says <code>/23</code> — you
+        silently miss half the in-scope hosts.</li>
+        <li>Confusing the network address (<code>.0</code> in a /24) or broadcast address (<code>.255</code>)
+        for a live host — neither one is a machine you can compromise.</li>
+        <li>Assuming a single flat subnet when a "range" in the scope document is actually several
+        smaller subnets behind routers — always confirm with <code>traceroute</code> or by comparing TTLs
+        across responses.</li>
+      </ul>
     </div>
   );
 }

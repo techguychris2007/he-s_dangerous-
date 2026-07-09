@@ -56,10 +56,55 @@ Detection rule: Alert if any host makes >10 outbound connections to port 8443 wi
 
       <Callout variant="tip">
         <p>
-          The MITRE ATT&amp;CK framework is the industry-standard reference for attacker techniques,
-          organized by tactic (initial access, persistence, lateral movement, exfiltration, etc.) — SOC
-          teams map both detections and hunt hypotheses to it, and it's worth knowing by name even at a
-          glance, since it comes up in nearly every blue-team job description and report template.
+          The MITRE ATT&amp;CK framework (covered in depth in the previous lesson) is the industry-standard
+          reference for attacker techniques, organized by tactic (initial access, persistence, lateral
+          movement, exfiltration, etc.) — SOC teams map both detections and hunt hypotheses to it, tagging
+          each with the specific technique ID it corresponds to.
+        </p>
+      </Callout>
+
+      <h2>Case study: AI-accelerated ransomware and the "speed" signal</h2>
+      <p>
+        Threat hunters have spent years learning to spot individual techniques being used in unfamiliar
+        ways. Campaigns emerging through 2026 add a different wrinkle: none of the individual steps are
+        new, but an AI/LLM orchestrator is stitching them together and adapting them in real time, at a
+        pace no human operator could sustain manually. A typical chain looks almost boringly familiar on
+        paper — exploit an exposed internet-facing service for initial access, harvest credentials from
+        memory or config files, move laterally using those credentials, abuse a default or overly permissive
+        configuration to escalate privileges, then locate and destroy backup infrastructure before deploying
+        the encryptor. Every one of those steps has its own well-known ATT&amp;CK technique ID. What's
+        different is the orchestration layer: an AI system selecting, sequencing, and adapting these steps
+        against the specific target's environment, compressing what used to take a skilled human operator
+        several days of hands-on-keyboard work into a matter of hours.
+      </p>
+      <CodeBlock label="the same kill chain, at two very different speeds">{`Exposed service exploited (T1190)
+     -> Credential harvesting (T1003 / T1552)
+          -> Lateral movement (T1021 / T1570)
+               -> Default-config privilege escalation (T1078 / T1548)
+                    -> Backup infrastructure destroyed (T1490 Inhibit System Recovery)
+                         -> Ransomware deployed (T1486 Data Encrypted for Impact)
+
+Manual human operator (typical, pre-2023):  multiple DAYS end to end
+AI-orchestrated campaign (2026):             a few HOURS end to end`}</CodeBlock>
+      <p>
+        This isn't an isolated anecdote either — it reflects an industry-wide trend. The median time
+        between an initial-access broker handing off a compromised network and a ransomware affiliate
+        actually beginning to act on it collapsed from over 8 hours in 2022 to as little as 22 seconds in
+        2025. A handoff measured in seconds is not something a human triaging a target and typing commands
+        can do — it's a strong indicator that automation, not just better tooling, now sits on the attacker
+        side of that handoff.
+      </p>
+
+      <Callout variant="warn">
+        <p>
+          The teaching point to take from this: when every individual technique in an intrusion is
+          "textbook" and nothing on its own looks novel, that can itself be the anomaly. A hunter should
+          treat an unusually <em>fast</em>, unusually <em>clean</em> sequence of technique combinations —
+          initial access, credential theft, lateral movement, and backup destruction all correlating across
+          multiple log sources within an implausibly short window — as a detection signal in its own right,
+          separate from whether any single step individually trips a rule. Ask "could a human have done all
+          of this, this fast, without a single misstep?" If the honest answer is no, that timing anomaly
+          deserves a hunt hypothesis of its own.
         </p>
       </Callout>
 

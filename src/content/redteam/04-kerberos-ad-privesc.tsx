@@ -63,6 +63,27 @@ export default function KerberosAdPrivesc() {
         not just resetting the one compromised admin account.
       </p>
 
+      <h2>DCSync and Pass-the-Ticket</h2>
+      <p>
+        Two more techniques round out the standard AD privilege escalation toolkit. <strong>DCSync</strong>{' '}
+        abuses a legitimate Active Directory replication permission — if an attacker-controlled account has
+        replication rights (often obtained via the same kind of ACL-abuse path BloodHound surfaces), they
+        can impersonate a Domain Controller and simply ask a real DC to "replicate" the password hashes of
+        any account, including <code>krbtgt</code>, without ever touching the DC's disk directly.{' '}
+        <strong>Pass-the-Ticket</strong> is Kerberos's version of pass-the-hash: once you have a valid
+        ticket (stolen from memory on a compromised host, or forged as described above), you inject it into
+        your own session and authenticate as that user or computer without ever knowing their password.
+      </p>
+      <Callout variant="warn">
+        <p>
+          Kerberoasting, DCSync, and Pass-the-Ticket are not rare, exotic techniques — public incident
+          response reporting on major ransomware intrusions repeatedly names this exact chain (a low-priv
+          foothold, Kerberoasting a service account, then DCSync or ticket abuse to reach Domain Admin) as
+          the path from initial access to full domain compromise. This module's techniques are not
+          hypothetical; they are the default playbook.
+        </p>
+      </Callout>
+
       <Callout variant="danger">
         <p>
           Kerberoasting, AS-REP Roasting, and Golden Ticket attacks are real, powerful techniques used in

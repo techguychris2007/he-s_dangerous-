@@ -30,6 +30,12 @@ cd /var/www          # change directory (absolute path)
 cd ..                # up one level
 cd ~                 # home directory
 cd -                 # previous directory`}</CodeBlock>
+      <p>
+        Absolute paths (starting with <code>/</code>) always mean the same thing regardless of where you
+        currently are; relative paths (<code>../logs</code>, <code>./run.sh</code>) depend on your current
+        directory. Scripts that hard-code relative paths are a common source of "works on my machine" bugs
+        — get in the habit of thinking in absolute paths inside anything you write that'll run unattended.
+      </p>
 
       <h2>Reading files</h2>
       <CodeBlock>{`cat file.txt         # dump entire file to stdout
@@ -37,6 +43,25 @@ less file.txt         # page through a large file (q to quit)
 head -n 20 file.txt   # first 20 lines
 tail -n 20 file.txt   # last 20 lines
 tail -f /var/log/auth.log   # follow a log file live`}</CodeBlock>
+      <p>
+        <code>tail -f</code> is worth internalizing early: it's the command you reach for the instant you
+        want to watch something happen in real time — a web server's access log while your scanner runs
+        against it, or an auth log while you brute-force a login, so you can see immediately whether you're
+        getting blocked or locked out.
+      </p>
+
+      <h2>Wildcards, symlinks, and useful metadata</h2>
+      <CodeBlock label="globbing — matching multiple files at once">{`ls *.log                   # every file ending in .log in the current directory
+rm /tmp/scan_*.txt          # delete every file matching a pattern — use with real care
+cp /etc/*.conf backup/       # copy every top-level .conf file`}</CodeBlock>
+      <CodeBlock label="symlinks and file metadata">{`ln -s /opt/tools/nmap /usr/local/bin/nmap   # create a symbolic link (shortcut) to a file elsewhere
+stat file.txt                                 # size, permissions, and exact timestamps — useful forensically
+file unknown_binary                            # identify a file's actual type by its contents, not its name/extension`}</CodeBlock>
+      <p>
+        <code>file</code> matters more than it looks: an executable renamed to <code>notes.txt</code> to
+        dodge a naive upload filter will still be correctly identified as an ELF/PE binary by
+        <code> file</code>, because it inspects the file's magic bytes rather than trusting the extension.
+      </p>
 
       <h2>Finding things</h2>
       <p>
@@ -46,8 +71,17 @@ tail -f /var/log/auth.log   # follow a log file live`}</CodeBlock>
       <CodeBlock>{`find / -name "*.conf" 2>/dev/null           # find files by name
 find / -perm -4000 2>/dev/null              # find SUID binaries (privesc candidates)
 find / -writable -type d 2>/dev/null        # find world-writable directories
+find / -mtime -1 -type f 2>/dev/null        # files modified in the last 24 hours — great for spotting recent changes
 grep -r "password" /var/www 2>/dev/null     # search file contents recursively
-locate passwd                                # fast search using a prebuilt index`}</CodeBlock>
+grep -rE "(api_key|secret|passwd)\\s*=" /var/www 2>/dev/null   # a slightly smarter credential-hunting pattern
+locate passwd                                # fast search using a prebuilt index (needs updatedb to have run)`}</CodeBlock>
+      <p>
+        <code>find</code> and <code>locate</code> trade off differently: <code>find</code> walks the real
+        filesystem live, so it's always accurate but can be slow across a whole disk; <code>locate</code>
+        queries a prebuilt index (usually refreshed nightly via <code>updatedb</code>), so it's near-instant
+        but can miss files created since the last index run — worth knowing when a file you just dropped
+        doesn't show up in a <code>locate</code> search.
+      </p>
 
       <Callout variant="tip">
         <p>
