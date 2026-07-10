@@ -868,20 +868,55 @@ export class TerminalEngine {
   private hydra(args: string[]): OutLine[] {
     const userIdx = args.indexOf('-l');
     const listIdx = args.indexOf('-P');
-    const target = args.find((a) => a.startsWith('ssh://') || /^\d+\.\d+\.\d+\.\d+$/.test(a));
-    if (userIdx < 0 || listIdx < 0 || !target) {
-      return [{ kind: 'error', text: 'usage: hydra -l <user> -P <wordlist> ssh://<ip>' }];
+    const userListIdx = args.indexOf('-L');
+    const singlePassIdx = args.indexOf('-p');
+    const target = args.find((a) => a.startsWith('ssh://') || a.startsWith('smb://') || /^\d+\.\d+\.\d+\.\d+$/.test(a));
+    if (!target) {
+      return [{ kind: 'error', text: 'usage: hydra -l <user> -P <wordlist> ssh://<ip>  (or -L <userlist> -p <password> for spraying)' }];
+    }
+    const ip = target.replace(/^ssh:\/\//, '').replace(/^smb:\/\//, '');
+    const host = this.findHostByIp(ip);
+    if (!host) return [{ kind: 'error', text: `hydra: target ${ip} unreachable` }];
+    const service = target.startsWith('smb://') ? 'smb' : 'ssh';
+
+    // Password spraying: ONE password against MANY usernames — the real-world technique operators
+    // use specifically to stay under an account-lockout threshold, unlike -l/-P below which throws
+    // many passwords at a single known account.
+    if (userListIdx >= 0 && singlePassIdx >= 0) {
+      const userlistPath = args[userListIdx + 1];
+      const password = args[singlePassIdx + 1];
+      const node = getNode(this.fsRoot(), this.resolveInSession(userlistPath));
+      if (!node || node.type !== 'file') {
+        return [{ kind: 'error', text: `hydra: cannot read userlist '${userlistPath}'` }];
+      }
+      const usernames = node.content.split('\n').map((w) => w.trim()).filter(Boolean);
+      const hits = usernames.filter((u) => {
+        const account = host.users.find((acc) => acc.username === u);
+        return account && account.password === password;
+      });
+      const out: OutLine[] = [
+        { kind: 'system', text: `Hydra v9.5 starting at ${new Date().toUTCString()}` },
+        { kind: 'system', text: `[DATA] max 4 tasks per 1 server, overall 4 tasks, ${usernames.length} login tries (l:${usernames.length}/p:1), ~1 try per task` },
+      ];
+      usernames.slice(0, 6).forEach((u, i) => out.push({ kind: 'muted', text: `[ATTEMPT] target ${ip} - login "${u}" - pass "${password}" - ${i + 1} of ${usernames.length}` }));
+      if (usernames.length > 6) out.push({ kind: 'muted', text: `...` });
+      if (hits.length) {
+        hits.forEach((u) => out.push({ kind: 'success', text: `[${service === 'smb' ? '445][smb' : '22][ssh'}] host: ${ip}   login: ${u}   password: ${password}` }));
+      }
+      out.push({ kind: hits.length ? 'system' : 'error', text: `${hits.length} of ${usernames.length} target${usernames.length === 1 ? '' : 's'} successfully completed, ${hits.length} valid password${hits.length === 1 ? '' : 's'} found` });
+      return out;
+    }
+
+    if (userIdx < 0 || listIdx < 0) {
+      return [{ kind: 'error', text: 'usage: hydra -l <user> -P <wordlist> ssh://<ip>  (or -L <userlist> -p <password> for spraying)' }];
     }
     const user = args[userIdx + 1];
     const wordlistPath = args[listIdx + 1];
-    const ip = target.replace('ssh://', '');
-    const host = this.findHostByIp(ip);
     const resolved = this.resolveInSession(wordlistPath);
     const node = getNode(this.fsRoot(), resolved);
     if (!node || node.type !== 'file') {
       return [{ kind: 'error', text: `hydra: cannot read wordlist '${wordlistPath}'` }];
     }
-    if (!host) return [{ kind: 'error', text: `hydra: target ${ip} unreachable` }];
     const words = node.content.split('\n').map((w) => w.trim()).filter(Boolean);
     const account = host.users.find((u) => u.username === user);
     const out: OutLine[] = [
@@ -914,9 +949,17 @@ export class TerminalEngine {
     }
     const cmdline = args.join(' ');
     const baseBin = args[0];
+    // sudoers rules are written as absolute paths, but a real shell resolves a bare command
+    // name (e.g. "sudo find ...") to that exact same binary via $PATH — matching only the
+    // literal path string would silently reject the idiomatic, GTFOBins-documented form of
+    // every one of these commands.
     const allowed =
       account?.sudo?.nopasswdAll ||
-      (account?.sudo?.nopasswdCommands ?? []).some((c) => c === baseBin || cmdline.startsWith(c));
+      (account?.sudo?.nopasswdCommands ?? []).some((c) => {
+        if (c === baseBin || cmdline.startsWith(c)) return true;
+        const baseName = c.split('/').pop();
+        return baseName !== undefined && baseName !== '' && (baseBin === baseName || cmdline.startsWith(`${baseName} `) || cmdline === baseName);
+      });
     if (!allowed) {
       return [{ kind: 'error', text: `Sorry, user ${s.user} is not allowed to execute '${cmdline}' as root on ${host.hostname}.` }];
     }

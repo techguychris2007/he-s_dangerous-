@@ -4,7 +4,7 @@ export interface HttpRoutes {
   [path: string]: string;
 }
 
-export type VulnKind = 'sqli' | 'idor' | 'ssrf' | 'xss' | 'auth-bypass';
+export type VulnKind = 'sqli' | 'idor' | 'ssrf' | 'xss' | 'auth-bypass' | 'xxe' | 'ssti' | 'mass-assignment' | 'race-condition';
 
 export interface VulnRoute {
   kind: VulnKind;
