@@ -168,10 +168,10 @@ export const adAdvancedLabs: LabScenario[] = [
       { text: 'Capture the flag on the domain controller', why: 'This is the exact blast radius problem organizations now defend against with tiered administration and credential-guard style protections — a single flat, reused-credential network is what made 2017\'s outbreak so catastrophic.' },
     ],
     hints: [
-      'ssh jsmith@10.10.107.5 with password Summer2024 (the phished account).',
+      'ssh jsmith@10.10.107.5 with password Summer2024 (the phished account), then cat user.txt for the first flag.',
       'cat cached-admin-note.txt once logged in — it reveals a local admin password reused across the fleet.',
       'crackmapexec smb 10.10.107.6 -u administrator -p <the-reused-password>, then ssh administrator@10.10.107.6.',
-      'On WKSTN-205, cat domain-admin-session.txt for a cached domain admin credential, then crackmapexec/ssh to 10.10.107.7.',
+      'On WKSTN-205, cat domain-admin-session.txt for a cached domain admin credential, then crackmapexec/ssh to 10.10.107.7, then cat root.txt for the second flag.',
     ],
     totalFlags: 2,
     attacker: attacker(),

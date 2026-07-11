@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
+import Companion from '../companion/Companion';
 
 export default function AppLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[var(--color-bg)]">
+      <Companion />
       <div
         className={`fixed lg:static inset-y-0 left-0 z-30 transition-transform lg:translate-x-0 ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'

@@ -28,6 +28,7 @@ import { currentThreatsLabs } from '../labs/scenarios/current-threats-pack';
 import { modernAttackChainsLabs } from '../labs/scenarios/modern-attack-chains-pack';
 import { redteamToolsLabs } from '../labs/scenarios/redteam-tools-pack';
 import { databaseIntrusionLabs } from '../labs/scenarios/database-intrusion-pack';
+import { offensiveExpansionLabs } from '../labs/scenarios/offensive-expansion-pack';
 import type { LabScenario } from '../labs/types';
 
 export interface LabEntry {
@@ -67,17 +68,19 @@ export const LABS: LabEntry[] = [
   ...toEntries(modernAttackChainsLabs),
   ...toEntries(redteamToolsLabs),
   ...toEntries(databaseIntrusionLabs),
+  ...toEntries(offensiveExpansionLabs),
 ];
 
+/** Ordered to match the roadmap's actual teaching sequence (see curriculum.ts's MODULES order). */
 export const LAB_CATEGORIES = [
   'Linux',
   'Network',
   'Web',
   'Active Directory',
   'Bug Bounty',
-  'Cloud',
   'SOC',
   'Forensics',
+  'Cloud',
   'Security+',
   'Binary Analysis',
   'Malware',
@@ -103,6 +106,21 @@ export const MODULE_TO_LAB_CATEGORY: Record<string, (typeof LAB_CATEGORIES)[numb
 export function findLab(slug?: string): LabEntry | undefined {
   return LABS.find((l) => l.slug === slug);
 }
+
+const CATEGORY_ORDER: Record<string, number> = Object.fromEntries(LAB_CATEGORIES.map((c, i) => [c, i]));
+const DIFFICULTY_ORDER: Record<string, number> = { Easy: 0, Medium: 1, Hard: 2 };
+
+/** Stable-sorts labs into the same sequence the roadmap teaches them: category by module order, then Easy → Hard within it. */
+export function sortLabsByRoadmap(labs: LabEntry[]): LabEntry[] {
+  return [...labs].sort((a, b) => {
+    const catDiff = (CATEGORY_ORDER[a.scenario.category] ?? 99) - (CATEGORY_ORDER[b.scenario.category] ?? 99);
+    if (catDiff !== 0) return catDiff;
+    return (DIFFICULTY_ORDER[a.scenario.difficulty] ?? 9) - (DIFFICULTY_ORDER[b.scenario.difficulty] ?? 9);
+  });
+}
+
+/** The full lab list in roadmap order — the spine the mentor companion walks the learner along. */
+export const LABS_IN_ROADMAP_ORDER: LabEntry[] = sortLabsByRoadmap(LABS);
 
 export function labsForCategory(category: string): LabEntry[] {
   return LABS.filter((l) => l.scenario.category === category);

@@ -6,10 +6,19 @@ interface ProgressState {
   quizScores: Record<string, number>;
   learnerName: string | null;
   bookmarkedLabs: Record<string, boolean>;
+  /** epoch ms the moment each lab's flag count first reached its totalFlags — powers the mentor companion's pacing/speed flavor. */
+  labCompletedAt: Record<string, number>;
 }
 
 const STORAGE_KEY = 'hackerhub.progress.v1';
-const EMPTY_STATE: ProgressState = { completedLessons: {}, labFlags: {}, quizScores: {}, learnerName: null, bookmarkedLabs: {} };
+const EMPTY_STATE: ProgressState = {
+  completedLessons: {},
+  labFlags: {},
+  quizScores: {},
+  learnerName: null,
+  bookmarkedLabs: {},
+  labCompletedAt: {},
+};
 
 function loadState(): ProgressState {
   try {
@@ -34,6 +43,7 @@ interface ProgressApi extends ProgressState {
   logout: () => void;
   toggleBookmark: (labId: string) => void;
   isBookmarked: (labId: string) => boolean;
+  markLabCompleted: (labId: string) => void;
 }
 
 export const ProgressContext = createContext<ProgressApi | null>(null);
@@ -103,6 +113,13 @@ export function useProgressState(): ProgressApi {
 
   const isBookmarked = useCallback((labId: string) => Boolean(state.bookmarkedLabs[labId]), [state.bookmarkedLabs]);
 
+  const markLabCompleted = useCallback((labId: string) => {
+    setState((s) => {
+      if (s.labCompletedAt[labId]) return s;
+      return { ...s, labCompletedAt: { ...s.labCompletedAt, [labId]: Date.now() } };
+    });
+  }, []);
+
   return useMemo(
     () => ({
       ...state,
@@ -118,8 +135,24 @@ export function useProgressState(): ProgressApi {
       logout,
       toggleBookmark,
       isBookmarked,
+      markLabCompleted,
     }),
-    [state, completeLesson, isLessonComplete, captureFlag, hasFlag, flagCount, recordQuizScore, resetAll, resetModuleProgress, login, logout, toggleBookmark, isBookmarked],
+    [
+      state,
+      completeLesson,
+      isLessonComplete,
+      captureFlag,
+      hasFlag,
+      flagCount,
+      recordQuizScore,
+      resetAll,
+      resetModuleProgress,
+      login,
+      logout,
+      toggleBookmark,
+      isBookmarked,
+      markLabCompleted,
+    ],
   );
 }
 

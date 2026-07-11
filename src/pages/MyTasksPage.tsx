@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { LABS } from '../data/labs';
+import { LABS, LABS_IN_ROADMAP_ORDER } from '../data/labs';
 import { useProgress } from '../state/progressStore';
 import LabCard from '../components/labs/LabCard';
 
@@ -16,7 +16,8 @@ export default function MyTasksPage() {
     return 'not-started';
   };
 
-  const filtered = filter === 'all' ? LABS : LABS.filter((l) => statusOf(l.scenario.id, l.scenario.totalFlags) === filter);
+  const filtered =
+    filter === 'all' ? LABS_IN_ROADMAP_ORDER : LABS_IN_ROADMAP_ORDER.filter((l) => statusOf(l.scenario.id, l.scenario.totalFlags) === filter);
 
   const counts = {
     all: LABS.length,

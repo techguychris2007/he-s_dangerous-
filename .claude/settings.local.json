@@ -7,7 +7,10 @@
       "Read(//tmp/**)",
       "Bash(node \"C:/Users/chrisB/AppData/Local/Temp/claude/c--Users-chrisB-OneDrive---University-of-Ghana-Desktop-hackerhub/7fca606c-29c9-48e0-8750-92fababc2105/scratchpad/analyze_multiflag.js\")",
       "Bash(node \"C:/Users/chrisB/AppData/Local/Temp/claude/c--Users-chrisB-OneDrive---University-of-Ghana-Desktop-hackerhub/7fca606c-29c9-48e0-8750-92fababc2105/scratchpad/verify_privesc_stuck.js\")",
-      "Bash(node \"C:/Users/chrisB/AppData/Local/Temp/claude/c--Users-chrisB-OneDrive---University-of-Ghana-Desktop-hackerhub/7fca606c-29c9-48e0-8750-92fababc2105/scratchpad/verify_bare_all.js\")"
+      "Bash(node \"C:/Users/chrisB/AppData/Local/Temp/claude/c--Users-chrisB-OneDrive---University-of-Ghana-Desktop-hackerhub/7fca606c-29c9-48e0-8750-92fababc2105/scratchpad/verify_bare_all.js\")",
+      "Bash(node \"C:/Users/chrisB/AppData/Local/Temp/claude/c--Users-chrisB-OneDrive---University-of-Ghana-Desktop-hackerhub/7fca606c-29c9-48e0-8750-92fababc2105/scratchpad/verify_expansion_pack.js\")",
+      "Bash(node \"C:/Users/chrisB/AppData/Local/Temp/claude/c--Users-chrisB-OneDrive---University-of-Ghana-Desktop-hackerhub/7fca606c-29c9-48e0-8750-92fababc2105/scratchpad/verify_3_fixes.js\")",
+      "Bash(npm run *)"
     ]
   }
 }

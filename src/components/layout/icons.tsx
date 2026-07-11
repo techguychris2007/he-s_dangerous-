@@ -308,6 +308,80 @@ export function IconExternal({ className }: IconProps) {
   );
 }
 
+export function IconDatabase({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
+      <ellipse cx="12" cy="5.5" rx="7" ry="2.5" />
+      <path d="M5 5.5V12c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5V5.5M5 12v6.5c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5V12" />
+    </svg>
+  );
+}
+
+export function IconWifi({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
+      <path d="M3 8.5a13 13 0 0 1 18 0" />
+      <path d="M6.2 12a8.5 8.5 0 0 1 11.6 0" />
+      <path d="M9.4 15.5a4 4 0 0 1 5.2 0" />
+      <circle cx="12" cy="19" r="1.2" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+export function IconKey({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
+      <circle cx="8" cy="15" r="4" />
+      <path d="M11 12l9-9M17 6l2.5 2.5M14 9l2 2" />
+    </svg>
+  );
+}
+
+export function IconSkull({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
+      <path d="M12 3a7 7 0 0 0-7 7v3.5c0 1 .5 1.7 1.3 2.2L7 17v2a1 1 0 0 0 1 1h1.5v-2h1v2h3v-2h1v2H16a1 1 0 0 0 1-1v-2l.7-1.3c.8-.5 1.3-1.2 1.3-2.2V10a7 7 0 0 0-7-7z" />
+      <circle cx="9.3" cy="12" r="1.4" fill="currentColor" stroke="none" />
+      <circle cx="14.7" cy="12" r="1.4" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+export function IconMail({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="M3 6.5l9 6.5 9-6.5" />
+    </svg>
+  );
+}
+
+export function IconCrown({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
+      <path d="M4 18h16M4.5 18l-1.3-9 5 3.2L12 6l3.8 6.2 5-3.2-1.3 9" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function IconLightning({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
+      <path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function IconCrosshair({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
+      <circle cx="12" cy="12" r="8" />
+      <circle cx="12" cy="12" r="2.2" />
+      <path d="M12 2v3.5M12 18.5V22M2 12h3.5M18.5 12H22" />
+    </svg>
+  );
+}
+
 const ICONS: Record<string, (p: IconProps) => ReactElement> = {
   network: IconNetwork,
   terminal: IconTerminal,
@@ -324,6 +398,14 @@ const ICONS: Record<string, (p: IconProps) => ReactElement> = {
   bug: IconBug,
   engineering: IconGear,
   lock: IconLock,
+  database: IconDatabase,
+  wifi: IconWifi,
+  key: IconKey,
+  skull: IconSkull,
+  mail: IconMail,
+  crown: IconCrown,
+  lightning: IconLightning,
+  crosshair: IconCrosshair,
 };
 
 export function ModuleIcon({ icon, className }: { icon: string; className?: string }) {

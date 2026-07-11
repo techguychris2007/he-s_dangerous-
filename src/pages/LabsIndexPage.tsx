@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { LABS, LAB_CATEGORIES } from '../data/labs';
+import { LABS, LAB_CATEGORIES, LABS_IN_ROADMAP_ORDER } from '../data/labs';
 import { useProgress } from '../state/progressStore';
 import LabCard from '../components/labs/LabCard';
 
@@ -7,7 +7,7 @@ export default function LabsIndexPage() {
   const progress = useProgress();
   const [filter, setFilter] = useState<string>('All');
 
-  const filtered = filter === 'All' ? LABS : LABS.filter((l) => l.scenario.category === filter);
+  const filtered = filter === 'All' ? LABS_IN_ROADMAP_ORDER : LABS_IN_ROADMAP_ORDER.filter((l) => l.scenario.category === filter);
   const totalDone = LABS.filter((l) => progress.flagCount(l.scenario.id) >= l.scenario.totalFlags).length;
 
   return (

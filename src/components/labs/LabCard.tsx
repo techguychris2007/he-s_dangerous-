@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
 import type { LabEntry } from '../../data/labs';
 import { useProgress } from '../../state/progressStore';
-import { IconBookmark, IconCertificate, IconCheck } from '../layout/icons';
+import { IconBookmark, IconCertificate, IconCheck, ModuleIcon } from '../layout/icons';
 import ModuleBanner from '../layout/ModuleBanner';
+import { getLabIconKey } from '../../data/labIcon';
 
 const DIFFICULTY_CLASS: Record<string, string> = {
   Easy: 'bg-[var(--color-success)]/20 text-[var(--color-success)] border border-[var(--color-success)]/30',
@@ -36,6 +37,7 @@ export default function LabCard({ lab, variant = 'catalog' }: { lab: LabEntry; v
   const points = POINTS[lab.scenario.difficulty] ?? 10;
   const bookmarked = progress.isBookmarked(lab.scenario.id);
   const labUrl = `/lab/${lab.slug}`;
+  const techIcon = getLabIconKey(lab);
 
   const ctaLabel =
     variant === 'task' ? (done ? 'Review task' : captured > 0 ? 'Continue task' : 'Start task') : 'Launch lab';
@@ -46,6 +48,12 @@ export default function LabCard({ lab, variant = 'catalog' }: { lab: LabEntry; v
         <Link to={labUrl}>
           <ModuleBanner icon="flag" moduleId={CATEGORY_BANNER[lab.scenario.category] ?? 'linux'} className="h-28 w-full" />
         </Link>
+        <span
+          title={`${lab.scenario.category} technique`}
+          className="absolute bottom-2 left-2 w-8 h-8 rounded-lg bg-black/45 backdrop-blur-sm flex items-center justify-center text-white"
+        >
+          <ModuleIcon icon={techIcon} className="w-4 h-4" />
+        </span>
         <button
           onClick={(e) => {
             e.preventDefault();
