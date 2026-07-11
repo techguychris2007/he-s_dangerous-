@@ -39,7 +39,7 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-3xl mx-auto px-8 py-14">
-      <div className="text-[var(--color-accent)] font-mono text-sm mb-2">// your progress</div>
+      <div className="gold-eyebrow mb-2">// your progress</div>
       <h1 className="text-3xl font-bold text-[var(--color-heading)] mb-8">Profile</h1>
 
       <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 flex items-center gap-4 mb-8">

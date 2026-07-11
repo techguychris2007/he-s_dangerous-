@@ -107,7 +107,7 @@ export default function LoginPage() {
               color: 'transparent',
             }}
           >
-            HACKERHUB
+            DARKWORLD
           </h1>
           <p className="font-serif text-[13px] tracking-[0.2em] uppercase text-[#8fa7c4] mt-1">
             Cybersecurity Learning &middot; Login System

@@ -19,6 +19,8 @@ interface PrivescConfig {
   gtfobinsArgs: string;
   /** the real, technique-specific reason this GTFOBins entry works — used for both the briefing and the escalation objective's "why" */
   gtfobinsWhy: string;
+  /** a plain-language, token-by-token breakdown of exactly what gtfobinsArgs does — surfaced as its own hint so the escalation command is never just "copy this," it's fully explained. */
+  breakdown: string;
   userFlag: string;
   rootFlag: string;
 }
@@ -145,6 +147,7 @@ function makePrivescLab(cfg: PrivescConfig): LabScenario {
       `ssh ${cfg.user}@${cfg.ip} with the recovered password, then cat user.txt.`,
       discoveryHint,
       privescHint,
+      `What that command actually does, piece by piece: ${cfg.breakdown}`,
       'Once root, check /root/root.txt.',
     ],
     totalFlags: 2,
@@ -174,6 +177,12 @@ export const linuxPrivescLabs: LabScenario[] = [
     binaryName: 'find',
     gtfobinsArgs: '. -exec /bin/sh \\; -quit',
     gtfobinsWhy: "find's -exec action runs an arbitrary command with the privileges of the process running find itself — so a NOPASSWD sudo rule on find hands over a root-privileged shell in one step.",
+    breakdown:
+      "'.' tells find to search starting in the current directory. '-exec /bin/sh' means \"for every match, run /bin/sh\". " +
+      "The backslash in '\\;' is required so YOUR shell passes a literal semicolon to find instead of treating it as the end " +
+      "of your own command line — find needs that semicolon to know where the -exec clause ends. '-quit' tells find to stop " +
+      "searching the instant it gets a match, which is what actually drops you into the spawned shell right away instead of " +
+      "waiting for the whole filesystem walk to finish.",
     userFlag: 'flag{ftp_leaked_the_deploy_creds_find}',
     rootFlag: 'flag{sudo_find_exec_equals_root}',
   }),
@@ -193,6 +202,11 @@ export const linuxPrivescLabs: LabScenario[] = [
     binaryName: 'less',
     gtfobinsArgs: '/etc/hostname',
     gtfobinsWhy: "less (and most pagers) supports a '!<command>' shell-escape at its prompt, inheriting the privileges of whatever process launched it — including a root-owned sudo session.",
+    breakdown:
+      "'/etc/hostname' is just a real, harmless file handed to less so it has something to open — the file's content doesn't " +
+      "matter at all, it only exists to get the pager running. The actual escalation happens interactively once you're " +
+      "inside: typing '!/bin/sh' at less's ':' prompt tells it to run a shell without ever closing the pager, and that " +
+      "shell inherits whatever privileges the pager itself is running with — root, since sudo launched it.",
     userFlag: 'flag{web_leak_found_the_writer_account}',
     rootFlag: 'flag{sudo_less_shell_escape_equals_root}',
   }),
@@ -212,6 +226,11 @@ export const linuxPrivescLabs: LabScenario[] = [
     binaryName: 'awk',
     gtfobinsArgs: `'BEGIN {system("/bin/sh")}'`,
     gtfobinsWhy: "awk's system() function shells out to /bin/sh with awk's own effective privileges, so a NOPASSWD sudo rule on awk can be told to spawn a root shell directly.",
+    breakdown:
+      "'BEGIN { ... }' is an awk block that runs exactly once, before awk even starts reading any input — perfect here since " +
+      "we don't actually want it to process a file, just to run our one command. 'system(\"/bin/sh\")' is awk's built-in " +
+      "function for handing a string straight to the operating system's shell to execute, exactly like calling it from a C " +
+      "program — and since awk itself is running as root (via the sudo rule), the shell it launches is root too.",
     userFlag: 'flag{ftp_notes_gave_up_analyst_password}',
     rootFlag: 'flag{sudo_awk_system_call_equals_root}',
   }),
@@ -231,6 +250,11 @@ export const linuxPrivescLabs: LabScenario[] = [
     binaryName: 'python3',
     gtfobinsArgs: `-c 'import os; os.system("/bin/sh")'`,
     gtfobinsWhy: "Python's os.system()/os.execve() calls hand execution off to an arbitrary command under the interpreter's own privileges — root, here, thanks to the sudo rule.",
+    breakdown:
+      "'-c' tells python3 to run the string that follows as a program directly, instead of looking for a .py file. " +
+      "'import os' loads Python's os module, which wraps low-level operating-system calls. 'os.system(\"/bin/sh\")' hands " +
+      "that exact string to the shell to execute — since sudo is running python3 as root, the shell os.system() launches " +
+      "is a root shell too.",
     userFlag: 'flag{robots_txt_revealed_the_ops_account}',
     rootFlag: 'flag{sudo_python3_os_system_equals_root}',
   }),
@@ -250,6 +274,11 @@ export const linuxPrivescLabs: LabScenario[] = [
     binaryName: 'nmap',
     gtfobinsArgs: '--interactive',
     gtfobinsWhy: "Older Nmap builds ship an --interactive mode with a '!' shell-escape meant for scripting scans between targets, but it will run any command with Nmap's own privileges — root, under this sudo rule.",
+    breakdown:
+      "'--interactive' drops Nmap into its own scripting shell (nmap>), a feature meant for chaining multiple scans " +
+      "together without restarting the program each time. Once inside, typing '!sh' runs a shell without leaving that " +
+      "interactive prompt — a convenience feature for scripting that, under a NOPASSWD sudo rule, becomes a full root " +
+      "shell escape.",
     userFlag: 'flag{ftp_anon_leaked_netadmin_creds}',
     rootFlag: 'flag{sudo_nmap_interactive_equals_root}',
   }),
@@ -269,6 +298,10 @@ export const linuxPrivescLabs: LabScenario[] = [
     binaryName: 'man',
     gtfobinsArgs: 'man',
     gtfobinsWhy: "man pipes its output through a pager, and that pager's '!<command>' shell escape inherits man's own privileges — root, under this sudo rule.",
+    breakdown:
+      "Running 'man man' just opens man's own manual page about itself — a real page, chosen simply because it's always " +
+      "guaranteed to exist. Like less/more, man pipes its output through a pager, so once that pager is open, typing " +
+      "'!/bin/sh' at its prompt runs a shell that inherits man's own privileges — root, under the sudo rule.",
     userFlag: 'flag{editor_account_found_via_robots}',
     rootFlag: 'flag{sudo_man_shell_escape_equals_root}',
   }),
@@ -288,6 +321,10 @@ export const linuxPrivescLabs: LabScenario[] = [
     binaryName: 'more',
     gtfobinsArgs: '/etc/hostname',
     gtfobinsWhy: "more is a pager just like less, and shares the same '!<command>' shell-escape behavior that inherits the privileges of whatever launched it.",
+    breakdown:
+      "'/etc/hostname' is a real file passed to more purely so it has content to display and opens its pager view — its " +
+      "contents are irrelevant. Once more is open, typing '!/bin/sh' runs a shell without exiting the pager, inheriting " +
+      "more's own privileges — root, since sudo launched it.",
     userFlag: 'flag{ftp_notes_txt_had_clerk_password}',
     rootFlag: 'flag{sudo_more_shell_escape_equals_root}',
   }),
@@ -307,6 +344,12 @@ export const linuxPrivescLabs: LabScenario[] = [
     binaryName: 'tar',
     gtfobinsArgs: '-cf /dev/null /dev/null --checkpoint=1 --checkpoint-action=exec=/bin/sh',
     gtfobinsWhy: "tar's --checkpoint-action=exec hook exists for backup-progress scripting, but it will run absolutely any command with tar's own privileges — root, via this sudo rule.",
+    breakdown:
+      "'-c' creates a new archive, 'f /dev/null' writes it to /dev/null (a throwaway destination we don't actually care " +
+      "about), and the second '/dev/null' is the (empty, always-present) input being archived — the whole archive part is " +
+      "just an excuse to get tar running. '--checkpoint=1' tells tar to report progress after every single record. " +
+      "'--checkpoint-action=exec=/bin/sh' replaces that normal progress message with running /bin/sh instead — and since " +
+      "tar itself is running as root via the sudo rule, that spawned shell is root too.",
     userFlag: 'flag{backupsvc_account_found_via_web}',
     rootFlag: 'flag{sudo_tar_checkpoint_exec_equals_root}',
   }),
@@ -326,6 +369,11 @@ export const linuxPrivescLabs: LabScenario[] = [
     binaryName: 'perl',
     gtfobinsArgs: `-e 'exec "/bin/sh";'`,
     gtfobinsWhy: "perl -e can call exec() directly, replacing the perl process image with an arbitrary command that inherits perl's own privileges — root, under this sudo rule.",
+    breakdown:
+      "'-e' tells perl to run the following string as a program instead of looking for a script file. 'exec \"/bin/sh\"' " +
+      "calls Perl's exec(), which doesn't launch a child process — it replaces the currently-running perl process image " +
+      "entirely with /bin/sh, in place, inheriting whatever privileges perl itself was running with — root, from the " +
+      "sudo rule.",
     userFlag: 'flag{ftp_config_leaked_legacyuser_creds}',
     rootFlag: 'flag{sudo_perl_exec_equals_root}',
   }),
@@ -345,6 +393,12 @@ export const linuxPrivescLabs: LabScenario[] = [
     binaryName: 'node',
     gtfobinsArgs: `-e 'require("child_process").spawn("/bin/sh", {stdio: [0, 1, 2]})'`,
     gtfobinsWhy: "Node's child_process module can spawn an arbitrary process wired straight to the current terminal, inheriting node's own privileges — root, under this sudo rule.",
+    breakdown:
+      "'-e' tells node to run the following string as inline JavaScript instead of loading a .js file. " +
+      "'require(\"child_process\")' loads Node's built-in module for launching OS-level processes. '.spawn(\"/bin/sh\", " +
+      "{stdio: [0, 1, 2]})' launches /bin/sh and wires its input/output/error streams (file descriptors 0, 1, 2) directly " +
+      "to your own terminal, so it behaves like a normal interactive shell rather than a silent background process — " +
+      "running with node's own privileges, root, from the sudo rule.",
     userFlag: 'flag{devops_creds_found_via_robots_txt}',
     rootFlag: 'flag{sudo_node_child_process_equals_root}',
   }),
@@ -364,6 +418,11 @@ export const linuxPrivescLabs: LabScenario[] = [
     binaryName: 'git',
     gtfobinsArgs: 'help config',
     gtfobinsWhy: "git shells out to a configurable pager for commands like 'git help config', and that pager's '!<command>' shell escape inherits git's own privileges — root, under this sudo rule.",
+    breakdown:
+      "'help config' asks git to show the manual page for 'git config' — a real, always-available subcommand chosen " +
+      "specifically because displaying help text is what triggers git to open its configured pager. Once that pager is " +
+      "open, the same '!/bin/sh' shell escape used by less/more/man applies, inheriting git's own privileges — root, " +
+      "under the sudo rule.",
     userFlag: 'flag{ftp_mirror_backup_leaked_gituser}',
     rootFlag: 'flag{sudo_git_pager_escape_equals_root}',
   }),
@@ -383,6 +442,12 @@ export const linuxPrivescLabs: LabScenario[] = [
     binaryName: 'find',
     gtfobinsArgs: '. -exec /bin/sh -p \\; -quit',
     gtfobinsWhy: "A SUID-root find binary runs its -exec target with root's effective UID rather than the invoking user's — the -p flag on the spawned shell keeps that elevated privilege instead of dropping it.",
+    breakdown:
+      "Same as the sudo-find lab ('.' = search here, '-exec /bin/sh' = run a shell on each match, the escaped '\\;' closes " +
+      "the -exec clause, '-quit' stops after the first hit) — with one critical addition: '-p' on the spawned shell. " +
+      "Normal bash checks whether its effective UID (root, granted by find's SUID bit) matches its real UID (you) and, if " +
+      "not, voluntarily drops the extra privilege as a safety feature. '-p' (privileged mode) tells it not to do that, so " +
+      "the shell keeps root instead of silently downgrading to your own user the moment it starts.",
     userFlag: 'flag{filesvc_creds_leaked_via_web_enum}',
     rootFlag: 'flag{suid_find_direct_exec_equals_root}',
   }),
@@ -402,6 +467,10 @@ export const linuxPrivescLabs: LabScenario[] = [
     binaryName: 'nmap',
     gtfobinsArgs: '--interactive',
     gtfobinsWhy: "A SUID-root Nmap binary's --interactive shell-escape runs with root's effective UID, since the SUID bit — not sudo — is what grants the elevated privilege here.",
+    breakdown:
+      "Identical mechanism to the sudo-nmap lab — '--interactive' opens Nmap's own scripting shell, and '!sh' inside it " +
+      "runs a shell — but note there's no sudo involved at all here. You run 'nmap' as yourself; the SUID bit set " +
+      "directly on the binary is what makes it execute with root's effective UID regardless of who launched it.",
     userFlag: 'flag{ftp_config_backup_leaked_scanner_creds}',
     rootFlag: 'flag{suid_nmap_direct_exec_equals_root}',
   }),
@@ -421,6 +490,11 @@ export const linuxPrivescLabs: LabScenario[] = [
     binaryName: 'bash',
     gtfobinsArgs: '-p',
     gtfobinsWhy: "bash -p (privileged mode) refuses to drop the effective UID granted by a SUID bit, so a SUID-root bash keeps root privileges in the resulting shell instead of silently downgrading to the invoking user.",
+    breakdown:
+      "'-p' is bash's own privileged-mode flag. Without it, bash notices its effective UID (root, from the SUID bit set " +
+      "directly on this binary) doesn't match its real UID (you) and automatically drops the extra privilege as a " +
+      "built-in safety measure — completely defeating the SUID bit for exactly this reason. '-p' disables that automatic " +
+      "drop, so the shell you land in keeps root instead of quietly becoming an ordinary user shell.",
     userFlag: 'flag{hostops_password_found_via_robots}',
     rootFlag: 'flag{suid_bash_dash_p_equals_root}',
   }),
@@ -439,7 +513,16 @@ export const linuxPrivescLabs: LabScenario[] = [
     binary: '/bin/cp',
     binaryName: 'cp',
     gtfobinsArgs: '/bin/bash /tmp/rootbash && /tmp/rootbash -p',
-    gtfobinsWhy: "A SUID-root cp can overwrite (or copy itself over) /bin/bash into a new file that inherits the SUID bit; running that copy with -p then keeps root, exactly like the direct suid-bash technique.",
+    gtfobinsWhy: "A SUID-root cp process itself runs as root the instant it executes — this lab models that root-level write access directly rather than the copy's file permissions.",
+    breakdown:
+      "'cp /bin/bash /tmp/rootbash' — cp's two arguments are source and destination, so this copies the real bash binary " +
+      "to a new path. The important detail (worth knowing precisely, because it's easy to get wrong): copying a file does " +
+      "NOT carry its SUID bit over to the new copy — what actually matters is that cp ITSELF is running as root the " +
+      "instant it executes, because of its own SUID bit. In a real engagement, that root-level write access is exactly " +
+      "what the classic SUID-cp technique abuses directly — for example overwriting /etc/passwd with a crafted entry for " +
+      "a new UID-0 user — rather than expecting the copied file to somehow inherit root on its own. '&& /tmp/rootbash -p' " +
+      "then runs the copy in privileged mode, the same '-p' flag from the direct SUID-bash lab, to keep whatever elevated " +
+      "state the copy started with instead of dropping it.",
     userFlag: 'flag{ftp_deploy_notes_leaked_storageadm}',
     rootFlag: 'flag{suid_cp_overwrite_shell_equals_root}',
   }),

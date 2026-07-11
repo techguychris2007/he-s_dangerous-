@@ -108,6 +108,47 @@ AI-orchestrated campaign (2026):             a few HOURS end to end`}</CodeBlock
         </p>
       </Callout>
 
+      <h2>Automated social engineering: personalization at machine scale</h2>
+      <p>
+        Social engineering used to scale badly for attackers — writing a genuinely convincing, individually
+        researched pretext for each target took real human time, which naturally capped how many people any
+        one campaign could realistically target well. That constraint has largely disappeared. Threat-intel
+        vendors (Proofpoint and Mandiant among them) have documented a clear shift since roughly 2023 toward
+        fully automated spear-phishing pipelines: a scraper harvests employee names, titles, and reporting
+        lines straight from LinkedIn and a company's own public "About Us" page in seconds, a template engine
+        mail-merges that scraped data into a pretext email referencing the target's actual manager and
+        actual recent hire date, and a cloned login page harvests whatever credentials the personalized
+        pretext convinces someone to type in. None of it requires a human to research any individual victim.
+      </p>
+      <CodeBlock label="what a hunter looks for in the artifacts left behind">{`cat osint-scrape-log.txt              # confirms automated harvesting, not manual research
+cat generated-phishing-template.txt   # mail-merge fields (##MANAGER_NAME##, ##HIRE_DATE##) prove automation
+cat credential-harvest-log.txt        # the actual impact — which accounts need an immediate forced reset`}</CodeBlock>
+
+      <h2>Deepfake voice fraud: when the "human verification" step is the attack</h2>
+      <p>
+        Voice has long been treated as a reliable out-of-band verification channel — "call to confirm" was
+        standard advice specifically because impersonating a real, familiar voice used to be hard. AI
+        voice-cloning has removed that assumption. In a real, publicly reported March 2019 case (Wall Street
+        Journal), criminals used voice-cloning software to impersonate a UK energy firm's CEO over the phone
+        and convinced a subordinate to wire approximately $243,000 to a fraudulent account — one of the
+        first publicly documented "deepfake audio" fraud cases, with several comparable real incidents since
+        (including a 2020 case involving roughly $35 million, reported by Forbes). The technical tell in both
+        was not something a listener caught in the moment — it was logged metadata: unusual call routing and
+        voice-authentication systems flagging unnaturally consistent pitch and micro-timing across the call,
+        both visible only in hindsight during the post-incident review.
+      </p>
+      <Callout variant="incident">
+        <p>
+          <strong>The control that actually would have stopped it:</strong> in the 2019 case, the wire was
+          approved by a single approver who granted an out-of-process exception specifically because the
+          request was marked urgent and claimed to come directly from the CEO. Voice authenticity was never
+          the real point of failure — bypassing the standard dual-approval control because of urgency and
+          seniority was. This is why modern anti-fraud guidance for high-value wire transfers focuses on
+          making the approval process itself resistant to "urgent, high-authority, out-of-band" pressure,
+          rather than trying to train staff to detect increasingly convincing synthetic audio by ear.
+        </p>
+      </Callout>
+
       <p>
         The labs in this module put you in the analyst's chair for exactly this kind of work: a raw log,
         a vague alert, and the job of finding — and proving — what actually happened.

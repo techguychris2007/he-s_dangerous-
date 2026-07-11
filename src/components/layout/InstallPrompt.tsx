@@ -66,7 +66,7 @@ export default function InstallPrompt() {
       <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-lg p-4 flex items-start gap-3">
         <Logo className="w-10 h-10 shrink-0" />
         <div className="min-w-0 flex-1">
-          <div className="font-bold text-[var(--color-heading)] text-sm mb-0.5">Install HackerHub</div>
+          <div className="font-bold text-[var(--color-heading)] text-sm mb-0.5">Install DarkWorld</div>
           <p className="text-xs text-[var(--color-text-dim)] leading-relaxed mb-3">
             Add it to your device for a full-screen, app-like experience with faster loads — your progress
             stays exactly where it is, since it already lives in this browser.

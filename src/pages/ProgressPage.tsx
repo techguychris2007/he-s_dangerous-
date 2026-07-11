@@ -24,7 +24,7 @@ export default function ProgressPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-8 py-14">
-      <div className="text-[var(--color-accent)] font-mono text-sm mb-2">// your progress</div>
+      <div className="gold-eyebrow mb-2">// your progress</div>
       <h1 className="text-3xl font-extrabold text-[var(--color-heading)] mb-8">Progress</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">

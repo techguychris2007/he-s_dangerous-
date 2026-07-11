@@ -31,7 +31,7 @@ function usePageTitle(): string {
   }
   if (parts[0] === 'module') return findModule(parts[1])?.title ?? 'Module';
   if (PAGE_TITLES[parts[0]]) return PAGE_TITLES[parts[0]];
-  return 'HackerHub';
+  return 'DarkWorld';
 }
 
 interface Notification {

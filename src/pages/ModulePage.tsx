@@ -22,7 +22,7 @@ export default function ModulePage() {
           <ModuleIcon icon={mod.icon} className="w-5 h-5" />
         </span>
         <div>
-          <h1 className="text-2xl font-extrabold text-[var(--color-heading)]">{mod.title}</h1>
+          <h1 className="text-3xl font-extrabold text-[var(--color-heading)]">{mod.title}</h1>
           <p className="text-sm text-[var(--color-text-dim)]">
             {mod.subtitle} &middot; <span className="text-[var(--color-accent)] font-semibold">{weeks} week{weeks > 1 ? 's' : ''}</span>
           </p>

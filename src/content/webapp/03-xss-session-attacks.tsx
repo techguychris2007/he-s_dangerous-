@@ -80,20 +80,88 @@ SameSite    -> controls whether it's sent on cross-site requests (mitigates CSRF
         actually work — always check for its presence when testing session handling.
       </p>
 
-      <h2>CSRF: the session's other classic attack</h2>
+      <h2>Session hijacking: what "stealing a cookie" actually gets you</h2>
       <p>
-        Cross-Site Request Forgery tricks a logged-in victim's browser into submitting a request they never
-        intended — e.g. a hidden auto-submitting form on an attacker's page that changes the victim's email
-        address, riding on their already-authenticated session cookie. The standard defense is a CSRF token
-        — a random value the server requires on state-changing requests that an attacker's page cannot
-        predict or read cross-origin.
+        A web session is, at its core, a single unpredictable string the server trusts to mean "this request
+        came from the person who already logged in." Whoever presents that exact string — regardless of how
+        they got it — <em>is</em> that user as far as the server is concerned. That is the entire mechanism
+        behind session hijacking, and it is why it is so devastating: there is no password to guess, no MFA
+        prompt to bypass, and no login event of the attacker's own to show up in an audit log. The three
+        classic delivery mechanisms are worth knowing cold, because each one implies a different fix:
       </p>
+      <ul>
+        <li><strong>XSS cookie theft</strong> — a stored or reflected XSS payload runs in the victim's
+        browser and exfiltrates <code>document.cookie</code> to an attacker-controlled endpoint. Fixed by
+        both eliminating the XSS <em>and</em> setting <code>HttpOnly</code> so client-side JavaScript cannot
+        read the cookie even if a payload does execute — defense in depth, not "pick one."</li>
+        <li><strong>Network sniffing</strong> — on an unencrypted (or TLS-stripped) connection, a
+        man-in-the-middle simply reads the session cookie off the wire. Fixed by <code>Secure</code> (never
+        sent over plain HTTP) and HSTS to prevent downgrade in the first place.</li>
+        <li><strong>Session fixation</strong> — covered in detail below; the attacker never intercepts
+        anything, they simply choose the session ID in advance.</li>
+      </ul>
+      <CodeBlock label="the hijack in one line, once you have a valid cookie">{`curl -H "Cookie: session_id=<stolen-value>" https://target.example/account/dashboard
+# if the server only checks "does a session with this ID exist and is it valid",
+# this is functionally identical to a real login — no credentials involved at all`}</CodeBlock>
 
+      <h2>Session fixation: choosing the victim's session ID in advance</h2>
+      <p>
+        Cookie theft requires intercepting something. Session fixation is subtler and needs no interception
+        at all: if an application accepts a session identifier supplied by the client (via a URL parameter,
+        a hidden form field, or simply failing to issue a fresh session ID at the moment of login) an
+        attacker can mint a session ID themselves, deliver it to the victim (e.g. a link like
+        <code>https://target.example/login?sessionid=ATTACKER00112233</code>), and simply wait. When the
+        victim logs in normally with their own real credentials, the application authenticates that
+        <em>same</em> attacker-chosen session ID. The attacker never has to see a single byte of the
+        victim's traffic — they just have to guess correctly that the fix (regenerating the ID post-login)
+        was never implemented.
+      </p>
       <Callout variant="tip">
         <p>
-          Quick mental test for CSRF exposure: does this state-changing endpoint rely on the cookie alone
-          for authentication, with no additional unpredictable token? If yes, it's a CSRF candidate worth
-          testing further.
+          The single control that defeats session fixation: <strong>always issue a brand-new session
+          identifier at the exact moment authentication succeeds</strong>, discarding whatever pre-auth
+          session existed — regardless of whether that ID was server-generated or client-supplied.
+        </p>
+      </Callout>
+
+      <h2>Clickjacking: making the victim's own click do the attack</h2>
+      <p>
+        Clickjacking (UI redress) does not steal anything at all — it weaponizes a victim's own genuine,
+        authenticated click. An attacker overlays a sensitive page (e.g. "Delete my account" or "Transfer
+        funds") in a fully transparent iframe, positioned exactly over an innocuous-looking decoy button
+        ("Claim your free prize"). The victim sees only the decoy; the click they think they're making
+        actually lands on the invisible, real button underneath — sent with their own real session cookie,
+        indistinguishable from a request they knowingly intended. The fix is a response header, not
+        application logic:
+      </p>
+      <CodeBlock label="the two headers that stop clickjacking outright">{`X-Frame-Options: DENY
+Content-Security-Policy: frame-ancestors 'none'
+# either one (ideally both) tells the browser to refuse to render this page inside any iframe at all`}</CodeBlock>
+
+      <h2>CSRF, revisited: the "fail open" implementation bug</h2>
+      <p>
+        The token-based defense against CSRF sounds airtight in theory — but one of the most common ways it
+        fails in practice is not a missing token, it's a validator that only checks the token <em>if one was
+        supplied</em>, and silently processes the request when the parameter is omitted entirely. Code
+        review sees "we validate the CSRF token" and moves on; nobody notices the implicit "and if there
+        isn't one, we... don't reject it" branch until someone tries submitting the exact same request with
+        the <code>csrf_token</code> field simply deleted.
+      </p>
+      <CodeBlock label="the fail-open bug in miniature">{`# what the developer intended:
+if (submittedToken && submittedToken === session.csrfToken) { process(request) }
+else { reject(request) }
+
+# what was actually shipped:
+if (submittedToken) {
+  if (submittedToken === session.csrfToken) { process(request) }
+  else { reject(request) }
+}
+process(request)  // <-- reached whenever submittedToken is simply absent`}</CodeBlock>
+      <Callout variant="tip">
+        <p>
+          Whenever you test a CSRF-protected endpoint, don't stop at "invalid token gets rejected." Always
+          also try the request with the token parameter <strong>removed entirely</strong> — a real, common
+          bypass that a token-presence check alone will never catch.
         </p>
       </Callout>
 

@@ -202,7 +202,7 @@ function Panel({ icon, title, groups }: { icon: React.ReactNode; title: string; 
 export default function ResourcesPage() {
   return (
     <div className="max-w-4xl mx-auto px-8 py-14">
-      <div className="text-[var(--color-accent)] font-mono text-sm mb-2">// keep learning</div>
+      <div className="gold-eyebrow mb-2">// keep learning</div>
       <h1 className="text-3xl font-bold text-[var(--color-heading)] mb-3 flex items-center gap-3">
         <IconBook className="w-7 h-7 text-[var(--color-accent)]" /> Resources
       </h1>

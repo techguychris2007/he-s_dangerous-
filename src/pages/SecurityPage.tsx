@@ -22,7 +22,7 @@ const POINTS: { title: string; body: string }[] = [
 export default function SecurityPage() {
   return (
     <div className="max-w-3xl mx-auto px-8 py-14">
-      <div className="text-[var(--color-accent)] font-mono text-sm mb-2">// how your data is handled</div>
+      <div className="gold-eyebrow mb-2">// how your data is handled</div>
       <h1 className="text-3xl font-bold text-[var(--color-heading)] mb-3 flex items-center gap-3">
         <IconShieldCheck className="w-7 h-7 text-[var(--color-accent)]" /> Security &amp; Privacy
       </h1>

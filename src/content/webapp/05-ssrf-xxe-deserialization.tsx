@@ -80,11 +80,87 @@ Cookie: session=YToyOntzOjQ6InVzZXIiO3M6NToiYWRtaW4iO30=   <- PHP serialized dat
         </p>
       </Callout>
 
+      <h2>HTTP request smuggling: when the proxy and origin disagree</h2>
+      <p>
+        Modern web architecture almost always puts a reverse proxy or load balancer in front of the real
+        application server. Request smuggling exploits the fact that the two don't always parse HTTP the
+        same way — specifically, they can disagree about where one request ends and the next begins. The
+        classic variant is <strong>CL.TE</strong>: the front-end proxy trusts the <code>Content-Length</code>
+        header to know how many bytes belong to this request, while the back-end origin trusts
+        <code>Transfer-Encoding: chunked</code> instead. Craft a request with both headers present but
+        conflicting, and the "extra" bytes the front-end thought belonged to someone else's next request get
+        smuggled straight to the back-end as the start of a brand-new, attacker-controlled request — one
+        that can reach an internal-only path, or get prepended onto the very next real visitor's connection
+        and hijack it. This exact research area, popularized by PortSwigger's James Kettle in "HTTP Desync
+        Attacks," turned what looked like a parsing curiosity into one of the highest-impact web bug classes
+        of the last several years.
+      </p>
       <Callout variant="tip">
         <p>
-          All three categories in this lesson share one test instinct: find anywhere the server reaches
-          out, reads a file, or reconstructs an object based on something you sent, and ask what happens if
-          you redirect that action somewhere the developer never intended.
+          Smuggling bugs are notoriously hard to spot by reading code — they live in the gap <em>between</em>
+          two different HTTP implementations that each behave "correctly" by their own spec reading. Burp
+          Suite's dedicated smuggling scanner exists precisely because this class needs specialized tooling,
+          not manual inspection, to find reliably.
+        </p>
+      </Callout>
+
+      <h2>Prototype pollution: poisoning every object at once</h2>
+      <p>
+        JavaScript objects inherit properties through a prototype chain, and at the top of every plain
+        object's chain sits <code>Object.prototype</code> — shared, globally, by literally every object in
+        the running process. A "deep merge" or "extend" function that recursively copies attacker-supplied
+        JSON into a config object, without explicitly blocking the special <code>__proto__</code> key, can be
+        tricked into writing a property directly onto that shared prototype instead of the object it thinks
+        it's building. The result: every object everywhere in the application suddenly has that property,
+        including ones an authorization check reads from — turning a single crafted JSON body into a global
+        privilege-escalation primitive with no injection into any specific record at all.
+      </p>
+      <CodeBlock label="the pollution, then the payoff">{`# step 1 — pollute Object.prototype with an admin flag
+curl -X POST -d '{"__proto__":{"isAdmin":true}}' https://target.example/api/config/merge
+
+# step 2 — the pollution alone is a bug; it becomes RCE only once a "gadget" reads a
+# polluted property into something dangerous, e.g. passing a polluted "shell" value to exec()
+curl -X POST -d '{"__proto__":{"shell":"id"}}' https://target.example/api/config/merge-and-render`}</CodeBlock>
+      <p>
+        This is not a theoretical concern — CVE-2019-7609 was a real, disclosed prototype-pollution RCE in
+        Kibana caused by exactly this pattern, and multiple popular JavaScript merge/extend libraries have
+        carried their own CVEs for the same root cause.
+      </p>
+
+      <h2>Web cache poisoning: one request, every future visitor</h2>
+      <p>
+        Almost every production site sits behind a caching layer (a CDN, Varnish, a reverse proxy) to avoid
+        re-computing the same response for every visitor. That cache decides what counts as "the same
+        request" using a cache key — usually just the URL. The problem: the origin server's actual response
+        can vary based on a header the cache key <em>ignores</em>, like <code>X-Forwarded-Host</code>
+        reflected into a canonical link or a redirect target. Send one request with a malicious value for
+        that unkeyed header, and the cache stores your poisoned response under the normal URL — meaning
+        every subsequent visitor to that page, with no interaction of their own, receives your attacker-
+        controlled content until the cache entry expires. This "fire once, poison everyone" property is what
+        makes cache poisoning categorically more dangerous than most other web bugs, and is the subject of
+        extensive dedicated research from PortSwigger on exactly which headers commonly go unkeyed.
+      </p>
+
+      <h2>SAML XML Signature Wrapping: a valid signature, a forged identity</h2>
+      <p>
+        Single sign-on systems built on SAML sign an XML assertion so the receiving application (the
+        "service provider") can trust the identity and role it contains. XML Signature Wrapping (XSW) — first
+        formally documented in the 2012 academic paper "On Breaking SAML: Be Whoever You Want to Be" —
+        abuses a subtle gap between two things a naive implementation treats as one: <em>is there a valid
+        signature somewhere in this document</em> versus <em>is the signature over the exact element I am
+        about to read identity from</em>. By taking a legitimately-signed, low-privilege assertion,
+        relocating it elsewhere in the XML tree, and inserting a forged high-privilege assertion in the
+        position the parser actually reads from, an attacker gets a signature check that passes and an
+        identity that was never actually signed at all. Every major SAML library has shipped a real CVE for
+        some variant of this exact confusion.
+      </p>
+
+      <Callout variant="tip">
+        <p>
+          All the categories in this lesson share one test instinct: find anywhere the server reaches
+          out, reads a file, reconstructs an object, caches a response, or trusts a signature, and ask what
+          happens if you redirect, poison, or misalign that action from what the developer assumed would
+          always line up.
         </p>
       </Callout>
 

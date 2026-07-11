@@ -36,7 +36,7 @@ export default function LabPage() {
             {captured}/{scenario.totalFlags} flags
           </span>
         </div>
-        <h1 className="text-xl font-bold text-[var(--color-heading)] mb-3">{scenario.title}</h1>
+        <h1 className="text-2xl font-bold text-[var(--color-heading)] mb-3">{scenario.title}</h1>
         <p className="text-sm text-[var(--color-text-dim)] leading-relaxed mb-5">{scenario.briefing}</p>
 
         <div className="mb-6">

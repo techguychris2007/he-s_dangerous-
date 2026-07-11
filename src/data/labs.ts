@@ -29,6 +29,9 @@ import { modernAttackChainsLabs } from '../labs/scenarios/modern-attack-chains-p
 import { redteamToolsLabs } from '../labs/scenarios/redteam-tools-pack';
 import { databaseIntrusionLabs } from '../labs/scenarios/database-intrusion-pack';
 import { offensiveExpansionLabs } from '../labs/scenarios/offensive-expansion-pack';
+import { webSessionSecurityLabs } from '../labs/scenarios/web-session-security-pack';
+import { socialEngineeringAnalysisLabs } from '../labs/scenarios/social-engineering-analysis-pack';
+import { leakedNsaToolsLabs } from '../labs/scenarios/leaked-nsa-tools-pack';
 import type { LabScenario } from '../labs/types';
 
 export interface LabEntry {
@@ -69,6 +72,9 @@ export const LABS: LabEntry[] = [
   ...toEntries(redteamToolsLabs),
   ...toEntries(databaseIntrusionLabs),
   ...toEntries(offensiveExpansionLabs),
+  ...toEntries(webSessionSecurityLabs),
+  ...toEntries(socialEngineeringAnalysisLabs),
+  ...toEntries(leakedNsaToolsLabs),
 ];
 
 /** Ordered to match the roadmap's actual teaching sequence (see curriculum.ts's MODULES order). */

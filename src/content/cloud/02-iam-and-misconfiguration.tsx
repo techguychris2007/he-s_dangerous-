@@ -108,6 +108,29 @@ scout gcp
         </p>
       </Callout>
 
+      <h2>Containers and Kubernetes: IAM's newer, messier cousin</h2>
+      <p>
+        Everything above assumes a relatively static set of identities (users, roles, instances). Containers
+        add a layer where the identity boundary is much easier to get wrong: by default, every pod in a
+        Kubernetes cluster can often reach every other pod, the cluster's own control-plane API, and — if the
+        underlying nodes have instance roles attached — potentially the exact cloud metadata endpoint covered
+        earlier, unless network policies and pod-level IAM scoping are deliberately configured.
+      </p>
+      <CodeBlock label="the exposed-dashboard pattern — one of the most common real Kubernetes findings">{`curl http://10.10.109.2/api/v1/pods
+# an unauthenticated Kubernetes API/dashboard exposes the full pod list, and often
+# secrets mounted into those pods — this exact misconfiguration is common enough
+# that internet-wide scans regularly turn up publicly reachable K8s dashboards`}</CodeBlock>
+      <p>
+        <strong>kube-hunter</strong> and <strong>kube-bench</strong> are the Kubernetes-specific equivalents
+        of Prowler/ScoutSuite above: kube-hunter actively probes a cluster for exploitable misconfigurations
+        (exposed dashboards, anonymous API access, privileged pod escapes), while kube-bench checks a
+        cluster's configuration against the CIS Kubernetes Benchmark the same way Prowler checks AWS against
+        CIS. The container-specific principle to hold onto: a pod is not a security boundary by default the
+        way a full VM is — namespace isolation, network policies, and pod security standards all have to be
+        deliberately configured, or a compromised low-value pod can become a path to every secret in the
+        cluster.
+      </p>
+
       <h2>Module complete</h2>
       <p>
         The three labs in this module let you exploit exactly the misconfigurations covered here: a public

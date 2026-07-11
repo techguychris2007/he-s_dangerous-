@@ -67,6 +67,33 @@ OCSP is faster and more current; CRLs don't require a live connection to the CA 
         often used together, not substitutes for each other.
       </p>
 
+      <h2>Block cipher modes: why "AES encrypted" isn't the whole story</h2>
+      <p>
+        AES is a block cipher — it encrypts fixed-size chunks (128 bits) at a time. How those chunks are
+        linked together, the "mode of operation," matters as much as the algorithm itself, and picking the
+        wrong mode is a real, still-seen vulnerability class of its own.
+      </p>
+      <CodeBlock label="the mode that fails visibly vs. the ones that don't">{`ECB (Electronic Codebook) — each block encrypted completely independently
+  -> identical plaintext blocks produce identical ciphertext blocks, which means
+     patterns in the original data (e.g. large blank regions in an image) remain
+     visible in the encrypted output — the classic "ECB penguin" demonstration
+
+CBC (Cipher Block Chaining) — each block is XORed with the previous ciphertext
+     block before encryption, breaking the pattern-leakage problem, but requires
+     careful padding handling (the exact gap a padding oracle attack exploits)
+
+GCM (Galois/Counter Mode) — the modern standard: encrypts AND authenticates in
+     one operation, so tampering with the ciphertext is detected automatically —
+     this is what TLS 1.3 uses almost exclusively today`}</CodeBlock>
+      <Callout variant="warn">
+        <p>
+          If you ever see AES-ECB used for anything beyond a single 128-bit block, treat it as a finding —
+          the mode itself leaks structural information about the plaintext regardless of key length or
+          algorithm strength, which is precisely why "encrypted" alone is never a sufficient answer to "is
+          this secure" without also knowing the mode.
+        </p>
+      </Callout>
+
       <h2>Common cryptographic attacks worth recognizing by name</h2>
       <CodeBlock label="what each one actually targets">{`Brute force        — try every possible key; defeated by key length
 Rainbow table      — precomputed hash lookups; defeated by salting

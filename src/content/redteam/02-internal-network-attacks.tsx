@@ -57,6 +57,30 @@ netexec smb 10.10.10.5 -u user -p pass --sam
         obtained.
       </p>
 
+      <h2>Password spraying: the inverse of credential reuse</h2>
+      <p>
+        Credential spraying above starts with ONE working credential and asks "where else does it work."
+        Password <strong>spraying</strong> starts with no valid credential at all and inverts the ratio
+        entirely: one common, policy-plausible password (a seasonal string like <code>Summer2026!</code>)
+        tried against MANY different usernames, instead of many passwords against one username. The reason
+        this distinction matters operationally is account lockout: a normal brute force against a single
+        account trips the lockout threshold (commonly 5-10 attempts) almost immediately and pages the SOC.
+        A spray gives every single account exactly one login attempt — invisible to a per-account lockout
+        counter, because no individual account ever approaches its threshold.
+      </p>
+      <CodeBlock label="hydra in spray mode — note -L (userlist) and -p (single password), the inverse of a normal brute force">{`hydra -L harvested-usernames.txt -p 'Summer2026!' ssh://10.10.30.5
+# every username gets exactly ONE login attempt with the same password —
+# this is what keeps a spray under the radar of any reasonable lockout policy`}</CodeBlock>
+      <Callout variant="tip">
+        <p>
+          Password spraying is one of the most common real initial-access techniques against
+          externally-exposed VPN, RDP, and webmail portals precisely because it exploits a policy gap, not a
+          technical one — the defense is not a better lockout threshold (spraying is designed to slip under
+          any reasonable one), it's banning exactly the predictable seasonal/company-name password patterns
+          the technique depends on.
+        </p>
+      </Callout>
+
       <h2>Lateral movement techniques</h2>
       <ul>
         <li><strong>Pass-the-hash</strong> — authenticate using a captured NTLM hash directly, without ever
@@ -88,6 +112,26 @@ netexec smb 10.10.10.5 -u user -p pass --sam
           Pass-the-hash, credential spraying, and pivoting are precisely the techniques that turn a single
           compromised laptop into a full domain compromise in real ransomware incidents. Practicing these
           is only legitimate against your own lab environment or a signed, in-scope engagement.
+        </p>
+      </Callout>
+
+      <Callout variant="incident">
+        <p>
+          <strong>The 2017 Shadow Brokers leak — EternalBlue and DoublePulsar:</strong> in April 2017, a
+          group calling itself the Shadow Brokers publicly leaked a cache of NSA "Equation Group" tooling,
+          including EternalBlue (an SMB remote code execution exploit, later assigned CVE-2017-0144 / patched
+          as MS17-010) and DoublePulsar, a covert kernel-mode backdoor implant EternalBlue was used to
+          deliver. Within days, independent security vendors (Countercept and Microsoft among the first)
+          published full public technical breakdowns of both — showing DoublePulsar hooked the SMB driver
+          and answered only a specific, otherwise-unremarkable crafted "ping check" request, which is
+          exactly why it had stayed hidden for so long before the leak forced it into the open. One month
+          later, WannaCry weaponized EternalBlue into a self-propagating worm that hit hundreds of thousands
+          of machines across 150 countries in days; a few weeks after that, NotPetya used the same exploit
+          combined with reused local-admin credentials (the exact pattern earlier in this lesson) to cause
+          billions of dollars in damage at Maersk, Merck, and others. The lesson within the lesson: patching
+          the delivery exploit is not the same as removing a backdoor already planted through it — real
+          incident response after EternalBlue required both patching MS17-010 <em>and</em> actively sweeping
+          for DoublePulsar on every host that might already have been infected before the patch landed.
         </p>
       </Callout>
 

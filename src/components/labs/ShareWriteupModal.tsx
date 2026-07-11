@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react';
 import type { LabEntry } from '../../data/labs';
 import { buildLabWriteup } from '../../lib/labWriteup';
+import { downloadWriteupPdf, downloadCertificatePdf } from '../../lib/pdfGenerator';
 import { useProgress } from '../../state/progressStore';
 import { LABS, MODULE_TO_LAB_CATEGORY } from '../../data/labs';
 import { findModule } from '../../data/curriculum';
-import { IconCheck } from '../layout/icons';
+import { IconCheck, IconCertificate, IconExternal } from '../layout/icons';
 
 const MODULE_SLUG_FOR_CATEGORY = Object.fromEntries(
   Object.entries(MODULE_TO_LAB_CATEGORY).map(([slug, category]) => [category, slug]),
@@ -108,25 +109,41 @@ export default function ShareWriteupModal({ entry, onClose }: { entry: LabEntry;
           </p>
         </div>
 
-        <div className="px-5 py-4 border-t border-[var(--color-border)] flex items-center justify-end gap-2">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 rounded-lg text-sm font-semibold text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-heading)] transition-colors"
-          >
-            Close
-          </button>
-          <button
-            onClick={copy}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[var(--color-accent)] text-white text-sm font-semibold hover:brightness-110 transition"
-          >
-            {copied ? (
-              <>
-                <IconCheck className="w-4 h-4" /> Copied
-              </>
-            ) : (
-              'Copy to clipboard'
-            )}
-          </button>
+        <div className="px-5 py-4 border-t border-[var(--color-border)] flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => downloadWriteupPdf(entry, { learnerName: progress.learnerName })}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-[var(--color-border)] text-sm font-semibold text-[var(--color-heading)] hover:bg-[var(--color-surface-2)] transition-colors"
+            >
+              <IconExternal className="w-4 h-4" /> Download PDF report
+            </button>
+            <button
+              onClick={() => downloadCertificatePdf(entry, progress.learnerName ?? 'Learner')}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-[var(--color-gold)]/50 text-sm font-semibold text-[var(--color-gold-dim)] hover:bg-[var(--color-gold-soft)] transition-colors"
+            >
+              <IconCertificate className="w-4 h-4" /> Download certificate
+            </button>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 rounded-lg text-sm font-semibold text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-heading)] transition-colors"
+            >
+              Close
+            </button>
+            <button
+              onClick={copy}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[var(--color-accent)] text-white text-sm font-semibold hover:brightness-110 transition"
+            >
+              {copied ? (
+                <>
+                  <IconCheck className="w-4 h-4" /> Copied
+                </>
+              ) : (
+                'Copy to clipboard'
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

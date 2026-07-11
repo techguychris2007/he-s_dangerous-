@@ -67,6 +67,36 @@ svchost.exe (PID 812)
         immediate infection and the attacker's plan for it to survive a reboot.
       </p>
 
+      <h2>Volatility: the real tool behind "conceptually, a memory analysis framework"</h2>
+      <p>
+        <strong>Volatility</strong> is the actual, industry-standard open-source framework for everything
+        described in the process-tree section above — it parses a raw memory image's internal structures
+        directly, rather than treating it as an unstructured blob of strings. Its plugin-based interface is
+        worth knowing by name and rough shape, since nearly every real memory-forensics report references
+        its output format directly.
+      </p>
+      <CodeBlock label="the core Volatility 3 workflow">{`vol -f memory.dmp windows.info                 # identify the OS/build first — Volatility needs this
+                                                  # to know which internal memory structures to expect
+
+vol -f memory.dmp windows.pslist                 # the process list — PID, PPID, process name, start time
+vol -f memory.dmp windows.pstree                  # the SAME data, rendered as a parent/child tree —
+                                                    # exactly the view that makes an odd relationship like
+                                                    # "explorer.exe spawned powershell.exe" visually obvious
+
+vol -f memory.dmp windows.malfind                  # flags memory regions with suspicious characteristics —
+                                                    # executable AND writable at once, with no backing file
+                                                    # on disk — the live signature of process injection (T1055)
+
+vol -f memory.dmp windows.netscan                  # every network connection the kernel had a record of at
+                                                    # capture time, including ones a since-terminated process
+                                                    # made — often survives even after the malware exits`}</CodeBlock>
+      <p>
+        <code>malfind</code> in particular is worth remembering by name: it directly detects the exact
+        "injected thread with no backing file" pattern shown in the process-tree example above, turning what
+        would otherwise be a painstaking manual memory-region review into a single automated pass across the
+        entire image.
+      </p>
+
       <h2>Deleted file recovery: why "deleted" rarely means gone</h2>
       <p>
         When a file is deleted on most filesystems, only its directory entry (the pointer to its data) is

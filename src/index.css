@@ -3,8 +3,10 @@
 @theme {
   --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: "Georgia", "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
 
-  /* Classic CTF-platform theme: electric blue + violet on near-black — cool, not warm. */
+  /* Classic platform theme: electric blue + violet, with a gold secondary accent used sparingly
+     for premium framing (dividers, badges, hover accents). */
   --color-bg: #f4f6fb;
   --color-surface: #ffffff;
   --color-surface-2: #edf1f9;
@@ -20,6 +22,9 @@
   --color-success: #16a34a;
   --color-text: #414863;
   --color-text-dim: #7d84a0;
+  --color-gold: #a8792f;
+  --color-gold-dim: #8a6323;
+  --color-gold-soft: #a8792f26;
 }
 
 :root[data-theme="dark"] {
@@ -38,6 +43,9 @@
   --color-success: #34d399;
   --color-text: #b6bdd6;
   --color-text-dim: #6b7290;
+  --color-gold: #c9a15f;
+  --color-gold-dim: #e9c98a;
+  --color-gold-soft: #c9a15f22;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -57,6 +65,9 @@
     --color-success: #34d399;
     --color-text: #b6bdd6;
     --color-text-dim: #6b7290;
+    --color-gold: #c9a15f;
+    --color-gold-dim: #e9c98a;
+    --color-gold-soft: #c9a15f22;
   }
 }
 
@@ -91,7 +102,50 @@ body {
   border-radius: 8px;
 }
 
-.prose-hh h1 { font-size: 1.85rem; font-weight: 800; color: var(--color-heading); margin: 0.5rem 0 1rem; letter-spacing: -0.01em; }
+/* Gold-classic elevation: page-level h1 headings get a premium serif display treatment site-wide.
+   Everything else (body copy, UI chrome, buttons) stays on the sans/mono stack for readability. */
+main h1, .page-title {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+.gold-divider {
+  height: 1px;
+  background: linear-gradient(90deg, var(--color-gold) 0%, transparent 70%);
+  opacity: 0.55;
+}
+
+.gold-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-gold-dim);
+}
+
+/* Opt-in premium card accent: a hairline gold top border that brightens on hover. Purely additive —
+   apply the class without changing any existing structural/border classes on a card. */
+.card-gold-accent {
+  position: relative;
+}
+.card-gold-accent::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--color-gold) 0%, var(--color-gold-dim) 50%, var(--color-gold) 100%);
+  opacity: 0.35;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+.card-gold-accent:hover::before {
+  opacity: 0.9;
+}
+
+.prose-hh h1 { font-size: 1.875rem; font-weight: 800; color: var(--color-heading); margin: 0.5rem 0 1rem; letter-spacing: -0.01em; }
 .prose-hh h2 { font-size: 1.25rem; font-weight: 700; color: var(--color-heading); margin: 2rem 0 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--color-border); }
 .prose-hh h3 { font-size: 1.05rem; font-weight: 700; color: var(--color-accent-dim); margin: 1.5rem 0 0.5rem; }
 .prose-hh p { line-height: 1.7; margin-bottom: 1rem; }

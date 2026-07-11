@@ -43,7 +43,7 @@ export default function LabCard({ lab, variant = 'catalog' }: { lab: LabEntry; v
     variant === 'task' ? (done ? 'Review task' : captured > 0 ? 'Continue task' : 'Start task') : 'Launch lab';
 
   return (
-    <div className="group rounded-xl overflow-hidden border border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-accent)]/60 hover:-translate-y-0.5 hover:shadow-[0_8px_30px_-8px_var(--color-accent)] transition-all duration-200 flex flex-col">
+    <div className="card-gold-accent group rounded-xl overflow-hidden border border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-accent)]/60 hover:-translate-y-0.5 hover:shadow-[0_8px_30px_-8px_var(--color-accent)] transition-all duration-200 flex flex-col">
       <div className="relative">
         <Link to={labUrl}>
           <ModuleBanner icon="flag" moduleId={CATEGORY_BANNER[lab.scenario.category] ?? 'linux'} className="h-28 w-full" />
@@ -104,8 +104,8 @@ export default function LabCard({ lab, variant = 'catalog' }: { lab: LabEntry; v
 
         <div className="mt-auto">
           <div className="flex items-center justify-between text-xs text-[var(--color-text-dim)] pt-3 mb-3 border-t border-[var(--color-border)]">
-            <span className="flex items-center gap-1.5">
-              <IconCertificate className="w-3.5 h-3.5" /> Certificate
+            <span className="flex items-center gap-1.5 text-[var(--color-gold-dim)]">
+              <IconCertificate className="w-3.5 h-3.5" /> <span className="text-[var(--color-text-dim)]">Certificate</span>
             </span>
             <span className="flex items-center gap-3">
               <span className="font-mono">{captured}/{total} flags</span>

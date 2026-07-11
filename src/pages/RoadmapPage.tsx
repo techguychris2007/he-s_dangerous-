@@ -8,7 +8,7 @@ export default function RoadmapPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-8 py-14">
-      <div className="text-[var(--color-accent)] font-mono text-sm mb-2">// curriculum</div>
+      <div className="gold-eyebrow mb-2">// curriculum</div>
       <h1 className="text-3xl font-bold text-[var(--color-heading)] mb-3">Learning Path</h1>
       <p className="text-[var(--color-text-dim)] mb-12 leading-relaxed max-w-2xl">
         The full curriculum, in the order it's meant to be taken — networking and Linux fundamentals up

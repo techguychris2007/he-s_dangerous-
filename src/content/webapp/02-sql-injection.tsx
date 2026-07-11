@@ -68,6 +68,27 @@ curl "http://10.10.60.5/product?id=1' OR '1'='1"        # if this returns MORE d
         when automated tools get blocked by a WAF.
       </p>
 
+      <h2>Stacked queries: when injection lets you write, not just read</h2>
+      <p>
+        Everything above reads data. Some database drivers (notably MSSQL and, when explicitly enabled,
+        PostgreSQL) allow <strong>stacked queries</strong> — appending a completely second SQL statement
+        after a semicolon in the same request. This escalates SQL injection from a data-leak bug into a
+        direct database-write primitive: instead of only reading rows, an attacker can <code>UPDATE</code>,
+        <code>INSERT</code>, or <code>DROP</code> in the same request.
+      </p>
+      <CodeBlock label="a stacked-query privilege escalation">{`id=1; UPDATE users SET role='admin' WHERE username='attacker'--
+# the first statement (id=1) is whatever the app expected; everything after the
+# semicolon is a SECOND, entirely attacker-authored statement the database also
+# executes — here, silently promoting the attacker's own account to admin`}</CodeBlock>
+      <Callout variant="warn">
+        <p>
+          Stacked queries are a categorically more severe finding than a UNION-based read, and worth
+          explicitly testing for on any confirmed injectable parameter — MySQL's default client libraries
+          block them, which is why this technique shows up far more often against MSSQL- and
+          PostgreSQL-backed applications in practice.
+        </p>
+      </Callout>
+
       <h2>Automating exploitation: SQLMap</h2>
       <p>
         SQLMap is the tool that automates everything covered above — detection, UNION-based extraction,

@@ -38,6 +38,24 @@ export default function KerberosAdPrivesc() {
         </p>
       </Callout>
 
+      <h2>Detecting Kerberoasting from the blue-team side</h2>
+      <p>
+        Kerberoasting is quiet, but it is not invisible. Every service ticket request generates Windows
+        Security Event ID 4769 on the domain controller, and legitimate users request tickets only for the
+        handful of services they actually use. A Kerberoasting tool (Rubeus, Impacket's
+        <code>GetUserSPNs.py</code>) instead requests tickets for <em>every</em> registered SPN on the
+        domain in rapid succession — and specifically requests them using legacy RC4 encryption rather than
+        modern AES, because RC4-encrypted tickets crack dramatically faster offline. That RC4 preference,
+        combined with one account suddenly requesting dozens of unrelated service tickets within a few
+        minutes, is exactly the detection heuristic Microsoft and MITRE ATT&amp;CK document for this
+        technique (T1558.003) — and it is precisely why this platform's own SOC track includes a Kerberoasting
+        <em>detection</em> lab as the direct counterpart to the offensive technique taught here.
+      </p>
+      <CodeBlock label="the blue-team query, conceptually">{`grep "0x17" tgs-requests.log      # isolate legacy-RC4 ticket requests — a red flag on its own
+# then check: does any single account appear dozens of times, for unrelated services,
+# within the same few-minute window? That volume-plus-encryption-type combination has no
+# legitimate explanation and is the exact signature an automated Kerberoasting sweep leaves behind.`}</CodeBlock>
+
       <h2>AS-REP Roasting</h2>
       <p>
         A smaller subset of accounts have "Kerberos pre-authentication" disabled (a legacy setting). For

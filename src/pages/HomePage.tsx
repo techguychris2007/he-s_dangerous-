@@ -20,9 +20,7 @@ export default function HomePage() {
   return (
     <div className="max-w-5xl mx-auto px-8 py-12">
       <div className="mb-8">
-        <div className="text-[var(--color-accent)] font-mono text-xs font-bold uppercase tracking-widest mb-2">
-          Learner Portal
-        </div>
+        <div className="gold-eyebrow mb-2">Learner Portal</div>
         <h1 className="text-3xl font-extrabold text-[var(--color-heading)] mb-2">
           Welcome back{progress.learnerName ? `, ${progress.learnerName.split(' ')[0]}` : ''}
         </h1>

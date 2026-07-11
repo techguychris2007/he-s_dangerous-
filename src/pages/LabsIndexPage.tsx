@@ -12,7 +12,7 @@ export default function LabsIndexPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-8 py-14">
-      <div className="text-[var(--color-accent)] font-mono text-sm mb-2">// hands-on</div>
+      <div className="gold-eyebrow mb-2">// hands-on</div>
       <h1 className="text-3xl font-bold text-[var(--color-heading)] mb-3">Lab Catalog</h1>
       <p className="text-[var(--color-text-dim)] mb-2 leading-relaxed max-w-2xl">
         {LABS.length} fully interactive, guided labs across Linux privilege escalation, network service

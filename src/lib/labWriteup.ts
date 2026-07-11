@@ -62,7 +62,7 @@ export function buildLabWriteup(entry: LabEntry, opts: LabWriteupOptions = {}): 
   const whys = scenario.objectives.map(objectiveWhy).filter((w): w is string => Boolean(w));
   const cve = extractCve(scenario.title, scenario.briefing);
   const cveAlreadyInTitle = cve ? scenario.title.toUpperCase().includes(cve) : false;
-  const hashtags = ['CyberSecurity', 'EthicalHacking', 'InfoSec', 'HackerHub', ...(CATEGORY_HASHTAGS[scenario.category] ?? [])];
+  const hashtags = ['CyberSecurity', 'EthicalHacking', 'InfoSec', 'DarkWorld', ...(CATEGORY_HASHTAGS[scenario.category] ?? [])];
   const hashtagLine = hashtags.map((h) => `#${h}`).join(' ');
   const dateStr = new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
 
@@ -84,10 +84,10 @@ export function buildLabWriteup(entry: LabEntry, opts: LabWriteupOptions = {}): 
     `${scenario.difficulty} difficulty · ${scenario.category} · ${scenario.totalFlags} flag${scenario.totalFlags > 1 ? 's' : ''} captured`,
     '',
     opts.labsCompletedTotal
-      ? `Working through HackerHub's hands-on labs — ${opts.labsCompletedTotal} labs completed so far${
+      ? `Working through DarkWorld's hands-on labs — ${opts.labsCompletedTotal} labs completed so far${
           opts.moduleTitle ? ` in the ${opts.moduleTitle} track` : ''
         }.`
-      : `Working through HackerHub's hands-on, in-browser labs — real recon-to-impact chains, not multiple-choice quizzes.`,
+      : `Working through DarkWorld's hands-on, in-browser labs — real recon-to-impact chains, not multiple-choice quizzes.`,
     '',
     hashtagLine,
   ].join('\n');
@@ -121,7 +121,7 @@ export function buildLabWriteup(entry: LabEntry, opts: LabWriteupOptions = {}): 
     mdObjectives,
     '',
     '### Environment',
-    '_Completed inside HackerHub, a browser-based offensive-security training platform — every step above was run against a simulated network and filesystem in an isolated, authorized lab environment._',
+    '_Completed inside DarkWorld, a browser-based offensive-security training platform — every step above was run against a simulated network and filesystem in an isolated, authorized lab environment._',
   ].join('\n');
 
   return { linkedin, twitter, markdown, hashtags };

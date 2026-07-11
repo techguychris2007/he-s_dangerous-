@@ -17,13 +17,13 @@ export default function LeaderboardPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-8 py-14">
-      <div className="text-[var(--color-accent)] font-mono text-sm mb-2">// where you stand</div>
+      <div className="gold-eyebrow mb-2">// where you stand</div>
       <h1 className="text-3xl font-bold text-[var(--color-heading)] mb-3 flex items-center gap-3">
         <IconTrophy className="w-7 h-7 text-[var(--color-accent)]" /> Leaderboard
       </h1>
 
       <div className="rounded-xl border border-[var(--color-warn)]/40 bg-[var(--color-warn)]/5 p-4 mb-8 text-sm text-[var(--color-text)] leading-relaxed">
-        HackerHub runs entirely in your own browser — there is no server tracking other learners, so a real
+        DarkWorld runs entirely in your own browser — there is no server tracking other learners, so a real
         ranked leaderboard against other people isn't something this platform can honestly show you. What
         you get instead is your own score, tracked exactly the way a leaderboard entry would be.
       </div>
