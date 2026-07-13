@@ -36,6 +36,9 @@ export default defineConfig({
         // app boots and runs with zero network requests once a single online visit has completed.
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
         navigateFallback: '/index.html',
+        // The main bundle passed 2 MiB once @supabase/supabase-js was added; raise the workbox
+        // precache ceiling instead of splitting chunks, so the whole app still works fully offline.
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         runtimeCaching: [
           {
             urlPattern: ({ url }) => url.pathname.startsWith('/assets/banners/') || /\.(?:jpg|jpeg)$/.test(url.pathname),

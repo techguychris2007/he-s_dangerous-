@@ -41,6 +41,19 @@ import SkillsAndRoadmap from '../content/bugbounty/04-skills-and-roadmap';
 
 import SocFundamentals from '../content/soc/01-soc-fundamentals';
 import ThreatHuntingDetection from '../content/soc/02-threat-hunting-detection';
+import AttackCoverageMapping from '../content/soc/03-attack-coverage-mapping';
+
+import WhatIsASiem from '../content/soc-siem/01-what-is-a-siem';
+import CorrelationRules from '../content/soc-siem/02-correlation-rules';
+import RealSiemPlatformsCompared from '../content/soc-siem/03-real-siem-platforms-compared';
+
+import WritingTuningDetectionRules from '../content/soc-detection/01-writing-tuning-detection-rules';
+import Ueba from '../content/soc-detection/02-ueba';
+import ThreatIntelIntegration from '../content/soc-detection/03-threat-intel-integration';
+
+import IncidentInvestigationMethodology from '../content/soc-ir/01-incident-investigation-methodology';
+import SoarAutomation from '../content/soc-ir/02-soar-automation';
+import ComplianceReporting from '../content/soc-ir/03-compliance-reporting';
 
 import ForensicsFundamentals from '../content/forensics/01-forensics-fundamentals';
 import MemoryArtifactAnalysis from '../content/forensics/02-memory-artifact-analysis';
@@ -249,10 +262,10 @@ export const MODULES: ModuleMeta[] = [
   {
     id: 'soc',
     slug: 'soc',
-    title: 'SOC & Threat Hunting',
-    subtitle: 'Alert triage, log correlation, and proactive threat hunting',
+    title: 'SOC Fundamentals & Threat Hunting',
+    subtitle: 'Alert triage, log correlation, proactive threat hunting, and ATT&CK coverage mapping',
     description:
-      'The defensive counterpart to everything else in this course: how a Security Operations Center triages alerts, correlates logs into a timeline, and proactively hunts for compromise that never triggered a rule.',
+      'The defensive counterpart to everything else in this course: how a Security Operations Center triages alerts, correlates logs into a timeline, proactively hunts for compromise that never triggered a rule, and systematically maps detection coverage against MITRE ATT&CK.',
     status: 'available',
     sourceBooks: ['Blue Team Handbook', 'The Practice of Network Security Monitoring'],
     icon: 'soc',
@@ -263,6 +276,75 @@ export const MODULES: ModuleMeta[] = [
         quiz: [
           { id: 'q1', prompt: 'What distinguishes threat hunting from standard alert-driven SOC work?', choices: ['Hunting only happens after a breach is confirmed', 'Hunting proactively searches for compromise that never triggered any alert', 'Hunting requires no log access', 'There is no real difference'], correctIndex: 1, explanation: 'Threat hunting works from a hypothesis, searching data that alerts never flagged, rather than waiting for a rule to fire.' },
           { id: 'q2', prompt: 'Why is a raw IP address (instead of a domain) in a C2 beacon URL a notable indicator?', choices: ['IPs are always malicious', 'Attackers often skip DNS specifically to avoid domain-based blocklists', 'It means the traffic is encrypted', 'It has no significance'], correctIndex: 1, explanation: 'Using a raw IP avoids domain reputation/blocklist checks that many defenses rely on.' },
+        ],
+      },
+      {
+        id: 'soc-3', slug: 'attack-coverage-mapping', title: 'MITRE ATT&CK Coverage Mapping in Practice', summary: 'Turning ATT&CK from an alert-labeling vocabulary into a systematic detection-coverage audit.', minutes: 12, Content: AttackCoverageMapping,
+        quiz: [
+          { id: 'q1', prompt: 'What is the main purpose of an ATT&CK coverage map?', choices: ['To label individual alerts with a technique ID', 'To identify which attack stages currently have no working detection at all', 'To replace correlation rules entirely', 'To score individual employees on security awareness'], correctIndex: 1, explanation: 'A coverage map surfaces systemic detection gaps across the full attack lifecycle, not just labels for single alerts.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'soc-siem',
+    slug: 'soc-siem-platforms',
+    title: 'SIEM Platforms & Log Management',
+    subtitle: 'Log collection, normalization, correlation rules, and real SIEM platforms compared',
+    description:
+      'How a SIEM actually works under the hood — collecting and normalizing logs from every source into one schema, writing and tuning the correlation rules that turn raw events into alerts, and how Splunk, Microsoft Sentinel, IBM QRadar, Elastic Security, and Chronicle each implement these same fundamentals.',
+    status: 'available',
+    sourceBooks: ['Blue Team Handbook', 'The Practice of Network Security Monitoring'],
+    icon: 'soc',
+    lessons: [
+      { id: 'soc-siem-1', slug: 'what-is-a-siem', title: 'What Is a SIEM? Log Collection, Normalization & Centralization', summary: 'The three foundational SIEM capabilities everything else in this module builds on.', minutes: 11, Content: WhatIsASiem },
+      { id: 'soc-siem-2', slug: 'correlation-rules', title: 'Correlation Rules: From Raw Events to Actionable Alerts', summary: 'Writing threshold and multi-stage rules, then tuning them against real false positives.', minutes: 13, Content: CorrelationRules },
+      {
+        id: 'soc-siem-3', slug: 'real-siem-platforms-compared', title: 'Real SIEM Platforms Compared: Splunk, Sentinel, QRadar, Elastic & Chronicle', summary: 'The query languages and interface conventions of five widely-deployed SIEM platforms.', minutes: 14, Content: RealSiemPlatformsCompared,
+        quiz: [
+          { id: 'q1', prompt: 'What does IBM QRadar call a correlated finding, scored by a Magnitude value?', choices: ['An Incident', 'An Offense', 'A Case', 'A Ticket'], correctIndex: 1, explanation: 'QRadar organizes correlated findings as Offenses, each carrying a Magnitude score for at-a-glance prioritization.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'soc-detection',
+    slug: 'soc-detection-engineering',
+    title: 'Detection Engineering & UEBA',
+    subtitle: 'Writing and tuning detection rules, behavioral baselining, and threat intelligence integration',
+    description:
+      'Three complementary approaches to generating real findings: hand-written rules mapped to specific ATT&CK techniques, User & Entity Behavior Analytics that catches deviation from a learned baseline with no rule required, and external threat intelligence feeds that flag infrastructure someone else already confirmed is malicious.',
+    status: 'available',
+    sourceBooks: ['Blue Team Handbook', 'The Practice of Network Security Monitoring'],
+    icon: 'soc',
+    lessons: [
+      { id: 'soc-detection-1', slug: 'writing-tuning-detection-rules', title: 'Writing and Tuning Detection Rules', summary: 'The detection lifecycle from hypothesis through backtesting to production tuning.', minutes: 13, Content: WritingTuningDetectionRules },
+      { id: 'soc-detection-2', slug: 'ueba', title: 'User & Entity Behavior Analytics (UEBA)', summary: 'Baselining normal behavior to catch novel attacker activity no rule was ever written for.', minutes: 12, Content: Ueba },
+      {
+        id: 'soc-detection-3', slug: 'threat-intel-integration', title: 'Threat Intelligence Integration & IOC Matching', summary: 'Consuming external IOC feeds (IPs, domains, hashes) and matching them against your own environment.', minutes: 12, Content: ThreatIntelIntegration,
+        quiz: [
+          { id: 'q1', prompt: 'Why can UEBA catch attacker behavior that a written detection rule misses?', choices: ['UEBA only works on cloud platforms', 'UEBA flags deviation from a learned baseline, requiring no pre-written rule for a specific technique', 'UEBA replaces the need for any log collection', 'UEBA only analyzes network traffic'], correctIndex: 1, explanation: 'UEBA learns what normal looks like for a specific user/entity and flags deviation directly, catching genuinely novel behavior no rule was written for.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'soc-ir',
+    slug: 'soc-incident-response',
+    title: 'Incident Response, SOAR & Compliance',
+    subtitle: 'Investigation methodology, automated response playbooks, and compliance reporting',
+    description:
+      'What happens after a detection is confirmed real: building a timeline and scoping the true blast radius, automating response with SOAR playbooks so containment happens in seconds instead of waiting on a human, and generating the compliance reports PCI-DSS, HIPAA, and SOC 2 all require.',
+    status: 'available',
+    sourceBooks: ['Blue Team Handbook', 'The Practice of Network Security Monitoring'],
+    icon: 'soc',
+    lessons: [
+      { id: 'soc-ir-1', slug: 'incident-investigation-methodology', title: 'Incident Investigation Methodology', summary: 'Building a timeline, scoping the full blast radius, and root-cause analysis.', minutes: 13, Content: IncidentInvestigationMethodology },
+      { id: 'soc-ir-2', slug: 'soar-automation', title: 'SOAR: Security Orchestration, Automation & Response', summary: 'Automated playbooks that respond in seconds instead of the ~22-minute manual average.', minutes: 12, Content: SoarAutomation },
+      {
+        id: 'soc-ir-3', slug: 'compliance-reporting', title: 'Compliance Reporting (PCI-DSS, HIPAA, SOC 2, ISO 27001)', summary: 'Generating audit-ready evidence that log review is actually happening, not just theoretically enabled.', minutes: 11, Content: ComplianceReporting,
+        quiz: [
+          { id: 'q1', prompt: 'What does PCI-DSS Requirement 10.6 specifically mandate?', choices: ['Annual password changes', 'Daily log review for systems in the cardholder data environment', 'Encryption of all data at rest', 'A minimum SOC team size'], correctIndex: 1, explanation: 'Requirement 10.6 mandates daily review of logs for systems handling cardholder data, with evidence retained for audit.' },
         ],
       },
     ],
@@ -419,7 +501,10 @@ export const ROADMAP: RoadmapStage[] = [
   { title: 'Web Application Hacking', status: 'available', moduleSlug: 'webapp', sourceBooks: ['The Web Application Hacker\'s Handbook', 'PortSwigger Web Security Academy'] },
   { title: 'Red Teaming & Active Directory', status: 'available', moduleSlug: 'redteam', sourceBooks: ['The Hacker Playbook 3'] },
   { title: 'Bug Bounty Methodology', status: 'available', moduleSlug: 'bugbounty', sourceBooks: ['Real-World Bug Hunting', 'Bug Bounty Bootcamp'] },
-  { title: 'SOC & Threat Hunting', status: 'available', moduleSlug: 'soc', sourceBooks: ['Blue Team Handbook', 'The Practice of Network Security Monitoring'] },
+  { title: 'SOC Fundamentals & Threat Hunting', status: 'available', moduleSlug: 'soc', sourceBooks: ['Blue Team Handbook', 'The Practice of Network Security Monitoring'] },
+  { title: 'SIEM Platforms & Log Management', status: 'available', moduleSlug: 'soc-siem-platforms', sourceBooks: ['Blue Team Handbook', 'The Practice of Network Security Monitoring'] },
+  { title: 'Detection Engineering & UEBA', status: 'available', moduleSlug: 'soc-detection-engineering', sourceBooks: ['Blue Team Handbook', 'The Practice of Network Security Monitoring'] },
+  { title: 'Incident Response, SOAR & Compliance', status: 'available', moduleSlug: 'soc-incident-response', sourceBooks: ['Blue Team Handbook', 'The Practice of Network Security Monitoring'] },
   { title: 'Digital Forensics', status: 'available', moduleSlug: 'forensics', sourceBooks: ['The Art of Memory Forensics', 'Practical Malware Analysis'] },
   { title: 'Cloud Security', status: 'available', moduleSlug: 'cloud', sourceBooks: ['Cloud security fundamentals'] },
   { title: 'Security+ Deep Dive', status: 'available', moduleSlug: 'securityplus', sourceBooks: ['CompTIA Security+ Get Certified Get Ahead'] },

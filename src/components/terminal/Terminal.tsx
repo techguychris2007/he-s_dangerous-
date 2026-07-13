@@ -9,6 +9,9 @@ interface DisplayLine extends OutLine {
 interface TerminalProps {
   scenario: LabScenario;
   onFlagCaptured: (flag: string) => void;
+  /** Fires once per real command submitted (not password entries) — used to drive the guided-steps
+   *  checklist's automatic tick-off, since each step is designed to correspond to roughly one command. */
+  onCommandRun?: () => void;
 }
 
 let idCounter = 0;
@@ -24,7 +27,7 @@ const KIND_CLASS: Record<OutLine['kind'], string> = {
   muted: 'text-[#7a7264]',
 };
 
-export default function Terminal({ scenario, onFlagCaptured }: TerminalProps) {
+export default function Terminal({ scenario, onFlagCaptured, onCommandRun }: TerminalProps) {
   const engineRef = useRef<TerminalEngine>(new TerminalEngine(scenario));
   const [lines, setLines] = useState<DisplayLine[]>([
     { id: idCounter++, kind: 'system', text: `Connected to lab environment: ${scenario.title}` },
@@ -74,6 +77,7 @@ export default function Terminal({ scenario, onFlagCaptured }: TerminalProps) {
     setLines((prev) => [...prev, ...newLines]);
     if (!isPassword && raw.trim()) {
       setHistoryList((prev) => [...prev, raw]);
+      onCommandRun?.();
     }
     setHistoryPos(null);
     setInput('');

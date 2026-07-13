@@ -32,6 +32,7 @@ import { offensiveExpansionLabs } from '../labs/scenarios/offensive-expansion-pa
 import { webSessionSecurityLabs } from '../labs/scenarios/web-session-security-pack';
 import { socialEngineeringAnalysisLabs } from '../labs/scenarios/social-engineering-analysis-pack';
 import { leakedNsaToolsLabs } from '../labs/scenarios/leaked-nsa-tools-pack';
+import { socRealworldIncidentsLabs } from '../labs/scenarios/soc-realworld-incidents-pack';
 import type { LabScenario } from '../labs/types';
 
 export interface LabEntry {
@@ -75,6 +76,7 @@ export const LABS: LabEntry[] = [
   ...toEntries(webSessionSecurityLabs),
   ...toEntries(socialEngineeringAnalysisLabs),
   ...toEntries(leakedNsaToolsLabs),
+  ...toEntries(socRealworldIncidentsLabs),
 ];
 
 /** Ordered to match the roadmap's actual teaching sequence (see curriculum.ts's MODULES order). */
@@ -101,6 +103,9 @@ export const MODULE_TO_LAB_CATEGORY: Record<string, (typeof LAB_CATEGORIES)[numb
   redteam: 'Active Directory',
   bugbounty: 'Bug Bounty',
   soc: 'SOC',
+  'soc-siem-platforms': 'SOC',
+  'soc-detection-engineering': 'SOC',
+  'soc-incident-response': 'SOC',
   forensics: 'Forensics',
   cloud: 'Cloud',
   securityplus: 'Security+',

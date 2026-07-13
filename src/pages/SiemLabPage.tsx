@@ -1,0 +1,102 @@
+import { useEffect, useState } from 'react';
+import { Navigate, useParams, Link } from 'react-router-dom';
+import { SIEM_LABS } from '../labs/siemScenarios';
+import { useProgress } from '../state/progressStore';
+import StepChecklist from '../components/lesson/StepChecklist';
+import SiemConsole from '../components/siem/SiemConsole';
+import { IconFlag, IconCheck } from '../components/layout/icons';
+
+const TOOL_LABEL: Record<string, string> = {
+  suricata: 'Suricata',
+  chronicle: 'Chronicle',
+  tcpdump: 'tcpdump',
+  splunk: 'Splunk',
+  sentinel: 'Microsoft Sentinel',
+  qradar: 'IBM QRadar',
+  elastic: 'Elastic Security',
+};
+
+export default function SiemLabPage() {
+  const { labId } = useParams();
+  const progress = useProgress();
+  const [hintIndex, setHintIndex] = useState(0);
+  const [queryCount, setQueryCount] = useState(0);
+  const scenario = SIEM_LABS.find((s) => s.id === labId);
+
+  useEffect(() => {
+    setHintIndex(0);
+    setQueryCount(0);
+  }, [labId]);
+
+  if (!scenario) return <Navigate to="/soc-portal" replace />;
+
+  const captured = progress.flagCount(scenario.id);
+  const onFlagCaptured = (flag: string) => progress.captureFlag(scenario.id, flag);
+  const autoCheckedCount =
+    captured >= scenario.totalFlags ? scenario.objectives.length : Math.min(queryCount, scenario.objectives.length);
+
+  return (
+    <div className="h-full flex flex-col lg:flex-row">
+      <div className="lg:w-96 shrink-0 border-b lg:border-b-0 lg:border-r border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-6 overflow-y-auto">
+        <Link to="/soc-portal" className="text-xs font-semibold text-[var(--color-accent)] hover:underline mb-3 inline-block">
+          &larr; Back to SOC Portal
+        </Link>
+        <div className="flex items-center gap-2 mb-2">
+          <span
+            className={`pill ${
+              scenario.difficulty === 'Easy'
+                ? 'bg-[var(--color-success)]/15 text-[var(--color-success)]'
+                : scenario.difficulty === 'Medium'
+                ? 'bg-[var(--color-warn)]/15 text-[var(--color-warn)]'
+                : 'bg-[var(--color-danger)]/15 text-[var(--color-danger)]'
+            }`}
+          >
+            {scenario.difficulty}
+          </span>
+          <span className="pill bg-[var(--color-surface-2)] text-[var(--color-text-dim)]">{TOOL_LABEL[scenario.tool]}</span>
+          <span className="flex items-center gap-1 text-xs text-[var(--color-text-dim)]">
+            <IconFlag className="w-3.5 h-3.5" />
+            {captured}/{scenario.totalFlags} flags
+          </span>
+        </div>
+        <h1 className="text-2xl font-bold text-[var(--color-heading)] mb-3">{scenario.title}</h1>
+        <p className="text-sm text-[var(--color-text-dim)] leading-relaxed mb-5">{scenario.briefing}</p>
+
+        <div className="mb-6">
+          <StepChecklist steps={scenario.objectives} autoCheckedCount={autoCheckedCount} />
+        </div>
+
+        <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] p-3 text-xs text-[var(--color-text-dim)] leading-relaxed mb-3">
+          Type your filter/query directly into the {TOOL_LABEL[scenario.tool]} bar and run it — the tool
+          highlights whatever matches, exactly like the real thing.
+        </div>
+
+        <button
+          onClick={() => setHintIndex((i) => Math.min(i + 1, scenario.hints.length))}
+          className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] text-xs font-semibold text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-heading)] transition-colors"
+        >
+          {hintIndex === 0 ? 'Show a hint' : 'Next hint'}
+        </button>
+        {hintIndex > 0 && (
+          <div className="mt-2 space-y-1.5">
+            {scenario.hints.slice(0, hintIndex).map((h, i) => (
+              <div key={i} className="text-xs font-mono bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2 py-1.5 text-[var(--color-accent-dim)]">
+                {h}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {captured >= scenario.totalFlags && (
+          <div className="mt-5 flex items-center gap-2 text-sm font-semibold text-[var(--color-success)]">
+            <IconCheck className="w-4 h-4" /> Lab complete — all flags captured!
+          </div>
+        )}
+      </div>
+
+      <div className="flex-1 min-h-[420px] p-4">
+        <SiemConsole scenario={scenario} onFlagCaptured={onFlagCaptured} onQueryRun={() => setQueryCount((c) => c + 1)} />
+      </div>
+    </div>
+  );
+}

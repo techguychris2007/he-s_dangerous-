@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
 import { findLab } from '../data/labs';
 import { useProgress } from '../state/progressStore';
@@ -11,10 +11,19 @@ export default function LabPage() {
   const { labSlug } = useParams();
   const progress = useProgress();
   const [sharing, setSharing] = useState(false);
+  const [commandCount, setCommandCount] = useState(0);
   const entry = findLab(labSlug);
+  const scenarioId = entry?.scenario.id;
+
+  useEffect(() => {
+    setCommandCount(0);
+  }, [scenarioId]);
+
   if (!entry) return <Navigate to="/" replace />;
   const { scenario } = entry;
   const captured = progress.flagCount(scenario.id);
+  const autoCheckedCount =
+    captured >= scenario.totalFlags ? scenario.objectives.length : Math.min(commandCount, scenario.objectives.length);
 
   return (
     <div className="h-full flex flex-col lg:flex-row">
@@ -40,7 +49,7 @@ export default function LabPage() {
         <p className="text-sm text-[var(--color-text-dim)] leading-relaxed mb-5">{scenario.briefing}</p>
 
         <div className="mb-6">
-          <StepChecklist steps={scenario.objectives} />
+          <StepChecklist steps={scenario.objectives} autoCheckedCount={autoCheckedCount} />
         </div>
 
         <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] p-3 text-xs text-[var(--color-text-dim)] leading-relaxed">
@@ -66,7 +75,11 @@ export default function LabPage() {
       </div>
 
       <div className="flex-1 min-h-[420px] p-4">
-        <Terminal scenario={scenario} onFlagCaptured={(flag) => progress.captureFlag(scenario.id, flag)} />
+        <Terminal
+          scenario={scenario}
+          onFlagCaptured={(flag) => progress.captureFlag(scenario.id, flag)}
+          onCommandRun={() => setCommandCount((c) => c + 1)}
+        />
       </div>
 
       {sharing && <ShareWriteupModal entry={entry} onClose={() => setSharing(false)} />}

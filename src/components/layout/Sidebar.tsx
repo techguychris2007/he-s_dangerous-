@@ -2,6 +2,7 @@ import { NavLink, useParams, useNavigate } from 'react-router-dom';
 import { MODULES, findModule } from '../../data/curriculum';
 import { LABS } from '../../data/labs';
 import { useProgress } from '../../state/progressStore';
+import { useAuth } from '../../state/authStore';
 import Logo from './Logo';
 import {
   ModuleIcon,
@@ -29,6 +30,7 @@ const navItemClass = ({ isActive }: { isActive: boolean }) =>
 
 export default function Sidebar() {
   const progress = useProgress();
+  const auth = useAuth();
   const { moduleSlug } = useParams();
   const currentModule = findModule(moduleSlug);
   const navigate = useNavigate();
@@ -89,6 +91,10 @@ export default function Sidebar() {
         </NavLink>
         <NavLink to="/help" className={navItemClass}>
           <IconHelp className="w-4 h-4" /> Help &amp; FAQ
+        </NavLink>
+        <NavLink to="/soc-portal" className={navItemClass}>
+          <IconShieldCheck className="w-4 h-4" /> SOC Portal
+          <IconExternal className="w-3 h-3 ml-auto opacity-60" />
         </NavLink>
       </nav>
 
@@ -178,8 +184,8 @@ export default function Sidebar() {
         </div>
         <button
           onClick={() => {
-            progress.logout();
-            navigate('/login');
+            auth.signOut();
+            navigate('/welcome');
           }}
           title="Log out"
           className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-danger)] shrink-0"
