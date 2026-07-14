@@ -4,6 +4,7 @@ import { MODULES } from '../data/curriculum';
 import { LABS } from '../data/labs';
 import { SIEM_LABS } from '../labs/siemScenarios';
 import Logo from '../components/layout/Logo';
+import AgencyBackdrop from '../components/layout/AgencyBackdrop';
 import {
   IconTerminal,
   IconShieldCheck,
@@ -11,7 +12,15 @@ import {
   IconCertificate,
   IconFlask,
   IconRadar,
+  IconUser,
+  IconFlag,
 } from '../components/layout/icons';
+
+const STEPS = [
+  { n: '01', title: 'Create your account', body: 'Free, in under a minute. Your progress syncs to your account so it follows you across devices.' },
+  { n: '02', title: 'Pick a module', body: 'Start from Linux and networking fundamentals, or jump straight into web hacking, red teaming, or SOC work.' },
+  { n: '03', title: 'Break something', body: 'Every lesson hands you off to a real interactive lab — terminal, SIEM console, or both — until you capture the flag.' },
+];
 
 const FEATURES = [
   {
@@ -56,21 +65,10 @@ export default function IntroPage() {
   const totalFlags = LABS.reduce((n, l) => n + l.scenario.totalFlags, 0) + SIEM_LABS.reduce((n, l) => n + l.totalFlags, 0);
 
   return (
-    <div className="min-h-screen w-full" style={{ background: 'var(--color-bg, #0a1420)' }}>
+    <div className="min-h-screen w-full bg-[#060d16]">
       {/* ---------- hero ---------- */}
-      <div
-        className="relative overflow-hidden"
-        style={{ background: 'radial-gradient(ellipse at 50% -10%, #16293e 0%, #0a1420 55%, #060d16 100%)' }}
-      >
-        <div
-          aria-hidden
-          className="absolute inset-0 pointer-events-none opacity-[0.3]"
-          style={{
-            backgroundImage:
-              'linear-gradient(rgba(148,180,214,0.09) 1px, transparent 1px), linear-gradient(90deg, rgba(148,180,214,0.09) 1px, transparent 1px)',
-            backgroundSize: '38px 38px',
-          }}
-        />
+      <div className="relative overflow-hidden">
+        <AgencyBackdrop variant="subtle" />
 
         <div className="relative max-w-5xl mx-auto px-6 sm:px-8 pt-8 pb-20">
           <div className="flex items-center justify-between mb-16 sm:mb-24">
@@ -154,7 +152,42 @@ export default function IntroPage() {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-14 mt-16">
+          {/* terminal mockup */}
+          <div className="relative max-w-2xl mx-auto mt-14">
+            <div
+              className="rounded-xl overflow-hidden font-mono text-[13px] leading-relaxed"
+              style={{
+                background: '#0c0d10',
+                border: '1px solid #3f8cff4d',
+                boxShadow: '0 0 60px -16px rgba(63,140,255,0.4), 0 30px 60px -24px rgba(0,0,0,0.7)',
+              }}
+            >
+              <div className="flex items-center gap-1.5 px-3.5 py-2.5 bg-[#15171c] border-b border-white/10">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#ff5f56]" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#27c93f]" />
+                <span className="ml-2.5 text-[11px] text-[#c9a15f]">attacker@darkworld — bash</span>
+              </div>
+              <div className="px-4 py-4 text-left space-y-1.5">
+                <div><span className="text-[#f2c46d]">$</span> <span className="text-[#d8d0c0]">sudo -l</span></div>
+                <div className="text-[#7a7264]">Matching Defaults entries for www-data on target:</div>
+                <div className="text-[#7a7264]">User www-data may run the following commands:</div>
+                <div className="text-[#7ee081]">&nbsp;&nbsp;(root) NOPASSWD: /usr/bin/openssl</div>
+                <div className="mt-2"><span className="text-[#f2c46d]">$</span> <span className="text-[#d8d0c0]">openssl enc -in /root/flag.txt</span></div>
+                <div className="text-[#e8a33d]">[+] privilege escalation path confirmed</div>
+                <div><span className="text-[#f2c46d]">$</span> <span className="animate-pulse text-[#d8d0c0]">_</span></div>
+              </div>
+            </div>
+            <div
+              className="absolute -bottom-4 -right-3 sm:-right-8 flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#0c2417] shadow-lg"
+              style={{ background: 'linear-gradient(180deg, #8ff0a4 0%, #4ade80 100%)' }}
+            >
+              <IconFlag className="w-3.5 h-3.5" />
+              flag captured
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-14 mt-20">
             <Stat value={`${MODULES.length}`} label="Modules" />
             <Stat value={`${totalLessons}+`} label="Lessons" />
             <Stat value={`${totalLabs}+`} label="Hands-on labs" />
@@ -166,7 +199,7 @@ export default function IntroPage() {
       {/* ---------- features ---------- */}
       <div className="max-w-5xl mx-auto px-6 sm:px-8 py-16 sm:py-20">
         <div className="text-center mb-12">
-          <div className="text-xs font-mono tracking-[0.25em] uppercase text-[var(--color-accent-dim, #6fb2ff)] mb-2">
+          <div className="text-xs font-mono tracking-[0.25em] uppercase text-[#6fb2ff] mb-2">
             Why DarkWorld
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-white">Everything a real SOC or pentest engagement throws at you</h2>
@@ -175,10 +208,10 @@ export default function IntroPage() {
           {FEATURES.map(({ Icon, title, body }) => (
             <div
               key={title}
-              className="rounded-xl p-5 border border-white/10 bg-white/[0.03] hover:border-[#c9a15f4d] hover:bg-white/[0.05] transition-colors"
+              className="group rounded-xl p-5 border border-white/10 bg-white/[0.03] hover:border-[#c9a15f4d] hover:bg-white/[0.05] hover:-translate-y-0.5 transition-all"
             >
               <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center mb-4"
+                className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 transition-shadow group-hover:shadow-[0_0_18px_-4px_rgba(201,161,95,0.6)]"
                 style={{ background: 'linear-gradient(180deg, #1c2f45 0%, #0e1826 100%)', border: '1px solid #c9a15f4d' }}
               >
                 <Icon className="w-5 h-5 text-[#c9a15f]" />
@@ -190,12 +223,55 @@ export default function IntroPage() {
         </div>
       </div>
 
+      {/* ---------- how it works ---------- */}
+      <div className="border-t border-white/10 bg-white/[0.015]">
+        <div className="max-w-5xl mx-auto px-6 sm:px-8 py-16 sm:py-20">
+          <div className="text-center mb-12">
+            <div className="text-xs font-mono tracking-[0.25em] uppercase text-[#6fb2ff] mb-2">
+              How it works
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-white">From zero to first flag, fast</h2>
+          </div>
+          <div className="grid sm:grid-cols-3 gap-6 relative">
+            {STEPS.map(({ n, title, body }, i) => (
+              <div key={n} className="relative">
+                <div
+                  className="font-mono text-4xl font-extrabold mb-3"
+                  style={{
+                    backgroundImage: 'linear-gradient(180deg, #f3e3bd 0%, #c9a15f 60%, #8f7136 100%)',
+                    WebkitBackgroundClip: 'text',
+                    backgroundClip: 'text',
+                    color: 'transparent',
+                  }}
+                >
+                  {n}
+                </div>
+                <div className="font-bold text-white mb-1.5">{title}</div>
+                <p className="text-sm text-[#a9c0da] leading-relaxed">{body}</p>
+                {i < STEPS.length - 1 && (
+                  <div className="hidden sm:block absolute top-5 left-[calc(100%-0.5rem)] w-6 h-px bg-gradient-to-r from-[#c9a15f66] to-transparent" />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* ---------- final CTA ---------- */}
-      <div className="border-t border-white/10">
-        <div className="max-w-5xl mx-auto px-6 sm:px-8 py-16 text-center">
+      <div className="border-t border-white/10 relative overflow-hidden">
+        <div
+          aria-hidden
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(63,140,255,0.12) 0%, transparent 60%)' }}
+        />
+        <div className="relative max-w-5xl mx-auto px-6 sm:px-8 py-16 sm:py-20 text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-mono tracking-[0.2em] uppercase text-[#c9a15f] border border-[#c9a15f4d] mb-5">
+            <IconUser className="w-3 h-3" /> free account, no credit card
+          </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-white mb-3">Create your account and start your first lab in under a minute</h2>
           <p className="text-[#a9c0da] mb-8 max-w-xl mx-auto">
-            Free to use. Your progress, flags, and certificates are tied to your account so you never lose them.
+            Your progress, flags, and certificates are tied to your account and synced automatically — pick up
+            exactly where you left off, on any device, online or off.
           </p>
           <Link
             to="/login?mode=signup"

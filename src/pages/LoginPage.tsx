@@ -2,9 +2,44 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../state/authStore';
 import Logo from '../components/layout/Logo';
+import AgencyBackdrop from '../components/layout/AgencyBackdrop';
 import { IconUser, IconLock, IconMail } from '../components/layout/icons';
 
 type Mode = 'signin' | 'signup' | 'reset';
+
+/** A "classified stamp" action button — sharp corners, double border, monospace uppercase, and an
+ *  ink-scan sweep on hover — standing in for the old rounded gold-gradient pill button. */
+function StampButton({ children, disabled, ...rest }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button
+      {...rest}
+      disabled={disabled}
+      className="group relative w-full mt-1 px-4 py-3.5 font-mono tracking-[0.25em] uppercase text-sm disabled:opacity-45 disabled:cursor-not-allowed transition-transform active:scale-[0.98] overflow-hidden"
+      style={{
+        background: '#0d1420',
+        color: '#c9a15f',
+        border: '1px solid #c9a15f',
+        boxShadow: '0 0 0 3px #06090f, 0 0 0 4px #c9a15f55, 0 10px 24px -10px rgba(0,0,0,0.7)',
+      }}
+    >
+      <span
+        aria-hidden
+        className="absolute inset-y-0 -left-1/3 w-1/3 opacity-0 group-hover:opacity-100 group-disabled:opacity-0 transition-opacity"
+        style={{
+          background: 'linear-gradient(90deg, transparent, rgba(201,161,95,0.35), transparent)',
+          animation: disabled ? 'none' : 'stamp-sweep 1.1s ease-in-out infinite',
+        }}
+      />
+      <span className="relative">{children}</span>
+      <style>{`
+        @keyframes stamp-sweep {
+          0% { transform: translateX(0%); }
+          100% { transform: translateX(400%); }
+        }
+      `}</style>
+    </button>
+  );
+}
 
 export default function LoginPage() {
   const auth = useAuth();
@@ -78,20 +113,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div
-      className="min-h-screen w-full flex items-center justify-center px-4 py-10 relative overflow-hidden"
-      style={{ background: 'radial-gradient(ellipse at 50% -10%, #16293e 0%, #0a1420 55%, #060d16 100%)' }}
-    >
-      {/* blueprint grid */}
-      <div
-        aria-hidden
-        className="absolute inset-0 pointer-events-none opacity-[0.35]"
-        style={{
-          backgroundImage:
-            'linear-gradient(rgba(148,180,214,0.09) 1px, transparent 1px), linear-gradient(90deg, rgba(148,180,214,0.09) 1px, transparent 1px)',
-          backgroundSize: '38px 38px',
-        }}
-      />
+    <div className="min-h-screen w-full flex items-center justify-center px-4 py-10 relative overflow-hidden bg-[#060d16]">
+      <AgencyBackdrop />
 
       <div
         className="relative w-full max-w-[440px] rounded-2xl px-7 py-8 sm:px-9 sm:py-10"
@@ -252,26 +275,16 @@ export default function LoginPage() {
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full mt-1 px-4 py-3 rounded-lg font-serif tracking-[0.2em] uppercase text-sm disabled:opacity-50 transition hover:brightness-110"
-            style={{
-              background: 'linear-gradient(180deg, #e9c98a 0%, #c9a15f 45%, #a17f42 100%)',
-              color: '#241a08',
-              boxShadow: '0 1px 0 rgba(255,255,255,0.4) inset, 0 4px 14px -4px rgba(201,161,95,0.6)',
-              border: '1px solid #8f7136',
-            }}
-          >
+          <StampButton type="submit" disabled={submitting}>
             {submitting
-              ? 'Please wait…'
+              ? 'Processing…'
               : mode === 'signup'
               ? 'Create account'
               : mode === 'reset'
               ? 'Send reset link'
               : 'Sign in'}
             {!submitting && ' →'}
-          </button>
+          </StampButton>
 
           {mode === 'reset' && (
             <button

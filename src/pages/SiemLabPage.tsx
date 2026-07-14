@@ -1,10 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Navigate, useParams, Link } from 'react-router-dom';
 import { SIEM_LABS } from '../labs/siemScenarios';
+import { OSINT_LABS } from '../labs/osintScenarios';
 import { useProgress } from '../state/progressStore';
 import StepChecklist from '../components/lesson/StepChecklist';
 import SiemConsole from '../components/siem/SiemConsole';
 import { IconFlag, IconCheck } from '../components/layout/icons';
+
+const ALL_TOOL_LABS = [...SIEM_LABS, ...OSINT_LABS];
+
+const OSINT_TOOLS = new Set(['shodan', 'sherlock', 'maltego', 'eyewitness', 'theharvester']);
 
 const TOOL_LABEL: Record<string, string> = {
   suricata: 'Suricata',
@@ -14,6 +19,11 @@ const TOOL_LABEL: Record<string, string> = {
   sentinel: 'Microsoft Sentinel',
   qradar: 'IBM QRadar',
   elastic: 'Elastic Security',
+  shodan: 'Shodan',
+  sherlock: 'Sherlock',
+  maltego: 'Maltego',
+  eyewitness: 'EyeWitness',
+  theharvester: 'theHarvester',
 };
 
 export default function SiemLabPage() {
@@ -21,15 +31,16 @@ export default function SiemLabPage() {
   const progress = useProgress();
   const [hintIndex, setHintIndex] = useState(0);
   const [queryCount, setQueryCount] = useState(0);
-  const scenario = SIEM_LABS.find((s) => s.id === labId);
+  const scenario = ALL_TOOL_LABS.find((s) => s.id === labId);
 
   useEffect(() => {
     setHintIndex(0);
     setQueryCount(0);
   }, [labId]);
 
-  if (!scenario) return <Navigate to="/soc-portal" replace />;
+  if (!scenario) return <Navigate to="/labs" replace />;
 
+  const isOsint = OSINT_TOOLS.has(scenario.tool);
   const captured = progress.flagCount(scenario.id);
   const onFlagCaptured = (flag: string) => progress.captureFlag(scenario.id, flag);
   const autoCheckedCount =
@@ -38,8 +49,11 @@ export default function SiemLabPage() {
   return (
     <div className="h-full flex flex-col lg:flex-row">
       <div className="lg:w-96 shrink-0 border-b lg:border-b-0 lg:border-r border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-6 overflow-y-auto">
-        <Link to="/soc-portal" className="text-xs font-semibold text-[var(--color-accent)] hover:underline mb-3 inline-block">
-          &larr; Back to SOC Portal
+        <Link
+          to={isOsint ? '/labs' : '/soc-portal'}
+          className="text-xs font-semibold text-[var(--color-accent)] hover:underline mb-3 inline-block"
+        >
+          &larr; Back to {isOsint ? 'Lab Catalog' : 'SOC Portal'}
         </Link>
         <div className="flex items-center gap-2 mb-2">
           <span

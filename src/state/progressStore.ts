@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
-interface ProgressState {
+export interface ProgressState {
   completedLessons: Record<string, boolean>;
   labFlags: Record<string, string[]>;
   quizScores: Record<string, number>;
@@ -9,6 +9,10 @@ interface ProgressState {
   /** epoch ms the moment each lab's flag count first reached its totalFlags — powers the mentor companion's pacing/speed flavor. */
   labCompletedAt: Record<string, number>;
 }
+
+/** The subset that's actually synced to Supabase — `learnerName` stays device-local since it's
+ *  redundant with the account's own name/email once real accounts exist. */
+export type SyncableProgress = Omit<ProgressState, 'learnerName'>;
 
 const STORAGE_KEY = 'hackerhub.progress.v1';
 const EMPTY_STATE: ProgressState = {
@@ -44,6 +48,10 @@ interface ProgressApi extends ProgressState {
   toggleBookmark: (labId: string) => void;
   isBookmarked: (labId: string) => boolean;
   markLabCompleted: (labId: string) => void;
+  /** Folds a remote snapshot into local state without ever losing progress on either side:
+   *  flags/completions/bookmarks union, quiz scores take the higher value, completion
+   *  timestamps take the earlier one. Safe to call with a partial/empty remote snapshot. */
+  mergeFromRemote: (remote: Partial<SyncableProgress>) => void;
 }
 
 export const ProgressContext = createContext<ProgressApi | null>(null);
@@ -120,6 +128,34 @@ export function useProgressState(): ProgressApi {
     });
   }, []);
 
+  const mergeFromRemote = useCallback((remote: Partial<SyncableProgress>) => {
+    setState((s) => {
+      const completedLessons = { ...s.completedLessons };
+      for (const [k, v] of Object.entries(remote.completedLessons ?? {})) if (v) completedLessons[k] = true;
+
+      const labFlags = { ...s.labFlags };
+      for (const [k, flags] of Object.entries(remote.labFlags ?? {})) {
+        const existing = labFlags[k] ?? [];
+        const merged = [...existing];
+        for (const f of flags) if (!merged.includes(f)) merged.push(f);
+        labFlags[k] = merged;
+      }
+
+      const quizScores = { ...s.quizScores };
+      for (const [k, v] of Object.entries(remote.quizScores ?? {})) quizScores[k] = Math.max(quizScores[k] ?? 0, v);
+
+      const bookmarkedLabs = { ...s.bookmarkedLabs };
+      for (const [k, v] of Object.entries(remote.bookmarkedLabs ?? {})) if (v) bookmarkedLabs[k] = true;
+
+      const labCompletedAt = { ...s.labCompletedAt };
+      for (const [k, v] of Object.entries(remote.labCompletedAt ?? {})) {
+        labCompletedAt[k] = labCompletedAt[k] ? Math.min(labCompletedAt[k], v) : v;
+      }
+
+      return { ...s, completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt };
+    });
+  }, []);
+
   return useMemo(
     () => ({
       ...state,
@@ -136,6 +172,7 @@ export function useProgressState(): ProgressApi {
       toggleBookmark,
       isBookmarked,
       markLabCompleted,
+      mergeFromRemote,
     }),
     [
       state,
@@ -152,6 +189,7 @@ export function useProgressState(): ProgressApi {
       toggleBookmark,
       isBookmarked,
       markLabCompleted,
+      mergeFromRemote,
     ],
   );
 }

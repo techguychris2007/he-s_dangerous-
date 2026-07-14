@@ -1,6 +1,18 @@
 import type { ObjectiveStep } from './types';
 
-export type SiemTool = 'suricata' | 'chronicle' | 'tcpdump' | 'splunk' | 'sentinel' | 'qradar' | 'elastic';
+export type SiemTool =
+  | 'suricata'
+  | 'chronicle'
+  | 'tcpdump'
+  | 'splunk'
+  | 'sentinel'
+  | 'qradar'
+  | 'elastic'
+  | 'shodan'
+  | 'sherlock'
+  | 'maltego'
+  | 'eyewitness'
+  | 'theharvester';
 
 /** A single raw record the analyst is investigating — an IDS alert, a UDM log event, or a packet line.
  *  The tool-specific console renders this generically; only the "line" text is ever pattern-matched. */

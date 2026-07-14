@@ -17,6 +17,11 @@ const TOOL_STYLE: Record<string, { label: string; class: string }> = {
   sentinel: { label: 'Sentinel', class: 'bg-sky-500/15 text-sky-400 border border-sky-500/30' },
   qradar: { label: 'QRadar', class: 'bg-indigo-500/15 text-indigo-400 border border-indigo-500/30' },
   elastic: { label: 'Elastic', class: 'bg-teal-500/15 text-teal-400 border border-teal-500/30' },
+  shodan: { label: 'Shodan', class: 'bg-red-500/15 text-red-400 border border-red-500/30' },
+  sherlock: { label: 'Sherlock', class: 'bg-slate-400/15 text-slate-300 border border-slate-400/30' },
+  maltego: { label: 'Maltego', class: 'bg-amber-500/15 text-amber-400 border border-amber-500/30' },
+  eyewitness: { label: 'EyeWitness', class: 'bg-violet-500/15 text-violet-400 border border-violet-500/30' },
+  theharvester: { label: 'theHarvester', class: 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/30' },
 };
 
 export default function SiemLabCard({ lab }: { lab: SiemLabScenario }) {

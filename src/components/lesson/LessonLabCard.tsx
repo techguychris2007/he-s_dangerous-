@@ -5,7 +5,7 @@ import StepChecklist from './StepChecklist';
 import ShareWriteupModal from '../labs/ShareWriteupModal';
 import { useProgress } from '../../state/progressStore';
 import { findLab } from '../../data/labs';
-import { IconFlask, IconFlag, IconCheck } from '../layout/icons';
+import { IconFlask, IconFlag, IconCheck, IconExternal } from '../layout/icons';
 
 const DIFFICULTY_CLASS: Record<string, string> = {
   Easy: 'bg-[var(--color-success)]/15 text-[var(--color-success)]',
@@ -24,10 +24,19 @@ export default function LessonLabCard({ labSlug }: { labSlug: string }) {
   const done = captured >= scenario.totalFlags;
 
   return (
-    <div className="my-5 rounded-xl overflow-hidden border border-[var(--color-accent)]/20">
-      <div className="bg-[var(--color-accent)] px-5 py-4 flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-start gap-3 min-w-0">
-          <span className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center text-white shrink-0">
+    <div className="my-5 rounded-xl overflow-hidden border border-[var(--color-accent)]/20 shadow-sm">
+      <div
+        className="relative overflow-hidden px-5 py-4 flex items-center justify-between gap-4 flex-wrap"
+        style={{ background: 'linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-2) 130%)' }}
+      >
+        {/* soft decorative glow, purely cosmetic */}
+        <div
+          aria-hidden
+          className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/10 blur-2xl pointer-events-none"
+        />
+
+        <div className="relative flex items-start gap-3 min-w-0">
+          <span className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center text-white shrink-0 shadow-inner">
             <IconFlask className="w-4.5 h-4.5" />
           </span>
           <div className="min-w-0">
@@ -40,31 +49,34 @@ export default function LessonLabCard({ labSlug }: { labSlug: string }) {
               )}
             </div>
             <div className="font-semibold text-white text-sm truncate">{scenario.title}</div>
-            <div className="text-xs text-white/60">
+            <div className="text-xs text-white/70">
               Solve it in the terminal below to reveal the flag — {captured}/{scenario.totalFlags} captured
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="relative flex items-center gap-2 shrink-0">
           <Link
             to={`/lab/${scenario.id}`}
-            className="text-xs text-white/70 hover:text-white underline underline-offset-2"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold text-white/85 hover:text-white hover:bg-white/10 transition-colors"
           >
-            Open full screen
+            <IconExternal className="w-3.5 h-3.5" />
+            Full screen
           </Link>
           {done && (
             <button
               onClick={() => setSharing(true)}
-              className="px-3.5 py-2 rounded-lg bg-white/10 text-white text-xs font-semibold hover:bg-white/20 transition"
+              className="px-3.5 py-2 rounded-full bg-white/10 text-white text-xs font-semibold hover:bg-white/20 transition-colors"
             >
               Share this win
             </button>
           )}
           <button
             onClick={() => setOpen((o) => !o)}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[var(--color-accent)] text-white text-sm font-semibold hover:brightness-110 transition"
+            className="flex items-center gap-1.5 pl-2 pr-4 py-2 rounded-full bg-white text-blue-600 text-sm font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:shadow-md transition-all duration-150"
           >
-            <IconFlag className="w-3.5 h-3.5" />
+            <span className="w-5 h-5 rounded-full bg-blue-600/10 flex items-center justify-center">
+              <IconFlag className="w-3 h-3" />
+            </span>
             {open ? 'Close lab' : 'Open the lab'} &rarr;
           </button>
         </div>

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import AppLayout from './components/layout/AppLayout';
 import HomePage from './pages/HomePage';
@@ -23,6 +23,7 @@ import SiemLabPage from './pages/SiemLabPage';
 import InstallPrompt from './components/layout/InstallPrompt';
 import { ProgressContext, useProgressState, useProgress } from './state/progressStore';
 import { AuthContext, useAuthState, useAuth } from './state/authStore';
+import { pullProgress, pushProgress } from './lib/progressSync';
 
 function RequireLogin({ children }: { children: React.ReactNode }) {
   const auth = useAuth();
@@ -56,6 +57,55 @@ function SyncAuthToProgress() {
   return null;
 }
 
+/** Two-way sync with Supabase, entirely best-effort: nothing here ever blocks the UI or throws
+ *  visibly, because the app must stay fully usable offline no matter what this does.
+ *  - On sign-in, pull the account's remote snapshot once and fold it into local state.
+ *  - On any local progress change, push after a short debounce (coalesces bursts like a fast lab run).
+ *  - The instant the browser regains connectivity, push immediately instead of waiting on the debounce. */
+function ProgressSync() {
+  const auth = useAuth();
+  const progress = useProgress();
+  const pulledForUser = useRef<string | null>(null);
+  const pushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!auth.user) {
+      pulledForUser.current = null;
+      return;
+    }
+    if (pulledForUser.current === auth.user.id) return;
+    pulledForUser.current = auth.user.id;
+    pullProgress(auth.user.id).then((remote) => {
+      if (remote) progress.mergeFromRemote(remote);
+    });
+    // progress.mergeFromRemote is stable (useCallback), safe to omit from deps.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auth.user]);
+
+  const { completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt } = progress;
+  useEffect(() => {
+    if (!auth.user) return;
+    const userId = auth.user.id;
+    if (pushTimer.current) clearTimeout(pushTimer.current);
+    pushTimer.current = setTimeout(() => {
+      if (navigator.onLine) pushProgress(userId, { completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt });
+    }, 2000);
+    return () => {
+      if (pushTimer.current) clearTimeout(pushTimer.current);
+    };
+  }, [auth.user, completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt]);
+
+  useEffect(() => {
+    if (!auth.user) return;
+    const userId = auth.user.id;
+    const onOnline = () => pushProgress(userId, { completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt });
+    window.addEventListener('online', onOnline);
+    return () => window.removeEventListener('online', onOnline);
+  }, [auth.user, completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt]);
+
+  return null;
+}
+
 function App() {
   const progress = useProgressState();
   const auth = useAuthState();
@@ -64,6 +114,7 @@ function App() {
     <ProgressContext.Provider value={progress}>
       <AuthContext.Provider value={auth}>
         <SyncAuthToProgress />
+        <ProgressSync />
         <InstallPrompt />
         <HashRouter>
           <Routes>
