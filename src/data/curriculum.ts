@@ -79,6 +79,18 @@ import PersistenceMechanisms from '../content/malware/03-persistence-mechanisms'
 import NetworkIndicatorsC2 from '../content/malware/04-network-indicators-c2';
 import AntiAnalysisEvasion from '../content/malware/05-anti-analysis-evasion';
 
+import SyntaxAndDataStructures from '../content/code-python-fundamentals/01-syntax-and-data-structures';
+import FunctionsAndErrorHandling from '../content/code-python-fundamentals/02-functions-and-error-handling';
+import StringsAndTextProcessing from '../content/code-python-fundamentals/03-strings-and-text-processing';
+
+import OopBasics from '../content/code-python-oop/01-oop-basics';
+import InheritanceAndPolymorphism from '../content/code-python-oop/02-inheritance-and-polymorphism';
+import AdvancedOop from '../content/code-python-oop/03-advanced-oop';
+
+import DecoratorsAndClosures from '../content/code-python-advanced/01-decorators-and-closures';
+import GeneratorsAndContextManagers from '../content/code-python-advanced/02-generators-and-context-managers';
+import RegexConcurrencyAndCaching from '../content/code-python-advanced/03-regex-concurrency-and-caching';
+
 import SecurityEconomics from '../content/secengineering/01-security-economics';
 import SecureDesignPrinciples from '../content/secengineering/02-secure-design-principles';
 import ThreatModeling from '../content/secengineering/03-threat-modeling';
@@ -491,6 +503,60 @@ export const MODULES: ModuleMeta[] = [
       },
     ],
   },
+  {
+    id: 'code-python-fundamentals',
+    slug: 'code-python-fundamentals',
+    title: 'Code Portal: Python Fundamentals',
+    subtitle: 'Syntax, data structures, functions, errors, and text processing — from zero',
+    description:
+      'The Code Portal\'s general-purpose programming track, starting from scratch: variables and core data ' +
+      'structures, functions and defensive error handling, and the string/regex processing every security ' +
+      'script eventually needs. Every lesson links straight into runnable practice tasks in the Code Portal.',
+    status: 'available',
+    sourceBooks: ['Python Crash Course'],
+    icon: 'code',
+    lessons: [
+      { id: 'cpy-1', slug: 'syntax-and-data-structures', title: 'Python Syntax & Data Structures, From Zero', summary: 'Variables, lists, dicts, sets, and control flow.', minutes: 14, Content: SyntaxAndDataStructures },
+      { id: 'cpy-2', slug: 'functions-and-error-handling', title: 'Functions, Exceptions & Defensive Scripting', summary: 'Writing functions and handling bad input without crashing.', minutes: 12, Content: FunctionsAndErrorHandling },
+      { id: 'cpy-3', slug: 'strings-and-text-processing', title: 'Strings, Text Processing & the re Module', summary: 'String methods, slicing, and regular expressions.', minutes: 13, Content: StringsAndTextProcessing },
+    ],
+  },
+  {
+    id: 'code-python-oop',
+    slug: 'code-python-oop',
+    title: 'Code Portal: Python OOP',
+    subtitle: 'Classes, inheritance, polymorphism, dunder methods, and dataclasses',
+    description:
+      'Object-oriented Python from first principles through the advanced features real security tooling ' +
+      'actually uses: encapsulation, inheritance vs. composition, polymorphism, dunder methods, abstract base ' +
+      'classes, and dataclasses.',
+    status: 'available',
+    sourceBooks: ['Fluent Python'],
+    icon: 'code',
+    lessons: [
+      { id: 'cpy-4', slug: 'oop-basics', title: 'OOP Basics: Classes, Objects & Encapsulation', summary: 'Your first classes, and controlling access to internal state.', minutes: 13, Content: OopBasics },
+      { id: 'cpy-5', slug: 'inheritance-and-polymorphism', title: 'Inheritance, Polymorphism & Composition', summary: 'Sharing behavior across classes, and when not to.', minutes: 13, Content: InheritanceAndPolymorphism },
+      { id: 'cpy-6', slug: 'advanced-oop', title: 'Advanced OOP: Dunder Methods, Dataclasses & Abstract Classes', summary: 'Making your classes behave like real Python objects.', minutes: 14, Content: AdvancedOop },
+    ],
+  },
+  {
+    id: 'code-python-advanced',
+    slug: 'code-python-advanced',
+    title: 'Code Portal: Advanced Python',
+    subtitle: 'Decorators, generators, context managers, regex, and concurrency',
+    description:
+      'The features that separate working Python from genuinely efficient, expressive Python: closures and ' +
+      'decorators, generators and iterators, custom context managers, advanced regex, asyncio concurrency, ' +
+      'and caching.',
+    status: 'available',
+    sourceBooks: ['Fluent Python'],
+    icon: 'code',
+    lessons: [
+      { id: 'cpy-7', slug: 'decorators-and-closures', title: 'Closures & Decorators', summary: 'Wrapping functions with extra behavior, cleanly.', minutes: 14, Content: DecoratorsAndClosures },
+      { id: 'cpy-8', slug: 'generators-and-context-managers', title: 'Generators, Iterators & Context Managers', summary: 'Lazy evaluation and guaranteed cleanup.', minutes: 13, Content: GeneratorsAndContextManagers },
+      { id: 'cpy-9', slug: 'regex-concurrency-and-caching', title: 'Advanced Regex, Concurrency & Caching', summary: 'Lookaheads, asyncio.gather, and lru_cache.', minutes: 14, Content: RegexConcurrencyAndCaching },
+    ],
+  },
 ];
 
 export const ROADMAP: RoadmapStage[] = [
@@ -511,6 +577,9 @@ export const ROADMAP: RoadmapStage[] = [
   { title: 'Binary Analysis & Reverse Engineering', status: 'available', moduleSlug: 'binaryanalysis', sourceBooks: ['Practical Binary Analysis', 'Hacking: The Art of Exploitation'] },
   { title: 'Practical Malware Analysis', status: 'available', moduleSlug: 'malware', sourceBooks: ['Practical Malware Analysis'] },
   { title: 'Security Engineering', status: 'available', moduleSlug: 'secengineering', sourceBooks: ['Security Engineering — Ross Anderson'] },
+  { title: 'Code Portal: Python Fundamentals', status: 'available', moduleSlug: 'code-python-fundamentals', sourceBooks: ['Python Crash Course'] },
+  { title: 'Code Portal: Python OOP', status: 'available', moduleSlug: 'code-python-oop', sourceBooks: ['Fluent Python'] },
+  { title: 'Code Portal: Advanced Python', status: 'available', moduleSlug: 'code-python-advanced', sourceBooks: ['Fluent Python'] },
   { title: 'Guided Hands-On Labs (142 labs)', status: 'available', href: '/labs', sourceBooks: ['Applied practice across every module above'] },
 ];
 

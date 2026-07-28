@@ -19,6 +19,7 @@ import {
   IconShieldCheck,
   IconHelp,
   IconExternal,
+  IconCode,
 } from './icons';
 
 const navItemClass = ({ isActive }: { isActive: boolean }) =>
@@ -94,6 +95,10 @@ export default function Sidebar() {
         </NavLink>
         <NavLink to="/soc-portal" className={navItemClass}>
           <IconShieldCheck className="w-4 h-4" /> SOC Portal
+          <IconExternal className="w-3 h-3 ml-auto opacity-60" />
+        </NavLink>
+        <NavLink to="/code-portal" className={navItemClass}>
+          <IconCode className="w-4 h-4" /> Code Portal
           <IconExternal className="w-3 h-3 ml-auto opacity-60" />
         </NavLink>
       </nav>

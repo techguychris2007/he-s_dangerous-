@@ -45,6 +45,18 @@ export default defineConfig({
             handler: 'CacheFirst',
             options: { cacheName: 'banner-images', expiration: { maxEntries: 40, maxAgeSeconds: 60 * 60 * 24 * 30 } },
           },
+          {
+            // The Pyodide (Python-in-WebAssembly) runtime the Code Portal loads on demand — not
+            // precached (it's ~10-20MB), but cached after first use so re-running Python tasks
+            // works offline too. jsDelivr versions its URLs, so CacheFirst is always safe here.
+            urlPattern: ({ url }) => url.hostname === 'cdn.jsdelivr.net' && url.pathname.includes('/pyodide/'),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'pyodide-runtime',
+              expiration: { maxEntries: 60, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
         ],
       },
       devOptions: {

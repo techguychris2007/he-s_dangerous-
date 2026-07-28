@@ -20,6 +20,8 @@ import SecurityPage from './pages/SecurityPage';
 import HelpFaqPage from './pages/HelpFaqPage';
 import SocPortalPage from './pages/SocPortalPage';
 import SiemLabPage from './pages/SiemLabPage';
+import CodePortalPage from './pages/CodePortalPage';
+import CodeTaskPage from './pages/CodeTaskPage';
 import InstallPrompt from './components/layout/InstallPrompt';
 import { ProgressContext, useProgressState, useProgress } from './state/progressStore';
 import { AuthContext, useAuthState, useAuth } from './state/authStore';
@@ -82,26 +84,26 @@ function ProgressSync() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth.user]);
 
-  const { completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt } = progress;
+  const { completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt, completedCodeTasks } = progress;
   useEffect(() => {
     if (!auth.user) return;
     const userId = auth.user.id;
     if (pushTimer.current) clearTimeout(pushTimer.current);
     pushTimer.current = setTimeout(() => {
-      if (navigator.onLine) pushProgress(userId, { completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt });
+      if (navigator.onLine) pushProgress(userId, { completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt, completedCodeTasks });
     }, 2000);
     return () => {
       if (pushTimer.current) clearTimeout(pushTimer.current);
     };
-  }, [auth.user, completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt]);
+  }, [auth.user, completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt, completedCodeTasks]);
 
   useEffect(() => {
     if (!auth.user) return;
     const userId = auth.user.id;
-    const onOnline = () => pushProgress(userId, { completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt });
+    const onOnline = () => pushProgress(userId, { completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt, completedCodeTasks });
     window.addEventListener('online', onOnline);
     return () => window.removeEventListener('online', onOnline);
-  }, [auth.user, completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt]);
+  }, [auth.user, completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt, completedCodeTasks]);
 
   return null;
 }
@@ -133,6 +135,22 @@ function App() {
               element={
                 <RequireLogin>
                   <SiemLabPage />
+                </RequireLogin>
+              }
+            />
+            <Route
+              path="/code-portal"
+              element={
+                <RequireLogin>
+                  <CodePortalPage />
+                </RequireLogin>
+              }
+            />
+            <Route
+              path="/code-task/:taskId"
+              element={
+                <RequireLogin>
+                  <CodeTaskPage />
                 </RequireLogin>
               }
             />

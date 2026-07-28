@@ -382,6 +382,14 @@ export function IconCrosshair({ className }: IconProps) {
   );
 }
 
+export function IconCode({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
+      <path d="M8.5 8 4 12l4.5 4M15.5 8 20 12l-4.5 4M13.5 5.5l-3 13" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 const ICONS: Record<string, (p: IconProps) => ReactElement> = {
   network: IconNetwork,
   terminal: IconTerminal,
@@ -406,6 +414,7 @@ const ICONS: Record<string, (p: IconProps) => ReactElement> = {
   crown: IconCrown,
   lightning: IconLightning,
   crosshair: IconCrosshair,
+  code: IconCode,
 };
 
 export function ModuleIcon({ icon, className }: { icon: string; className?: string }) {

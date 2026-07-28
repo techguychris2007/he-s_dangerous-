@@ -8,6 +8,8 @@ export interface ProgressState {
   bookmarkedLabs: Record<string, boolean>;
   /** epoch ms the moment each lab's flag count first reached its totalFlags — powers the mentor companion's pacing/speed flavor. */
   labCompletedAt: Record<string, number>;
+  /** Code Portal practice tasks (Python/C++/JS) whose test harness has fully passed at least once. */
+  completedCodeTasks: Record<string, boolean>;
 }
 
 /** The subset that's actually synced to Supabase — `learnerName` stays device-local since it's
@@ -22,6 +24,7 @@ const EMPTY_STATE: ProgressState = {
   learnerName: null,
   bookmarkedLabs: {},
   labCompletedAt: {},
+  completedCodeTasks: {},
 };
 
 function loadState(): ProgressState {
@@ -48,6 +51,8 @@ interface ProgressApi extends ProgressState {
   toggleBookmark: (labId: string) => void;
   isBookmarked: (labId: string) => boolean;
   markLabCompleted: (labId: string) => void;
+  completeCodeTask: (taskId: string) => void;
+  isCodeTaskComplete: (taskId: string) => boolean;
   /** Folds a remote snapshot into local state without ever losing progress on either side:
    *  flags/completions/bookmarks union, quiz scores take the higher value, completion
    *  timestamps take the earlier one. Safe to call with a partial/empty remote snapshot. */
@@ -128,6 +133,15 @@ export function useProgressState(): ProgressApi {
     });
   }, []);
 
+  const completeCodeTask = useCallback((taskId: string) => {
+    setState((s) => (s.completedCodeTasks[taskId] ? s : { ...s, completedCodeTasks: { ...s.completedCodeTasks, [taskId]: true } }));
+  }, []);
+
+  const isCodeTaskComplete = useCallback(
+    (taskId: string) => Boolean(state.completedCodeTasks[taskId]),
+    [state.completedCodeTasks],
+  );
+
   const mergeFromRemote = useCallback((remote: Partial<SyncableProgress>) => {
     setState((s) => {
       const completedLessons = { ...s.completedLessons };
@@ -152,7 +166,10 @@ export function useProgressState(): ProgressApi {
         labCompletedAt[k] = labCompletedAt[k] ? Math.min(labCompletedAt[k], v) : v;
       }
 
-      return { ...s, completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt };
+      const completedCodeTasks = { ...s.completedCodeTasks };
+      for (const [k, v] of Object.entries(remote.completedCodeTasks ?? {})) if (v) completedCodeTasks[k] = true;
+
+      return { ...s, completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt, completedCodeTasks };
     });
   }, []);
 
@@ -172,6 +189,8 @@ export function useProgressState(): ProgressApi {
       toggleBookmark,
       isBookmarked,
       markLabCompleted,
+      completeCodeTask,
+      isCodeTaskComplete,
       mergeFromRemote,
     }),
     [
@@ -189,6 +208,8 @@ export function useProgressState(): ProgressApi {
       toggleBookmark,
       isBookmarked,
       markLabCompleted,
+      completeCodeTask,
+      isCodeTaskComplete,
       mergeFromRemote,
     ],
   );

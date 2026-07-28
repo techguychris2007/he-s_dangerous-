@@ -17,7 +17,8 @@
       "Bash(node \"C:/Users/chrisB/AppData/Local/Temp/claude/c--Users-chrisB-OneDrive---University-of-Ghana-Desktop-hackerhub/7fca606c-29c9-48e0-8750-92fababc2105/scratchpad/test_pwa_offline.js\")",
       "Bash(curl -s -o /dev/null -w \"dev:%{http_code}\\\\n\" http://localhost:5173/)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:5173/)",
-      "Bash(node \"C:/Users/chrisB/AppData/Local/Temp/claude/c--Users-chrisB-OneDrive---University-of-Ghana-Desktop-hackerhub/7fca606c-29c9-48e0-8750-92fababc2105/scratchpad/test_new_soc_lessons.js\")"
+      "Bash(node \"C:/Users/chrisB/AppData/Local/Temp/claude/c--Users-chrisB-OneDrive---University-of-Ghana-Desktop-hackerhub/7fca606c-29c9-48e0-8750-92fababc2105/scratchpad/test_new_soc_lessons.js\")",
+      "Bash(node -e \"console.log\\(1\\)\" --experimental-strip-types)"
     ]
   }
 }
