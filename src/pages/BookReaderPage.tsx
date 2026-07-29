@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Navigate, useParams, Link } from 'react-router-dom';
 import { findBook, booksInTrack } from '../data/books';
 import PdfViewer, { type PdfViewerHandle } from '../components/books/PdfViewer';
-import { IconExternal, IconSearch } from '../components/layout/icons';
+import { IconExternal, IconSearch, IconFlask } from '../components/layout/icons';
+import { SECURITY_TASKS, BOOK_LAB_TASK_IDS } from '../labs/securityTasks';
 
 /** Runs the search across pages with limited concurrency instead of one-at-a-time (too slow for a
  *  300+ page book) or all-at-once (hundreds of simultaneous pdf.js calls at once). */
@@ -69,6 +70,9 @@ export default function BookReaderPage() {
   const index = siblings.findIndex((b) => b.id === book.id);
   const prevBook = index > 0 ? siblings[index - 1] : undefined;
   const nextBook = index >= 0 && index < siblings.length - 1 ? siblings[index + 1] : undefined;
+  const bookLabs = (BOOK_LAB_TASK_IDS[book.id] ?? [])
+    .map((taskId) => SECURITY_TASKS.find((t) => t.id === taskId))
+    .filter((t): t is NonNullable<typeof t> => Boolean(t));
 
   const runSearch = async () => {
     if (!viewerRef.current || !query.trim()) return;
@@ -267,6 +271,35 @@ export default function BookReaderPage() {
           </div>
         )}
       </div>
+
+      {bookLabs.length > 0 && (
+        <div className="border-b border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-4">
+          <div className="max-w-6xl mx-auto">
+            <div className="flex items-center gap-2 mb-2">
+              <IconFlask className="w-4 h-4 text-[var(--color-accent)]" />
+              <span className="text-xs font-bold text-[var(--color-heading)] uppercase tracking-wide">
+                Real-world labs for this book
+              </span>
+            </div>
+            <p className="text-xs text-[var(--color-text-dim)] mb-3">
+              Not simulations — real code running live in your browser, putting this book's concepts to
+              work: cracking real ciphertext, hashing real evidence, running a real SQL injection against a
+              real database.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {bookLabs.map((lab) => (
+                <Link
+                  key={lab.id}
+                  to={`/code-task/${lab.id}`}
+                  className="pill bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] transition-colors"
+                >
+                  {lab.title}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex-1 min-h-0" style={{ minHeight: '80vh' }}>
         <PdfViewer ref={viewerRef} url={fileUrl} />

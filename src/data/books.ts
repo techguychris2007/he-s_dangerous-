@@ -213,6 +213,40 @@ export const BOOKS: Book[] = [
       'The capstone: how a real incident response team actually operates end to end — preparation, ' +
       'detection, containment, eradication, and recovery — bringing every earlier book together.',
   },
+  {
+    id: 'owasp-wstg',
+    title: 'OWASP Web Security Testing Guide',
+    subtitle: 'Version 4.2',
+    author: 'OWASP Foundation &amp; Contributors',
+    track: 'security',
+    order: 8,
+    filename: 'owasp-wstg.pdf',
+    fileSizeMb: '9.7',
+    license: 'CC BY-SA 4.0',
+    licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/',
+    officialUrl: 'https://owasp.org/www-project-web-security-testing-guide/',
+    description:
+      'The methodology the NIST testing guide points at but doesn’t itemize: hundreds of concrete, ' +
+      'named test cases for finding real vulnerabilities in real web applications — injection, auth, ' +
+      'session management, and more — maintained on GitHub by working penetration testers.',
+  },
+  {
+    id: 'owasp-asvs',
+    title: 'OWASP Application Security Verification Standard',
+    subtitle: 'Version 5.0.0',
+    author: 'OWASP Foundation &amp; Contributors',
+    track: 'security',
+    order: 9,
+    filename: 'owasp-asvs.pdf',
+    fileSizeMb: '0.5',
+    license: 'CC BY-SA 4.0',
+    licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/',
+    officialUrl: 'https://owasp.org/www-project-application-security-verification-standard/',
+    description:
+      'The checklist that turns everything else on this shelf into a pass/fail bar: hundreds of ' +
+      'numbered, testable security requirements for authentication, session management, access ' +
+      'control, and more, used by real organizations to verify real applications before shipping.',
+  },
 ];
 
 export function findBook(id: string): Book | undefined {

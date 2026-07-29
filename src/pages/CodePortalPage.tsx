@@ -4,6 +4,7 @@ import { findModule } from '../data/curriculum';
 import { PYTHON_TASKS, PYTHON_TASK_CATEGORIES } from '../labs/pythonTasks';
 import { CPP_TASKS, CPP_TASK_CATEGORIES } from '../labs/cppTasks';
 import { JS_TASKS, JS_TASK_CATEGORIES } from '../labs/jsTasks';
+import { SECURITY_TASKS, SECURITY_TASK_CATEGORIES } from '../labs/securityTasks';
 import type { CodeLanguage } from '../labs/codeTypes';
 import { useProgress } from '../state/progressStore';
 import CodeTaskCard from '../components/code/CodeTaskCard';
@@ -13,7 +14,7 @@ import { BOOKS } from '../data/books';
 
 const CODE_MODULE_SLUGS = ['code-python-fundamentals', 'code-python-oop', 'code-python-advanced'];
 
-const ALL_TASKS = [...PYTHON_TASKS, ...CPP_TASKS, ...JS_TASKS];
+const ALL_TASKS = [...PYTHON_TASKS, ...CPP_TASKS, ...JS_TASKS, ...SECURITY_TASKS];
 
 const LANGUAGE_TABS: { value: CodeLanguage | 'All'; label: string }[] = [
   { value: 'All', label: 'All languages' },
@@ -23,7 +24,7 @@ const LANGUAGE_TABS: { value: CodeLanguage | 'All'; label: string }[] = [
 ];
 
 const CATEGORIES_BY_LANGUAGE: Record<CodeLanguage, readonly string[]> = {
-  python: PYTHON_TASK_CATEGORIES,
+  python: [...PYTHON_TASK_CATEGORIES, ...SECURITY_TASK_CATEGORIES],
   cpp: CPP_TASK_CATEGORIES,
   javascript: JS_TASK_CATEGORIES,
 };

@@ -4,11 +4,12 @@ import { PYTHON_TASKS } from '../labs/pythonTasks';
 import { CPP_TASKS } from '../labs/cppTasks';
 import { JS_TASKS } from '../labs/jsTasks';
 import { ML_TASKS } from '../labs/mlTasks';
+import { SECURITY_TASKS } from '../labs/securityTasks';
 import { useProgress } from '../state/progressStore';
 import CodeConsole from '../components/code/CodeConsole';
 import { IconCheck, IconCode } from '../components/layout/icons';
 
-const ALL_CODE_TASKS = [...PYTHON_TASKS, ...CPP_TASKS, ...JS_TASKS, ...ML_TASKS];
+const ALL_CODE_TASKS = [...PYTHON_TASKS, ...CPP_TASKS, ...JS_TASKS, ...ML_TASKS, ...SECURITY_TASKS];
 
 const DIFFICULTY_CLASS: Record<string, string> = {
   Easy: 'bg-[var(--color-success)]/15 text-[var(--color-success)]',
@@ -32,15 +33,18 @@ export default function CodeTaskPage() {
 
   const done = progress.isCodeTaskComplete(task.id);
   const isMlTask = task.category.startsWith('ML:');
+  const isSecurityTask = task.category.startsWith('Security:');
+  const backHref = isMlTask ? '/ml-portal' : isSecurityTask ? '/library' : '/code-portal';
+  const backLabel = isMlTask ? 'ML Portal' : isSecurityTask ? 'Library' : 'Code Portal';
 
   return (
     <div className="h-full flex flex-col lg:flex-row">
       <div className="lg:w-96 shrink-0 border-b lg:border-b-0 lg:border-r border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-6 overflow-y-auto">
         <Link
-          to={isMlTask ? '/ml-portal' : '/code-portal'}
+          to={backHref}
           className="text-xs font-semibold text-[var(--color-accent)] hover:underline mb-3 inline-block"
         >
-          &larr; Back to {isMlTask ? 'ML Portal' : 'Code Portal'}
+          &larr; Back to {backLabel}
         </Link>
         <div className="flex items-center gap-2 mb-2 flex-wrap">
           <span className={`pill ${DIFFICULTY_CLASS[task.difficulty]}`}>{task.difficulty}</span>
