@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Navigate, useParams, Link } from 'react-router-dom';
 import { PYTHON_TASKS } from '../labs/pythonTasks';
+import { CPP_TASKS } from '../labs/cppTasks';
+import { JS_TASKS } from '../labs/jsTasks';
 import { useProgress } from '../state/progressStore';
 import CodeConsole from '../components/code/CodeConsole';
 import { IconCheck, IconCode } from '../components/layout/icons';
 
-const ALL_CODE_TASKS = [...PYTHON_TASKS];
+const ALL_CODE_TASKS = [...PYTHON_TASKS, ...CPP_TASKS, ...JS_TASKS];
 
 const DIFFICULTY_CLASS: Record<string, string> = {
   Easy: 'bg-[var(--color-success)]/15 text-[var(--color-success)]',
@@ -87,6 +89,7 @@ export default function CodeTaskPage() {
 
       <div className="flex-1 min-h-[420px] p-4">
         <CodeConsole
+          language={task.language}
           starterCode={task.starterCode}
           testCode={task.testCode}
           onAllTestsPassed={() => progress.completeCodeTask(task.id)}

@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react';
 import CodeEditor from './CodeEditor';
 import { runPython, isPyodideBooted } from '../../lib/pyodideRunner';
+import { runCpp } from '../../lib/cppRunner';
+import { runJs } from '../../lib/jsRunner';
+import type { CodeLanguage } from '../../labs/codeTypes';
 import { IconCheck } from '../layout/icons';
 
 interface CodeConsoleProps {
+  language: CodeLanguage;
   starterCode: string;
   testCode: string;
   onAllTestsPassed?: () => void;
@@ -13,7 +17,13 @@ type Status = 'idle' | 'booting' | 'running' | 'error' | 'done';
 
 const RESULT_RE = /__RESULT__ (\d+)\/(\d+)/;
 
-export default function CodeConsole({ starterCode, testCode, onAllTestsPassed }: CodeConsoleProps) {
+const RUNNERS: Record<CodeLanguage, (code: string) => Promise<{ stdout: string; stderr: string; ok: boolean }>> = {
+  python: runPython,
+  cpp: runCpp,
+  javascript: runJs,
+};
+
+export default function CodeConsole({ language, starterCode, testCode, onAllTestsPassed }: CodeConsoleProps) {
   const [code, setCode] = useState(starterCode);
   const [output, setOutput] = useState('');
   const [status, setStatus] = useState<Status>('idle');
@@ -27,11 +37,11 @@ export default function CodeConsole({ starterCode, testCode, onAllTestsPassed }:
   }, [starterCode]);
 
   const run = async (withTests: boolean) => {
-    setStatus(isPyodideBooted() ? 'running' : 'booting');
+    setStatus(language === 'python' && !isPyodideBooted() ? 'booting' : 'running');
     setOutput('');
     setTestSummary(null);
     const fullCode = withTests ? `${code}\n\n${testCode}` : code;
-    const result = await runPython(fullCode);
+    const result = await RUNNERS[language](fullCode);
     const combined = [result.stdout, result.stderr].filter(Boolean).join(result.stdout && result.stderr ? '\n' : '');
     setOutput(combined || (result.ok ? '(no output)' : 'Something went wrong running your code.'));
     setStatus(result.ok ? 'done' : 'error');

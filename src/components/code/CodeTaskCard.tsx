@@ -9,6 +9,12 @@ const DIFFICULTY_CLASS: Record<string, string> = {
   Hard: 'bg-[var(--color-danger)]/15 text-[var(--color-danger)] border border-[var(--color-danger)]/30',
 };
 
+const LANGUAGE_LABEL: Record<string, string> = {
+  python: 'Python',
+  cpp: 'C++',
+  javascript: 'JavaScript',
+};
+
 export default function CodeTaskCard({ task }: { task: CodeTask }) {
   const progress = useProgress();
   const done = progress.isCodeTaskComplete(task.id);
@@ -18,6 +24,9 @@ export default function CodeTaskCard({ task }: { task: CodeTask }) {
     <div className="group rounded-xl overflow-hidden border border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-accent)]/60 hover:-translate-y-0.5 hover:shadow-[0_8px_30px_-8px_var(--color-accent)] transition-all duration-200 flex flex-col">
       <div className="p-4 flex flex-col flex-1">
         <div className="flex items-center gap-1.5 mb-2 flex-wrap">
+          <span className="pill bg-[var(--color-accent)]/15 text-[var(--color-accent)] border border-[var(--color-accent)]/30">
+            {LANGUAGE_LABEL[task.language]}
+          </span>
           <span className={`pill ${DIFFICULTY_CLASS[task.difficulty]}`}>{task.difficulty}</span>
           <span className="pill bg-[var(--color-surface-2)] text-[var(--color-text-dim)]">{task.category}</span>
           {done && (

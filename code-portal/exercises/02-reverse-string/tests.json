@@ -1,5 +1,0 @@
-[
-  { "input": "hello\n", "expected": "olleh" },
-  { "input": "GCI World\n", "expected": "dlroW ICG" },
-  { "input": "a\n", "expected": "a" }
-]

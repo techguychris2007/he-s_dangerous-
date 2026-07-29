@@ -22,6 +22,8 @@ import SocPortalPage from './pages/SocPortalPage';
 import SiemLabPage from './pages/SiemLabPage';
 import CodePortalPage from './pages/CodePortalPage';
 import CodeTaskPage from './pages/CodeTaskPage';
+import MlPortalPage from './pages/MlPortalPage';
+import MlLessonPage from './pages/MlLessonPage';
 import InstallPrompt from './components/layout/InstallPrompt';
 import { ProgressContext, useProgressState, useProgress } from './state/progressStore';
 import { AuthContext, useAuthState, useAuth } from './state/authStore';
@@ -151,6 +153,22 @@ function App() {
               element={
                 <RequireLogin>
                   <CodeTaskPage />
+                </RequireLogin>
+              }
+            />
+            <Route
+              path="/ml-portal"
+              element={
+                <RequireLogin>
+                  <MlPortalPage />
+                </RequireLogin>
+              }
+            />
+            <Route
+              path="/ml-lesson/:lessonId"
+              element={
+                <RequireLogin>
+                  <MlLessonPage />
                 </RequireLogin>
               }
             />

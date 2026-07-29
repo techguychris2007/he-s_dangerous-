@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { findModule } from '../data/curriculum';
 import { PYTHON_TASKS, PYTHON_TASK_CATEGORIES } from '../labs/pythonTasks';
+import { CPP_TASKS, CPP_TASK_CATEGORIES } from '../labs/cppTasks';
+import { JS_TASKS, JS_TASK_CATEGORIES } from '../labs/jsTasks';
+import type { CodeLanguage } from '../labs/codeTypes';
 import { useProgress } from '../state/progressStore';
 import CodeTaskCard from '../components/code/CodeTaskCard';
 import Logo from '../components/layout/Logo';
@@ -9,16 +12,44 @@ import { IconCheck, IconCode, IconFlask } from '../components/layout/icons';
 
 const CODE_MODULE_SLUGS = ['code-python-fundamentals', 'code-python-oop', 'code-python-advanced'];
 
+const ALL_TASKS = [...PYTHON_TASKS, ...CPP_TASKS, ...JS_TASKS];
+
+const LANGUAGE_TABS: { value: CodeLanguage | 'All'; label: string }[] = [
+  { value: 'All', label: 'All languages' },
+  { value: 'python', label: 'Python' },
+  { value: 'cpp', label: 'C++' },
+  { value: 'javascript', label: 'JavaScript' },
+];
+
+const CATEGORIES_BY_LANGUAGE: Record<CodeLanguage, readonly string[]> = {
+  python: PYTHON_TASK_CATEGORIES,
+  cpp: CPP_TASK_CATEGORIES,
+  javascript: JS_TASK_CATEGORIES,
+};
+
 export default function CodePortalPage() {
   const progress = useProgress();
+  const [languageFilter, setLanguageFilter] = useState<CodeLanguage | 'All'>('All');
   const [categoryFilter, setCategoryFilter] = useState<string>('All');
 
   const codeModules = CODE_MODULE_SLUGS.map((slug) => findModule(slug)).filter((m): m is NonNullable<typeof m> => Boolean(m));
   const totalLessons = codeModules.reduce((sum, m) => sum + m.lessons.length, 0);
   const lessonsDone = codeModules.reduce((sum, m) => sum + m.lessons.filter((l) => progress.isLessonComplete(l.id)).length, 0);
 
-  const tasksDone = PYTHON_TASKS.filter((t) => progress.isCodeTaskComplete(t.id)).length;
-  const filteredTasks = categoryFilter === 'All' ? PYTHON_TASKS : PYTHON_TASKS.filter((t) => t.category === categoryFilter);
+  const tasksDone = ALL_TASKS.filter((t) => progress.isCodeTaskComplete(t.id)).length;
+
+  const categoriesForLanguage = useMemo(() => {
+    if (languageFilter === 'All') {
+      return Array.from(new Set(ALL_TASKS.map((t) => t.category)));
+    }
+    return CATEGORIES_BY_LANGUAGE[languageFilter];
+  }, [languageFilter]);
+
+  const filteredTasks = ALL_TASKS.filter((t) => {
+    if (languageFilter !== 'All' && t.language !== languageFilter) return false;
+    if (categoryFilter !== 'All' && t.category !== categoryFilter) return false;
+    return true;
+  });
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--color-bg)' }}>
@@ -49,10 +80,10 @@ export default function CodePortalPage() {
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-3">Code Portal</h1>
           <p className="text-white/70 max-w-2xl leading-relaxed mb-6">
-            A structured programming curriculum — fundamentals through advanced OOP — with real Python
-            running live in your browser (via Pyodide/WebAssembly) for every one of the {PYTHON_TASKS.length}{' '}
-            practice tasks below. Write real code, click Run, get real test feedback. Starting with Python;
-            C++ and JavaScript tracks are next.
+            A structured programming curriculum with real code running live in your browser for every one
+            of the {ALL_TASKS.length} practice tasks below — Python via Pyodide/WebAssembly, C++ via an
+            in-browser interpreter, and JavaScript natively. Write real code, click Run, get real test
+            feedback.
           </p>
           <div className="flex flex-wrap gap-4">
             <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
@@ -60,12 +91,12 @@ export default function CodePortalPage() {
               <div className="text-[11px] text-white/60 uppercase tracking-wide">Lessons complete</div>
             </div>
             <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
-              <div className="text-lg font-bold text-white">{tasksDone}/{PYTHON_TASKS.length}</div>
+              <div className="text-lg font-bold text-white">{tasksDone}/{ALL_TASKS.length}</div>
               <div className="text-[11px] text-white/60 uppercase tracking-wide">Tasks solved</div>
             </div>
             <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
-              <div className="text-lg font-bold text-white">Python</div>
-              <div className="text-[11px] text-white/60 uppercase tracking-wide">Live in-browser (C++/JS next)</div>
+              <div className="text-lg font-bold text-white">Python · C++ · JS</div>
+              <div className="text-[11px] text-white/60 uppercase tracking-wide">All live in-browser</div>
             </div>
           </div>
         </div>
@@ -80,7 +111,8 @@ export default function CodePortalPage() {
           </div>
           <p className="text-sm text-[var(--color-text-dim)] mb-4">
             From zero to advanced: fundamentals, full OOP, then decorators/generators/concurrency — each
-            lesson links straight into runnable practice tasks below.
+            lesson links straight into runnable practice tasks below. Written lessons are Python-only for
+            now; C++ and JavaScript have practice tasks below with prompts, hints, and full solutions.
           </p>
           {codeModules.map((mod) => (
             <div key={mod.slug} className="mb-6">
@@ -114,15 +146,34 @@ export default function CodePortalPage() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <IconFlask className="w-4 h-4 text-[var(--color-accent)]" />
-            <h2 className="text-lg font-bold text-[var(--color-heading)]">Python Practice Tasks</h2>
+            <h2 className="text-lg font-bold text-[var(--color-heading)]">Practice Tasks</h2>
           </div>
           <p className="text-sm text-[var(--color-text-dim)] mb-4">
-            Each task runs real Python in your browser and grades itself — write the function, click "Run
+            Each task runs real code in your browser and grades itself — write the function, click "Run
             tests," get an instant PASS/FAIL report.
           </p>
 
+          <div className="flex flex-wrap gap-2 mb-3">
+            {LANGUAGE_TABS.map((tab) => (
+              <button
+                key={tab.value}
+                onClick={() => {
+                  setLanguageFilter(tab.value);
+                  setCategoryFilter('All');
+                }}
+                className={`px-3.5 py-1.5 rounded-full text-sm font-semibold border transition-colors ${
+                  languageFilter === tab.value
+                    ? 'bg-[var(--color-heading)] border-[var(--color-heading)] text-[var(--color-bg)]'
+                    : 'border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-dim)] hover:text-[var(--color-heading)] hover:border-[var(--color-accent)]/50'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
           <div className="flex flex-wrap gap-2 mb-6">
-            {['All', ...PYTHON_TASK_CATEGORIES].map((cat) => (
+            {['All', ...categoriesForLanguage].map((cat) => (
               <button
                 key={cat}
                 onClick={() => setCategoryFilter(cat)}
@@ -134,7 +185,9 @@ export default function CodePortalPage() {
               >
                 {cat}
                 {cat !== 'All' && (
-                  <span className="ml-1.5 opacity-70">{PYTHON_TASKS.filter((t) => t.category === cat).length}</span>
+                  <span className="ml-1.5 opacity-70">
+                    {ALL_TASKS.filter((t) => (languageFilter === 'All' || t.language === languageFilter) && t.category === cat).length}
+                  </span>
                 )}
               </button>
             ))}
