@@ -10,6 +10,9 @@ export interface Book {
   language?: 'python' | 'cpp' | 'java' | 'javascript';
   /** position in this track's recommended reading sequence, 1-based */
   order: number;
+  /** groups the security track into a guided learning path (rendered as section headers) —
+   *  unused for the programming track, which has no meaningful phases */
+  stage?: 'Foundations' | 'Offensive Testing & Ethical Hacking' | 'Response & Forensics';
   /** served from public/books/ — the exact, unmodified official PDF, cached locally so reading
    *  and downloading never require leaving the portal */
   filename: string;
@@ -107,6 +110,7 @@ export const BOOKS: Book[] = [
     subtitle: 'NIST Special Publication 800-12 Rev. 1',
     author: 'NIST',
     track: 'security',
+    stage: 'Foundations',
     order: 1,
     filename: 'nist-intro-to-infosec.pdf',
     fileSizeMb: '1.3',
@@ -123,6 +127,7 @@ export const BOOKS: Book[] = [
     subtitle: 'NIST CSWP 29',
     author: 'NIST',
     track: 'security',
+    stage: 'Foundations',
     order: 2,
     filename: 'nist-cybersecurity-framework.pdf',
     fileSizeMb: '1.4',
@@ -139,6 +144,7 @@ export const BOOKS: Book[] = [
     subtitle: 'An Introductory Course on Cryptography',
     author: 'Laurens Van Houtven',
     track: 'security',
+    stage: 'Foundations',
     order: 3,
     filename: 'crypto101.pdf',
     fileSizeMb: '14.9',
@@ -155,6 +161,7 @@ export const BOOKS: Book[] = [
     subtitle: 'NIST Special Publication 800-63-3',
     author: 'NIST',
     track: 'security',
+    stage: 'Foundations',
     order: 4,
     filename: 'nist-digital-identity-guidelines.pdf',
     fileSizeMb: '1.5',
@@ -171,6 +178,7 @@ export const BOOKS: Book[] = [
     subtitle: 'NIST Special Publication 800-115',
     author: 'NIST',
     track: 'security',
+    stage: 'Offensive Testing & Ethical Hacking',
     order: 5,
     filename: 'nist-security-testing-guide.pdf',
     fileSizeMb: '0.5',
@@ -187,7 +195,8 @@ export const BOOKS: Book[] = [
     subtitle: 'NIST Special Publication 800-86',
     author: 'NIST',
     track: 'security',
-    order: 6,
+    stage: 'Response & Forensics',
+    order: 9,
     filename: 'nist-forensics-guide.pdf',
     fileSizeMb: '2.7',
     license: 'Public Domain (U.S. Government Work)',
@@ -203,7 +212,8 @@ export const BOOKS: Book[] = [
     subtitle: 'NIST Special Publication 800-61 Rev. 2',
     author: 'NIST',
     track: 'security',
-    order: 7,
+    stage: 'Response & Forensics',
+    order: 10,
     filename: 'nist-incident-handling-guide.pdf',
     fileSizeMb: '1.7',
     license: 'Public Domain (U.S. Government Work)',
@@ -219,7 +229,8 @@ export const BOOKS: Book[] = [
     subtitle: 'Version 4.2',
     author: 'OWASP Foundation &amp; Contributors',
     track: 'security',
-    order: 8,
+    stage: 'Offensive Testing & Ethical Hacking',
+    order: 6,
     filename: 'owasp-wstg.pdf',
     fileSizeMb: '9.7',
     license: 'CC BY-SA 4.0',
@@ -236,7 +247,8 @@ export const BOOKS: Book[] = [
     subtitle: 'Version 5.0.0',
     author: 'OWASP Foundation &amp; Contributors',
     track: 'security',
-    order: 9,
+    stage: 'Offensive Testing & Ethical Hacking',
+    order: 7,
     filename: 'owasp-asvs.pdf',
     fileSizeMb: '0.5',
     license: 'CC BY-SA 4.0',
@@ -246,6 +258,25 @@ export const BOOKS: Book[] = [
       'The checklist that turns everything else on this shelf into a pass/fail bar: hundreds of ' +
       'numbered, testable security requirements for authentication, session management, access ' +
       'control, and more, used by real organizations to verify real applications before shipping.',
+  },
+  {
+    id: 'owasp-mastg',
+    title: 'OWASP Mobile Application Security Testing Guide',
+    subtitle: 'Version 1.6.0',
+    author: 'OWASP Foundation &amp; Contributors',
+    track: 'security',
+    stage: 'Offensive Testing & Ethical Hacking',
+    order: 8,
+    filename: 'owasp-mastg.pdf',
+    fileSizeMb: '29.6',
+    license: 'CC BY-SA 4.0',
+    licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/',
+    officialUrl: 'https://mas.owasp.org/MASTG/',
+    description:
+      'Everything above this applies to a browser tab; a phone is a different attack surface. A ' +
+      'complete manual for testing and reverse-engineering Android and iOS apps — insecure storage, ' +
+      'weak cryptography, reverse engineering with real tools, and how apps try (and fail) to detect ' +
+      'tampering — closing out the offensive-testing arc of this shelf.',
   },
 ];
 
