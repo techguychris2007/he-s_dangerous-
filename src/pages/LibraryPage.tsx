@@ -16,9 +16,11 @@ const TABS: { value: BookTrack; label: string; blurb: string }[] = [
     value: 'security',
     label: 'Cybersecurity',
     blurb:
-      'A guided, self-teaching path — start at #1 and work down, in three phases: get the vocabulary ' +
-      'and mental models right, then learn to actually find and exploit real vulnerabilities the way a ' +
-      'working penetration tester does, then learn how the other side traces and responds to it.',
+      'A guided, self-teaching path — start at #1 and work down, in six stages: get the vocabulary and ' +
+      'risk mental models right, learn how organizations govern and plan for risk, harden real systems and ' +
+      'networks, learn to find and exploit real vulnerabilities the way a working penetration tester does, ' +
+      'then learn how the other side traces and responds to a breach, and finish with advanced, specialized ' +
+      'engineering topics.',
   },
   {
     value: 'programming',
@@ -29,10 +31,20 @@ const TABS: { value: BookTrack; label: string; blurb: string }[] = [
 
 const STAGE_BLURB: Record<string, string> = {
   'Foundations': 'The vocabulary, risk mental model, and cryptography/identity fundamentals every later book assumes.',
+  'Governance & Risk Management':
+    'How organizations actually decide what to protect and how much risk is acceptable — assessing risk, ' +
+    'running it through a formal framework, and selecting from a master catalog of controls.',
+  'Network & Systems Hardening':
+    'The hands-on defensive work of locking down what you already run — firewalls, servers, wireless, ' +
+    'key management, and the logging that makes all of it visible.',
   'Offensive Testing & Ethical Hacking':
     'Hands-on: how real penetration tests are planned and run, and the concrete, numbered techniques for finding ' +
     'real vulnerabilities in real web apps and mobile apps.',
   'Response & Forensics': 'The other side of the same coin — how a real breach gets traced, contained, and recovered from.',
+  'Advanced & Specialized Security Engineering':
+    'Capstone topics for going deeper: industrial control systems, zero trust architecture, configuration ' +
+    'management, secure-by-design systems engineering, secure software development, and a real reference ' +
+    'architecture for ransomware defense.',
 };
 
 function groupByStage(books: Book[]): { stage: string | undefined; books: Book[] }[] {
