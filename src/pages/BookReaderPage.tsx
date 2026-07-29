@@ -225,6 +225,25 @@ export default function BookReaderPage() {
           </div>
         </div>
 
+        {/* Copyright & attribution notice — required by every license on this shelf, and the
+            clearest signal to any visitor (including the rights holder) that this is a licensed
+            copy, not a claim of ownership. */}
+        <div className="max-w-6xl mx-auto mt-3 pt-3 border-t border-[var(--color-border)]">
+          <p className="text-[11px] text-[var(--color-text-dim)] leading-relaxed">
+            This book was written by <span dangerouslySetInnerHTML={{ __html: book.author }} />. Copyright remains with
+            the original author{book.track === 'security' ? '/publisher' : ''}; this site does not claim ownership of
+            this work. Distributed under the{' '}
+            <a href={book.licenseUrl} target="_blank" rel="noopener noreferrer" className="underline hover:text-[var(--color-heading)]">
+              {book.license}
+            </a>{' '}
+            license. Official source:{' '}
+            <a href={book.officialUrl} target="_blank" rel="noopener noreferrer" className="underline hover:text-[var(--color-heading)]">
+              {book.officialUrl}
+            </a>
+            .
+          </p>
+        </div>
+
         {/* Read-aloud controls */}
         <div className="max-w-6xl mx-auto flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-[var(--color-border)]">
           <span className="text-xs font-semibold text-[var(--color-text-dim)] uppercase tracking-wide">Read aloud</span>
