@@ -108,6 +108,41 @@ export const BOOKS: Book[] = [
       'A modern, respected deep dive into JavaScript — from language fundamentals through the ' +
       'browser DOM, async programming, and Node.js — with a well-known project-based teaching style.',
   },
+  {
+    id: 'a-byte-of-python',
+    title: 'A Byte of Python',
+    subtitle: 'A Beginner-Friendly Python Tutorial',
+    author: 'Swaroop C H',
+    track: 'programming',
+    language: 'python',
+    order: 5,
+    filename: 'a-byte-of-python.pdf',
+    fileSizeMb: '1.1',
+    license: 'CC BY-SA 4.0',
+    licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/',
+    officialUrl: 'https://python.swaroopch.com/',
+    description:
+      'A shorter, faster-paced second take on Python for readers who found Think Python\'s pace slow — ' +
+      'one of the most widely translated free Python tutorials, hosted on Wikimedia Commons under CC BY-SA.',
+  },
+  {
+    id: 'python-for-everybody',
+    title: 'Python for Everybody',
+    subtitle: 'Exploring Data Using Python 3',
+    author: 'Dr. Charles R. Severance',
+    track: 'programming',
+    language: 'python',
+    order: 6,
+    filename: 'python-for-everybody.pdf',
+    fileSizeMb: '2.3',
+    license: 'CC BY-NC-SA 3.0',
+    licenseUrl: 'https://creativecommons.org/licenses/by-nc-sa/3.0/',
+    officialUrl: 'https://www.py4e.com/book.php',
+    description:
+      'A third angle on Python, aimed squarely at using it as a tool rather than studying it as a ' +
+      'subject — built around a university course, using data (files, databases, the web) as the ' +
+      'motivating problem for every concept instead of abstract exercises.',
+  },
 
   // --- Cybersecurity track: a 6-stage, beginner-to-advanced self-teaching path. Sourced from
   // NIST (csrc.nist.gov, all public domain U.S. government works) and OWASP (github.com/OWASP,
