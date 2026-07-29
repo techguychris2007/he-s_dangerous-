@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BOOKS } from '../data/books';
+import { BOOKS, booksInTrack, type BookTrack } from '../data/books';
 import Logo from '../components/layout/Logo';
 import { IconBook } from '../components/layout/icons';
 
@@ -10,7 +11,26 @@ const LANGUAGE_LABEL: Record<string, string> = {
   javascript: 'JavaScript',
 };
 
+const TABS: { value: BookTrack; label: string; blurb: string }[] = [
+  {
+    value: 'security',
+    label: 'Cybersecurity',
+    blurb:
+      'A sequenced reading path, not just a pile of books — start at #1 and work down. Each book ' +
+      'builds on the vocabulary and concepts the one before it introduced.',
+  },
+  {
+    value: 'programming',
+    label: 'Programming',
+    blurb: 'One respected, free introductory book per language — read in any order.',
+  },
+];
+
 export default function LibraryPage() {
+  const [track, setTrack] = useState<BookTrack>('security');
+  const books = booksInTrack(track);
+  const activeTab = TABS.find((t) => t.value === track)!;
+
   return (
     <div className="min-h-screen" style={{ background: 'var(--color-bg)' }}>
       <div
@@ -35,30 +55,52 @@ export default function LibraryPage() {
             <span className="pill bg-white/10 text-white/80 border border-white/20">Standalone Portal</span>
           </div>
           <div className="text-[var(--color-accent-dim)] font-mono text-xs tracking-[0.2em] uppercase mb-3">
-            Free, Legally Open Programming Books
+            Free, Legally Open Books
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-3">Library</h1>
           <p className="text-white/70 max-w-2xl leading-relaxed">
             {BOOKS.length} complete books, cached here as their exact original PDFs — read them right in
             this page, or download a copy to your device. No account or external site required. Every book
-            is released under a Creative Commons license that explicitly permits free copying;
-            attribution and a link to support each author is on every reader page.
+            is either a U.S. government work (public domain) or released under a Creative Commons license
+            that explicitly permits free copying — see the license badge on each book for details.
           </p>
         </div>
       </div>
 
       <div className="max-w-5xl mx-auto px-6 sm:px-8 py-10">
+        <div className="flex flex-wrap gap-2 mb-2">
+          {TABS.map((tab) => (
+            <button
+              key={tab.value}
+              onClick={() => setTrack(tab.value)}
+              className={`px-4 py-2 rounded-full text-sm font-semibold border transition-colors ${
+                track === tab.value
+                  ? 'bg-[var(--color-accent)] border-[var(--color-accent)] text-white'
+                  : 'border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-dim)] hover:text-[var(--color-heading)] hover:border-[var(--color-accent)]/50'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+        <p className="text-sm text-[var(--color-text-dim)] mb-6 max-w-2xl">{activeTab.blurb}</p>
+
         <div className="grid sm:grid-cols-2 gap-5">
-          {BOOKS.map((book) => (
+          {books.map((book) => (
             <Link
               key={book.id}
               to={`/library/${book.id}`}
               className="group rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 hover:border-[var(--color-accent)]/60 hover:-translate-y-0.5 transition-all"
             >
               <div className="flex items-center gap-1.5 mb-3 flex-wrap">
-                <span className="pill bg-[var(--color-accent)]/15 text-[var(--color-accent)] border border-[var(--color-accent)]/30">
-                  {LANGUAGE_LABEL[book.language]}
-                </span>
+                {track === 'security' && (
+                  <span className="pill bg-[var(--color-heading)] text-[var(--color-bg)] font-bold">#{book.order}</span>
+                )}
+                {book.language && (
+                  <span className="pill bg-[var(--color-accent)]/15 text-[var(--color-accent)] border border-[var(--color-accent)]/30">
+                    {LANGUAGE_LABEL[book.language]}
+                  </span>
+                )}
                 <span className="pill bg-[var(--color-surface-2)] text-[var(--color-text-dim)]">{book.license}</span>
               </div>
               <div className="flex items-start gap-3">
