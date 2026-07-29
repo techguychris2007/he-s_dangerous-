@@ -105,6 +105,10 @@ export default function Sidebar() {
           <IconChart className="w-4 h-4" /> ML Portal
           <IconExternal className="w-3 h-3 ml-auto opacity-60" />
         </NavLink>
+        <NavLink to="/library" className={navItemClass}>
+          <IconBook className="w-4 h-4" /> Library
+          <IconExternal className="w-3 h-3 ml-auto opacity-60" />
+        </NavLink>
       </nav>
 
       <div className="border-t border-[var(--color-border)] pt-4 flex-1">

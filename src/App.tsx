@@ -24,6 +24,8 @@ import CodePortalPage from './pages/CodePortalPage';
 import CodeTaskPage from './pages/CodeTaskPage';
 import MlPortalPage from './pages/MlPortalPage';
 import MlLessonPage from './pages/MlLessonPage';
+import LibraryPage from './pages/LibraryPage';
+import BookReaderPage from './pages/BookReaderPage';
 import InstallPrompt from './components/layout/InstallPrompt';
 import { ProgressContext, useProgressState, useProgress } from './state/progressStore';
 import { AuthContext, useAuthState, useAuth } from './state/authStore';
@@ -153,6 +155,22 @@ function App() {
               element={
                 <RequireLogin>
                   <CodeTaskPage />
+                </RequireLogin>
+              }
+            />
+            <Route
+              path="/library"
+              element={
+                <RequireLogin>
+                  <LibraryPage />
+                </RequireLogin>
+              }
+            />
+            <Route
+              path="/library/:bookId"
+              element={
+                <RequireLogin>
+                  <BookReaderPage />
                 </RequireLogin>
               }
             />

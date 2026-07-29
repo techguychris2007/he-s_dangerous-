@@ -8,7 +8,8 @@ import type { CodeLanguage } from '../labs/codeTypes';
 import { useProgress } from '../state/progressStore';
 import CodeTaskCard from '../components/code/CodeTaskCard';
 import Logo from '../components/layout/Logo';
-import { IconCheck, IconCode, IconFlask } from '../components/layout/icons';
+import { IconBook, IconCheck, IconCode, IconFlask } from '../components/layout/icons';
+import { BOOKS } from '../data/books';
 
 const CODE_MODULE_SLUGS = ['code-python-fundamentals', 'code-python-oop', 'code-python-advanced'];
 
@@ -103,6 +104,26 @@ export default function CodePortalPage() {
       </div>
 
       <div className="max-w-5xl mx-auto px-6 sm:px-8 py-10">
+        {/* library banner */}
+        <Link
+          to="/library"
+          className="mb-10 flex items-center justify-between gap-4 rounded-xl border border-[var(--color-accent)]/40 bg-[var(--color-accent)]/10 p-5 hover:border-[var(--color-accent)] transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-[var(--color-accent)]/15 flex items-center justify-center shrink-0">
+              <IconBook className="w-5 h-5 text-[var(--color-accent)]" />
+            </div>
+            <div>
+              <div className="font-bold text-[var(--color-heading)]">Free Book Library</div>
+              <p className="text-xs text-[var(--color-text-dim)]">
+                {BOOKS.length} complete, legally free programming books (Python, C++, Java, JavaScript) —
+                read or download right here, no external site.
+              </p>
+            </div>
+          </div>
+          <span className="text-sm font-semibold text-[var(--color-accent)] shrink-0">Open Library &rarr;</span>
+        </Link>
+
         {/* lessons */}
         <div className="mb-12">
           <div className="flex items-center gap-2 mb-1">
