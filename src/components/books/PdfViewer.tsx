@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 
@@ -8,8 +8,12 @@ const SCALE = 1.4;
 
 export interface PdfViewerHandle {
   scrollToPage: (pageNum: number) => void;
-  /** Real extracted text for one page — used by search and read-aloud. Never an approximation. */
+  /** Real extracted text for one page — used by search. Never an approximation. */
   getPageText: (pageNum: number) => Promise<string>;
+  /** Same real extraction as getPageText, but grouped into lines by each text item's actual
+   *  y-position on the page instead of flattened into one string. Read-aloud uses this (rather
+   *  than getPageText) so it can tell a running header/page-number line apart from body text. */
+  getPageLines: (pageNum: number) => Promise<string[]>;
   numPages: number;
 }
 
@@ -33,6 +37,8 @@ const PdfViewer = forwardRef<PdfViewerHandle, PdfViewerProps>(function PdfViewer
   const [pageSize, setPageSize] = useState({ width: 0, height: 0 });
   const [currentPage, setCurrentPage] = useState(1);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [editingPage, setEditingPage] = useState(false);
+  const [pageInput, setPageInput] = useState('1');
 
   useEffect(() => {
     let cancelled = false;
@@ -104,7 +110,12 @@ const PdfViewer = forwardRef<PdfViewerHandle, PdfViewerProps>(function PdfViewer
           onPageChange?.(bestIndex + 1, numPages);
         }
       },
-      { root: containerRef.current, rootMargin: '800px 0px', threshold: [0, 0.25, 0.5, 0.75, 1] },
+      // root: null (the browser viewport) — not containerRef.current. The container's CSS asks
+      // for its own internal scrollbar (overflow-auto), but its parent chain doesn't actually
+      // bound its height, so in practice the whole page/window scrolls, not this div. Using it
+      // as the IntersectionObserver root silently broke page-position tracking: entries never
+      // changed because the "root" scrolled along with everything else instead of clipping it.
+      { root: null, rootMargin: '800px 0px', threshold: [0, 0.25, 0.5, 0.75, 1] },
     );
     for (const el of pageElsRef.current) {
       if (el) observer.observe(el);
@@ -113,21 +124,51 @@ const PdfViewer = forwardRef<PdfViewerHandle, PdfViewerProps>(function PdfViewer
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, numPages]);
 
+  const goToPage = useCallback(
+    (pageNum: number) => {
+      const clamped = Math.min(Math.max(1, Math.round(pageNum)), Math.max(1, numPages));
+      pageElsRef.current[clamped - 1]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    },
+    [numPages],
+  );
+
   useImperativeHandle(
     ref,
     () => ({
-      scrollToPage: (pageNum: number) => {
-        pageElsRef.current[pageNum - 1]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      },
+      scrollToPage: goToPage,
       getPageText: async (pageNum: number) => {
         if (!docRef.current) return '';
         const page = await docRef.current.getPage(pageNum);
         const content = await page.getTextContent();
         return content.items.map((item) => ('str' in item ? item.str : '')).join(' ');
       },
+      getPageLines: async (pageNum: number) => {
+        if (!docRef.current) return [];
+        const page = await docRef.current.getPage(pageNum);
+        const content = await page.getTextContent();
+        // Group text items into lines by their actual y-position on the page — items on the
+        // same line share (nearly) the same baseline, so a new y means a new line.
+        const lines: string[] = [];
+        let currentY: number | null = null;
+        let currentLine: string[] = [];
+        const flush = () => {
+          const text = currentLine.join(' ').replace(/\s+/g, ' ').trim();
+          if (text) lines.push(text);
+          currentLine = [];
+        };
+        for (const item of content.items) {
+          if (!('str' in item)) continue;
+          const y = item.transform[5];
+          if (currentY !== null && Math.abs(y - currentY) > 2) flush();
+          currentY = y;
+          if (item.str) currentLine.push(item.str);
+        }
+        flush();
+        return lines;
+      },
       numPages,
     }),
-    [numPages],
+    [numPages, goToPage],
   );
 
   if (status === 'error') {
@@ -158,8 +199,40 @@ const PdfViewer = forwardRef<PdfViewerHandle, PdfViewerProps>(function PdfViewer
           ))}
       </div>
       {status === 'ready' && (
-        <div className="py-2 text-center text-xs font-mono text-[var(--color-text-dim)] border-t border-[var(--color-border)] bg-[var(--color-surface)]">
-          Page {currentPage} / {numPages}
+        <div className="py-2 flex items-center justify-center gap-1.5 text-xs font-mono text-[var(--color-text-dim)] border-t border-[var(--color-border)] bg-[var(--color-surface)]">
+          Page{' '}
+          {editingPage ? (
+            <input
+              type="number"
+              min={1}
+              max={numPages}
+              autoFocus
+              value={pageInput}
+              onChange={(e) => setPageInput(e.target.value)}
+              onBlur={() => setEditingPage(false)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  goToPage(Number(pageInput) || currentPage);
+                  setEditingPage(false);
+                } else if (e.key === 'Escape') {
+                  setEditingPage(false);
+                }
+              }}
+              className="w-14 text-center bg-[var(--color-surface-2)] border border-[var(--color-accent)] rounded px-1 py-0.5 text-[var(--color-text)]"
+            />
+          ) : (
+            <button
+              onClick={() => {
+                setPageInput(String(currentPage));
+                setEditingPage(true);
+              }}
+              className="underline decoration-dotted underline-offset-2 hover:text-[var(--color-accent)]"
+              title="Click to jump to a page"
+            >
+              {currentPage}
+            </button>
+          )}{' '}
+          / {numPages}
         </div>
       )}
     </div>

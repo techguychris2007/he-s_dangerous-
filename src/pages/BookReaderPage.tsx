@@ -43,6 +43,50 @@ export default function BookReaderPage() {
   const [readState, setReadState] = useState<'idle' | 'playing' | 'paused'>('idle');
   const stopRef = useRef(false);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [numPagesLoaded, setNumPagesLoaded] = useState(0);
+  const [startPageInput, setStartPageInput] = useState('1');
+  const startInputFocusedRef = useRef(false);
+  useEffect(() => {
+    if (!startInputFocusedRef.current) setStartPageInput(String(currentPage || 1));
+  }, [currentPage]);
+
+  // Cross-page repetition detector for read-aloud: a running header/footer (book title, version
+  // stamp, bare page number) appears as the first or last line of many pages in a row. The first
+  // time such a line is seen it's read once; the moment it repeats, it's remembered as boilerplate
+  // and skipped on every later page — so the listener hears the book's actual prose, not "OWASP
+  // Application Security Verification Standard, page 47" read out before every paragraph.
+  const lineFreqRef = useRef<Map<string, number>>(new Map());
+  const boilerplateRef = useRef<Set<string>>(new Set());
+  const BARE_PAGE_NUMBER_RE = /^[ivxlcdm\d]{1,6}$/i;
+  const filterReadingLines = (lines: string[]): string[] => {
+    if (lines.length === 0) return lines;
+    const candidateIdxs = Array.from(new Set([0, lines.length - 1]));
+    const toDrop = new Set<number>();
+    for (const idx of candidateIdxs) {
+      const line = lines[idx]?.trim();
+      if (!line) {
+        toDrop.add(idx);
+        continue;
+      }
+      if (BARE_PAGE_NUMBER_RE.test(line)) {
+        toDrop.add(idx);
+        continue;
+      }
+      if (boilerplateRef.current.has(line)) {
+        toDrop.add(idx);
+        continue;
+      }
+      const count = (lineFreqRef.current.get(line) ?? 0) + 1;
+      lineFreqRef.current.set(line, count);
+      if (count >= 2) {
+        boilerplateRef.current.add(line);
+        toDrop.add(idx);
+      }
+    }
+    return lines.filter((_, i) => !toDrop.has(i));
+  };
+
   useEffect(() => {
     const loadVoices = () => setVoices(window.speechSynthesis.getVoices());
     loadVoices();
@@ -61,6 +105,11 @@ export default function BookReaderPage() {
     setResults(null);
     setQuery('');
     setSearchOpen(false);
+    setCurrentPage(1);
+    setNumPagesLoaded(0);
+    setStartPageInput('1');
+    lineFreqRef.current = new Map();
+    boilerplateRef.current = new Set();
   }, [bookId]);
 
   if (!book) return <Navigate to="/library" replace />;
@@ -87,7 +136,8 @@ export default function BookReaderPage() {
   const speakPage = async (pageNum: number): Promise<void> => {
     if (!viewerRef.current || stopRef.current) return;
     viewerRef.current.scrollToPage(pageNum);
-    const text = await viewerRef.current.getPageText(pageNum);
+    const lines = await viewerRef.current.getPageLines(pageNum);
+    const text = filterReadingLines(lines).join(' ');
     if (stopRef.current) return;
     await new Promise<void>((resolve) => {
       const utterance = new SpeechSynthesisUtterance(text.trim() || '.');
@@ -191,12 +241,35 @@ export default function BookReaderPage() {
             ))}
           </select>
           {readState === 'idle' && (
-            <button
-              onClick={() => startReading(1)}
-              className="px-3 py-1.5 rounded-lg bg-[var(--color-accent)] text-white text-xs font-semibold hover:brightness-110 transition"
-            >
-              &#9654; Read from start
-            </button>
+            <>
+              <label className="flex items-center gap-1.5 text-xs text-[var(--color-text-dim)]">
+                from page
+                <input
+                  type="number"
+                  min={1}
+                  max={numPagesLoaded || undefined}
+                  value={startPageInput}
+                  onChange={(e) => setStartPageInput(e.target.value)}
+                  onFocus={() => {
+                    startInputFocusedRef.current = true;
+                  }}
+                  onBlur={() => {
+                    startInputFocusedRef.current = false;
+                  }}
+                  className="w-16 text-center bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-1.5 py-1.5 text-[var(--color-text)]"
+                />
+              </label>
+              <button
+                onClick={() => {
+                  const total = viewerRef.current?.numPages ?? numPagesLoaded;
+                  const start = Math.min(Math.max(1, Math.round(Number(startPageInput)) || 1), Math.max(1, total));
+                  startReading(start);
+                }}
+                className="px-3 py-1.5 rounded-lg bg-[var(--color-accent)] text-white text-xs font-semibold hover:brightness-110 transition"
+              >
+                &#9654; Start reading
+              </button>
+            </>
           )}
           {readState === 'playing' && (
             <>
@@ -218,9 +291,12 @@ export default function BookReaderPage() {
               </button>
             </>
           )}
-          <span className="text-[11px] text-[var(--color-text-dim)]">
-            Reads page by page and follows along automatically. Voices shown are whatever your browser/OS
-            provides — availability of specific British/American voices depends on your device.
+          <span className="text-[11px] text-[var(--color-text-dim)] basis-full">
+            Reads page by page and follows along automatically, skipping repeated headers/footers and bare
+            page numbers so you hear the actual text. Pick a page above (defaults to wherever you're
+            scrolled to), or click the page number in the viewer below to jump anywhere directly. Voices
+            shown are whatever your browser/OS provides — availability of specific British/American voices
+            depends on your device.
           </span>
         </div>
 
@@ -302,7 +378,14 @@ export default function BookReaderPage() {
       )}
 
       <div className="flex-1 min-h-0" style={{ minHeight: '80vh' }}>
-        <PdfViewer ref={viewerRef} url={fileUrl} />
+        <PdfViewer
+          ref={viewerRef}
+          url={fileUrl}
+          onPageChange={(page, total) => {
+            setCurrentPage(page);
+            setNumPagesLoaded(total);
+          }}
+        />
       </div>
 
       {book.track === 'security' && (prevBook || nextBook) && (
