@@ -2,6 +2,8 @@ import type { ComponentType } from 'react';
 
 export type ModuleStatus = 'available' | 'coming-soon';
 
+export type RoadmapTrack = 'security' | 'programming' | 'ml';
+
 export interface QuizQuestion {
   id: string;
   prompt: string;
@@ -39,4 +41,5 @@ export interface RoadmapStage {
   moduleSlug?: string;
   href?: string;
   sourceBooks: string[];
+  track: RoadmapTrack;
 }

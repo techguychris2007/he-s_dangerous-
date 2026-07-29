@@ -12,6 +12,10 @@ interface PyodideInterface {
   runPythonAsync: (code: string) => Promise<unknown>;
   setStdout: (options: { batched: (msg: string) => void }) => void;
   setStderr: (options: { batched: (msg: string) => void }) => void;
+  /** Scans source for `import x` statements and loads any matching Pyodide packages (numpy, pandas,
+   *  ...) that aren't already installed. Unlike CPython, Pyodide does NOT do this automatically on
+   *  `import` — every package needs an explicit load first, or the import raises ModuleNotFoundError. */
+  loadPackagesFromImports: (code: string) => Promise<void>;
 }
 
 declare global {
@@ -76,6 +80,7 @@ export async function runPython(code: string): Promise<RunResult> {
   pyodide.setStdout({ batched: (msg) => { stdout += msg; } });
   pyodide.setStderr({ batched: (msg) => { stderr += msg; } });
   try {
+    await pyodide.loadPackagesFromImports(code);
     await pyodide.runPythonAsync(code);
     return { stdout, stderr, ok: true };
   } catch (err) {

@@ -1,19 +1,59 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ROADMAP, findModule } from '../data/curriculum';
 import { useProgress } from '../state/progressStore';
 import { ModuleIcon, IconCheck, IconLock } from '../components/layout/icons';
+import type { RoadmapTrack } from '../types';
+
+const TABS: { value: RoadmapTrack; label: string; blurb: string }[] = [
+  {
+    value: 'security',
+    label: 'Offensive Security',
+    blurb: 'Networking and Linux fundamentals up through red team, cloud, and bug bounty tradecraft.',
+  },
+  {
+    value: 'programming',
+    label: 'Programming',
+    blurb: 'Python, C++, and JavaScript — general-purpose programming practice, independent of any security or ML track.',
+  },
+  {
+    value: 'ml',
+    label: 'Machine Learning',
+    blurb: 'The full ML Portal curriculum, from Python/statistics foundations through neural networks, NLP, and MLOps.',
+  },
+];
 
 export default function RoadmapPage() {
   const progress = useProgress();
+  const [track, setTrack] = useState<RoadmapTrack>('security');
+
+  const stages = ROADMAP.filter((s) => s.track === track);
+  const activeTab = TABS.find((t) => t.value === track)!;
 
   return (
     <div className="max-w-4xl mx-auto px-8 py-14">
       <div className="gold-eyebrow mb-2">// curriculum</div>
       <h1 className="text-3xl font-bold text-[var(--color-heading)] mb-3">Learning Path</h1>
+
+      <div className="flex flex-wrap gap-2 mb-4">
+        {TABS.map((tab) => (
+          <button
+            key={tab.value}
+            onClick={() => setTrack(tab.value)}
+            className={`px-4 py-2 rounded-full text-sm font-semibold border transition-colors ${
+              track === tab.value
+                ? 'bg-[var(--color-accent)] border-[var(--color-accent)] text-white'
+                : 'border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-dim)] hover:text-[var(--color-heading)] hover:border-[var(--color-accent)]/50'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
       <p className="text-[var(--color-text-dim)] mb-12 leading-relaxed max-w-2xl">
-        The full curriculum, in the order it's meant to be taken — networking and Linux fundamentals up
-        through red team, cloud, and bug bounty tradecraft. Follow the path top to bottom; each stop
-        unlocks lessons with an embedded guided lab.
+        {activeTab.blurb} Follow the path top to bottom; each stop unlocks lessons
+        {track === 'security' ? ' with an embedded guided lab' : ''}.
       </p>
 
       <div className="relative">
@@ -21,7 +61,7 @@ export default function RoadmapPage() {
         <div className="absolute left-6 top-4 bottom-4 w-1 bg-[var(--color-border)] rounded-full md:hidden" />
 
         <div className="flex flex-col gap-8">
-          {ROADMAP.map((stage, i) => {
+          {stages.map((stage, i) => {
             const mod = findModule(stage.moduleSlug);
             const totalLessons = mod?.lessons.length ?? 0;
             const doneLessons = mod ? mod.lessons.filter((l) => progress.isLessonComplete(l.id)).length : 0;
@@ -36,7 +76,7 @@ export default function RoadmapPage() {
               : 'bg-[var(--color-surface)] border-[var(--color-border)] text-[var(--color-text-dim)]';
 
             return (
-              <div key={i} className="relative md:flex md:items-center md:justify-center">
+              <div key={stage.title} className="relative md:flex md:items-center md:justify-center">
                 <div
                   className={`absolute left-6 md:left-1/2 top-1/2 md:top-1/2 -translate-y-1/2 -translate-x-1/2 w-11 h-11 rounded-full border-2 flex items-center justify-center shrink-0 z-10 ${nodeColor}`}
                 >
