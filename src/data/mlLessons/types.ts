@@ -4,6 +4,14 @@ export interface MlLessonSection {
   body: string;
 }
 
+export interface MlResource {
+  title: string;
+  url: string;
+  kind: 'book' | 'course' | 'video' | 'repo' | 'docs';
+  /** why this specific resource, in this lesson's context */
+  note: string;
+}
+
 export interface MlLesson {
   id: string;
   title: string;
@@ -15,4 +23,6 @@ export interface MlLesson {
   /** id of a CodeTask in src/labs/mlTasks — rendered as a "practice this" link on the lesson page */
   challengeTaskId?: string;
   sections: MlLessonSection[];
+  /** real, verified external resources for going deeper than this lesson can — never fabricated */
+  resources?: MlResource[];
 }

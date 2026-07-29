@@ -8,13 +8,14 @@ import { NEURAL_NETWORKS_LESSONS } from './neuralNetworks';
 import { NLP_LESSONS } from './nlp';
 import { TIME_SERIES_LESSONS } from './timeSeries';
 import { MLOPS_LESSONS } from './mlops';
+import { RESOURCES_BY_UNIT } from './resources';
 import type { MlLesson } from './types';
 
-export type { MlLesson, MlLessonSection } from './types';
+export type { MlLesson, MlLessonSection, MlResource } from './types';
 export { ML_UNITS } from './units';
 export type { MlUnit } from './units';
 
-export const ML_LESSONS: MlLesson[] = [
+const RAW_LESSONS: MlLesson[] = [
   ...FOUNDATIONS_LESSONS,
   ...DATA_HANDLING_LESSONS,
   ...REGRESSION_LESSONS,
@@ -26,6 +27,11 @@ export const ML_LESSONS: MlLesson[] = [
   ...TIME_SERIES_LESSONS,
   ...MLOPS_LESSONS,
 ];
+
+export const ML_LESSONS: MlLesson[] = RAW_LESSONS.map((lesson) => ({
+  ...lesson,
+  resources: RESOURCES_BY_UNIT[lesson.unit],
+}));
 
 export function findMlLesson(id: string): MlLesson | undefined {
   return ML_LESSONS.find((l) => l.id === id);

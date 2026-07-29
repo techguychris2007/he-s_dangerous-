@@ -29,6 +29,17 @@ export const FOUNDATIONS_LESSONS: MlLesson[] = [
         operating on lists, arrays, and dictionaries. There's no separate "ML syntax" to learn — just more
         powerful data structures (NumPy arrays, DataFrames) built on these same fundamentals.</p>`,
       },
+      {
+        heading: 'Worked example: cleaning a batch of readings',
+        body: `<p>Say a sensor reports <code>[21.4, None, 22.1, None, 20.9]</code> — two dropped readings
+        mixed in with real ones. The fix is exactly the pattern from the coding challenge below: filter out
+        <code>None</code> first with a list comprehension, then average what's left:</p>
+        <pre>readings = [21.4, None, 22.1, None, 20.9]
+valid = [r for r in readings if r is not None]   # [21.4, 22.1, 20.9]
+average = sum(valid) / len(valid)                # 21.466...</pre>
+        <p>This three-line pattern — filter, then aggregate — reappears constantly once you get to pandas,
+        just spelled <code>df.dropna().mean()</code> instead.</p>`,
+      },
     ],
   },
   {
@@ -59,6 +70,17 @@ a = np.array([1, 2, 3, 4])
 b = a * 2 + 1        # vectorized: [3, 5, 7, 9]
 print(a.mean(), a.std())</pre>`,
       },
+      {
+        heading: 'Worked example: standardizing by hand',
+        body: `<p>Take <code>[10, 20, 30, 40, 50]</code>. The mean is 30, and the standard deviation works
+        out to about 14.14. Standardizing subtracts the mean and divides by that spread, element-wise:</p>
+        <pre>arr = np.array([10, 20, 30, 40, 50])
+z = (arr - arr.mean()) / arr.std()
+# [-1.414, -0.707, 0.0, 0.707, 1.414]</pre>
+        <p>Notice the result is symmetric around 0 — that's the point of standardizing: every feature ends
+        up on the same scale, centered at 0, regardless of its original units. This is exactly what the
+        coding challenge below asks you to implement.</p>`,
+      },
     ],
   },
   {
@@ -88,6 +110,18 @@ print(a.mean(), a.std())</pre>`,
         trained on unfiltered, mistyped, or leaky data will confidently produce wrong answers — "garbage
         in, garbage out."</p>`,
       },
+      {
+        heading: 'Worked example: group-by in one line',
+        body: `<p>Given a DataFrame of orders with <code>category</code> and <code>price</code> columns,
+        the average price per category is a single call:</p>
+        <pre>df.groupby("category")["price"].mean()
+# category
+# A    15.0
+# B     5.0</pre>
+        <p>Under the hood, <code>groupby</code> splits the rows into groups by the key column, applies
+        <code>.mean()</code> to each group separately, then stitches the results back into one Series —
+        the "split-apply-combine" pattern that also underlies the pandas group-by coding challenge below.</p>`,
+      },
     ],
   },
   {
@@ -115,6 +149,14 @@ print(a.mean(), a.std())</pre>`,
           <li><strong>Box plot</strong> — spread and outliers, often split by category.</li>
           <li><strong>Correlation heatmap</strong> — pairwise relationships across many numeric columns at once.</li>
         </ul>`,
+      },
+      {
+        heading: 'Reading a box plot',
+        body: `<p>A box plot draws the median as a line inside a box spanning the 25th–75th percentile
+        (the "interquartile range"), with whiskers extending to the most extreme non-outlier points and
+        individual dots for anything beyond that. Seeing several dots far above the whiskers on a
+        "transaction amount" box plot is often the very first hint that fraud or data-entry errors exist in
+        a dataset — before a single model has been trained.</p>`,
       },
     ],
   },
@@ -154,6 +196,14 @@ print(a.mean(), a.std())</pre>`,
         a correlation that's real in the training data but meaningless (or actively misleading) once
         conditions change.</p>`,
       },
+      {
+        heading: 'Worked example: mean vs. median under an outlier',
+        body: `<p>Five houses sell for $200k, $210k, $205k, $195k, and one mansion at $2,000,000. The mean
+        price is $562,000 — higher than every ordinary house on the street. The median is $205,000, which
+        actually reflects a typical sale. This is exactly why median household income, not mean, is the
+        standard reporting figure: a handful of extreme values can drag the mean far from what "typical"
+        looks like.</p>`,
+      },
     ],
   },
   {
@@ -188,6 +238,17 @@ print(a.mean(), a.std())</pre>`,
         the straight-line distance from the origin. It shows up everywhere: as the "distance" in k-NN and
         k-means, and as the penalty term in ridge regression.</p>`,
       },
+      {
+        heading: 'Worked example: a linear model as a dot product',
+        body: `<p>A house-price model with weights <code>[150, 10000]</code> for [square feet, bedrooms]
+        and bias 20,000 predicts a 1,200 sq ft, 3-bedroom house as:</p>
+        <pre>[150, 10000] &middot; [1200, 3] + 20000
+= (150&times;1200 + 10000&times;3) + 20000
+= (180000 + 30000) + 20000 = 230000</pre>
+        <p>That dot-product-plus-bias is the entire computation behind linear regression, logistic
+        regression, and a single layer of a neural network — only the number of features and what happens
+        to the result afterward changes.</p>`,
+      },
     ],
   },
   {
@@ -221,6 +282,17 @@ print(a.mean(), a.std())</pre>`,
         one of the most common practical decisions in training any model, from linear regression to deep
         neural networks.</p>`,
       },
+      {
+        heading: 'Worked example: three steps by hand',
+        body: `<p>Minimizing f(x) = (x - 3)&sup2; from x&#8320; = 0 with learning rate 0.1 — gradient is
+        2(x - 3):</p>
+        <pre>step 1: grad = 2(0 - 3) = -6      x = 0 - 0.1&times;(-6) = 0.6
+step 2: grad = 2(0.6 - 3) = -4.8  x = 0.6 - 0.1&times;(-4.8) = 1.08
+step 3: grad = 2(1.08 - 3) = -3.84  x = 1.08 - 0.1&times;(-3.84) = 1.464</pre>
+        <p>Each step covers a smaller distance as x approaches 3, because the gradient itself shrinks near
+        the minimum — this is exactly the behavior you'll see printed out when you run the coding challenge
+        below for 100 steps instead of 3.</p>`,
+      },
     ],
   },
   {
@@ -251,6 +323,15 @@ print(a.mean(), a.std())</pre>`,
         body: `<p>Everything you find in EDA feeds directly into the next stage of the pipeline: a skewed
         distribution suggests a log transform, a column with many missing values needs an imputation
         strategy, and a strong nonlinear relationship hints that a raw linear model won't be enough.</p>`,
+      },
+      {
+        heading: 'Worked example: a two-minute EDA pass',
+        body: `<p>Given a customer dataset: <code>df.shape</code> shows 10,000 rows &times; 12 columns.
+        <code>df.isna().sum()</code> shows the "income" column is missing 8% of values — worth an
+        imputation strategy, not dropping 800 rows. <code>df["income"].hist()</code> shows a long right
+        tail — a candidate for a log transform. <code>df.corr()["churned"]</code> shows "days_since_login"
+        is the strongest single predictor of churn — the first feature worth engineering further. Four
+        quick calls, and the rest of the project already has direction.</p>`,
       },
     ],
   },

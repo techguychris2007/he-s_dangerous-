@@ -29,6 +29,13 @@ export const NLP_LESSONS: MlLesson[] = [
         vs "great?"), and modern embedding-based models often need far less preprocessing than classic
         bag-of-words approaches. The right amount of cleaning depends on the model that consumes the text.</p>`,
       },
+      {
+        heading: 'Worked example: cleaning one sentence',
+        body: `<p>"The Cat is a Cat!" lowercases to "the cat is a cat!", strips punctuation to "the cat is a
+        cat", tokenizes to [the, cat, is, a, cat], and with stopwords {the, is, a} removed leaves just
+        [cat, cat] — the two content-bearing tokens the rest of an NLP pipeline actually cares about. This
+        exact four-step reduction is what the preprocessing coding challenge below implements.</p>`,
+      },
     ],
   },
   {
@@ -57,6 +64,14 @@ export const NLP_LESSONS: MlLesson[] = [
         document but rarely elsewhere — IDF for a word is roughly log(total documents / documents
         containing the word), so a word in every document scores near 0 regardless of its raw count.</p>`,
       },
+      {
+        heading: 'Worked example: two words, two outcomes',
+        body: `<p>Across 3 documents, "sat" appears in 2 of them, "mat" appears in only 1. In a document
+        where "sat" occurs once (out of 5 words), TF=1/5=0.2 and IDF=log(3/2)&asymp;0.405, giving TF-IDF
+        &asymp; 0.081. "Mat" occurring once in that same document has the same TF=0.2 but IDF=log(3/1)&asymp;
+        1.099 — nearly triple — giving TF-IDF &asymp; 0.220. The rarer word scores nearly 3&times; higher
+        despite an identical raw count, exactly the weighting the coding challenge below computes.</p>`,
+      },
     ],
   },
   {
@@ -83,6 +98,14 @@ export const NLP_LESSONS: MlLesson[] = [
         body: `<p>Famously, well-trained word embeddings support analogies via vector arithmetic:
         vector("king") - vector("man") + vector("woman") lands close to vector("queen"). This is exactly
         cosine similarity from Unit 1, applied to learned word vectors instead of raw feature vectors.</p>`,
+      },
+      {
+        heading: 'Worked example: finding the nearest word',
+        body: `<p>With "cat"=[1,0,0], "dog"=[0.9,0.1,0], and "car"=[0,0,1], a query vector [1,0,0] has
+        cosine similarity 1.0 with "cat" (identical direction), about 0.994 with "dog" (very close, but
+        not identical), and 0.0 with "car" (orthogonal — no overlap at all). "cat" wins as the nearest
+        neighbor — exactly the max-similarity search the coding challenge below implements over a whole
+        vocabulary at once.</p>`,
       },
     ],
   },
@@ -111,6 +134,14 @@ export const NLP_LESSONS: MlLesson[] = [
         language (words that mean different things in product reviews vs. financial news) are classic
         failure modes — a reminder that no NLP technique here is a solved problem, just a useful
         approximation.</p>`,
+      },
+      {
+        heading: 'Worked example: scoring one review',
+        body: `<p>"This is great, I love it" tokenizes to 6 words, 2 of which ("great", "love") are in a
+        positive lexicon and 0 in a negative one — 2 positive counts beat 0 negative counts, so the
+        lexicon-based baseline calls it positive. "Bad terrible day" has 2 negative hits and 0 positive
+        ones, so it's called negative. "Good bad" ties 1-to-1 and falls back to neutral — exactly the
+        three-way comparison the coding challenge below implements.</p>`,
       },
     ],
   },

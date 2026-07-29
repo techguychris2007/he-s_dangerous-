@@ -4,7 +4,7 @@ import { ML_TASKS } from '../labs/mlTasks';
 import { useProgress } from '../state/progressStore';
 import LinearRegressionDemo from '../components/ml/LinearRegressionDemo';
 import KMeansDemo from '../components/ml/KMeansDemo';
-import { IconCheck, IconCode } from '../components/layout/icons';
+import { IconCheck, IconCode, IconExternal } from '../components/layout/icons';
 
 export default function MlLessonPage() {
   const { lessonId } = useParams();
@@ -37,9 +37,10 @@ export default function MlLessonPage() {
 
         {lesson.sections.map((section) => (
           <div key={section.heading} className="mb-6">
-            <h2 className="text-base font-bold text-[var(--color-heading)] border-l-2 border-[var(--color-accent)] pl-2.5 mb-2">
-              {section.heading}
-            </h2>
+            <h2
+              className="text-base font-bold text-[var(--color-heading)] border-l-2 border-[var(--color-accent)] pl-2.5 mb-2"
+              dangerouslySetInnerHTML={{ __html: section.heading }}
+            />
             <div
               className="prose-ml text-sm text-[var(--color-text)] leading-relaxed [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mb-2 [&_li]:mb-1 [&_pre]:bg-[#0c0d10] [&_pre]:border [&_pre]:border-[var(--color-border)] [&_pre]:rounded-lg [&_pre]:p-3 [&_pre]:overflow-x-auto [&_pre]:font-mono [&_pre]:text-xs [&_strong]:text-[var(--color-heading)]"
               dangerouslySetInnerHTML={{ __html: section.body }}
@@ -49,6 +50,34 @@ export default function MlLessonPage() {
 
         {lesson.demo === 'linear-regression' && <LinearRegressionDemo />}
         {lesson.demo === 'kmeans' && <KMeansDemo />}
+
+        {lesson.resources && lesson.resources.length > 0 && (
+          <div className="mt-6 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
+            <h3 className="text-xs font-bold text-[var(--color-heading)] uppercase tracking-wide mb-3">
+              Go Deeper — Real Resources
+            </h3>
+            <div className="grid sm:grid-cols-2 gap-3">
+              {lesson.resources.map((r) => (
+                <a
+                  key={r.url}
+                  href={r.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] p-3 hover:border-[var(--color-accent)]/60 transition-colors"
+                >
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <span className="font-semibold text-[var(--color-heading)] text-xs">{r.title}</span>
+                    <IconExternal className="w-3 h-3 text-[var(--color-text-dim)] shrink-0" />
+                  </div>
+                  <span className="pill bg-[var(--color-accent)]/10 text-[var(--color-accent)] text-[10px] mb-1.5 inline-block capitalize">
+                    {r.kind}
+                  </span>
+                  <p className="text-[11px] text-[var(--color-text-dim)] leading-relaxed">{r.note}</p>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
 
         {challenge && (
           <Link

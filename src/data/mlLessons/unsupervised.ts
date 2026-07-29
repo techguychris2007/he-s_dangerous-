@@ -26,6 +26,14 @@ export const UNSUPERVISED_LESSONS: MlLesson[] = [
         body: `<p>The panel below runs Lloyd's k-means algorithm on your data entirely in your browser and
         plots the resulting clusters and centroids.</p>`,
       },
+      {
+        heading: 'Worked example: one iteration by hand',
+        body: `<p>Points [1,1], [1,2], [9,9] with initial centroids A=[1,1] and B=[9,9]. Assignment step:
+        [1,1]&rarr;A (distance 0), [1,2]&rarr;A (distance 1, closer than 11.3 to B), [9,9]&rarr;B. Update
+        step: centroid A moves to the average of [1,1] and [1,2] = [1, 1.5]; centroid B stays at [9,9]
+        (only one point assigned). One more assignment pass with the updated centroids would confirm nothing
+        changes — the algorithm has converged in just one real iteration.</p>`,
+      },
     ],
   },
   {
@@ -53,6 +61,14 @@ export const UNSUPERVISED_LESSONS: MlLesson[] = [
         than to the next-nearest one, averaged across all points, from -1 (likely wrong cluster) to +1
         (well clustered). Unlike inertia, it doesn't automatically favor larger k, making it a more
         reliable way to compare different values of k directly.</p>`,
+      },
+      {
+        heading: 'Worked example: reading an inertia curve',
+        body: `<p>Running k-means for k=1 through k=6 on customer data gives inertia values [900, 400, 180,
+        160, 145, 135]. The drop from k=1 to k=2 (900&rarr;400) and k=2 to k=3 (400&rarr;180) is huge; from
+        k=3 onward, each extra cluster barely helps (180&rarr;160&rarr;145&rarr;135). k=3 is the elbow — the
+        point where adding complexity stops paying for itself, which is exactly the inertia calculation the
+        coding challenge below implements for one clustering at a time.</p>`,
       },
     ],
   },
@@ -84,6 +100,14 @@ export const UNSUPERVISED_LESSONS: MlLesson[] = [
         O(n&sup2;)) but gives you the whole nested structure at once and makes no assumption about cluster
         shape.</p>`,
       },
+      {
+        heading: 'Worked example: single-linkage distance',
+        body: `<p>Cluster A = {[0,0]} and cluster B = {[3,4], [10,10]}. Single linkage checks every
+        cross-cluster pair: distance to [3,4] is 5 (the 3-4-5 triangle again), distance to [10,10] is
+        &radic;200 &asymp; 14.1. Single linkage takes the minimum — 5 — meaning these two clusters are
+        considered "close" based on their nearest points alone, even though [10,10] is much farther away.
+        This is exactly the min-over-all-pairs calculation the coding challenge below implements.</p>`,
+      },
     ],
   },
   {
@@ -112,6 +136,14 @@ export const UNSUPERVISED_LESSONS: MlLesson[] = [
         diminishing returns — the first few components often capture most of the variance, and a scree
         plot's elbow is a common way to decide how many components to keep, echoing the elbow method for
         choosing k.</p>`,
+      },
+      {
+        heading: 'Worked example: reading explained variance',
+        body: `<p>PCA on a 5-feature dataset produces component variances [8, 3, 1, 0.5, 0.2]. As ratios of
+        the total (12.7): the first component alone explains 8/12.7 &asymp; 63%, the first two together
+        explain (8+3)/12.7 &asymp; 87%. Keeping just those two components — reducing 5 dimensions down to 2
+        — preserves the large majority of the dataset's information, which is exactly the ratio calculation
+        in the coding challenge below.</p>`,
       },
     ],
   },
@@ -142,6 +174,14 @@ export const UNSUPERVISED_LESSONS: MlLesson[] = [
         body: `<p>A rule can have high confidence just because B is bought by almost everyone regardless of
         A — high confidence alone is misleading. Lift corrects for that by comparing against B's baseline
         popularity, which is why it's the metric usually used to rank candidate rules.</p>`,
+      },
+      {
+        heading: 'Worked example: bread &rarr; butter',
+        body: `<p>Across 4 transactions, bread appears in 3, butter in 2, and both together in 2. Support =
+        2/4 = 0.5 (half of all transactions have both). Confidence(bread&rarr;butter) = 2/3 &asymp; 0.667
+        (two-thirds of bread-buyers also bought butter). Lift = 0.667 / (2/4) = 0.667/0.5 &asymp; 1.33 — over
+        1, meaning buying bread genuinely raises the chance of buying butter beyond butter's own base rate.
+        This is exactly what the association-metrics coding challenge below computes for any pair of items.</p>`,
       },
     ],
   },

@@ -26,6 +26,13 @@ export const NEURAL_NETWORKS_LESSONS: MlLesson[] = [
         function instead of a hard step, is what turns "a single linear classifier" into a
         <strong>multi-layer perceptron</strong> capable of learning nonlinear boundaries like XOR.</p>`,
       },
+      {
+        heading: 'Worked example: a perceptron for AND',
+        body: `<p>With weights [1, 1] and bias -1.5: input [1,1] gives 1+1-1.5=0.5 &gt; 0 &rarr; output 1.
+        Input [1,0] gives 1+0-1.5=-0.5 &le; 0 &rarr; output 0. Input [0,0] gives -1.5 &rarr; output 0. Only
+        when both inputs are 1 does the weighted sum clear the -1.5 bias — exactly the logical AND
+        truth table, and exactly the weights the coding challenge below hands you to verify.</p>`,
+      },
     ],
   },
   {
@@ -57,6 +64,15 @@ export const NEURAL_NETWORKS_LESSONS: MlLesson[] = [
         bias, applies its activation function, and passes the result to the next layer — the same
         "multiply then sum" as linear regression, just repeated and made nonlinear at every layer.</p>`,
       },
+      {
+        heading: 'Worked example: ReLU vs. sigmoid on the same input',
+        body: `<p>For a pre-activation value z = -2: ReLU outputs max(0, -2) = 0 — the neuron is fully "off"
+        and passes nothing forward. Sigmoid outputs 1/(1+e&sup2;) &asymp; 0.119 — small, but never exactly
+        zero. For z = 3: ReLU outputs 3 directly (no saturation), while sigmoid outputs &sigma;(3) &asymp;
+        0.953 — already close to its ceiling of 1, meaning further increases in z barely change the output
+        anymore. This saturation-at-large-|z| behavior is exactly why ReLU became the default for deep
+        networks.</p>`,
+      },
     ],
   },
   {
@@ -86,6 +102,15 @@ export const NEURAL_NETWORKS_LESSONS: MlLesson[] = [
         involved) and large datasets, it's the algorithm underlying essentially all of modern deep
         learning.</p>`,
       },
+      {
+        heading: 'Worked example: chaining three derivatives',
+        body: `<p>If the loss changes by 2 units per unit change in the output (&part;loss/&part;output=2),
+        the output changes by 3 units per unit change in a hidden neuron (&part;output/&part;hidden=3), and
+        that hidden neuron changes by 4 units per unit change in one weight (&part;hidden/&part;weight=4),
+        the chain rule multiplies all three: 2&times;3&times;4=24 — the gradient of the loss with respect
+        to that one weight, several layers back. This single multiplication, repeated for every weight in
+        the network, is exactly what the coding challenge below asks you to compute.</p>`,
+      },
     ],
   },
   {
@@ -113,6 +138,14 @@ export const NEURAL_NETWORKS_LESSONS: MlLesson[] = [
         body: `<p>Early convolutional layers learn simple features like edges and color blobs; deeper layers
         combine those into increasingly complex patterns — textures, shapes, eventually whole object parts —
         which is why CNNs are the standard architecture for image classification, detection, and segmentation.</p>`,
+      },
+      {
+        heading: 'Worked example: a 2&times;2 filter by hand',
+        body: `<p>A 3&times;3 image [[1,2,3],[4,5,6],[7,8,9]] convolved with the 2&times;2 "sum" filter
+        [[1,1],[1,1]] at the top-left position covers [[1,2],[4,5]], summing to 1+2+4+5=12. Sliding one
+        step right covers [[2,3],[5,6]], summing to 16. The filter never leaves the image, so a 3&times;3
+        input with a 2&times;2 filter produces a 2&times;2 output — exactly the shrinking-output-size
+        arithmetic the convolution coding challenge below implements in full.</p>`,
       },
     ],
   },
@@ -143,6 +176,14 @@ export const NEURAL_NETWORKS_LESSONS: MlLesson[] = [
         information over longer sequences, and remain a common choice for sequence tasks even in the
         transformer era.</p>`,
       },
+      {
+        heading: 'Worked example: one hidden-state update',
+        body: `<p>With input x=1, previous hidden state h=0, and weights w_x=0.5, w_h=0.5, bias=0: the new
+        hidden state is tanh(0.5&times;1 + 0.5&times;0 + 0) = tanh(0.5) &asymp; 0.462. Feed that same weight
+        set a second input x=1 with the new h=0.462: tanh(0.5 + 0.5&times;0.462) &asymp; tanh(0.731) &asymp;
+        0.624 — the hidden state keeps accumulating influence from every step seen so far, which is exactly
+        the update the rnn_step coding challenge below computes one timestep at a time.</p>`,
+      },
     ],
   },
   {
@@ -171,6 +212,15 @@ export const NEURAL_NETWORKS_LESSONS: MlLesson[] = [
         stabilizing and speeding up convergence. <strong>Early stopping</strong> — halting training once
         validation performance stops improving, even if training loss keeps dropping — is often the
         simplest and most effective regularizer of all.</p>`,
+      },
+      {
+        heading: 'Worked example: inverted dropout scaling',
+        body: `<p>With activations [1,2,3,4] and a 50% keep probability, dropout might zero out the 2nd and
+        4th units: kept units are then scaled by 1/0.5=2 to compensate — giving [2,0,6,0] instead of
+        [1,0,3,0]. That doubling matters: without it, the expected total signal reaching the next layer
+        during training (half-scale, half the units) would be systematically smaller than at inference time
+        (full scale, all units) — exactly the mismatch inverted dropout, implemented in the coding challenge
+        below, is designed to avoid.</p>`,
       },
     ],
   },

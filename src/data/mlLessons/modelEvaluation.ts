@@ -25,6 +25,13 @@ export const MODEL_EVALUATION_LESSONS: MlLesson[] = [
         candidate models and hyperparameters, and after deployment to catch performance drift as real-world
         data shifts away from what the model was trained on.</p>`,
       },
+      {
+        heading: 'Worked example: the 99% accuracy trap',
+        body: `<p>A fraud dataset has 990 legitimate transactions and 10 fraudulent ones. A model that
+        predicts "legitimate" for every single transaction scores 990/1000 = 99% accuracy — while catching
+        exactly zero fraud cases, the entire point of building it. This single example is why every lesson
+        in the rest of this unit exists: accuracy alone cannot tell this model apart from a genuinely good one.</p>`,
+      },
     ],
   },
   {
@@ -57,6 +64,14 @@ export const MODEL_EVALUATION_LESSONS: MlLesson[] = [
         mean (2&middot;precision&middot;recall / (precision + recall)), penalizes models that sacrifice one
         entirely for the other.</p>`,
       },
+      {
+        heading: 'Worked example: from confusion matrix to F1',
+        body: `<p>A model makes 100 predictions on a positive class with 20 true cases: 15 true positives, 5
+        false negatives, 10 false positives, 70 true negatives. Precision = 15/(15+10) = 0.6. Recall =
+        15/(15+5) = 0.75. F1 = 2&times;0.6&times;0.75/(0.6+0.75) &asymp; 0.667 — noticeably below either
+        individual number, exactly because F1 punishes the gap between precision and recall rather than
+        just averaging them. This is the same three-number output the coding challenge below computes.</p>`,
+      },
     ],
   },
   {
@@ -84,6 +99,14 @@ export const MODEL_EVALUATION_LESSONS: MlLesson[] = [
         from 0.5 (no better than random) to 1.0 (perfect separation). It has a clean interpretation: the
         probability that a randomly chosen positive example scores higher than a randomly chosen negative
         one — which makes it threshold-independent, unlike accuracy or F1.</p>`,
+      },
+      {
+        heading: 'Worked example: sweeping the threshold',
+        body: `<p>With true labels [1,1,0,0] and scores [0.9,0.4,0.6,0.1]: at threshold 0.0, everything is
+        predicted positive — TPR=1.0, FPR=1.0 (top-right corner of the ROC curve). At threshold 1.1, nothing
+        is predicted positive — TPR=0.0, FPR=0.0 (bottom-left corner). At threshold 0.5, only the 0.9 and
+        0.6 scores clear the bar — TPR=0.5, FPR=0.5. Plotting these three (FPR, TPR) points and connecting
+        them traces the actual ROC curve — exactly what the coding challenge below computes one threshold at a time.</p>`,
       },
     ],
   },
@@ -116,6 +139,15 @@ export const MODEL_EVALUATION_LESSONS: MlLesson[] = [
         each one, and pick whichever scores best — the test set stays reserved for one final, honest check
         at the very end.</p>`,
       },
+      {
+        heading: 'Worked example: 5-fold assignment',
+        body: `<p>With 10 examples (indices 0-9) and k=5, round-robin assignment gives fold 0 = [0,5],
+        fold 1 = [1,6], fold 2 = [2,7], fold 3 = [3,8], fold 4 = [4,9] — two examples each. Round 1 trains
+        on folds 1-4 (8 examples) and tests on fold 0; round 2 trains on folds 0,2,3,4 and tests on fold 1;
+        and so on for all 5 rounds. Averaging the 5 resulting scores is more reliable than any single
+        80/20 split, since every example gets used for testing exactly once. This is exactly what the
+        make_folds coding challenge below builds.</p>`,
+      },
     ],
   },
   {
@@ -144,6 +176,15 @@ export const MODEL_EVALUATION_LESSONS: MlLesson[] = [
         more examples, e.g. SMOTE) and <strong>undersampling</strong> the majority class are both ways to
         rebalance the training data itself, so the model doesn't learn to just ignore the rare class during
         training.</p>`,
+      },
+      {
+        heading: 'Worked example: rebalancing by the numbers',
+        body: `<p>A dataset with 8 "majority" and 2 "minority" examples is 80/20 imbalanced. Oversampling
+        duplicates minority examples (sampled with replacement) 6 more times to reach 8-and-8 — a balanced
+        50/50 training set the model can no longer trivially ignore the minority class on. Undersampling
+        would instead drop 6 of the 8 majority examples to reach 2-and-2 — balanced, but throwing away 75%
+        of the majority data in the process. This tradeoff is exactly why oversampling is more common when
+        data is already scarce, which is what the coding challenge below implements.</p>`,
       },
     ],
   },

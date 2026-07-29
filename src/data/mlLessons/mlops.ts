@@ -27,6 +27,14 @@ WHERE order_date >= '2026-01-01'
 GROUP BY customer_id
 ORDER BY total_spent DESC;</pre>`,
       },
+      {
+        heading: 'Worked example: the same query in Python',
+        body: `<p>Four orders — two from customer A ($100, $30), one from B ($50), one from C ($200 but
+        before the cutoff date) — filtered to 2026 and grouped by customer give A=$130, B=$50, sorted
+        descending. That's the exact same result the SQL query above produces, and exactly what the
+        group-by coding challenge below asks you to build by hand in plain Python: filter, accumulate into
+        a dict, then sort.</p>`,
+      },
     ],
   },
   {
@@ -54,6 +62,15 @@ ORDER BY total_spent DESC;</pre>`,
         body: `<p>As a model gets retrained, keeping track of exactly which version is deployed, what data
         it was trained on, and how it performed is essential for debugging regressions and rolling back
         safely when a new version underperforms.</p>`,
+      },
+      {
+        heading: 'Worked example: validating a request before it reaches the model',
+        body: `<p>A request <code>{"age": 30, "income": 50000}</code> against required fields
+        [age, income] passes validation — both present, both numeric. A request missing "income" fails
+        immediately, before ever reaching <code>model.predict()</code>. A request with
+        <code>{"age": "30", ...}</code> — age sent as a string instead of a number — also fails: silently
+        letting that through could crash the model or, worse, produce a nonsense prediction. This exact
+        present-and-numeric check is what the coding challenge below implements.</p>`,
       },
     ],
   },
@@ -83,6 +100,13 @@ ORDER BY total_spent DESC;</pre>`,
         body: `<p>Computing standard metrics (accuracy, precision, recall) <em>separately for each subgroup</em>
         in the data — not just overall — is the most basic and important fairness check: a model can look
         excellent in aggregate while performing far worse for a specific group.</p>`,
+      },
+      {
+        heading: 'Worked example: an audit that catches a problem',
+        body: `<p>Overall accuracy on a loan-approval model looks great at 90%. Splitting by group reveals
+        group A at 95% accuracy and group B at 78% — a 17-point gap invisible in the aggregate number. That
+        gap is exactly what a per-group audit like the coding challenge below is built to surface: compute
+        the same metric once per subgroup, then compare, rather than trusting one blended number.</p>`,
       },
     ],
   },
@@ -117,6 +141,14 @@ ORDER BY total_spent DESC;</pre>`,
         you back to feature engineering; a new business requirement changes the problem definition
         entirely. Treating it as a one-way pipeline is a common beginner mistake.</p>`,
       },
+      {
+        heading: 'Worked example: catching a broken split before it costs you',
+        body: `<p>A 10-example dataset split into train=[0-5], val=[6,7], test=[8,9] should have zero overlap
+        and cover every index exactly once. If a bug accidentally puts index 6 in both train and val, a
+        validity check comparing the three sets as disjoint sets — exactly what the split-validation coding
+        challenge below implements — catches it immediately, before a subtly-leaked validation score misleads
+        every hyperparameter decision downstream.</p>`,
+      },
     ],
   },
   {
@@ -145,6 +177,14 @@ ORDER BY total_spent DESC;</pre>`,
         over time, alerting when performance metrics drift outside expected bounds — triggering a
         retraining cycle that starts the whole pipeline from Unit 10's previous lesson over again with
         fresh data.</p>`,
+      },
+      {
+        heading: 'Worked example: a simple drift alarm',
+        body: `<p>A model was trained on transactions averaging $100 with a standard deviation of $10. This
+        week's batch averages $105 — within 2 standard deviations, no alarm. Next week's batch averages
+        $150 — five standard deviations away, clearly outside normal variation, and worth investigating
+        before trusting the model's predictions on it. This mean-and-threshold check is exactly what the
+        drift-detector coding challenge below implements.</p>`,
       },
     ],
   },

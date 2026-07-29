@@ -25,6 +25,14 @@ export const TIME_SERIES_LESSONS: MlLesson[] = [
         so a standard regression model can be reused for time series prediction, turning a sequence problem
         into an ordinary supervised learning problem.</p>`,
       },
+      {
+        heading: 'Worked example: building a lag-1 feature',
+        body: `<p>Daily sales [100, 110, 105, 120] become a supervised table by shifting the series by one
+        day: features=[100, 110, 105], targets=[110, 105, 120] — each row predicts "tomorrow" from "today."
+        Adding lag-2 and lag-7 columns the same way lets a single ordinary regression model see yesterday,
+        two days ago, and the same weekday last week all at once, which is exactly how the moving-average
+        coding challenge below turns a raw sequence into fixed-size windows.</p>`,
+      },
     ],
   },
   {
@@ -53,6 +61,14 @@ export const TIME_SERIES_LESSONS: MlLesson[] = [
         body: `<p>Isolating trend and seasonality makes it far easier to spot genuine anomalies in the
         residual (real deviations from the expected pattern), and is often a preprocessing step before
         forecasting — some models forecast the trend and seasonal components separately, then recombine them.</p>`,
+      },
+      {
+        heading: 'Worked example: a 3-point moving-average trend',
+        body: `<p>Daily values [10, 12, 14, 16, 18] smoothed with a 3-point trailing moving average give
+        [12, 14, 16] — the average of each point with its two predecessors. The raw series jumps by 2 every
+        step; the smoothed trend shows the same steady climb with the noise (if there were any) averaged
+        out. Subtracting this trend from the original values at each overlapping point is exactly the first
+        step toward isolating a residual — and exactly what the moving-average coding challenge below computes.</p>`,
       },
     ],
   },
@@ -85,6 +101,13 @@ export const TIME_SERIES_LESSONS: MlLesson[] = [
         body: `<p>Time series models must be evaluated on a chronological holdout — train on the past,
         test on the future — never a random split, since that would let the model "see the future" during
         training. The regression metrics from Unit 3 (MAE, RMSE) apply directly to forecast accuracy.</p>`,
+      },
+      {
+        heading: 'Worked example: differencing away a trend',
+        body: `<p>A steadily rising series [1, 3, 5, 7] differences to [2, 2, 2] — the "I" step in ARIMA
+        removes the trend entirely, leaving a constant (stationary) series that's far easier for an AR or
+        MA model to fit. A series with no trend at all, like [5, 5, 5], differences to [0, 0, 0] — nothing
+        left to model, which is exactly the sanity check the differencing coding challenge below tests for.</p>`,
       },
     ],
   },

@@ -28,6 +28,14 @@ export const REGRESSION_LESSONS: MlLesson[] = [
         body: `<p>The panel below runs ordinary least squares on your data entirely in your browser (pure
         TypeScript, no server) and charts the fit against the data.</p>`,
       },
+      {
+        heading: 'Worked example: the least-squares formula',
+        body: `<p>For points (1,2), (2,4), (3,5), (4,9), the closed-form slope is
+        &Sigma;(x-x&#772;)(y-y&#772;) / &Sigma;(x-x&#772;)&sup2;. With x&#772;=2.5 and y&#772;=5, the
+        numerator is (-1.5)(-3)+(-0.5)(-1)+(0.5)(0)+(1.5)(4) = 4.5+0.5+0+6 = 11, and the denominator is
+        2.25+0.25+0.25+2.25 = 5. Slope &asymp; 2.2, intercept = y&#772; - slope&middot;x&#772; &asymp; -0.5 —
+        the exact formula the "Try it" demo above and the linear-regression coding challenge both implement.</p>`,
+      },
     ],
   },
   {
@@ -56,6 +64,14 @@ export const REGRESSION_LESSONS: MlLesson[] = [
         body: `<p>The right polynomial degree is a model-complexity choice, tuned the same way any
         hyperparameter is: try a few degrees, evaluate each on a held-out validation set (never the
         training set), and pick the one that generalizes best — not the one that fits training data best.</p>`,
+      },
+      {
+        heading: 'Worked example: expanding one feature into four',
+        body: `<p>A single feature x = 3 with degree-3 polynomial regression expands to the feature vector
+        [1, 3, 9, 27] (powers 0 through 3) — exactly the output of the <code>polynomial_features</code>
+        function from Unit 2's coding challenge. The model then just runs ordinary linear regression on
+        these four columns instead of one, which is why a "polynomial model" is really a linear model in
+        disguise, fit on nonlinear features.</p>`,
       },
     ],
   },
@@ -87,6 +103,13 @@ export const REGRESSION_LESSONS: MlLesson[] = [
         recovers ordinary linear regression; very large &lambda; shrinks every weight toward zero,
         underfitting. Like the polynomial degree, the right &lambda; is chosen via validation, not guessed.</p>`,
       },
+      {
+        heading: 'Worked example: the penalty in numbers',
+        body: `<p>With weights [4, -3] and &lambda;=0.1: the ridge penalty is 0.1&times;(16+9)=2.5, added
+        directly to the MSE. The lasso penalty is 0.1&times;(4+3)=0.7. If MSE alone is 1.0, ridge pushes the
+        total loss to 3.5 — a strong incentive to shrink those weights on the next gradient step. This is
+        exactly the calculation in the regularized-loss coding challenge below.</p>`,
+      },
     ],
   },
   {
@@ -114,6 +137,15 @@ export const REGRESSION_LESSONS: MlLesson[] = [
         body: `<p>This exact loop — predict, measure error, compute gradients, update weights, repeat — is
         how virtually every model in this course past linear regression gets trained, right up through deep
         neural networks. Understanding it here pays off for the rest of the curriculum.</p>`,
+      },
+      {
+        heading: 'Worked example: batch vs. one example',
+        body: `<p>The coding challenge below uses <strong>batch</strong> gradient descent — averaging the
+        gradient over every training point before each update, which is stable but requires a full pass
+        through the data per step. Two common variants: <strong>stochastic</strong> gradient descent updates
+        after every single example (noisy but fast to start moving), and <strong>mini-batch</strong> (used
+        by virtually all real deep learning training) splits the difference, averaging over small batches
+        of 32–256 examples at a time.</p>`,
       },
     ],
   },
@@ -144,6 +176,14 @@ export const REGRESSION_LESSONS: MlLesson[] = [
         probability range and makes the loss function (log loss, not MSE) properly penalize confident wrong
         answers.</p>`,
       },
+      {
+        heading: 'Worked example: sigmoid in action',
+        body: `<p>A spam classifier computes wx + b = 2.0 for one email. &sigma;(2.0) = 1/(1+e&#8315;&sup2;)
+        &asymp; 0.881 — an 88.1% predicted probability of spam, comfortably over the 0.5 threshold. For a
+        borderline email with wx + b = 0.1, &sigma;(0.1) &asymp; 0.525 — barely over the threshold, and a
+        case where looking at the raw probability (not just the final 0/1 label) matters for deciding how
+        much to trust the prediction.</p>`,
+      },
     ],
   },
   {
@@ -172,6 +212,14 @@ export const REGRESSION_LESSONS: MlLesson[] = [
         is a perfect fit and 0.0 means the model does no better than always predicting the mean. It's the
         most common single-number summary of "how good is this regression model," though it should always
         be read alongside RMSE for an interpretable error scale.</p>`,
+      },
+      {
+        heading: 'Worked example: same errors, three metrics',
+        body: `<p>Predicting [1, 2, 3] as [2, 3, 4] — every prediction is off by exactly 1. MSE = 1.0
+        (average of 1&sup2;, 1&sup2;, 1&sup2;), RMSE = 1.0, MAE = 1.0. Now predict [1, 2, 3] as [1, 2, 6] —
+        two perfect predictions and one wildly wrong one. MAE stays a moderate 1.0, but MSE jumps to 3.0
+        because squaring the single large error (3&sup2;=9) dominates the average. This is exactly why MSE
+        is more outlier-sensitive than MAE, as the coding challenge's test cases show directly.</p>`,
       },
     ],
   },

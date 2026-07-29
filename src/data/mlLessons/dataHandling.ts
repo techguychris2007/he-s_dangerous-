@@ -29,6 +29,14 @@ export const DATA_HANDLING_LESSONS: MlLesson[] = [
         the <strong>training set only</strong>, then apply that same value to the test set. Computing it from
         the whole dataset leaks information from test data into training — a subtle but common bug.</p>`,
       },
+      {
+        heading: 'Worked example: choosing a strategy',
+        body: `<p>A 10,000-row loan dataset has "annual_income" missing in 2% of rows and "co_applicant_income"
+        missing in 95% of rows. The first is a good imputation candidate — fill with the training set's
+        median income. The second is missing so often (likely meaning "no co-applicant") that a smarter fix
+        is a new binary column "has_co_applicant" plus filling the income with 0, rather than dropping a
+        column that's actually carrying real signal about the applicant's situation.</p>`,
+      },
     ],
   },
   {
@@ -58,6 +66,14 @@ export const DATA_HANDLING_LESSONS: MlLesson[] = [
         body: `<p>Distance-based and gradient-based models (k-NN, k-means, SVM, linear/logistic regression,
         neural networks) need scaling. Tree-based models (decision trees, random forests, gradient
         boosting) split on raw thresholds and are invariant to monotonic scaling, so they don't.</p>`,
+      },
+      {
+        heading: 'Worked example: unscaled k-NN goes wrong',
+        body: `<p>Comparing two houses with [square_feet, bedrooms] = [1500, 3] and [1520, 5], the squared
+        Euclidean distance is (1520-1500)&sup2; + (5-3)&sup2; = 400 + 4 = 404 — square footage alone
+        decides almost the entire distance, even though "2 extra bedrooms" is arguably the bigger real
+        difference. After standardizing both features to comparable scales, the bedroom difference finally
+        carries proportional weight in the distance calculation, exactly as it should.</p>`,
       },
     ],
   },
@@ -89,6 +105,17 @@ export const DATA_HANDLING_LESSONS: MlLesson[] = [
         "city_day") can expose interaction effects a model couldn't learn from the two columns separately
         — at the cost of many more possible category combinations.</p>`,
       },
+      {
+        heading: 'Worked example: one-hot in a table',
+        body: `<p>A "color" column with values [red, blue, red] one-hot encodes to two binary columns
+        (three distinct categories would need three, though one is often dropped to avoid redundancy):</p>
+        <pre>color  ->  is_red  is_blue
+red         1        0
+blue        0        1
+red         1        0</pre>
+        <p>This is exactly the transformation the one-hot-encoding coding challenge below asks you to
+        implement — one dict per row, one key per distinct category seen in the column.</p>`,
+      },
     ],
   },
   {
@@ -116,6 +143,14 @@ export const DATA_HANDLING_LESSONS: MlLesson[] = [
         body: `<p>Too few, too-simple features and a model underfits — it can't capture real patterns. Too
         many redundant or noisy features and it overfits — it memorizes quirks of the training set instead
         of learning generalizable structure. Feature engineering is a constant balance between the two.</p>`,
+      },
+      {
+        heading: 'Worked example: a ratio beats two raw columns',
+        body: `<p>Predicting ad click-through fraud from raw "clicks" and "impressions" columns, a model has
+        to learn the relationship between the two on its own. Engineering a single "click_through_rate" =
+        clicks / impressions feature hands it the signal directly — a rate of 40% is suspicious regardless
+        of whether it came from 2 clicks on 5 impressions or 4,000 on 10,000, something the two raw columns
+        don't express on their own.</p>`,
       },
     ],
   },
@@ -145,6 +180,14 @@ export const DATA_HANDLING_LESSONS: MlLesson[] = [
         mean, or (in time series) letting future data appear in the training set. Leakage makes test
         performance look great while the real-world model quietly fails.</p>`,
       },
+      {
+        heading: 'Worked example: a leakage bug, caught',
+        body: `<p>A team standardizes their whole 10,000-row dataset — computing mean and std once — then
+        splits into train/test. Test accuracy looks great. In production, accuracy drops sharply. The bug:
+        the test set's own values quietly influenced the mean/std used to scale the training data. The
+        fix is to call <code>fit</code> (compute mean/std) only on the training split, then <code>transform</code>
+        the test split with those same numbers — never re-fit on test data.</p>`,
+      },
     ],
   },
   {
@@ -173,6 +216,15 @@ export const DATA_HANDLING_LESSONS: MlLesson[] = [
         body: `<p>Regularization, cross-validation, ensembling, and simply gathering more training data are
         all tools for finding the sweet spot — a model complex enough to capture real structure, but not so
         complex it memorizes noise.</p>`,
+      },
+      {
+        heading: 'Worked example: watching both errors move',
+        body: `<p>Fitting polynomials of degree 1, 4, and 15 to the same noisy data: degree 1 has high
+        training error and similarly high test error (underfitting — high bias). Degree 4 has low training
+        error and low test error (a good fit). Degree 15 has near-zero training error but test error far
+        worse than degree 4 (overfitting — high variance). Plotting train vs. test error against model
+        complexity, and watching test error start rising while training error keeps falling, is the single
+        most common way this tradeoff gets diagnosed in practice.</p>`,
       },
     ],
   },
