@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Navigate, useParams, Link } from 'react-router-dom';
 import { findBook, booksInTrack } from '../data/books';
 import PdfViewer, { type PdfViewerHandle } from '../components/books/PdfViewer';
+import AiReadingCompanion from '../components/books/AiReadingCompanion';
 import { IconExternal, IconSearch, IconFlask } from '../components/layout/icons';
 import { SECURITY_TASKS, BOOK_LAB_TASK_IDS } from '../labs/securityTasks';
 
@@ -433,6 +434,8 @@ export default function BookReaderPage() {
           </div>
         </div>
       )}
+
+      <AiReadingCompanion bookTitle={book.title} currentPage={currentPage} viewerRef={viewerRef} />
     </div>
   );
 }
