@@ -1,14 +1,17 @@
+import { useRef } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { findModule } from '../data/curriculum';
 import { labsForLesson } from '../data/lessonLabs';
 import { useProgress } from '../state/progressStore';
 import Quiz from '../components/lesson/Quiz';
 import LessonLabCard from '../components/lesson/LessonLabCard';
+import CyberLabAI from '../components/labs/CyberLabAI';
 import { IconCheck } from '../components/layout/icons';
 
 export default function LessonPage() {
   const { moduleSlug, lessonSlug } = useParams();
   const progress = useProgress();
+  const contentRef = useRef<HTMLDivElement>(null);
   const mod = findModule(moduleSlug);
   if (!mod) return <Navigate to="/" replace />;
   const idx = mod.lessons.findIndex((l) => l.slug === lessonSlug);
@@ -28,7 +31,9 @@ export default function LessonPage() {
         {mod.title} &middot; {lesson.minutes} min read
       </div>
 
-      <Content />
+      <div ref={contentRef}>
+        <Content />
+      </div>
 
       {labSlugs.length > 0 && (
         <div className="mt-10">
@@ -86,6 +91,16 @@ export default function LessonPage() {
           </Link>
         )}
       </div>
+
+      <CyberLabAI
+        key={lesson.id}
+        getContext={() => ({
+          kind: 'lesson',
+          title: lesson.title,
+          subtitle: mod.title,
+          bodyText: contentRef.current?.innerText ?? '',
+        })}
+      />
     </div>
   );
 }

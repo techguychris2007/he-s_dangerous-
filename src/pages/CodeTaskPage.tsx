@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Navigate, useParams, Link } from 'react-router-dom';
 import { PYTHON_TASKS } from '../labs/pythonTasks';
 import { CPP_TASKS } from '../labs/cppTasks';
@@ -7,6 +7,7 @@ import { ML_TASKS } from '../labs/mlTasks';
 import { SECURITY_TASKS } from '../labs/securityTasks';
 import { useProgress } from '../state/progressStore';
 import CodeConsole from '../components/code/CodeConsole';
+import CyberLabAI from '../components/labs/CyberLabAI';
 import { IconCheck, IconCode } from '../components/layout/icons';
 
 const ALL_CODE_TASKS = [...PYTHON_TASKS, ...CPP_TASKS, ...JS_TASKS, ...ML_TASKS, ...SECURITY_TASKS];
@@ -23,11 +24,17 @@ export default function CodeTaskPage() {
   const [hintIndex, setHintIndex] = useState(0);
   const [showSolution, setShowSolution] = useState(false);
   const task = ALL_CODE_TASKS.find((t) => t.id === taskId);
+  const currentCodeRef = useRef('');
+  const revealedHintsRef = useRef<string[]>([]);
 
   useEffect(() => {
     setHintIndex(0);
     setShowSolution(false);
   }, [taskId]);
+
+  useEffect(() => {
+    revealedHintsRef.current = task ? task.hints.slice(0, hintIndex) : [];
+  }, [task, hintIndex]);
 
   if (!task) return <Navigate to="/code-portal" replace />;
 
@@ -102,8 +109,23 @@ export default function CodeTaskPage() {
           starterCode={task.starterCode}
           testCode={task.testCode}
           onAllTestsPassed={() => progress.completeCodeTask(task.id)}
+          onCodeChange={(code) => {
+            currentCodeRef.current = code;
+          }}
         />
       </div>
+
+      <CyberLabAI
+        key={task.id}
+        getContext={() => ({
+          kind: 'lab',
+          title: task.title,
+          subtitle: `${task.difficulty} · ${task.category}`,
+          bodyText: task.prompt,
+          currentCode: currentCodeRef.current,
+          revealedHints: revealedHintsRef.current,
+        })}
+      />
     </div>
   );
 }

@@ -99,12 +99,12 @@ export default function AiReadingCompanion({ bookTitle, currentPage, viewerRef }
         {messages.map((m, i) => (
           <div key={i} className={m.role === 'user' ? 'text-right' : 'text-left'}>
             <div
-              className={`inline-block max-w-[90%] text-left text-xs leading-relaxed rounded-xl px-3 py-2 whitespace-pre-wrap ${
+              className={`inline-block max-w-[90%] text-left rounded-xl px-3 py-2.5 whitespace-pre-wrap ${
                 m.role === 'user'
-                  ? 'bg-[var(--color-accent)] text-white'
+                  ? 'bg-[var(--color-accent)] text-white text-xs leading-relaxed'
                   : m.role === 'error'
-                    ? 'bg-[var(--color-danger)]/15 text-[var(--color-danger)]'
-                    : 'bg-[var(--color-surface-2)] text-[var(--color-text)]'
+                    ? 'bg-[var(--color-danger)]/15 text-[var(--color-danger)] text-xs leading-relaxed'
+                    : 'ai-response bg-[var(--color-surface-2)]'
               }`}
             >
               {m.text}

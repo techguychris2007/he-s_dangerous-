@@ -25,6 +25,10 @@
   --color-gold: #a8792f;
   --color-gold-dim: #8a6323;
   --color-gold-soft: #a8792f26;
+
+  /* AI companion response text — dark and readable in light mode, switches to a terminal-green in
+     dark mode (see below) so AI-generated answers stay visually distinct from the surrounding UI. */
+  --color-ai-text: #12161f;
 }
 
 :root[data-theme="dark"] {
@@ -46,6 +50,7 @@
   --color-gold: #c9a15f;
   --color-gold-dim: #e9c98a;
   --color-gold-soft: #c9a15f22;
+  --color-ai-text: #4ade80;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -68,12 +73,23 @@
     --color-gold: #c9a15f;
     --color-gold-dim: #e9c98a;
     --color-gold-soft: #c9a15f22;
+    --color-ai-text: #4ade80;
   }
 }
 
 html, body, #root {
   height: 100%;
   margin: 0;
+}
+
+/* AI companion answers (Reading Companion, CyberLab AI) — deliberately larger and more visible than
+   the surrounding chat UI, since the whole point is that these are the important read. Dark in light
+   mode, terminal-green in dark mode via --color-ai-text (see theme blocks above). */
+.ai-response {
+  color: var(--color-ai-text);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  font-weight: 500;
 }
 
 body {

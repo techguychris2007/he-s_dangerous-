@@ -11,6 +11,9 @@ interface CodeConsoleProps {
   starterCode: string;
   testCode: string;
   onAllTestsPassed?: () => void;
+  /** fires on every keystroke — lets a parent (e.g. the AI lab tutor) see what the learner has
+   *  actually written without CodeConsole giving up ownership of the editor's state */
+  onCodeChange?: (code: string) => void;
 }
 
 type Status = 'idle' | 'booting' | 'running' | 'error' | 'done';
@@ -23,11 +26,17 @@ const RUNNERS: Record<CodeLanguage, (code: string) => Promise<{ stdout: string; 
   javascript: runJs,
 };
 
-export default function CodeConsole({ language, starterCode, testCode, onAllTestsPassed }: CodeConsoleProps) {
+export default function CodeConsole({ language, starterCode, testCode, onAllTestsPassed, onCodeChange }: CodeConsoleProps) {
   const [code, setCode] = useState(starterCode);
   const [output, setOutput] = useState('');
   const [status, setStatus] = useState<Status>('idle');
   const [testSummary, setTestSummary] = useState<{ passed: number; total: number } | null>(null);
+
+  useEffect(() => {
+    onCodeChange?.(code);
+    // onCodeChange is a plain callback prop, not reactive state — safe and correct to omit here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [code]);
 
   useEffect(() => {
     setCode(starterCode);

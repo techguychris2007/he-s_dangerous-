@@ -26,3 +26,30 @@ export async function askAiTutor(params: AskAiTutorParams): Promise<AskAiTutorRe
   if (!data) throw new Error('The AI tutor returned an empty response.');
   return data;
 }
+
+export type CyberLabAiMode = 'hint' | 'explain' | 'ask';
+
+export interface CyberLabAiContext {
+  kind: 'lab' | 'lesson';
+  title: string;
+  subtitle?: string;
+  bodyText?: string;
+  currentCode?: string;
+  revealedHints?: string[];
+}
+
+export interface AskCyberLabAiParams {
+  question: string;
+  mode: CyberLabAiMode;
+  hintLevel?: number;
+  context: CyberLabAiContext;
+}
+
+/** Calls the ai-lab-tutor Edge Function — "CyberLab AI," the hint-first coding/lab mentor. Shares
+ *  the same Groq/Gemini secrets as ai-tutor but runs its own hint-ladder system prompt server-side. */
+export async function askCyberLabAi(params: AskCyberLabAiParams): Promise<AskAiTutorResult> {
+  const { data, error } = await supabase.functions.invoke<AskAiTutorResult>('ai-lab-tutor', { body: params });
+  if (error) throw new Error(error.message || 'CyberLab AI is unavailable right now.');
+  if (!data) throw new Error('CyberLab AI returned an empty response.');
+  return data;
+}
