@@ -171,6 +171,13 @@ export const BOOKS: Book[] = [
   // NIST (csrc.nist.gov, all public domain U.S. government works) and OWASP (github.com/OWASP,
   // all CC BY-SA 4.0) — never a commercial/copyrighted title, regardless of how well-known it is.
 
+  // Some well-known "must read" hacking titles are commercial (No Starch, Wiley, Leanpub, or
+  // self-published) — never legally free to redistribute, no matter how easy pirated copies are
+  // to find. These are included as link-only entries (no filename) so the shelf's sequence stays
+  // honest about what real practitioners actually read next, while sending readers to buy or
+  // legitimately borrow (e.g. via a library's Libby/OverDrive) the real thing rather than a copy
+  // hosted here. Every officialUrl below is the book's real publisher/author/retailer page.
+
   // === Stage 1: Foundations ===
   {
     id: 'nist-intro-to-infosec',
@@ -276,13 +283,31 @@ export const BOOKS: Book[] = [
       'implemented — the paperwork-and-planning skill that turns "we should be secure" into an executable plan.',
   },
   {
+    id: 'linux-basics-for-hackers',
+    title: 'Linux Basics for Hackers',
+    subtitle: '2nd Edition — Getting Started with Networking, Scripting, and Security in Kali',
+    author: 'OccupyTheWeb',
+    track: 'security',
+    stage: 'Foundations',
+    order: 7,
+    // Commercial title (No Starch Press) — link-only, no cached copy. See file-level note above.
+    license: 'Commercial — Not Redistributable',
+    licenseUrl: 'https://nostarch.com/linux-basics-hackers-2nd-edition',
+    officialUrl: 'https://nostarch.com/linux-basics-hackers-2nd-edition',
+    description:
+      'Nearly every tool and technique on this shelf assumes comfort at a Linux command line first. A ' +
+      'widely-recommended, hands-on introduction to the Linux fundamentals — filesystem, permissions, ' +
+      'networking, Bash scripting — a security practitioner actually needs before anything else here ' +
+      'will click. Opens the publisher\'s official page in a new tab.',
+  },
+  {
     id: 'crypto101',
     title: 'Crypto 101',
     subtitle: 'An Introductory Course on Cryptography',
     author: 'Laurens Van Houtven',
     track: 'security',
     stage: 'Foundations',
-    order: 7,
+    order: 8,
     filename: 'crypto101.pdf',
     fileSizeMb: '14.9',
     license: 'CC BY-NC 4.0',
@@ -299,7 +324,7 @@ export const BOOKS: Book[] = [
     author: 'NIST',
     track: 'security',
     stage: 'Foundations',
-    order: 8,
+    order: 9,
     filename: 'nist-digital-identity-guidelines.pdf',
     fileSizeMb: '1.5',
     license: 'Public Domain (U.S. Government Work)',
@@ -318,7 +343,7 @@ export const BOOKS: Book[] = [
     author: 'NIST',
     track: 'security',
     stage: 'Governance & Risk Management',
-    order: 9,
+    order: 10,
     filename: 'nist-risk-assessment-guide.pdf',
     fileSizeMb: '0.8',
     license: 'Public Domain (U.S. Government Work)',
@@ -335,7 +360,7 @@ export const BOOKS: Book[] = [
     author: 'NIST',
     track: 'security',
     stage: 'Governance & Risk Management',
-    order: 10,
+    order: 11,
     filename: 'nist-risk-management-framework.pdf',
     fileSizeMb: '2.2',
     license: 'Public Domain (U.S. Government Work)',
@@ -352,7 +377,7 @@ export const BOOKS: Book[] = [
     author: 'NIST',
     track: 'security',
     stage: 'Governance & Risk Management',
-    order: 11,
+    order: 12,
     filename: 'nist-800-53-controls.pdf',
     fileSizeMb: '5.8',
     license: 'Public Domain (U.S. Government Work)',
@@ -370,7 +395,7 @@ export const BOOKS: Book[] = [
     author: 'NIST',
     track: 'security',
     stage: 'Governance & Risk Management',
-    order: 12,
+    order: 13,
     filename: 'nist-protecting-cui.pdf',
     fileSizeMb: '1.5',
     license: 'Public Domain (U.S. Government Work)',
@@ -389,7 +414,7 @@ export const BOOKS: Book[] = [
     author: 'NIST',
     track: 'security',
     stage: 'Network & Systems Hardening',
-    order: 13,
+    order: 14,
     filename: 'nist-firewall-guidelines.pdf',
     fileSizeMb: '0.33',
     license: 'Public Domain (U.S. Government Work)',
@@ -406,7 +431,7 @@ export const BOOKS: Book[] = [
     author: 'NIST',
     track: 'security',
     stage: 'Network & Systems Hardening',
-    order: 14,
+    order: 15,
     filename: 'nist-server-security-guide.pdf',
     fileSizeMb: '0.26',
     license: 'Public Domain (U.S. Government Work)',
@@ -423,7 +448,7 @@ export const BOOKS: Book[] = [
     author: 'NIST',
     track: 'security',
     stage: 'Network & Systems Hardening',
-    order: 15,
+    order: 16,
     filename: 'nist-wireless-lan-security.pdf',
     fileSizeMb: '0.6',
     license: 'Public Domain (U.S. Government Work)',
@@ -440,7 +465,7 @@ export const BOOKS: Book[] = [
     author: 'NIST',
     track: 'security',
     stage: 'Network & Systems Hardening',
-    order: 16,
+    order: 17,
     filename: 'nist-bluetooth-security.pdf',
     fileSizeMb: '2.1',
     license: 'Public Domain (U.S. Government Work)',
@@ -457,7 +482,7 @@ export const BOOKS: Book[] = [
     author: 'NIST',
     track: 'security',
     stage: 'Network & Systems Hardening',
-    order: 17,
+    order: 18,
     filename: 'nist-key-management.pdf',
     fileSizeMb: '1.6',
     license: 'Public Domain (U.S. Government Work)',
@@ -475,7 +500,7 @@ export const BOOKS: Book[] = [
     author: 'NIST',
     track: 'security',
     stage: 'Network & Systems Hardening',
-    order: 18,
+    order: 19,
     filename: 'nist-log-management.pdf',
     fileSizeMb: '1.8',
     license: 'Public Domain (U.S. Government Work)',
@@ -495,7 +520,7 @@ export const BOOKS: Book[] = [
     author: 'NIST',
     track: 'security',
     stage: 'Offensive Testing & Ethical Hacking',
-    order: 19,
+    order: 20,
     filename: 'nist-security-testing-guide.pdf',
     fileSizeMb: '0.5',
     license: 'Public Domain (U.S. Government Work)',
@@ -506,13 +531,31 @@ export const BOOKS: Book[] = [
       'are actually planned and run — the methodology behind "hacking," done properly and legally.',
   },
   {
+    id: 'basics-of-hacking-pentesting',
+    title: 'The Basics of Hacking and Penetration Testing',
+    subtitle: '3rd Edition — Ethical Hacking and Penetration Testing Made Easy',
+    author: 'Patrick Engebretson',
+    track: 'security',
+    stage: 'Offensive Testing & Ethical Hacking',
+    order: 21,
+    // Commercial title (Elsevier/Syngress) — link-only, no cached copy. See file-level note above.
+    license: 'Commercial — Not Redistributable',
+    licenseUrl: 'https://www.elsevier.com/books/the-basics-of-hacking-and-penetration-testing/engebretson/978-0-12-411644-3',
+    officialUrl: 'https://www.elsevier.com/books/the-basics-of-hacking-and-penetration-testing/engebretson/978-0-12-411644-3',
+    description:
+      'The NIST testing guide covers the "why" and "how it\'s planned"; this well-known intro walks the ' +
+      'full attack chain hands-on for the first time — reconnaissance, scanning, exploitation, and ' +
+      'social engineering, using the same tools professionals use. Opens the publisher\'s official page ' +
+      'in a new tab.',
+  },
+  {
     id: 'owasp-wstg',
     title: 'OWASP Web Security Testing Guide',
     subtitle: 'Version 4.2',
     author: 'OWASP Foundation &amp; Contributors',
     track: 'security',
     stage: 'Offensive Testing & Ethical Hacking',
-    order: 20,
+    order: 22,
     filename: 'owasp-wstg.pdf',
     fileSizeMb: '9.7',
     license: 'CC BY-SA 4.0',
@@ -524,13 +567,30 @@ export const BOOKS: Book[] = [
       'session management, and more — maintained on GitHub by working penetration testers.',
   },
   {
+    id: 'web-application-hackers-handbook',
+    title: 'The Web Application Hacker\'s Handbook',
+    subtitle: '2nd Edition — Finding and Exploiting Security Flaws',
+    author: 'Dafydd Stuttard &amp; Marcus Pinto',
+    track: 'security',
+    stage: 'Offensive Testing & Ethical Hacking',
+    order: 23,
+    // Commercial title (Wiley) — link-only, no cached copy. See file-level note above.
+    license: 'Commercial — Not Redistributable',
+    licenseUrl: 'https://www.wiley.com/en-us/The+Web+Application+Hacker%27s+Handbook%3A+Finding+and+Exploiting+Security+Flaws%2C+2nd+Edition-p-9781118026472',
+    officialUrl: 'https://www.wiley.com/en-us/The+Web+Application+Hacker%27s+Handbook%3A+Finding+and+Exploiting+Security+Flaws%2C+2nd+Edition-p-9781118026472',
+    description:
+      'The web-application companion to the WSTG\'s test-case checklist — widely regarded as the deepest ' +
+      'single reference on how real web app vulnerabilities are found and exploited in practice, ' +
+      'written by the creators of Burp Suite. Opens the publisher\'s official page in a new tab.',
+  },
+  {
     id: 'owasp-asvs',
     title: 'OWASP Application Security Verification Standard',
     subtitle: 'Version 5.0.0',
     author: 'OWASP Foundation &amp; Contributors',
     track: 'security',
     stage: 'Offensive Testing & Ethical Hacking',
-    order: 21,
+    order: 24,
     filename: 'owasp-asvs.pdf',
     fileSizeMb: '0.5',
     license: 'CC BY-SA 4.0',
@@ -542,13 +602,67 @@ export const BOOKS: Book[] = [
       'control, and more, used by real organizations to verify real applications before shipping.',
   },
   {
+    id: 'web-hacking-101',
+    title: 'Web Hacking 101',
+    subtitle: 'How to Make Money Hacking Ethically',
+    author: 'Peter Yaworski',
+    track: 'security',
+    stage: 'Offensive Testing & Ethical Hacking',
+    order: 25,
+    // Commercial title (self-published, Leanpub) — link-only, no cached copy. See file-level note above.
+    license: 'Commercial — Not Redistributable',
+    licenseUrl: 'https://leanpub.com/web-hacking-101',
+    officialUrl: 'https://leanpub.com/web-hacking-101',
+    description:
+      'A checklist and a handbook are one thing; real disclosed bug-bounty reports are another. Walks ' +
+      'through dozens of real, publicly disclosed vulnerability reports to show what ASVS/WSTG-style ' +
+      'issues actually look like when a real researcher finds one in the wild. Opens the author\'s ' +
+      'official Leanpub page in a new tab.',
+  },
+  {
+    id: 'real-world-bug-hunting',
+    title: 'Real-World Bug Hunting',
+    subtitle: 'A Field Guide to Web Hacking',
+    author: 'Peter Yaworski',
+    track: 'security',
+    stage: 'Offensive Testing & Ethical Hacking',
+    order: 26,
+    // Commercial title (No Starch Press) — link-only, no cached copy. See file-level note above.
+    license: 'Commercial — Not Redistributable',
+    licenseUrl: 'https://nostarch.com/bughunting',
+    officialUrl: 'https://nostarch.com/bughunting',
+    description:
+      'The same author\'s follow-up, expanded and reorganized around vulnerability type rather than ' +
+      'individual reports — a more systematic field guide to the most common bug classes bounty ' +
+      'hunters actually get paid for finding. Opens the publisher\'s official page in a new tab.',
+  },
+  {
+    id: 'black-hat-python',
+    title: 'Black Hat Python',
+    subtitle: '2nd Edition — Python Programming for Hackers and Pentesters',
+    author: 'Justin Seitz &amp; Tim Arnold',
+    track: 'security',
+    stage: 'Offensive Testing & Ethical Hacking',
+    order: 27,
+    // Commercial title (No Starch Press) — link-only, no cached copy. See file-level note above.
+    license: 'Commercial — Not Redistributable',
+    licenseUrl: 'https://nostarch.com/black-hat-python2E',
+    officialUrl: 'https://nostarch.com/black-hat-python2E',
+    description:
+      'Every book so far tells you how to find and understand vulnerabilities using existing tools; ' +
+      'this one teaches how those tools get built — network sniffers, web app attack tools, trojans, ' +
+      'and privilege-escalation utilities, written in Python. Directly extends the crypto and network ' +
+      'protocol coding labs on this platform\'s Code Portal. Opens the publisher\'s official page in a ' +
+      'new tab.',
+  },
+  {
     id: 'owasp-mastg',
     title: 'OWASP Mobile Application Security Testing Guide',
     subtitle: 'Version 1.6.0',
     author: 'OWASP Foundation &amp; Contributors',
     track: 'security',
     stage: 'Offensive Testing & Ethical Hacking',
-    order: 22,
+    order: 28,
     filename: 'owasp-mastg.pdf',
     fileSizeMb: '29.6',
     license: 'CC BY-SA 4.0',
@@ -558,7 +672,25 @@ export const BOOKS: Book[] = [
       'Everything above this applies to a browser tab; a phone is a different attack surface. A ' +
       'complete manual for testing and reverse-engineering Android and iOS apps — insecure storage, ' +
       'weak cryptography, reverse engineering with real tools, and how apps try (and fail) to detect ' +
-      'tampering — closing out the offensive-testing arc of this shelf.',
+      'tampering.',
+  },
+  {
+    id: 'hacker-playbook-3',
+    title: 'The Hacker Playbook 3',
+    subtitle: 'Practical Guide to Penetration Testing — Red Team Edition',
+    author: 'Peter Kim',
+    track: 'security',
+    stage: 'Offensive Testing & Ethical Hacking',
+    order: 29,
+    // Commercial title (self-published, Secure Planet LLC) — link-only, no cached copy. See file-level note above.
+    license: 'Commercial — Not Redistributable',
+    licenseUrl: 'https://www.amazon.com/Hacker-Playbook-Practical-Penetration-Testing/dp/1980901759',
+    officialUrl: 'https://www.amazon.com/Hacker-Playbook-Practical-Penetration-Testing/dp/1980901759',
+    description:
+      'This stage\'s capstone: a full, offense-focused red team engagement told end to end — pre-' +
+      'engagement, initial compromise, privilege escalation, lateral movement, and reporting — ' +
+      'written from the attacker\'s playbook rather than the defender\'s checklist, tying together ' +
+      'every technique covered earlier in this stage. Opens the retailer page in a new tab.',
   },
 
   // === Stage 5: Response & Forensics ===
@@ -569,7 +701,7 @@ export const BOOKS: Book[] = [
     author: 'NIST',
     track: 'security',
     stage: 'Response & Forensics',
-    order: 23,
+    order: 30,
     filename: 'nist-malware-incident-prevention.pdf',
     fileSizeMb: '0.6',
     license: 'Public Domain (U.S. Government Work)',
@@ -586,7 +718,7 @@ export const BOOKS: Book[] = [
     author: 'NIST',
     track: 'security',
     stage: 'Response & Forensics',
-    order: 24,
+    order: 31,
     filename: 'nist-forensics-guide.pdf',
     fileSizeMb: '2.7',
     license: 'Public Domain (U.S. Government Work)',
@@ -603,7 +735,7 @@ export const BOOKS: Book[] = [
     author: 'NIST',
     track: 'security',
     stage: 'Response & Forensics',
-    order: 25,
+    order: 32,
     filename: 'nist-mobile-forensics.pdf',
     fileSizeMb: '1.3',
     license: 'Public Domain (U.S. Government Work)',
@@ -620,7 +752,7 @@ export const BOOKS: Book[] = [
     author: 'NIST',
     track: 'security',
     stage: 'Response & Forensics',
-    order: 26,
+    order: 33,
     filename: 'nist-media-sanitization.pdf',
     fileSizeMb: '0.7',
     license: 'Public Domain (U.S. Government Work)',
@@ -637,7 +769,7 @@ export const BOOKS: Book[] = [
     author: 'NIST',
     track: 'security',
     stage: 'Response & Forensics',
-    order: 27,
+    order: 34,
     filename: 'nist-incident-handling-guide.pdf',
     fileSizeMb: '1.7',
     license: 'Public Domain (U.S. Government Work)',
@@ -651,13 +783,31 @@ export const BOOKS: Book[] = [
 
   // === Stage 6: Advanced & Specialized Security Engineering ===
   {
+    id: 'hacking-art-of-exploitation',
+    title: 'Hacking: The Art of Exploitation',
+    subtitle: '2nd Edition',
+    author: 'Jon Erickson',
+    track: 'security',
+    stage: 'Advanced & Specialized Security Engineering',
+    order: 35,
+    // Commercial title (No Starch Press) — link-only, no cached copy. See file-level note above.
+    license: 'Commercial — Not Redistributable',
+    licenseUrl: 'https://nostarch.com/hacking2.htm',
+    officialUrl: 'https://nostarch.com/hacking2.htm',
+    description:
+      'A step down from application-layer testing into the machine itself: C, assembly, memory ' +
+      'corruption, and exploit-writing fundamentals from first principles, with a bundled Linux ' +
+      'environment for following along. The classic, most-cited starting point for exploit ' +
+      'development and reverse engineering. Opens the publisher\'s official page in a new tab.',
+  },
+  {
     id: 'nist-ics-security',
     title: 'Guide to Operational Technology (OT) Security',
     subtitle: 'NIST Special Publication 800-82 Rev. 3',
     author: 'NIST',
     track: 'security',
     stage: 'Advanced & Specialized Security Engineering',
-    order: 28,
+    order: 36,
     filename: 'nist-ics-security.pdf',
     fileSizeMb: '8.6',
     license: 'Public Domain (U.S. Government Work)',
@@ -675,7 +825,7 @@ export const BOOKS: Book[] = [
     author: 'NIST',
     track: 'security',
     stage: 'Advanced & Specialized Security Engineering',
-    order: 29,
+    order: 37,
     filename: 'nist-zero-trust-architecture.pdf',
     fileSizeMb: '1.0',
     license: 'Public Domain (U.S. Government Work)',
@@ -693,7 +843,7 @@ export const BOOKS: Book[] = [
     author: 'NIST',
     track: 'security',
     stage: 'Advanced & Specialized Security Engineering',
-    order: 30,
+    order: 38,
     filename: 'nist-config-management.pdf',
     fileSizeMb: '1.1',
     license: 'Public Domain (U.S. Government Work)',
@@ -710,7 +860,7 @@ export const BOOKS: Book[] = [
     author: 'NIST',
     track: 'security',
     stage: 'Advanced & Specialized Security Engineering',
-    order: 31,
+    order: 39,
     filename: 'nist-systems-security-engineering.pdf',
     fileSizeMb: '7.8',
     license: 'Public Domain (U.S. Government Work)',
@@ -728,7 +878,7 @@ export const BOOKS: Book[] = [
     author: 'NIST',
     track: 'security',
     stage: 'Advanced & Specialized Security Engineering',
-    order: 32,
+    order: 40,
     filename: 'nist-secure-software-dev-framework.pdf',
     fileSizeMb: '0.7',
     license: 'Public Domain (U.S. Government Work)',
@@ -746,7 +896,7 @@ export const BOOKS: Book[] = [
     author: 'NIST National Cybersecurity Center of Excellence',
     track: 'security',
     stage: 'Advanced & Specialized Security Engineering',
-    order: 33,
+    order: 41,
     filename: 'nist-ransomware-data-integrity.pdf',
     fileSizeMb: '42.2',
     license: 'Public Domain (U.S. Government Work)',
