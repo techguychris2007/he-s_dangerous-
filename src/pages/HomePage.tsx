@@ -19,7 +19,7 @@ export default function HomePage() {
 
   return (
     <div className="max-w-5xl mx-auto px-8 py-12">
-      <div className="mb-8">
+      <div className="mb-8 reveal" style={{ '--reveal-delay': '0s' } as React.CSSProperties}>
         <div className="gold-eyebrow mb-2">Learner Portal</div>
         <h1 className="text-3xl font-extrabold text-[var(--color-heading)] mb-2">
           Welcome back{progress.learnerName ? `, ${progress.learnerName.split(' ')[0]}` : ''}
@@ -31,22 +31,23 @@ export default function HomePage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10 reveal" style={{ '--reveal-delay': '0.08s' } as React.CSSProperties}>
         <StatCard icon={<IconChart className="w-5 h-5" />} color="var(--color-accent-2)" label="Lessons completed" value={`${completedLessons} / ${totalLessons}`} />
         <StatCard icon={<IconFlask className="w-5 h-5" />} color="var(--color-accent)" label="Labs solved" value={`${labsDone} / ${LABS.length}`} />
         <StatCard icon={<IconCheck className="w-5 h-5" />} color="var(--color-success)" label="Flags captured" value={`${capturedFlags} / ${totalFlags}`} />
       </div>
 
-      <h2 className="text-base font-bold text-[var(--color-heading)] mb-4">Modules</h2>
+      <h2 className="text-base font-bold text-[var(--color-heading)] mb-4 reveal" style={{ '--reveal-delay': '0.14s' } as React.CSSProperties}>Modules</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-10">
-        {MODULES.map((mod) => {
+        {MODULES.map((mod, i) => {
           const done = mod.lessons.filter((l) => progress.isLessonComplete(l.id)).length;
           const labCount = mod.lessons.length;
           return (
             <Link
               key={mod.id}
               to={mod.lessons.length ? `/module/${mod.slug}/lesson/${mod.lessons[0].slug}` : '/roadmap'}
-              className="group rounded-xl overflow-hidden border border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-accent)]/50 hover:shadow-md transition-all flex flex-col"
+              className="group rounded-xl overflow-hidden border border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-accent)]/50 hover:shadow-md transition-all flex flex-col reveal"
+              style={{ '--reveal-delay': `${0.18 + Math.min(i, 5) * 0.05}s` } as React.CSSProperties}
             >
               <ModuleBanner icon={mod.icon} moduleId={mod.id} className="h-28 w-full" />
               <div className="p-4 flex flex-col flex-1">
@@ -71,12 +72,15 @@ export default function HomePage() {
         })}
       </div>
 
-      <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-accent)] p-6 flex items-center justify-between flex-wrap gap-3">
+      <div
+        className="rounded-xl border border-[var(--color-border)] bg-[var(--color-accent)] p-6 flex items-center justify-between flex-wrap gap-3 reveal"
+        style={{ '--reveal-delay': '0.4s' } as React.CSSProperties}
+      >
         <div>
           <h2 className="text-base font-bold text-white mb-1">Full curriculum roadmap</h2>
           <p className="text-sm text-white/70">
-            All {MODULES.length} core modules and {LABS.length} labs are live. Security+, binary analysis, and
-            malware analysis are next.
+            All {MODULES.length} core modules and {LABS.length} labs are live — from Linux fundamentals through
+            Active Directory, cloud, malware analysis, and binary exploitation.
           </p>
         </div>
         <Link to="/roadmap" className="px-4 py-2 rounded-lg bg-[var(--color-accent)] text-white text-sm font-semibold hover:brightness-110 transition shrink-0">
