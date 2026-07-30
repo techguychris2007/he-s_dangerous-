@@ -33,6 +33,7 @@ import { webSessionSecurityLabs } from '../labs/scenarios/web-session-security-p
 import { socialEngineeringAnalysisLabs } from '../labs/scenarios/social-engineering-analysis-pack';
 import { leakedNsaToolsLabs } from '../labs/scenarios/leaked-nsa-tools-pack';
 import { socRealworldIncidentsLabs } from '../labs/scenarios/soc-realworld-incidents-pack';
+import { offensiveBatch2Labs } from '../labs/scenarios/offensive-batch-2-pack';
 import type { LabScenario } from '../labs/types';
 
 export interface LabEntry {
@@ -77,6 +78,7 @@ export const LABS: LabEntry[] = [
   ...toEntries(socialEngineeringAnalysisLabs),
   ...toEntries(leakedNsaToolsLabs),
   ...toEntries(socRealworldIncidentsLabs),
+  ...toEntries(offensiveBatch2Labs),
 ];
 
 /** Ordered to match the roadmap's actual teaching sequence (see curriculum.ts's MODULES order). */

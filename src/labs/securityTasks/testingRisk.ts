@@ -233,4 +233,66 @@ export const SECURITY_TESTING_RISK_TASKS: CodeTask[] = [
       '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
       'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
   },
+  {
+    id: 'sec-testing-03',
+    title: 'Match Service Banners to Known CVEs',
+    difficulty: 'Easy',
+    language: 'python',
+    category: 'Security: Testing & Risk (NIST 800-115 / CSF / OWASP WSTG)',
+    prompt:
+      'This is the core logic behind every vulnerability scanner (Nessus, OpenVAS, and searchsploit\'s ' +
+      'offline database all do a version of this): a port scan gives you a list of services and their ' +
+      'exact version strings, and a vulnerability database maps specific (software, version) pairs to ' +
+      'known CVE identifiers. Cross-referencing the two — automatically, at scale, across thousands of ' +
+      'hosts — is how "we found port 21 open" turns into "port 21 is running a vsftpd version with a ' +
+      'known, exploitable backdoor."\n\n' +
+      'Write find_known_vulnerabilities(services, cve_db) where services is a list of dicts like ' +
+      '{"port": 21, "name": "vsftpd", "version": "2.3.4"} and cve_db is a dict mapping a (name, version) ' +
+      'tuple to a list of CVE id strings. Return a new list where every service dict is copied and given ' +
+      'an added "cves" key: the matching list of CVE ids from cve_db, or an empty list if that exact ' +
+      '(name, version) pair isn\'t in the database.',
+    starterCode:
+      'def find_known_vulnerabilities(services, cve_db):\n' +
+      '    # TODO: for each service, look up (name, version) in cve_db and attach the result as "cves"\n' +
+      '    pass\n',
+    hints: [
+      'Build the lookup key as a tuple: key = (svc["name"], svc["version"]) — cve_db\'s keys are tuples too, so this matches directly.',
+      'cve_db.get(key, []) gives you the matching CVE list, or an empty list as the default when there\'s no known vulnerability for that exact version.',
+      'Use dict unpacking to copy the original service and add the new key without mutating the input: {**svc, "cves": cves}.',
+    ],
+    solution:
+      'def find_known_vulnerabilities(services, cve_db):\n' +
+      '    results = []\n' +
+      '    for svc in services:\n' +
+      '        key = (svc["name"], svc["version"])\n' +
+      '        cves = cve_db.get(key, [])\n' +
+      '        results.append({**svc, "cves": cves})\n' +
+      '    return results\n',
+    testCode:
+      '__results__ = []\n' +
+      'def __check__(name, actual, expected):\n' +
+      '    __results__.append((name, actual == expected, actual, expected))\n\n' +
+      'cve_db = {\n' +
+      '    ("vsftpd", "2.3.4"): ["CVE-2011-2523"],\n' +
+      '    ("OpenSSH", "7.2p2"): ["CVE-2016-6210"],\n' +
+      '}\n' +
+      'services = [\n' +
+      '    {"port": 21, "name": "vsftpd", "version": "2.3.4"},\n' +
+      '    {"port": 22, "name": "OpenSSH", "version": "8.9p1"},\n' +
+      ']\n' +
+      'result = find_known_vulnerabilities(services, cve_db)\n' +
+      '__check__(\n' +
+      '    "flags the known-vulnerable version, leaves the patched one clean",\n' +
+      '    result,\n' +
+      '    [\n' +
+      '        {"port": 21, "name": "vsftpd", "version": "2.3.4", "cves": ["CVE-2011-2523"]},\n' +
+      '        {"port": 22, "name": "OpenSSH", "version": "8.9p1", "cves": []},\n' +
+      '    ],\n' +
+      ')\n\n' +
+      '__check__("original service dicts are not mutated", services[0], {"port": 21, "name": "vsftpd", "version": "2.3.4"})\n' +
+      '__check__("empty service list yields empty result", find_known_vulnerabilities([], cve_db), [])\n\n' +
+      'for name, ok, actual, expected in __results__:\n' +
+      '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
+      'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
+  },
 ];

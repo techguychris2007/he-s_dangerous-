@@ -170,4 +170,137 @@ export const SECURITY_WEBAPP_TASKS: CodeTask[] = [
       '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
       'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
   },
+  {
+    id: 'sec-webapp-04',
+    title: 'Forge a JWT "alg:none" Token — and Detect the Attack',
+    difficulty: 'Hard',
+    language: 'python',
+    category: 'Security: Web Application Security (OWASP)',
+    prompt:
+      'A real, historically widespread JWT vulnerability class: the JWT spec allows a header of ' +
+      '{"alg": "none"}, meaning "this token isn\'t signed at all" — and for years, several popular JWT ' +
+      'libraries would happily verify (accept) such a token without checking that the server actually ' +
+      'intended to allow unsigned tokens. An attacker who can see a legitimate token just needs to build ' +
+      'their own token claiming to be an admin, set alg to "none", and leave the signature empty.\n\n' +
+      'Write two functions. forge_none_alg_token(payload) builds a real, spec-compliant unsigned JWT: a ' +
+      'header of {"alg": "none", "typ": "JWT"} and your payload dict, each JSON-encoded then base64url-' +
+      'encoded (no padding "=" characters), joined as "header.payload." — note the trailing dot with ' +
+      'nothing after it, since there is no signature. is_none_alg_token(token) decodes just the header ' +
+      'segment of any JWT and returns True if its "alg" field is "none" (case-insensitive) — this is the ' +
+      'exact check a server must perform and reject, and the one vulnerable libraries skipped.',
+    starterCode:
+      'import base64\n' +
+      'import json\n\n' +
+      'def _b64url_encode(data: bytes) -> str:\n' +
+      '    return base64.urlsafe_b64encode(data).rstrip(b"=").decode()\n\n' +
+      'def _b64url_decode(s: str) -> bytes:\n' +
+      '    padding = "=" * (-len(s) % 4)\n' +
+      '    return base64.urlsafe_b64decode(s + padding)\n\n' +
+      'def forge_none_alg_token(payload):\n' +
+      '    # TODO: build "header.payload." with alg:none and no signature\n' +
+      '    pass\n\n' +
+      'def is_none_alg_token(token):\n' +
+      '    # TODO: decode just the header segment, check alg (case-insensitively) == "none"\n' +
+      '    pass\n',
+    hints: [
+      'The header dict is always {"alg": "none", "typ": "JWT"} — json.dumps it with separators=(",", ":") (no spaces, matching how real JWT libraries compact-encode), then pass the resulting bytes through _b64url_encode.',
+      'Do the same JSON+base64url step for the payload dict, then join as f"{header_b64}.{payload_b64}." — the trailing dot is required, it marks an empty (present but zero-length) signature segment.',
+      'is_none_alg_token only needs the first segment: token.split(".")[0], run through _b64url_decode and json.loads, then check header.get("alg", "").lower() == "none".',
+    ],
+    solution:
+      'import base64\n' +
+      'import json\n\n' +
+      'def _b64url_encode(data: bytes) -> str:\n' +
+      '    return base64.urlsafe_b64encode(data).rstrip(b"=").decode()\n\n' +
+      'def _b64url_decode(s: str) -> bytes:\n' +
+      '    padding = "=" * (-len(s) % 4)\n' +
+      '    return base64.urlsafe_b64decode(s + padding)\n\n' +
+      'def forge_none_alg_token(payload):\n' +
+      '    header = {"alg": "none", "typ": "JWT"}\n' +
+      '    header_b64 = _b64url_encode(json.dumps(header, separators=(",", ":")).encode())\n' +
+      '    payload_b64 = _b64url_encode(json.dumps(payload, separators=(",", ":")).encode())\n' +
+      '    return f"{header_b64}.{payload_b64}."\n\n' +
+      'def is_none_alg_token(token):\n' +
+      '    header_b64 = token.split(".")[0]\n' +
+      '    header = json.loads(_b64url_decode(header_b64))\n' +
+      '    return header.get("alg", "").lower() == "none"\n',
+    testCode:
+      'import json\n' +
+      '__results__ = []\n' +
+      'def __check__(name, actual, expected):\n' +
+      '    __results__.append((name, actual == expected, actual, expected))\n\n' +
+      'forged = forge_none_alg_token({"user": "admin", "role": "admin"})\n' +
+      '__check__("forged token is recognized as alg:none", is_none_alg_token(forged), True)\n' +
+      '__check__("forged token has an empty trailing signature segment", forged.endswith("."), True)\n' +
+      '__check__("forged token has exactly 3 dot-separated segments", len(forged.split(".")), 3)\n\n' +
+      'payload_b64 = forged.split(".")[1]\n' +
+      'padding = "=" * (-len(payload_b64) % 4)\n' +
+      'import base64\n' +
+      'recovered_payload = json.loads(base64.urlsafe_b64decode(payload_b64 + padding))\n' +
+      '__check__("forged payload round-trips correctly", recovered_payload, {"user": "admin", "role": "admin"})\n\n' +
+      'normal_token = "eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoiYm9iIn0.somesignature"\n' +
+      '__check__("a normally-signed token is not flagged as alg:none", is_none_alg_token(normal_token), False)\n\n' +
+      'for name, ok, actual, expected in __results__:\n' +
+      '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
+      'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
+  },
+  {
+    id: 'sec-webapp-05',
+    title: 'Detect HTTP Request Smuggling Signals (CL.TE)',
+    difficulty: 'Hard',
+    language: 'python',
+    category: 'Security: Web Application Security (OWASP)',
+    prompt:
+      'HTTP request smuggling happens when a front-end proxy and a back-end server disagree about where ' +
+      'one HTTP request ends and the next begins — usually because both a Content-Length header (which ' +
+      'says "the body is N bytes") and a Transfer-Encoding: chunked header (which says "read chunks until ' +
+      'a zero-length chunk") are present, and the two servers in the chain trust different ones. This ' +
+      'ambiguity (CL.TE or TE.CL, depending on which server trusts which header) is exactly what a real ' +
+      'smuggling scanner looks for.\n\n' +
+      'Write find_smuggling_signals(headers) where headers is a list of (name, value) tuples exactly as ' +
+      'they appeared on the wire (preserving any duplicates and original casing). Return a list of short ' +
+      'human-readable reason strings describing any smuggling-risky pattern found:\n' +
+      '- If "Content-Length" appears more than once (case-insensitively) with two different values, add ' +
+      '"duplicate Content-Length headers with different values"\n' +
+      '- If both "Content-Length" and "Transfer-Encoding" are present (case-insensitively) at all, add ' +
+      '"both Content-Length and Transfer-Encoding present (CL.TE/TE.CL ambiguity)"\n' +
+      'Return an empty list for a clean request with neither pattern.',
+    starterCode:
+      'def find_smuggling_signals(headers):\n' +
+      '    # TODO: headers is a list of (name, value) tuples — check for CL/TE ambiguity signals\n' +
+      '    pass\n',
+    hints: [
+      'Build names_lower = [n.lower() for n, v in headers] once, then use it for both checks.',
+      'For the duplicate-Content-Length check: names_lower.count("content-length") > 1, then collect the actual values for those entries and check len(set(values)) > 1 (values are the same by coincidence sometimes, and that\'s not the interesting case).',
+      'For the CL/TE ambiguity check, it doesn\'t matter how many of each there are — just whether "content-length" and "transfer-encoding" both appear anywhere in names_lower.',
+    ],
+    solution:
+      'def find_smuggling_signals(headers):\n' +
+      '    names_lower = [n.lower() for n, v in headers]\n' +
+      '    reasons = []\n' +
+      '    if names_lower.count("content-length") > 1:\n' +
+      '        cls = [v for n, v in headers if n.lower() == "content-length"]\n' +
+      '        if len(set(cls)) > 1:\n' +
+      '            reasons.append("duplicate Content-Length headers with different values")\n' +
+      '    if "content-length" in names_lower and "transfer-encoding" in names_lower:\n' +
+      '        reasons.append("both Content-Length and Transfer-Encoding present (CL.TE/TE.CL ambiguity)")\n' +
+      '    return reasons\n',
+    testCode:
+      '__results__ = []\n' +
+      'def __check__(name, actual, expected):\n' +
+      '    __results__.append((name, actual == expected, actual, expected))\n\n' +
+      'clean = [("Host", "example.com"), ("Content-Length", "10")]\n' +
+      '__check__("clean request has no signals", find_smuggling_signals(clean), [])\n\n' +
+      'clte = [("Host", "example.com"), ("Content-Length", "13"), ("Transfer-Encoding", "chunked")]\n' +
+      '__check__("CL+TE ambiguity is flagged", len(find_smuggling_signals(clte)), 1)\n\n' +
+      'dupcl = [("Content-Length", "10"), ("Content-Length", "20")]\n' +
+      '__check__("conflicting duplicate Content-Length is flagged", len(find_smuggling_signals(dupcl)), 1)\n\n' +
+      'dupcl_same = [("Content-Length", "10"), ("Content-Length", "10")]\n' +
+      '__check__("identical duplicate Content-Length is not flagged", find_smuggling_signals(dupcl_same), [])\n\n' +
+      'both = [("Content-Length", "10"), ("Content-Length", "20"), ("Transfer-Encoding", "chunked")]\n' +
+      '__check__("both patterns at once yields two reasons", len(find_smuggling_signals(both)), 2)\n\n' +
+      'for name, ok, actual, expected in __results__:\n' +
+      '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
+      'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
+  },
 ];

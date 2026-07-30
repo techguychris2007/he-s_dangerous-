@@ -234,4 +234,58 @@ export const SECURITY_CRYPTOGRAPHY_TASKS: CodeTask[] = [
       '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
       'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
   },
+  {
+    id: 'sec-crypto-06',
+    title: 'Crack Password Hashes with a Real Dictionary Attack',
+    difficulty: 'Easy',
+    language: 'python',
+    category: 'Security: Cryptography (Crypto 101)',
+    prompt:
+      'This is the exact technique behind tools like John the Ripper and hashcat\'s dictionary mode, and ' +
+      'it\'s the reason "just hash the password" was never enough on its own: if an attacker steals a ' +
+      'database of unsalted password hashes, they don\'t need to reverse the hash — they just hash every ' +
+      'word in a big wordlist and check which hashes match. Millions of guesses a second, zero cryptographic ' +
+      'breakthrough required.\n\n' +
+      'Write crack_hashes_with_wordlist(hash_list, wordlist) where hash_list is a list of MD5 hex digests ' +
+      'and wordlist is a list of candidate passwords. For each hash, try hashing every word in wordlist ' +
+      'with hashlib.md5(word.encode()).hexdigest() until one matches, then record it. Return a dict mapping ' +
+      'each cracked hash to the password that produced it — hashes with no match in the wordlist should ' +
+      'simply be absent from the result.',
+    starterCode:
+      'import hashlib\n\n' +
+      'def crack_hashes_with_wordlist(hash_list, wordlist):\n' +
+      '    # TODO: for each hash, try every word in the wordlist until one\'s MD5 matches\n' +
+      '    pass\n',
+    hints: [
+      'hashlib.md5(word.encode()).hexdigest() is exactly what the (insecure, unsalted) password database would have stored.',
+      'For each hash in hash_list, loop through wordlist and stop at the first word whose hash matches — no need to keep checking once you\'ve found it.',
+      'A hash with no matching word in the wordlist (this happens — real wordlists don\'t cover every password) should just not appear as a key in the returned dict at all.',
+    ],
+    solution:
+      'import hashlib\n\n' +
+      'def crack_hashes_with_wordlist(hash_list, wordlist):\n' +
+      '    cracked = {}\n' +
+      '    for h in hash_list:\n' +
+      '        for word in wordlist:\n' +
+      '            if hashlib.md5(word.encode()).hexdigest() == h:\n' +
+      '                cracked[h] = word\n' +
+      '                break\n' +
+      '    return cracked\n',
+    testCode:
+      'import hashlib\n' +
+      '__results__ = []\n' +
+      'def __check__(name, actual, expected):\n' +
+      '    __results__.append((name, actual == expected, actual, expected))\n\n' +
+      'targets = ["password123", "letmein", "correcthorsebatterystaple"]\n' +
+      'pw_hashes = [hashlib.md5(w.encode()).hexdigest() for w in targets]\n' +
+      'wl = ["123456", "password123", "qwerty", "letmein", "dragon"]\n' +
+      'result = crack_hashes_with_wordlist(pw_hashes, wl)\n' +
+      '__check__("cracks password123", result.get(pw_hashes[0]), "password123")\n' +
+      '__check__("cracks letmein", result.get(pw_hashes[1]), "letmein")\n' +
+      '__check__("leaves the not-in-wordlist hash uncracked", pw_hashes[2] in result, False)\n' +
+      '__check__("only 2 of 3 hashes cracked", len(result), 2)\n\n' +
+      'for name, ok, actual, expected in __results__:\n' +
+      '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
+      'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
+  },
 ];
