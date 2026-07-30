@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
 import { findLab } from '../data/labs';
 import { useProgress } from '../state/progressStore';
 import Terminal from '../components/terminal/Terminal';
 import StepChecklist from '../components/lesson/StepChecklist';
 import ShareWriteupModal from '../components/labs/ShareWriteupModal';
+import CyberLabAI from '../components/labs/CyberLabAI';
 import { IconFlag, IconCheck } from '../components/layout/icons';
 
 export default function LabPage() {
@@ -14,9 +15,11 @@ export default function LabPage() {
   const [commandCount, setCommandCount] = useState(0);
   const entry = findLab(labSlug);
   const scenarioId = entry?.scenario.id;
+  const transcriptRef = useRef('');
 
   useEffect(() => {
     setCommandCount(0);
+    transcriptRef.current = '';
   }, [scenarioId]);
 
   if (!entry) return <Navigate to="/" replace />;
@@ -79,10 +82,32 @@ export default function LabPage() {
           scenario={scenario}
           onFlagCaptured={(flag) => progress.captureFlag(scenario.id, flag)}
           onCommandRun={() => setCommandCount((c) => c + 1)}
+          onTranscriptChange={(transcript) => {
+            transcriptRef.current = transcript;
+          }}
         />
       </div>
 
       {sharing && <ShareWriteupModal entry={entry} onClose={() => setSharing(false)} />}
+
+      <CyberLabAI
+        key={scenario.id}
+        getContext={() => ({
+          kind: 'lab',
+          title: scenario.title,
+          subtitle: `${scenario.difficulty} · ${scenario.category}`,
+          bodyText:
+            scenario.briefing +
+            '\n\nGuided steps:\n' +
+            scenario.objectives
+              .map((o, i) => {
+                const step = typeof o === 'string' ? { text: o } : o;
+                return `${i + 1}. ${step.text}${step.why ? ` (Why: ${step.why})` : ''}`;
+              })
+              .join('\n'),
+          terminalTranscript: transcriptRef.current,
+        })}
+      />
     </div>
   );
 }

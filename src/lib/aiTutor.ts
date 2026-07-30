@@ -35,6 +35,9 @@ export interface CyberLabAiContext {
   subtitle?: string;
   bodyText?: string;
   currentCode?: string;
+  /** for terminal-simulation labs: the recent commands the learner actually typed and the
+   *  simulated output they got back, so the AI can explain *their* session, not a generic one */
+  terminalTranscript?: string;
   revealedHints?: string[];
 }
 

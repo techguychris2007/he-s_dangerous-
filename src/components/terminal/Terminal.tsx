@@ -12,6 +12,10 @@ interface TerminalProps {
   /** Fires once per real command submitted (not password entries) — used to drive the guided-steps
    *  checklist's automatic tick-off, since each step is designed to correspond to roughly one command. */
   onCommandRun?: () => void;
+  /** Fires with the full session transcript (input + output, plain text) on every change — lets a
+   *  parent (the AI lab tutor) see the learner's real terminal activity without owning any of the
+   *  terminal's own rendering/state. */
+  onTranscriptChange?: (transcript: string) => void;
 }
 
 let idCounter = 0;
@@ -27,7 +31,7 @@ const KIND_CLASS: Record<OutLine['kind'], string> = {
   muted: 'text-[#7a7264]',
 };
 
-export default function Terminal({ scenario, onFlagCaptured, onCommandRun }: TerminalProps) {
+export default function Terminal({ scenario, onFlagCaptured, onCommandRun, onTranscriptChange }: TerminalProps) {
   const engineRef = useRef<TerminalEngine>(new TerminalEngine(scenario));
   const [lines, setLines] = useState<DisplayLine[]>([
     { id: idCounter++, kind: 'system', text: `Connected to lab environment: ${scenario.title}` },
@@ -38,6 +42,12 @@ export default function Terminal({ scenario, onFlagCaptured, onCommandRun }: Ter
   const [historyPos, setHistoryPos] = useState<number | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    onTranscriptChange?.(lines.map((l) => (l.kind === 'input' ? l.text : `  ${l.text}`)).join('\n'));
+    // onTranscriptChange is a plain callback prop, not reactive state — safe to omit here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lines]);
 
   useEffect(() => {
     engineRef.current = new TerminalEngine(scenario);

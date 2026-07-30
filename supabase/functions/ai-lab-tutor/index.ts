@@ -35,8 +35,10 @@ interface RequestBody {
     subtitle?: string;
     /** the lab's prompt/objective text, or the lesson's rendered body text */
     bodyText?: string;
-    /** what the learner has actually typed into the editor right now — labs only */
+    /** what the learner has actually typed into the editor right now — coding labs only */
     currentCode?: string;
+    /** the learner's real recent commands + output from a simulated-terminal lab */
+    terminalTranscript?: string;
     /** the static hints (if any) already revealed via the lab's own "Show a hint" button */
     revealedHints?: string[];
   };
@@ -68,9 +70,15 @@ function buildSystemPrompt(body: RequestBody): string {
   const { context } = body;
   const contextLines: string[] = [];
   if (context.kind === 'lab') {
-    contextLines.push(`The learner is currently on a coding lab titled "${context.title}"${context.subtitle ? ` (${context.subtitle})` : ''}.`);
-    if (context.bodyText) contextLines.push(`Lab objective/prompt:\n"""\n${context.bodyText.slice(0, 3000)}\n"""`);
+    contextLines.push(`The learner is currently on a lab titled "${context.title}"${context.subtitle ? ` (${context.subtitle})` : ''}.`);
+    if (context.bodyText) contextLines.push(`Lab briefing / objectives:\n"""\n${context.bodyText.slice(0, 3000)}\n"""`);
     if (context.currentCode) contextLines.push(`The learner's current code in the editor, verbatim:\n"""\n${context.currentCode.slice(0, 4000)}\n"""`);
+    if (context.terminalTranscript) {
+      contextLines.push(
+        `The learner's real, recent terminal session in this lab's simulated environment — the exact ` +
+          `commands they typed and the exact output they got back, verbatim (oldest first):\n"""\n${context.terminalTranscript.slice(-4000)}\n"""`,
+      );
+    }
     if (context.revealedHints && context.revealedHints.length > 0) {
       contextLines.push(`Static hints already shown to them by the platform: ${context.revealedHints.join(' | ')}`);
     }
