@@ -113,6 +113,12 @@ export default function BookReaderPage() {
   }, [bookId]);
 
   if (!book) return <Navigate to="/library" replace />;
+  // Link-only books (no cached PDF) have no in-app reader — send visitors straight to the
+  // official source instead of rendering a broken viewer.
+  if (!book.filename) {
+    window.location.replace(book.officialUrl);
+    return null;
+  }
 
   const fileUrl = `/books/${book.filename}`;
   const siblings = booksInTrack(book.track);

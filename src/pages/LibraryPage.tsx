@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BOOKS, booksInTrack, type Book, type BookTrack } from '../data/books';
 import Logo from '../components/layout/Logo';
-import { IconBook } from '../components/layout/icons';
+import { IconBook, IconExternal } from '../components/layout/icons';
 
 const LANGUAGE_LABEL: Record<string, string> = {
   python: 'Python',
   cpp: 'C++',
   java: 'Java',
   javascript: 'JavaScript',
+  rust: 'Rust',
 };
 
 const TABS: { value: BookTrack; label: string; blurb: string }[] = [
@@ -94,10 +95,11 @@ export default function LibraryPage() {
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-3">Library</h1>
           <p className="text-white/70 max-w-2xl leading-relaxed">
-            {BOOKS.length} complete books, cached here as their exact original PDFs — read them right in
-            this page, or download a copy to your device. No account or external site required. Every book
-            is either a U.S. government work (public domain) or released under a Creative Commons license
-            that explicitly permits free copying — see the license badge on each book for details.
+            {BOOKS.length} books, curated the same way: every one is either a U.S. government work (public
+            domain) or released under a license that explicitly permits free copying — see the license
+            badge on each. Almost all are cached here as their exact original PDFs, readable right in this
+            page with no external site required; a few marked "External" have no official downloadable
+            release, so they link straight to the author's own site instead.
           </p>
         </div>
       </div>
@@ -134,42 +136,73 @@ export default function LibraryPage() {
               </div>
             )}
             <div className="grid sm:grid-cols-2 gap-5">
-              {group.books.map((book) => (
-                <Link
-                  key={book.id}
-                  to={`/library/${book.id}`}
-                  className="group rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 hover:border-[var(--color-accent)]/60 hover:-translate-y-0.5 transition-all"
-                >
-                  <div className="flex items-center gap-1.5 mb-3 flex-wrap">
-                    {track === 'security' && (
-                      <span className="pill bg-[var(--color-heading)] text-[var(--color-bg)] font-bold">#{book.order}</span>
-                    )}
-                    {book.language && (
-                      <span className="pill bg-[var(--color-accent)]/15 text-[var(--color-accent)] border border-[var(--color-accent)]/30">
-                        {LANGUAGE_LABEL[book.language]}
-                      </span>
-                    )}
-                    <span className="pill bg-[var(--color-surface-2)] text-[var(--color-text-dim)]">{book.license}</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-[var(--color-accent)]/10 flex items-center justify-center shrink-0">
-                      <IconBook className="w-5 h-5 text-[var(--color-accent)]" />
+              {group.books.map((book) => {
+                const isExternal = !book.filename;
+                const cardContent = (
+                  <>
+                    <div className="flex items-center gap-1.5 mb-3 flex-wrap">
+                      {track === 'security' && (
+                        <span className="pill bg-[var(--color-heading)] text-[var(--color-bg)] font-bold">#{book.order}</span>
+                      )}
+                      {book.language && (
+                        <span className="pill bg-[var(--color-accent)]/15 text-[var(--color-accent)] border border-[var(--color-accent)]/30">
+                          {LANGUAGE_LABEL[book.language]}
+                        </span>
+                      )}
+                      <span className="pill bg-[var(--color-surface-2)] text-[var(--color-text-dim)]">{book.license}</span>
+                      {isExternal && (
+                        <span className="pill bg-[var(--color-warn)]/15 text-[var(--color-warn)] border border-[var(--color-warn)]/30">
+                          External — not cached
+                        </span>
+                      )}
                     </div>
-                    <div>
-                      <div className="font-bold text-[var(--color-heading)] group-hover:text-[var(--color-accent-dim)] transition-colors">
-                        {book.title}
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-[var(--color-accent)]/10 flex items-center justify-center shrink-0">
+                        <IconBook className="w-5 h-5 text-[var(--color-accent)]" />
                       </div>
-                      <div className="text-xs text-[var(--color-text-dim)] mb-1">{book.subtitle}</div>
-                      <div
-                        className="text-xs font-mono text-[var(--color-text-dim)]"
-                        dangerouslySetInnerHTML={{ __html: book.author }}
-                      />
+                      <div>
+                        <div className="font-bold text-[var(--color-heading)] group-hover:text-[var(--color-accent-dim)] transition-colors">
+                          {book.title}
+                        </div>
+                        <div className="text-xs text-[var(--color-text-dim)] mb-1">{book.subtitle}</div>
+                        <div
+                          className="text-xs font-mono text-[var(--color-text-dim)]"
+                          dangerouslySetInnerHTML={{ __html: book.author }}
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <p className="text-xs text-[var(--color-text-dim)] leading-relaxed mt-3">{book.description}</p>
-                  <div className="text-xs font-semibold text-[var(--color-accent)] mt-3">Read in portal &rarr;</div>
-                </Link>
-              ))}
+                    <p className="text-xs text-[var(--color-text-dim)] leading-relaxed mt-3">{book.description}</p>
+                    <div className="text-xs font-semibold text-[var(--color-accent)] mt-3 flex items-center gap-1">
+                      {isExternal ? (
+                        <>
+                          Read on official site <IconExternal className="w-3 h-3" />
+                        </>
+                      ) : (
+                        <>Read in portal &rarr;</>
+                      )}
+                    </div>
+                  </>
+                );
+                return isExternal ? (
+                  <a
+                    key={book.id}
+                    href={book.officialUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 hover:border-[var(--color-accent)]/60 hover:-translate-y-0.5 transition-all"
+                  >
+                    {cardContent}
+                  </a>
+                ) : (
+                  <Link
+                    key={book.id}
+                    to={`/library/${book.id}`}
+                    className="group rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 hover:border-[var(--color-accent)]/60 hover:-translate-y-0.5 transition-all"
+                  >
+                    {cardContent}
+                  </Link>
+                );
+              })}
             </div>
           </div>
         ))}

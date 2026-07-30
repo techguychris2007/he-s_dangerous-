@@ -7,7 +7,7 @@ export interface Book {
   author: string;
   track: BookTrack;
   /** only meaningful for track: 'programming' */
-  language?: 'python' | 'cpp' | 'java' | 'javascript';
+  language?: 'python' | 'cpp' | 'java' | 'javascript' | 'rust';
   /** position in this track's recommended reading sequence, 1-based */
   order: number;
   /** groups the security track into a guided learning path (rendered as section headers) —
@@ -20,12 +20,15 @@ export interface Book {
     | 'Response & Forensics'
     | 'Advanced & Specialized Security Engineering';
   /** served from public/books/ — the exact, unmodified official PDF, cached locally so reading
-   *  and downloading never require leaving the portal */
-  filename: string;
-  fileSizeMb: string;
+   *  and downloading never require leaving the portal. Omit both this and fileSizeMb for a book
+   *  that's link-only (no official compiled PDF release exists to cache verbatim) — the library
+   *  card then links straight to officialUrl instead of the in-app reader. */
+  filename?: string;
+  fileSizeMb?: string;
   license: string;
   licenseUrl: string;
-  /** the book's own official site — credited for attribution, not required for reading */
+  /** the book's own official site — credited for attribution always, and the actual reading
+   *  destination for link-only books (no filename) */
   officialUrl: string;
   description: string;
 }
@@ -142,6 +145,26 @@ export const BOOKS: Book[] = [
       'A third angle on Python, aimed squarely at using it as a tool rather than studying it as a ' +
       'subject — built around a university course, using data (files, databases, the web) as the ' +
       'motivating problem for every concept instead of abstract exercises.',
+  },
+  {
+    id: 'rust-book',
+    title: 'The Rust Programming Language',
+    subtitle: '2024 Edition — read on the official site (no cached copy)',
+    author: 'Steve Klabnik, Carol Nichols &amp; the Rust Community',
+    track: 'programming',
+    language: 'rust',
+    order: 7,
+    // No filename: no official compiled PDF/epub release exists to cache verbatim (only source
+    // markdown and a live HTML "print view"), and self-compiling one — even under this book's
+    // permissive MIT/Apache-2.0 license — isn't something this library does. Link out instead.
+    license: 'MIT / Apache-2.0',
+    licenseUrl: 'https://github.com/rust-lang/book/blob/main/LICENSE-MIT',
+    officialUrl: 'https://doc.rust-lang.org/book/',
+    description:
+      'The official book for a systems language built around memory safety without a garbage ' +
+      'collector — directly relevant to the exploitation and reverse-engineering topics on the ' +
+      'security shelf, since Rust exists specifically to prevent the memory-corruption bug classes ' +
+      'those topics cover. Opens the official book on doc.rust-lang.org in a new tab.',
   },
 
   // --- Cybersecurity track: a 6-stage, beginner-to-advanced self-teaching path. Sourced from
