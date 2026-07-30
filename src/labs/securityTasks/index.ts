@@ -33,7 +33,7 @@ export const SECURITY_TASK_CATEGORIES = [
 /** Maps a book id (see src/data/books.ts) to the security-lab task ids that put its concepts into
  *  practice — rendered as "Real-world labs for this book" on the book reader page. */
 export const BOOK_LAB_TASK_IDS: Record<string, string[]> = {
-  'crypto101': ['sec-crypto-01', 'sec-crypto-02', 'sec-crypto-03', 'sec-crypto-04', 'sec-crypto-05', 'sec-crypto-06'],
+  'crypto101': ['sec-crypto-01', 'sec-crypto-02', 'sec-crypto-03', 'sec-crypto-04', 'sec-crypto-05', 'sec-crypto-06', 'sec-crypto-07', 'sec-crypto-08'],
   'nist-digital-identity-guidelines': ['sec-idaccess-01', 'sec-idaccess-03'],
   'nist-intro-to-infosec': ['sec-idaccess-03'],
   'nist-incident-handling-guide': ['sec-incident-01'],
@@ -41,11 +41,11 @@ export const BOOK_LAB_TASK_IDS: Record<string, string[]> = {
   'nist-security-testing-guide': ['sec-testing-01', 'sec-testing-02', 'sec-testing-03', 'sec-network-03'],
   'nist-cybersecurity-framework': ['sec-risk-01'],
   'owasp-asvs': ['sec-idaccess-02'],
-  'owasp-wstg': ['sec-testing-01', 'sec-testing-02', 'sec-webapp-01', 'sec-webapp-02', 'sec-webapp-03', 'sec-webapp-04', 'sec-webapp-05'],
+  'owasp-wstg': ['sec-testing-01', 'sec-testing-02', 'sec-webapp-01', 'sec-webapp-02', 'sec-webapp-03', 'sec-webapp-04', 'sec-webapp-05', 'sec-webapp-06', 'sec-webapp-07'],
   'nist-firewall-guidelines': ['sec-network-01', 'sec-network-02'],
-  'nist-log-management': ['sec-network-03', 'sec-network-04'],
-  'web-application-hackers-handbook': ['sec-webapp-04', 'sec-webapp-05'],
-  'basics-of-web-hacking': ['sec-network-05', 'sec-testing-03'],
-  'hacking-art-of-exploitation': ['sec-binary-01'],
-  'black-hat-python': ['sec-malware-01', 'sec-network-04', 'sec-network-05'],
+  'nist-log-management': ['sec-network-03', 'sec-network-04', 'sec-network-06'],
+  'web-application-hackers-handbook': ['sec-webapp-04', 'sec-webapp-05', 'sec-webapp-07'],
+  'basics-of-web-hacking': ['sec-network-05', 'sec-testing-03', 'sec-webapp-06'],
+  'hacking-art-of-exploitation': ['sec-binary-01', 'sec-binary-02', 'sec-binary-03'],
+  'black-hat-python': ['sec-malware-01', 'sec-malware-02', 'sec-network-04', 'sec-network-05', 'sec-network-06'],
 };

@@ -303,4 +303,98 @@ export const SECURITY_WEBAPP_TASKS: CodeTask[] = [
       '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
       'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
   },
+  {
+    id: 'sec-webapp-06',
+    title: 'Validate a CSRF Token Safely',
+    difficulty: 'Easy',
+    language: 'python',
+    category: 'Security: Web Application Security (OWASP)',
+    prompt:
+      'Cross-Site Request Forgery works because a browser automatically attaches a user\'s cookies to ' +
+      'requests from any site, including a malicious one — so a form on an attacker\'s page can trigger a ' +
+      'real, authenticated action on your site without the user ever meaning to. The standard defense is a ' +
+      'CSRF token: a secret value stored server-side per session and required on every state-changing ' +
+      'request, which an attacker\'s page has no way to read or guess.\n\n' +
+      'Write is_valid_csrf_token(session_token, submitted_token) that returns True only if both values are ' +
+      'non-empty and match exactly, using a constant-time comparison (this is the same real timing-attack ' +
+      'concern as comparing password hashes — never use == for a security-sensitive comparison).',
+    starterCode:
+      'import hmac\n\n' +
+      'def is_valid_csrf_token(session_token, submitted_token):\n' +
+      '    # TODO: reject empty values, then compare safely with hmac.compare_digest\n' +
+      '    pass\n',
+    hints: [
+      'Check both session_token and submitted_token are truthy (non-empty) first — an empty session token should never be treated as "no CSRF protection needed."',
+      'hmac.compare_digest(session_token, submitted_token) is the correct, constant-time way to compare the two — the same tool used for comparing password hashes and API keys.',
+      'Both early-exit checks and the final comparison all need to hold for the function to return True — short-circuit to False the moment either token is missing.',
+    ],
+    solution:
+      'import hmac\n\n' +
+      'def is_valid_csrf_token(session_token, submitted_token):\n' +
+      '    if not session_token or not submitted_token:\n' +
+      '        return False\n' +
+      '    return hmac.compare_digest(session_token, submitted_token)\n',
+    testCode:
+      '__results__ = []\n' +
+      'def __check__(name, actual, expected):\n' +
+      '    __results__.append((name, actual == expected, actual, expected))\n\n' +
+      '__check__("matching tokens are valid", is_valid_csrf_token("tok123", "tok123"), True)\n' +
+      '__check__("mismatched tokens are rejected", is_valid_csrf_token("tok123", "tok124"), False)\n' +
+      '__check__("missing submitted token is rejected", is_valid_csrf_token("tok123", ""), False)\n' +
+      '__check__("missing session token is rejected", is_valid_csrf_token("", "tok123"), False)\n' +
+      '__check__("both missing is rejected", is_valid_csrf_token("", ""), False)\n\n' +
+      'for name, ok, actual, expected in __results__:\n' +
+      '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
+      'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
+  },
+  {
+    id: 'sec-webapp-07',
+    title: 'Prevent Open Redirect Phishing Chains',
+    difficulty: 'Medium',
+    language: 'python',
+    category: 'Security: Web Application Security (OWASP)',
+    prompt:
+      'A "log in, then redirect back to where you were" feature is a classic real target: if the redirect ' +
+      'destination is taken straight from a URL parameter with no validation, an attacker crafts a link to ' +
+      'your real, trusted login page that redirects the victim to a phishing site right after — the URL bar ' +
+      'shows your legitimate domain the whole time the user is entering credentials, which is exactly what ' +
+      'makes open-redirect-based phishing so effective.\n\n' +
+      'Write is_safe_redirect(url, allowed_hosts) where allowed_hosts is a set of hostnames your app ' +
+      'controls. Parse the URL: if it has a scheme, reject anything other than "http"/"https" (this blocks ' +
+      'tricks like "javascript:alert(1)"). A relative URL (no netloc/host at all, like "/dashboard") is ' +
+      'always safe since it can only point within your own site. Otherwise, allow it only if its netloc ' +
+      'is exactly in allowed_hosts.',
+    starterCode:
+      'from urllib.parse import urlparse\n\n' +
+      'def is_safe_redirect(url, allowed_hosts):\n' +
+      '    # TODO: reject non-http(s) schemes; allow relative URLs; check absolute URLs against allowed_hosts\n' +
+      '    pass\n',
+    hints: [
+      'urlparse(url) gives you .scheme (empty string for a relative URL like "/dashboard") and .netloc (the host[:port] part, also empty for a relative URL).',
+      'Reject early if parsed.scheme is truthy AND not in ("http", "https") — this catches "javascript:", "data:", and similar scheme-based tricks.',
+      'If parsed.netloc is empty, the URL is relative (no host at all) and is always safe to allow. Otherwise, the only safe case is parsed.netloc being exactly one of allowed_hosts — note this also correctly rejects a protocol-relative URL like "//evil.com/phish", since its netloc is "evil.com".',
+    ],
+    solution:
+      'from urllib.parse import urlparse\n\n' +
+      'def is_safe_redirect(url, allowed_hosts):\n' +
+      '    parsed = urlparse(url)\n' +
+      '    if parsed.scheme and parsed.scheme not in ("http", "https"):\n' +
+      '        return False\n' +
+      '    if not parsed.netloc:\n' +
+      '        return True\n' +
+      '    return parsed.netloc in allowed_hosts\n',
+    testCode:
+      '__results__ = []\n' +
+      'def __check__(name, actual, expected):\n' +
+      '    __results__.append((name, actual == expected, actual, expected))\n\n' +
+      'allowed = {"app.example.com", "www.example.com"}\n' +
+      '__check__("relative path is always safe", is_safe_redirect("/dashboard", allowed), True)\n' +
+      '__check__("allowed absolute host is safe", is_safe_redirect("https://app.example.com/home", allowed), True)\n' +
+      '__check__("unrelated external host is blocked", is_safe_redirect("https://evil.com/phish", allowed), False)\n' +
+      '__check__("protocol-relative URL to an external host is blocked", is_safe_redirect("//evil.com/phish", allowed), False)\n' +
+      '__check__("javascript: scheme is blocked", is_safe_redirect("javascript:alert(1)", allowed), False)\n\n' +
+      'for name, ok, actual, expected in __results__:\n' +
+      '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
+      'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
+  },
 ];

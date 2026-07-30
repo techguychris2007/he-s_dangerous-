@@ -288,4 +288,99 @@ export const SECURITY_CRYPTOGRAPHY_TASKS: CodeTask[] = [
       '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
       'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
   },
+  {
+    id: 'sec-crypto-07',
+    title: 'Implement Diffie-Hellman Key Exchange',
+    difficulty: 'Medium',
+    language: 'python',
+    category: 'Security: Cryptography (Crypto 101)',
+    prompt:
+      'Diffie-Hellman is the real algorithm that lets two parties agree on a shared secret over a channel ' +
+      'an eavesdropper can see every message on — the foundation TLS, SSH, and Signal all build key ' +
+      'exchange on top of. The trick is modular exponentiation: each side raises a shared public base to ' +
+      'their own private exponent, exchanges the results, then raises what they received to their own ' +
+      'private exponent again — and both sides land on the exact same number, without ever transmitting it.\n\n' +
+      'Write dh_shared_secret(p, g, my_private, their_public) where p is a shared prime modulus, g is a ' +
+      'shared base (generator), my_private is this party\'s secret integer, and their_public is the value ' +
+      'the other party already sent. Return a tuple (my_public, shared_secret) where my_public = ' +
+      'g^my_private mod p (what you\'d send to the other party), and shared_secret = their_public^my_private ' +
+      'mod p (the number both parties independently arrive at).',
+    starterCode:
+      'def dh_shared_secret(p, g, my_private, their_public):\n' +
+      '    # TODO: compute my_public = g^my_private mod p, and shared = their_public^my_private mod p\n' +
+      '    pass\n',
+    hints: [
+      "Python's built-in pow(base, exponent, modulus) does modular exponentiation directly and efficiently — never compute base**exponent first and then take % modulus, that overflows into astronomically large numbers for real key sizes.",
+      'my_public = pow(g, my_private, p) is exactly what gets transmitted to the other party.',
+      'shared_secret = pow(their_public, my_private, p) — note it uses THEIR public value raised to YOUR private exponent, which is what makes both sides converge on the same number.',
+    ],
+    solution:
+      'def dh_shared_secret(p, g, my_private, their_public):\n' +
+      '    my_public = pow(g, my_private, p)\n' +
+      '    shared_secret = pow(their_public, my_private, p)\n' +
+      '    return my_public, shared_secret\n',
+    testCode:
+      '__results__ = []\n' +
+      'def __check__(name, actual, expected):\n' +
+      '    __results__.append((name, actual == expected, actual, expected))\n\n' +
+      'p, g = 23, 5\n' +
+      'alice_public, _ = dh_shared_secret(p, g, 6, 0)\n' +
+      'bob_public, _ = dh_shared_secret(p, g, 15, 0)\n' +
+      '_, alice_shared = dh_shared_secret(p, g, 6, bob_public)\n' +
+      '_, bob_shared = dh_shared_secret(p, g, 15, alice_public)\n' +
+      '__check__("both parties derive the identical shared secret", alice_shared == bob_shared, True)\n' +
+      '__check__("alice\'s public value matches g^6 mod 23", alice_public, pow(5, 6, 23))\n\n' +
+      'p2, g2 = 23, 5\n' +
+      'a2_pub, _ = dh_shared_secret(p2, g2, 3, 0)\n' +
+      'b2_pub, _ = dh_shared_secret(p2, g2, 9, 0)\n' +
+      '_, a2_shared = dh_shared_secret(p2, g2, 3, b2_pub)\n' +
+      '_, b2_shared = dh_shared_secret(p2, g2, 9, a2_pub)\n' +
+      '__check__("second key pair also converges", a2_shared == b2_shared, True)\n\n' +
+      'for name, ok, actual, expected in __results__:\n' +
+      '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
+      'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
+  },
+  {
+    id: 'sec-crypto-08',
+    title: 'Timing-Safe Comparison for Secrets',
+    difficulty: 'Easy',
+    language: 'python',
+    category: 'Security: Cryptography (Crypto 101)',
+    prompt:
+      'A naive string/byte comparison (==, or a hand-rolled loop that returns early on the first ' +
+      'mismatch) leaks information through timing: it returns faster when the first byte is wrong than ' +
+      'when the first ten bytes happen to match. Given enough repeated attempts, that timing difference is ' +
+      'real, measurable, and has been used in genuine timing-attack research to recover secrets (API keys, ' +
+      'HMAC signatures, session tokens) one byte at a time. The fix is a constant-time comparison that ' +
+      'always checks every byte regardless of where the first mismatch is.\n\n' +
+      "Python's real hmac module ships exactly this: hmac.compare_digest(a, b). Write " +
+      'is_valid_secret(provided, expected) that uses hmac.compare_digest to compare the two strings safely ' +
+      'and returns the boolean result — the whole point of this exercise is knowing this function exists ' +
+      'and reaching for it instead of writing your own comparison.',
+    starterCode:
+      'import hmac\n\n' +
+      'def is_valid_secret(provided, expected):\n' +
+      '    # TODO: use hmac.compare_digest for a constant-time comparison\n' +
+      '    pass\n',
+    hints: [
+      'hmac.compare_digest(a, b) works on both str and bytes (as long as both arguments are the same type) and always runs in time proportional to the length of the inputs, not where the first difference occurs.',
+      'This is a one-line function — just return the result of compare_digest directly.',
+      'Never use == for comparing secrets, API keys, tokens, or HMAC/signature values in real code — compare_digest is the correct tool every time.',
+    ],
+    solution:
+      'import hmac\n\n' +
+      'def is_valid_secret(provided, expected):\n' +
+      '    return hmac.compare_digest(provided, expected)\n',
+    testCode:
+      '__results__ = []\n' +
+      'def __check__(name, actual, expected):\n' +
+      '    __results__.append((name, actual == expected, actual, expected))\n\n' +
+      '__check__("matching secrets return True", is_valid_secret("sk_live_abc123", "sk_live_abc123"), True)\n' +
+      '__check__("mismatched secrets return False", is_valid_secret("sk_live_abc123", "sk_live_xyz789"), False)\n' +
+      '__check__("different-length secrets return False", is_valid_secret("short", "much_longer_secret"), False)\n' +
+      '__check__("empty strings compare equal", is_valid_secret("", ""), True)\n\n' +
+      'for name, ok, actual, expected in __results__:\n' +
+      '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
+      'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
+  },
 ];

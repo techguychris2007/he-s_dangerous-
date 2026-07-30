@@ -289,4 +289,63 @@ export const SECURITY_NETWORK_TASKS: CodeTask[] = [
       '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
       'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
   },
+  {
+    id: 'sec-network-06',
+    title: 'Detect DNS Tunneling via Subdomain Entropy',
+    difficulty: 'Hard',
+    language: 'python',
+    category: 'Security: Network Protocol Analysis',
+    prompt:
+      'DNS tunneling smuggles data (stolen files, C2 commands) inside DNS queries — a channel most ' +
+      'firewalls let through unfiltered. The giveaway: encoded/encrypted data crammed into a subdomain ' +
+      'label looks nothing like a real hostname. "www" and "mail" are short, low-entropy, and drawn from a ' +
+      'tiny alphabet; "8f3ac9e2b1d4f7a0c5e8b3d6" is long, high-entropy, and uses the full hex alphabet ' +
+      'roughly uniformly. Shannon entropy — a real, standard measurement of exactly this "how random does ' +
+      'this string look" question — is what real DNS-tunneling and DGA (domain generation algorithm) ' +
+      'detectors are built on.\n\n' +
+      'Write shannon_entropy(s), which computes the Shannon entropy of a string in bits per character: for ' +
+      'each distinct character, let p be its frequency (count / length), and sum -p * log2(p) across all ' +
+      'distinct characters. Then write detect_dns_tunneling(subdomains, threshold=3.5) that returns every ' +
+      'subdomain from the list whose entropy is at or above the threshold.',
+    starterCode:
+      'import math\n' +
+      'from collections import Counter\n\n' +
+      'def shannon_entropy(s):\n' +
+      '    # TODO: sum of -p * log2(p) over each distinct character\'s frequency p\n' +
+      '    pass\n\n' +
+      'def detect_dns_tunneling(subdomains, threshold=3.5):\n' +
+      '    # TODO: return subdomains whose shannon_entropy is >= threshold\n' +
+      '    pass\n',
+    hints: [
+      'An empty string has no characters to measure — return 0.0 for it as a special case before anything else.',
+      'Counter(s) gives you a count per distinct character; for each count c, its probability is c / len(s).',
+      'sum((c / length) * math.log2(c / length) for c in counts.values()) gives the sum of p*log2(p) — negate the whole sum to get entropy (since log2 of a fraction is negative, this makes the final value positive).',
+      'detect_dns_tunneling is a one-line filter: [s for s in subdomains if shannon_entropy(s) >= threshold].',
+    ],
+    solution:
+      'import math\n' +
+      'from collections import Counter\n\n' +
+      'def shannon_entropy(s):\n' +
+      '    if not s:\n' +
+      '        return 0.0\n' +
+      '    counts = Counter(s)\n' +
+      '    length = len(s)\n' +
+      '    return -sum((c / length) * math.log2(c / length) for c in counts.values())\n\n' +
+      'def detect_dns_tunneling(subdomains, threshold=3.5):\n' +
+      '    return [s for s in subdomains if shannon_entropy(s) >= threshold]\n',
+    testCode:
+      '__results__ = []\n' +
+      'def __check__(name, actual, expected):\n' +
+      '    __results__.append((name, actual == expected, actual, expected))\n\n' +
+      '__check__("a single repeated character has zero entropy", shannon_entropy("aaaa"), 0.0)\n' +
+      '__check__("empty string has zero entropy", shannon_entropy(""), 0.0)\n\n' +
+      'normal = ["www", "mail", "api", "cdn"]\n' +
+      'tunneling = ["8f3ac9e2b1d4f7a0c5e8b3d6", "a1b2c3d4e5f6a7b8c9d0e1f2"]\n' +
+      'result = detect_dns_tunneling(normal + tunneling)\n' +
+      '__check__("flags only the high-entropy encoded-looking subdomains", set(result), set(tunneling))\n' +
+      '__check__("normal short hostnames stay below the threshold", detect_dns_tunneling(normal), [])\n\n' +
+      'for name, ok, actual, expected in __results__:\n' +
+      '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
+      'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
+  },
 ];
