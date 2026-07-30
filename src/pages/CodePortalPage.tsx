@@ -10,7 +10,7 @@ import { useProgress } from '../state/progressStore';
 import CodeTaskCard from '../components/code/CodeTaskCard';
 import Logo from '../components/layout/Logo';
 import { IconBook, IconCheck, IconCode, IconFlask } from '../components/layout/icons';
-import { BOOKS } from '../data/books';
+import { booksInTrack } from '../data/books';
 
 const CODE_MODULE_SLUGS = ['code-python-fundamentals', 'code-python-oop', 'code-python-advanced'];
 
@@ -117,8 +117,8 @@ export default function CodePortalPage() {
             <div>
               <div className="font-bold text-[var(--color-heading)]">Free Book Library</div>
               <p className="text-xs text-[var(--color-text-dim)]">
-                {BOOKS.length} complete, legally free programming books (Python, C++, Java, JavaScript) —
-                read or download right here, no external site.
+                {booksInTrack('programming').length} complete, legally free programming books (Python, C++, Java,
+                JavaScript, Rust) — read or download right here.
               </p>
             </div>
           </div>

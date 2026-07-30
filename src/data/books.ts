@@ -558,13 +558,52 @@ export const BOOKS: Book[] = [
       'portal first before buying.',
   },
   {
+    id: 'basics-of-web-hacking',
+    title: 'The Basics of Web Hacking',
+    subtitle: 'Tools and Techniques to Attack the Web',
+    author: 'Josh Pauli',
+    track: 'security',
+    stage: 'Offensive Testing & Ethical Hacking',
+    order: 22,
+    // Commercial title (Elsevier/Syngress) — link-only, no cached copy. See file-level note above.
+    // officialUrl points to ScienceDirect, same platform (and often same institutional
+    // subscription) as "The Basics of Hacking and Penetration Testing" just above.
+    license: 'Commercial — Not Redistributable',
+    licenseUrl: 'https://shop.elsevier.com/books/the-basics-of-web-hacking/pauli/978-0-12-416600-4',
+    officialUrl: 'https://www.sciencedirect.com/book/9780124166004/the-basics-of-web-hacking',
+    description:
+      'The previous book\'s general attack chain, narrowed to the web specifically: attacking the ' +
+      'server, the application, and the user with Burp Suite, sqlmap, and ZAP — a short, beginner-' +
+      'level bridge before the OWASP guide below formalizes the methodology. Opens on ScienceDirect ' +
+      '— check your library subscription before buying.',
+  },
+  {
+    id: 'social-engineering-penetration-testing',
+    title: 'Social Engineering Penetration Testing',
+    subtitle: 'Executing Social Engineering Pen Tests, Assessments and Defense',
+    author: 'Gavin Watson, Andrew Mason &amp; Richard Ackroyd',
+    track: 'security',
+    stage: 'Offensive Testing & Ethical Hacking',
+    order: 23,
+    // Commercial title (Elsevier/Syngress) — link-only, no cached copy. See file-level note above.
+    // officialUrl points to ScienceDirect, same platform as the two books just above.
+    license: 'Commercial — Not Redistributable',
+    licenseUrl: 'https://shop.elsevier.com/books/social-engineering-penetration-testing/watson/978-0-12-420124-8',
+    officialUrl: 'https://www.sciencedirect.com/book/9780124201248/social-engineering-penetration-testing',
+    description:
+      'Everything so far attacks systems; this attacks people — phishing pretexts, phone social ' +
+      'engineering, and physical-access tricks like tailgating, planned and executed as a formal, ' +
+      'authorized test rather than an ad hoc trick. The human vector every technical control on this ' +
+      'shelf can be routed around. Opens on ScienceDirect — check your library subscription before buying.',
+  },
+  {
     id: 'owasp-wstg',
     title: 'OWASP Web Security Testing Guide',
     subtitle: 'Version 4.2',
     author: 'OWASP Foundation &amp; Contributors',
     track: 'security',
     stage: 'Offensive Testing & Ethical Hacking',
-    order: 22,
+    order: 24,
     filename: 'owasp-wstg.pdf',
     fileSizeMb: '9.7',
     license: 'CC BY-SA 4.0',
@@ -582,7 +621,7 @@ export const BOOKS: Book[] = [
     author: 'Dafydd Stuttard &amp; Marcus Pinto',
     track: 'security',
     stage: 'Offensive Testing & Ethical Hacking',
-    order: 23,
+    order: 25,
     // Commercial title (Wiley) — link-only, no cached copy. See file-level note above. officialUrl
     // points to the O'Reilly Learning platform, which also carries this exact title — many
     // universities and employers already have an O'Reilly subscription that covers it.
@@ -602,7 +641,7 @@ export const BOOKS: Book[] = [
     author: 'OWASP Foundation &amp; Contributors',
     track: 'security',
     stage: 'Offensive Testing & Ethical Hacking',
-    order: 24,
+    order: 26,
     filename: 'owasp-asvs.pdf',
     fileSizeMb: '0.5',
     license: 'CC BY-SA 4.0',
@@ -620,7 +659,7 @@ export const BOOKS: Book[] = [
     author: 'Peter Yaworski',
     track: 'security',
     stage: 'Offensive Testing & Ethical Hacking',
-    order: 25,
+    order: 27,
     // Commercial title (self-published, Leanpub) — link-only, no cached copy. See file-level note above.
     license: 'Commercial — Not Redistributable',
     licenseUrl: 'https://leanpub.com/web-hacking-101',
@@ -638,7 +677,7 @@ export const BOOKS: Book[] = [
     author: 'Peter Yaworski',
     track: 'security',
     stage: 'Offensive Testing & Ethical Hacking',
-    order: 26,
+    order: 28,
     // Commercial title (No Starch Press) — link-only, no cached copy. See file-level note above.
     // officialUrl points to the O'Reilly Learning platform, which also carries this exact title —
     // many universities and employers already have an O'Reilly subscription that covers it.
@@ -652,13 +691,32 @@ export const BOOKS: Book[] = [
       'school or employer already has a subscription before buying from No Starch directly.',
   },
   {
+    id: 'coding-for-penetration-testers',
+    title: 'Coding for Penetration Testers',
+    subtitle: '2nd Edition — Building Better Tools',
+    author: 'Jason Andress &amp; Ryan Linn',
+    track: 'security',
+    stage: 'Offensive Testing & Ethical Hacking',
+    order: 29,
+    // Commercial title (Elsevier/Syngress) — link-only, no cached copy. See file-level note above.
+    // officialUrl points to ScienceDirect, same platform as the earlier Syngress titles above.
+    license: 'Commercial — Not Redistributable',
+    licenseUrl: 'https://shop.elsevier.com/books/coding-for-penetration-testers/andress/978-0-12-805472-7',
+    officialUrl: 'https://www.sciencedirect.com/book/9780128054727/coding-for-penetration-testers',
+    description:
+      'Before Black Hat Python goes deep on one language, this covers the broader scripting ' +
+      'foundations for building offensive tools — Perl, Ruby, and PowerShell alongside Python — ' +
+      'worth reading first if Python isn\'t already comfortable. Opens on ScienceDirect — check your ' +
+      'library subscription before buying.',
+  },
+  {
     id: 'black-hat-python',
     title: 'Black Hat Python',
     subtitle: '2nd Edition — Python Programming for Hackers and Pentesters',
     author: 'Justin Seitz &amp; Tim Arnold',
     track: 'security',
     stage: 'Offensive Testing & Ethical Hacking',
-    order: 27,
+    order: 30,
     // Commercial title (No Starch Press) — link-only, no cached copy. See file-level note above.
     // officialUrl points to the O'Reilly Learning platform, which also carries this exact title —
     // many universities and employers already have an O'Reilly subscription that covers it.
@@ -679,7 +737,7 @@ export const BOOKS: Book[] = [
     author: 'OWASP Foundation &amp; Contributors',
     track: 'security',
     stage: 'Offensive Testing & Ethical Hacking',
-    order: 28,
+    order: 31,
     filename: 'owasp-mastg.pdf',
     fileSizeMb: '29.6',
     license: 'CC BY-SA 4.0',
@@ -698,7 +756,7 @@ export const BOOKS: Book[] = [
     author: 'Peter Kim',
     track: 'security',
     stage: 'Offensive Testing & Ethical Hacking',
-    order: 29,
+    order: 32,
     // Commercial title (self-published, Secure Planet LLC) — link-only, no cached copy. See file-level note above.
     license: 'Commercial — Not Redistributable',
     licenseUrl: 'https://www.amazon.com/Hacker-Playbook-Practical-Penetration-Testing/dp/1980901759',
@@ -718,7 +776,7 @@ export const BOOKS: Book[] = [
     author: 'NIST',
     track: 'security',
     stage: 'Response & Forensics',
-    order: 30,
+    order: 33,
     filename: 'nist-malware-incident-prevention.pdf',
     fileSizeMb: '0.6',
     license: 'Public Domain (U.S. Government Work)',
@@ -735,7 +793,7 @@ export const BOOKS: Book[] = [
     author: 'NIST',
     track: 'security',
     stage: 'Response & Forensics',
-    order: 31,
+    order: 34,
     filename: 'nist-forensics-guide.pdf',
     fileSizeMb: '2.7',
     license: 'Public Domain (U.S. Government Work)',
@@ -752,7 +810,7 @@ export const BOOKS: Book[] = [
     author: 'NIST',
     track: 'security',
     stage: 'Response & Forensics',
-    order: 32,
+    order: 35,
     filename: 'nist-mobile-forensics.pdf',
     fileSizeMb: '1.3',
     license: 'Public Domain (U.S. Government Work)',
@@ -769,7 +827,7 @@ export const BOOKS: Book[] = [
     author: 'NIST',
     track: 'security',
     stage: 'Response & Forensics',
-    order: 33,
+    order: 36,
     filename: 'nist-media-sanitization.pdf',
     fileSizeMb: '0.7',
     license: 'Public Domain (U.S. Government Work)',
@@ -786,7 +844,7 @@ export const BOOKS: Book[] = [
     author: 'NIST',
     track: 'security',
     stage: 'Response & Forensics',
-    order: 34,
+    order: 37,
     filename: 'nist-incident-handling-guide.pdf',
     fileSizeMb: '1.7',
     license: 'Public Domain (U.S. Government Work)',
@@ -806,7 +864,7 @@ export const BOOKS: Book[] = [
     author: 'Jon Erickson',
     track: 'security',
     stage: 'Advanced & Specialized Security Engineering',
-    order: 35,
+    order: 38,
     // Commercial title (No Starch Press) — link-only, no cached copy. See file-level note above.
     // officialUrl points to the O'Reilly Learning platform, which also carries this exact title —
     // many universities and employers already have an O'Reilly subscription that covers it.
@@ -827,7 +885,7 @@ export const BOOKS: Book[] = [
     author: 'NIST',
     track: 'security',
     stage: 'Advanced & Specialized Security Engineering',
-    order: 36,
+    order: 39,
     filename: 'nist-ics-security.pdf',
     fileSizeMb: '8.6',
     license: 'Public Domain (U.S. Government Work)',
@@ -845,7 +903,7 @@ export const BOOKS: Book[] = [
     author: 'NIST',
     track: 'security',
     stage: 'Advanced & Specialized Security Engineering',
-    order: 37,
+    order: 40,
     filename: 'nist-zero-trust-architecture.pdf',
     fileSizeMb: '1.0',
     license: 'Public Domain (U.S. Government Work)',
@@ -863,7 +921,7 @@ export const BOOKS: Book[] = [
     author: 'NIST',
     track: 'security',
     stage: 'Advanced & Specialized Security Engineering',
-    order: 38,
+    order: 41,
     filename: 'nist-config-management.pdf',
     fileSizeMb: '1.1',
     license: 'Public Domain (U.S. Government Work)',
@@ -880,7 +938,7 @@ export const BOOKS: Book[] = [
     author: 'NIST',
     track: 'security',
     stage: 'Advanced & Specialized Security Engineering',
-    order: 39,
+    order: 42,
     filename: 'nist-systems-security-engineering.pdf',
     fileSizeMb: '7.8',
     license: 'Public Domain (U.S. Government Work)',
@@ -898,7 +956,7 @@ export const BOOKS: Book[] = [
     author: 'NIST',
     track: 'security',
     stage: 'Advanced & Specialized Security Engineering',
-    order: 40,
+    order: 43,
     filename: 'nist-secure-software-dev-framework.pdf',
     fileSizeMb: '0.7',
     license: 'Public Domain (U.S. Government Work)',
@@ -916,7 +974,7 @@ export const BOOKS: Book[] = [
     author: 'NIST National Cybersecurity Center of Excellence',
     track: 'security',
     stage: 'Advanced & Specialized Security Engineering',
-    order: 41,
+    order: 44,
     filename: 'nist-ransomware-data-integrity.pdf',
     fileSizeMb: '42.2',
     license: 'Public Domain (U.S. Government Work)',
