@@ -67,11 +67,11 @@ export default function IntroPage() {
   return (
     <div className="min-h-screen w-full bg-[#060d16]">
       {/* ---------- hero ---------- */}
-      <div className="relative overflow-hidden">
+      <div className="relative overflow-hidden min-h-screen flex flex-col">
         <AgencyBackdrop variant="subtle" />
 
-        <div className="relative max-w-5xl mx-auto px-6 sm:px-8 pt-8 pb-20">
-          <div className="flex items-center justify-between mb-16 sm:mb-24">
+        <div className="relative max-w-5xl mx-auto px-6 sm:px-8 pt-8 pb-20 flex-1 flex flex-col justify-center w-full">
+          <div className="flex items-center justify-between mb-16 sm:mb-24 reveal" style={{ '--reveal-delay': '0s' } as React.CSSProperties}>
             <div className="flex items-center gap-2.5">
               <Logo className="w-8 h-8" />
               <span
@@ -107,11 +107,11 @@ export default function IntroPage() {
             </div>
           </div>
 
-          <div className="text-center max-w-3xl mx-auto">
+          <div className="text-center max-w-3xl mx-auto reveal" style={{ '--reveal-delay': '0.1s' } as React.CSSProperties}>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-mono tracking-[0.2em] uppercase text-[#c9a15f] border border-[#c9a15f4d] mb-6">
               Offensive &amp; defensive security, hands-on
             </div>
-            <h1 className="text-4xl sm:text-5xl font-extrabold text-white leading-tight mb-5">
+            <h1 className="text-4xl sm:text-6xl font-extrabold text-white leading-tight mb-5">
               Stop reading about hacking.
               <br />
               <span
@@ -153,7 +153,7 @@ export default function IntroPage() {
           </div>
 
           {/* terminal mockup */}
-          <div className="relative max-w-2xl mx-auto mt-14">
+          <div className="relative max-w-2xl mx-auto mt-14 reveal" style={{ '--reveal-delay': '0.22s' } as React.CSSProperties}>
             <div
               className="rounded-xl overflow-hidden font-mono text-[13px] leading-relaxed"
               style={{
@@ -187,13 +187,24 @@ export default function IntroPage() {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-14 mt-20">
+          <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-14 mt-20 reveal" style={{ '--reveal-delay': '0.32s' } as React.CSSProperties}>
             <Stat value={`${MODULES.length}`} label="Modules" />
             <Stat value={`${totalLessons}+`} label="Lessons" />
             <Stat value={`${totalLabs}+`} label="Hands-on labs" />
             <Stat value={`${totalFlags}+`} label="Flags to capture" />
           </div>
         </div>
+
+        <button
+          onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
+          aria-label="Scroll down"
+          className="relative mx-auto mb-6 flex flex-col items-center gap-1 text-[#7c93ae] hover:text-[#c9e0ff] transition-colors animate-bounce"
+        >
+          <span className="text-[10px] font-mono uppercase tracking-[0.2em]">Scroll</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M12 5v14M5 12l7 7 7-7" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
       </div>
 
       {/* ---------- features ---------- */}

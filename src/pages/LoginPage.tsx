@@ -113,27 +113,72 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center px-4 py-10 relative overflow-hidden bg-[#060d16]">
-      <AgencyBackdrop />
+    <div className="min-h-screen w-full flex bg-[#060d16]">
+      {/* ---------- brand panel (large screens only) ---------- */}
+      <div className="hidden lg:flex lg:w-[42%] relative overflow-hidden items-center border-r border-[#c9a15f2e]">
+        <AgencyBackdrop />
+        <div className="relative px-12 xl:px-16 reveal" style={{ '--reveal-delay': '0s' } as React.CSSProperties}>
+          <Link to="/welcome" className="inline-flex items-center gap-2.5 mb-14">
+            <Logo className="w-8 h-8" />
+            <span
+              className="font-serif text-xl tracking-wide"
+              style={{
+                backgroundImage: 'linear-gradient(180deg, #f3e3bd 0%, #c9a15f 60%, #8f7136 100%)',
+                WebkitBackgroundClip: 'text',
+                backgroundClip: 'text',
+                color: 'transparent',
+              }}
+            >
+              DARKWORLD
+            </span>
+          </Link>
+          <h2 className="font-serif text-3xl xl:text-4xl leading-tight text-white mb-5">
+            Offensive &amp; defensive
+            <br />
+            security, hands-on.
+          </h2>
+          <p className="text-[#a9c0da] leading-relaxed max-w-sm mb-10">
+            Real interactive labs, real SIEM consoles, breaches modeled on actual incidents — your progress,
+            flags, and certificates travel with your account, on any device.
+          </p>
+          <div className="flex items-center gap-8">
+            <div>
+              <div className="text-2xl font-extrabold text-white">142+</div>
+              <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-[#7c93ae] mt-1">Hands-on labs</div>
+            </div>
+            <div>
+              <div className="text-2xl font-extrabold text-white">18</div>
+              <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-[#7c93ae] mt-1">Real-execution labs</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ---------- form panel ---------- */}
+      <div className="flex-1 flex items-center justify-center px-4 py-10 relative overflow-hidden">
+        <div className="lg:hidden absolute inset-0">
+          <AgencyBackdrop />
+        </div>
 
       <div
-        className="relative w-full max-w-[440px] rounded-2xl px-7 py-8 sm:px-9 sm:py-10"
+        className="relative w-full max-w-[440px] rounded-2xl px-7 py-8 sm:px-9 sm:py-10 reveal"
         style={{
+          '--reveal-delay': '0.1s',
           background: 'linear-gradient(180deg, #16283b 0%, #101f30 100%)',
           border: '1px solid #c9a15f88',
           boxShadow: '0 0 0 1px rgba(201,161,95,0.15), 0 0 60px -12px rgba(63,140,255,0.35), 0 30px 60px -20px rgba(0,0,0,0.6)',
-        }}
+        } as React.CSSProperties}
       >
         <Link
           to="/welcome"
-          className="absolute top-6 left-7 text-[11px] font-semibold text-[#7c93ae] hover:text-[#c9e0ff] transition-colors"
+          className="absolute top-6 left-7 text-[11px] font-semibold text-[#7c93ae] hover:text-[#c9e0ff] transition-colors lg:hidden"
         >
           &larr; Back
         </Link>
 
-        <div className="flex flex-col items-center text-center mb-7 mt-4">
+        <div className="flex flex-col items-center text-center mb-7 mt-4 lg:mt-0">
           <div
-            className="w-16 h-16 rounded-xl flex items-center justify-center mb-4"
+            className="w-16 h-16 rounded-xl flex items-center justify-center mb-4 lg:hidden"
             style={{
               background: 'linear-gradient(180deg, #1c2f45 0%, #0e1826 100%)',
               border: '1px solid #c9a15f66',
@@ -143,7 +188,7 @@ export default function LoginPage() {
             <Logo className="w-9 h-9" />
           </div>
           <h1
-            className="font-serif text-3xl tracking-wide"
+            className="font-serif text-3xl tracking-wide lg:hidden"
             style={{
               backgroundImage: 'linear-gradient(180deg, #f3e3bd 0%, #c9a15f 60%, #8f7136 100%)',
               WebkitBackgroundClip: 'text',
@@ -300,6 +345,7 @@ export default function LoginPage() {
         <p className="text-center text-[10px] font-mono text-[#4d5e70] mt-6 tracking-wide">
           Secured by Supabase Auth &middot; your password is never stored or seen by this app
         </p>
+      </div>
       </div>
     </div>
   );
