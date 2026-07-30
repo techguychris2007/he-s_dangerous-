@@ -5,12 +5,9 @@ import { OSINT_LABS } from '../labs/osintScenarios';
 import { useProgress } from '../state/progressStore';
 import StepChecklist from '../components/lesson/StepChecklist';
 import SiemConsole from '../components/siem/SiemConsole';
+import OsintTerminal from '../components/labs/OsintTerminal';
 import CyberLabAI from '../components/labs/CyberLabAI';
 import { IconFlag, IconCheck } from '../components/layout/icons';
-
-const ALL_TOOL_LABS = [...SIEM_LABS, ...OSINT_LABS];
-
-const OSINT_TOOLS = new Set(['shodan', 'sherlock', 'maltego', 'eyewitness', 'theharvester']);
 
 const TOOL_LABEL: Record<string, string> = {
   suricata: 'Suricata',
@@ -32,7 +29,10 @@ export default function SiemLabPage() {
   const progress = useProgress();
   const [hintIndex, setHintIndex] = useState(0);
   const [queryCount, setQueryCount] = useState(0);
-  const scenario = ALL_TOOL_LABS.find((s) => s.id === labId);
+  const siemScenario = SIEM_LABS.find((s) => s.id === labId);
+  const osintScenario = OSINT_LABS.find((s) => s.id === labId);
+  const scenario = siemScenario ?? osintScenario;
+  const isOsint = !siemScenario && !!osintScenario;
   const transcriptRef = useRef('');
 
   useEffect(() => {
@@ -43,7 +43,6 @@ export default function SiemLabPage() {
 
   if (!scenario) return <Navigate to="/labs" replace />;
 
-  const isOsint = OSINT_TOOLS.has(scenario.tool);
   const captured = progress.flagCount(scenario.id);
   const onFlagCaptured = (flag: string) => progress.captureFlag(scenario.id, flag);
   const autoCheckedCount =
@@ -84,8 +83,9 @@ export default function SiemLabPage() {
         </div>
 
         <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] p-3 text-xs text-[var(--color-text-dim)] leading-relaxed mb-3">
-          Type your filter/query directly into the {TOOL_LABEL[scenario.tool]} bar and run it — the tool
-          highlights whatever matches, exactly like the real thing.
+          {isOsint
+            ? `Type the real ${TOOL_LABEL[scenario.tool]} command straight into the terminal, exactly as a hint shows it — output streams back the way the real tool would.`
+            : `Type your filter/query directly into the ${TOOL_LABEL[scenario.tool]} bar and run it — the tool highlights whatever matches, exactly like the real thing.`}
         </div>
 
         <button
@@ -112,14 +112,27 @@ export default function SiemLabPage() {
       </div>
 
       <div className="flex-1 min-h-[420px] p-4">
-        <SiemConsole
-          scenario={scenario}
-          onFlagCaptured={onFlagCaptured}
-          onQueryRun={() => setQueryCount((c) => c + 1)}
-          onTranscriptChange={(t) => {
-            transcriptRef.current = t;
-          }}
-        />
+        {osintScenario ? (
+          <OsintTerminal
+            scenario={osintScenario}
+            onFlagCaptured={onFlagCaptured}
+            onCommandRun={() => setQueryCount((c) => c + 1)}
+            onTranscriptChange={(t) => {
+              transcriptRef.current = t;
+            }}
+          />
+        ) : (
+          siemScenario && (
+            <SiemConsole
+              scenario={siemScenario}
+              onFlagCaptured={onFlagCaptured}
+              onQueryRun={() => setQueryCount((c) => c + 1)}
+              onTranscriptChange={(t) => {
+                transcriptRef.current = t;
+              }}
+            />
+          )
+        )}
       </div>
 
       <CyberLabAI
