@@ -24,6 +24,17 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
+interface Citation {
+  title: string;
+  uri: string;
+}
+
+interface AiResult {
+  answer: string;
+  model: string;
+  citations?: Citation[];
+}
+
 interface RequestBody {
   question: string;
   mode: 'hint' | 'explain' | 'ask';
@@ -59,7 +70,12 @@ const SYSTEM_PROMPT_BASE =
   'security, reverse engineering, secure coding, and computer science generally). Your goal is genuine ' +
   'understanding, not answer-dumping — you are teaching *why* something works, not just handing over a ' +
   'working solution. Never shame a beginner for not knowing something. Keep answers focused; do not pad ' +
-  'with filler.\n\n' +
+  'with filler. Format with Markdown where it genuinely improves readability (short headings, **bold** for ' +
+  'key terms, bullet lists for enumerated points, `inline code` for identifiers, fenced code blocks for ' +
+  'actual code) — never format for its own sake. If you have real-time search results available and the ' +
+  'question genuinely depends on current information (a recent CVE, a tool\'s current version/behavior, a ' +
+  'changed standard), use them and ground your answer in them; otherwise answer from what you already know ' +
+  'without searching.\n\n' +
   'Hard scope limits: only ever discuss the concepts and code relevant to the CURRENT lab or lesson ' +
   'described below, which runs entirely inside this platform\'s own sandboxed browser environment ' +
   '(Pyodide/WASM) against fake, self-contained data. Never give operational guidance for attacking a ' +
@@ -110,7 +126,7 @@ function buildSystemPrompt(body: RequestBody): string {
   return `${SYSTEM_PROMPT_BASE}\n\n${contextLines.join('\n\n')}\n\n${behaviorInstruction}`;
 }
 
-async function callGroq(systemPrompt: string, question: string): Promise<string> {
+async function callGroq(systemPrompt: string, question: string): Promise<AiResult> {
   const res = await fetch(GROQ_URL, {
     method: 'POST',
     headers: { Authorization: `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
@@ -128,24 +144,36 @@ async function callGroq(systemPrompt: string, question: string): Promise<string>
   const data = await res.json();
   const answer = data.choices?.[0]?.message?.content;
   if (!answer) throw new Error('Groq returned no answer content');
-  return answer;
+  return { answer, model: GROQ_MODEL };
 }
 
-async function callGemini(systemPrompt: string, question: string): Promise<string> {
+/** Calls Gemini with its real Google Search grounding tool enabled — Gemini itself decides,
+ *  per-request, whether the question actually needs a live search or can be answered from its own
+ *  knowledge. When it does search, groundingMetadata comes back with the real source chunks it
+ *  used, which we surface as citations — never fabricated, always what Google actually returned. */
+async function callGemini(systemPrompt: string, question: string): Promise<AiResult> {
   const res = await fetch(`${GEMINI_URL}?key=${GEMINI_API_KEY}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: systemPrompt }] },
       contents: [{ role: 'user', parts: [{ text: question }] }],
-      generationConfig: { temperature: 0.4, maxOutputTokens: 700 },
+      tools: [{ google_search: {} }],
+      generationConfig: { temperature: 0.4, maxOutputTokens: 800 },
     }),
   });
   if (!res.ok) throw new Error(`Gemini ${res.status}: ${await res.text()}`);
   const data = await res.json();
-  const answer = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  const candidate = data.candidates?.[0];
+  const answer = candidate?.content?.parts?.map((p: { text?: string }) => p.text ?? '').join('') ?? '';
   if (!answer) throw new Error('Gemini returned no answer content');
-  return answer;
+
+  const chunks = candidate?.groundingMetadata?.groundingChunks as { web?: { uri: string; title: string } }[] | undefined;
+  const citations: Citation[] | undefined = chunks
+    ?.map((c) => (c.web ? { title: c.web.title, uri: c.web.uri } : null))
+    .filter((c): c is Citation => c !== null);
+
+  return { answer, model: GEMINI_MODEL, citations: citations && citations.length > 0 ? citations : undefined };
 }
 
 Deno.serve(async (req: Request) => {
@@ -178,19 +206,30 @@ Deno.serve(async (req: Request) => {
     }
 
     const systemPrompt = buildSystemPrompt(body);
-    let answer: string;
-    let model: string;
+    // Hint requests: speed matters more than search (they're about the learner's own sandboxed
+    // lab, never time-sensitive), so try fast Groq first. Explain/ask: accuracy and freshness
+    // matter more, so try Gemini-with-search first, falling back to Groq only if Gemini errors.
+    const preferGemini = body.mode === 'explain' || body.mode === 'ask';
+    let result: AiResult;
     try {
-      if (!GROQ_API_KEY) throw new Error('GROQ_API_KEY not configured');
-      answer = await callGroq(systemPrompt, body.question);
-      model = GROQ_MODEL;
-    } catch (groqErr) {
-      if (!GEMINI_API_KEY) throw groqErr;
-      answer = await callGemini(systemPrompt, body.question);
-      model = GEMINI_MODEL;
+      if (preferGemini) {
+        if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY not configured');
+        result = await callGemini(systemPrompt, body.question);
+      } else {
+        if (!GROQ_API_KEY) throw new Error('GROQ_API_KEY not configured');
+        result = await callGroq(systemPrompt, body.question);
+      }
+    } catch (firstErr) {
+      if (preferGemini) {
+        if (!GROQ_API_KEY) throw firstErr;
+        result = await callGroq(systemPrompt, body.question);
+      } else {
+        if (!GEMINI_API_KEY) throw firstErr;
+        result = await callGemini(systemPrompt, body.question);
+      }
     }
 
-    return new Response(JSON.stringify({ answer, model }), {
+    return new Response(JSON.stringify(result), {
       headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
     });
   } catch (err) {

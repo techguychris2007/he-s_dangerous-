@@ -1,12 +1,14 @@
 import { useRef, useState } from 'react';
-import { askAiTutor, type AiTutorMode } from '../../lib/aiTutor';
+import { askAiTutor, type AiTutorMode, type Citation } from '../../lib/aiTutor';
 import type { PdfViewerHandle } from './PdfViewer';
-import { IconLightning } from '../layout/icons';
+import MarkdownText from '../common/MarkdownText';
+import { IconLightning, IconExternal } from '../layout/icons';
 
 interface ChatMessage {
   role: 'user' | 'assistant' | 'error';
   text: string;
   model?: string;
+  citations?: Citation[];
 }
 
 interface AiReadingCompanionProps {
@@ -24,8 +26,9 @@ const QUICK_ACTIONS: { mode: AiTutorMode; label: string; question: string }[] = 
 ];
 
 /** A floating chat bubble that reads whatever page the visitor currently has open and answers
- *  questions about it via a fast hosted model (Groq primary, Gemini fallback) — never a claim of
- *  running its own AI, and never given the whole book, only the real text of the current page. */
+ *  questions about it via a fast hosted model (Groq primary, or Gemini with real Google Search
+ *  grounding when the question needs current information) — never a claim of running its own AI,
+ *  and never given the whole book, only the real text of the current page. */
 export default function AiReadingCompanion({ bookTitle, currentPage, viewerRef }: AiReadingCompanionProps) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -48,7 +51,7 @@ export default function AiReadingCompanion({ bookTitle, currentPage, viewerRef }
     try {
       const pageText = (await viewerRef.current?.getPageText(currentPage)) ?? '';
       const result = await askAiTutor({ question, bookTitle, pageNum: currentPage, pageText, mode });
-      setMessages((m) => [...m, { role: 'assistant', text: result.answer, model: result.model }]);
+      setMessages((m) => [...m, { role: 'assistant', text: result.answer, model: result.model, citations: result.citations }]);
     } catch (err) {
       setMessages((m) => [
         ...m,
@@ -73,22 +76,22 @@ export default function AiReadingCompanion({ bookTitle, currentPage, viewerRef }
   }
 
   return (
-    <div className="fixed bottom-5 right-5 z-40 w-[380px] max-w-[calc(100vw-2.5rem)] h-[520px] max-h-[calc(100vh-4rem)] rounded-2xl shadow-2xl border border-[var(--color-border)] bg-[var(--color-surface)] flex flex-col overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)] bg-[var(--color-accent)] text-white">
-        <div>
+    <div className="fixed bottom-5 right-5 z-40 w-[380px] max-w-[calc(100vw-2.5rem)] h-[560px] max-h-[calc(100vh-4rem)] rounded-2xl shadow-2xl border border-[var(--color-border)] bg-[var(--color-surface)] flex flex-col overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)] bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-2)] text-white shrink-0">
+        <div className="min-w-0">
           <div className="text-sm font-bold flex items-center gap-1.5">
             <IconLightning className="w-4 h-4" /> Reading Companion
           </div>
-          <div className="text-[11px] text-white/80 truncate max-w-[280px]">
+          <div className="text-[11px] text-white/80 truncate">
             {bookTitle} — page {currentPage}
           </div>
         </div>
-        <button onClick={() => setOpen(false)} className="text-white/80 hover:text-white text-lg leading-none px-1" aria-label="Close">
+        <button onClick={() => setOpen(false)} className="text-white/80 hover:text-white text-lg leading-none px-1 shrink-0" aria-label="Close">
           &times;
         </button>
       </div>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-3 space-y-3">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-3 space-y-3 min-h-0">
         {messages.length === 0 && (
           <p className="text-xs text-[var(--color-text-dim)] leading-relaxed px-1">
             Ask me anything about this page, or use a quick action below. I only read the page you're
@@ -99,23 +102,48 @@ export default function AiReadingCompanion({ bookTitle, currentPage, viewerRef }
         {messages.map((m, i) => (
           <div key={i} className={m.role === 'user' ? 'text-right' : 'text-left'}>
             <div
-              className={`inline-block max-w-[90%] text-left rounded-xl px-3 py-2.5 whitespace-pre-wrap ${
+              className={`inline-block max-w-[95%] text-left rounded-xl px-3 py-2.5 ${
                 m.role === 'user'
-                  ? 'bg-[var(--color-accent)] text-white text-xs leading-relaxed'
+                  ? 'bg-[var(--color-accent)] text-white text-xs leading-relaxed whitespace-pre-wrap'
                   : m.role === 'error'
-                    ? 'bg-[var(--color-danger)]/15 text-[var(--color-danger)] text-xs leading-relaxed'
+                    ? 'bg-[var(--color-danger)]/15 text-[var(--color-danger)] text-xs leading-relaxed whitespace-pre-wrap'
                     : 'ai-response bg-[var(--color-surface-2)]'
               }`}
             >
-              {m.text}
+              {m.role === 'assistant' ? <MarkdownText text={m.text} /> : m.text}
+              {m.citations && m.citations.length > 0 && (
+                <div className="mt-2 pt-2 border-t border-[var(--color-border)]/50 flex flex-wrap gap-1.5">
+                  {m.citations.map((c, ci) => (
+                    <a
+                      key={ci}
+                      href={c.uri}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={c.title}
+                      className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[var(--color-accent)]/10 text-[var(--color-accent)] text-[10px] font-semibold hover:bg-[var(--color-accent)]/20"
+                    >
+                      {ci + 1} <IconExternal className="w-2.5 h-2.5" />
+                    </a>
+                  ))}
+                </div>
+              )}
             </div>
             {m.model && <div className="text-[10px] text-[var(--color-text-dim)] mt-0.5">via {m.model}</div>}
           </div>
         ))}
-        {loading && <div className="text-xs text-[var(--color-text-dim)] px-1">Thinking&hellip;</div>}
+        {loading && (
+          <div className="flex items-center gap-1.5 text-xs text-[var(--color-text-dim)] px-1">
+            <span className="flex gap-0.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)] animate-bounce [animation-delay:-0.3s]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)] animate-bounce [animation-delay:-0.15s]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)] animate-bounce" />
+            </span>
+            Thinking&hellip;
+          </div>
+        )}
       </div>
 
-      <div className="px-3 py-2 border-t border-[var(--color-border)] flex flex-wrap gap-1.5">
+      <div className="px-3 py-2 border-t border-[var(--color-border)] flex flex-wrap gap-1.5 shrink-0">
         {QUICK_ACTIONS.map((qa) => (
           <button
             key={qa.mode}
@@ -133,7 +161,7 @@ export default function AiReadingCompanion({ bookTitle, currentPage, viewerRef }
           e.preventDefault();
           send(input, 'ask');
         }}
-        className="flex items-center gap-2 px-3 py-3 border-t border-[var(--color-border)]"
+        className="flex items-center gap-2 px-3 py-3 border-t border-[var(--color-border)] shrink-0"
       >
         <input
           type="text"

@@ -10,11 +10,20 @@ export interface AskAiTutorParams {
   mode?: AiTutorMode;
 }
 
+/** A real source Gemini's Google Search grounding actually cited — never fabricated client-side.
+ *  Absent entirely unless the model genuinely searched and Google returned grounding chunks. */
+export interface Citation {
+  title: string;
+  uri: string;
+}
+
 export interface AskAiTutorResult {
   answer: string;
-  /** which model actually answered — 'llama-3.1-8b-instant' (Groq) normally, 'gemini-2.0-flash' only
-   *  if Groq was unavailable, so the UI can be transparent about a fallback happening. */
+  /** which model actually answered — Groq's fast model normally, Gemini only if Groq was
+   *  unavailable or the request needed live web search, so the UI can be transparent either way. */
   model: string;
+  /** present only when the answer was grounded in a real Google Search the model performed */
+  citations?: Citation[];
 }
 
 /** Calls the ai-tutor Supabase Edge Function — the only place the real Groq/Gemini API keys live.
