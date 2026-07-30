@@ -291,14 +291,17 @@ export const BOOKS: Book[] = [
     stage: 'Foundations',
     order: 7,
     // Commercial title (No Starch Press) — link-only, no cached copy. See file-level note above.
+    // officialUrl points to the O'Reilly Learning platform, which also carries this exact title —
+    // many universities and employers already have an O'Reilly subscription that covers it.
     license: 'Commercial — Not Redistributable',
     licenseUrl: 'https://nostarch.com/linux-basics-hackers-2nd-edition',
-    officialUrl: 'https://nostarch.com/linux-basics-hackers-2nd-edition',
+    officialUrl: 'https://www.oreilly.com/library/view/linux-basics-for/9798341655102/',
     description:
       'Nearly every tool and technique on this shelf assumes comfort at a Linux command line first. A ' +
       'widely-recommended, hands-on introduction to the Linux fundamentals — filesystem, permissions, ' +
       'networking, Bash scripting — a security practitioner actually needs before anything else here ' +
-      'will click. Opens the publisher\'s official page in a new tab.',
+      'will click. Opens on the O\'Reilly Learning platform — check if your school or employer already ' +
+      'has a subscription before buying from No Starch directly.',
   },
   {
     id: 'crypto101',
@@ -539,14 +542,20 @@ export const BOOKS: Book[] = [
     stage: 'Offensive Testing & Ethical Hacking',
     order: 21,
     // Commercial title (Elsevier/Syngress) — link-only, no cached copy. See file-level note above.
+    // officialUrl points to the book's real ScienceDirect page rather than the marketing page —
+    // ScienceDirect is Elsevier's own official reading platform, and many university libraries
+    // (including University of Ghana's) already carry an institutional ScienceDirect ebook
+    // subscription that includes this exact title, so a logged-in student can read it there for free.
     license: 'Commercial — Not Redistributable',
     licenseUrl: 'https://www.elsevier.com/books/the-basics-of-hacking-and-penetration-testing/engebretson/978-0-12-411644-3',
-    officialUrl: 'https://www.elsevier.com/books/the-basics-of-hacking-and-penetration-testing/engebretson/978-0-12-411644-3',
+    officialUrl: 'https://www.sciencedirect.com/book/monograph/9780124116443/the-basics-of-hacking-and-penetration-testing',
     description:
       'The NIST testing guide covers the "why" and "how it\'s planned"; this well-known intro walks the ' +
       'full attack chain hands-on for the first time — reconnaissance, scanning, exploitation, and ' +
-      'social engineering, using the same tools professionals use. Opens the publisher\'s official page ' +
-      'in a new tab.',
+      'social engineering, using the same tools professionals use. Opens on ScienceDirect, Elsevier\'s ' +
+      'own reading platform — many university libraries (University of Ghana included) already have an ' +
+      'institutional subscription that covers this exact book, so try logging in through your library\'s ' +
+      'portal first before buying.',
   },
   {
     id: 'owasp-wstg',
@@ -574,14 +583,17 @@ export const BOOKS: Book[] = [
     track: 'security',
     stage: 'Offensive Testing & Ethical Hacking',
     order: 23,
-    // Commercial title (Wiley) — link-only, no cached copy. See file-level note above.
+    // Commercial title (Wiley) — link-only, no cached copy. See file-level note above. officialUrl
+    // points to the O'Reilly Learning platform, which also carries this exact title — many
+    // universities and employers already have an O'Reilly subscription that covers it.
     license: 'Commercial — Not Redistributable',
     licenseUrl: 'https://www.wiley.com/en-us/The+Web+Application+Hacker%27s+Handbook%3A+Finding+and+Exploiting+Security+Flaws%2C+2nd+Edition-p-9781118026472',
-    officialUrl: 'https://www.wiley.com/en-us/The+Web+Application+Hacker%27s+Handbook%3A+Finding+and+Exploiting+Security+Flaws%2C+2nd+Edition-p-9781118026472',
+    officialUrl: 'https://www.oreilly.com/library/view/the-web-application/9781118026472/',
     description:
       'The web-application companion to the WSTG\'s test-case checklist — widely regarded as the deepest ' +
       'single reference on how real web app vulnerabilities are found and exploited in practice, ' +
-      'written by the creators of Burp Suite. Opens the publisher\'s official page in a new tab.',
+      'written by the creators of Burp Suite. Opens on the O\'Reilly Learning platform — check if your ' +
+      'school or employer already has a subscription before buying from Wiley directly.',
   },
   {
     id: 'owasp-asvs',
@@ -628,13 +640,16 @@ export const BOOKS: Book[] = [
     stage: 'Offensive Testing & Ethical Hacking',
     order: 26,
     // Commercial title (No Starch Press) — link-only, no cached copy. See file-level note above.
+    // officialUrl points to the O'Reilly Learning platform, which also carries this exact title —
+    // many universities and employers already have an O'Reilly subscription that covers it.
     license: 'Commercial — Not Redistributable',
     licenseUrl: 'https://nostarch.com/bughunting',
-    officialUrl: 'https://nostarch.com/bughunting',
+    officialUrl: 'https://www.oreilly.com/library/view/real-world-bug-hunting/9781098122508/',
     description:
       'The same author\'s follow-up, expanded and reorganized around vulnerability type rather than ' +
       'individual reports — a more systematic field guide to the most common bug classes bounty ' +
-      'hunters actually get paid for finding. Opens the publisher\'s official page in a new tab.',
+      'hunters actually get paid for finding. Opens on the O\'Reilly Learning platform — check if your ' +
+      'school or employer already has a subscription before buying from No Starch directly.',
   },
   {
     id: 'black-hat-python',
@@ -645,15 +660,17 @@ export const BOOKS: Book[] = [
     stage: 'Offensive Testing & Ethical Hacking',
     order: 27,
     // Commercial title (No Starch Press) — link-only, no cached copy. See file-level note above.
+    // officialUrl points to the O'Reilly Learning platform, which also carries this exact title —
+    // many universities and employers already have an O'Reilly subscription that covers it.
     license: 'Commercial — Not Redistributable',
     licenseUrl: 'https://nostarch.com/black-hat-python2E',
-    officialUrl: 'https://nostarch.com/black-hat-python2E',
+    officialUrl: 'https://www.oreilly.com/library/view/black-hat-python/9781098128906/',
     description:
       'Every book so far tells you how to find and understand vulnerabilities using existing tools; ' +
       'this one teaches how those tools get built — network sniffers, web app attack tools, trojans, ' +
       'and privilege-escalation utilities, written in Python. Directly extends the crypto and network ' +
-      'protocol coding labs on this platform\'s Code Portal. Opens the publisher\'s official page in a ' +
-      'new tab.',
+      'protocol coding labs on this platform\'s Code Portal. Opens on the O\'Reilly Learning platform — ' +
+      'check if your school or employer already has a subscription before buying from No Starch directly.',
   },
   {
     id: 'owasp-mastg',
@@ -791,14 +808,17 @@ export const BOOKS: Book[] = [
     stage: 'Advanced & Specialized Security Engineering',
     order: 35,
     // Commercial title (No Starch Press) — link-only, no cached copy. See file-level note above.
+    // officialUrl points to the O'Reilly Learning platform, which also carries this exact title —
+    // many universities and employers already have an O'Reilly subscription that covers it.
     license: 'Commercial — Not Redistributable',
     licenseUrl: 'https://nostarch.com/hacking2.htm',
-    officialUrl: 'https://nostarch.com/hacking2.htm',
+    officialUrl: 'https://www.oreilly.com/library/view/hacking-the-art/9781593271442/',
     description:
       'A step down from application-layer testing into the machine itself: C, assembly, memory ' +
       'corruption, and exploit-writing fundamentals from first principles, with a bundled Linux ' +
       'environment for following along. The classic, most-cited starting point for exploit ' +
-      'development and reverse engineering. Opens the publisher\'s official page in a new tab.',
+      'development and reverse engineering. Opens on the O\'Reilly Learning platform — check if your ' +
+      'school or employer already has a subscription before buying from No Starch directly.',
   },
   {
     id: 'nist-ics-security',
