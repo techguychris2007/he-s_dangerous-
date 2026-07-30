@@ -283,17 +283,22 @@ export default function SiemConsole({
   scenario,
   onFlagCaptured,
   onQueryRun,
+  onTranscriptChange,
 }: {
   scenario: SiemLabScenario;
   onFlagCaptured: (flag: string) => void;
   /** Fires once per query actually run (not every keystroke) — used to drive the guided-steps
    *  checklist's automatic tick-off, since each objective is designed to correspond to roughly one query. */
   onQueryRun?: () => void;
+  /** Fires with the accumulated query/result log (plain text) after every query actually run — same
+   *  role as Terminal's onTranscriptChange, for the AI lab tutor to see real session activity. */
+  onTranscriptChange?: (transcript: string) => void;
 }) {
   const b = BRANDING[scenario.tool];
   const [query, setQuery] = useState('');
   const [ran, setRan] = useState(false);
   const [searching, setSearching] = useState(false);
+  const [, setHistory] = useState<string[]>([]);
 
   const run = (q: string) => {
     if (!q.trim()) return;
@@ -307,6 +312,15 @@ export default function SiemConsole({
         if (flag) onFlagCaptured(flag);
       });
       onQueryRun?.();
+      const sample = visible.slice(0, 3).map((e) => `    ${e.line}`).join('\n');
+      const entry =
+        `${b.queryLabel} ${q}\n  ${visible.length} matching ${b.resultsNoun} (of ${scenario.entries.length} total)` +
+        (sample ? `\n${sample}${visible.length > 3 ? '\n    ...' : ''}` : '');
+      setHistory((h) => {
+        const next = [...h, entry];
+        onTranscriptChange?.(next.join('\n\n'));
+        return next;
+      });
     };
     if (b.searchDelayMs) {
       setSearching(true);

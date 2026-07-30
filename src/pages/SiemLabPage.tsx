@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Navigate, useParams, Link } from 'react-router-dom';
 import { SIEM_LABS } from '../labs/siemScenarios';
 import { OSINT_LABS } from '../labs/osintScenarios';
 import { useProgress } from '../state/progressStore';
 import StepChecklist from '../components/lesson/StepChecklist';
 import SiemConsole from '../components/siem/SiemConsole';
+import CyberLabAI from '../components/labs/CyberLabAI';
 import { IconFlag, IconCheck } from '../components/layout/icons';
 
 const ALL_TOOL_LABS = [...SIEM_LABS, ...OSINT_LABS];
@@ -32,10 +33,12 @@ export default function SiemLabPage() {
   const [hintIndex, setHintIndex] = useState(0);
   const [queryCount, setQueryCount] = useState(0);
   const scenario = ALL_TOOL_LABS.find((s) => s.id === labId);
+  const transcriptRef = useRef('');
 
   useEffect(() => {
     setHintIndex(0);
     setQueryCount(0);
+    transcriptRef.current = '';
   }, [labId]);
 
   if (!scenario) return <Navigate to="/labs" replace />;
@@ -109,8 +112,35 @@ export default function SiemLabPage() {
       </div>
 
       <div className="flex-1 min-h-[420px] p-4">
-        <SiemConsole scenario={scenario} onFlagCaptured={onFlagCaptured} onQueryRun={() => setQueryCount((c) => c + 1)} />
+        <SiemConsole
+          scenario={scenario}
+          onFlagCaptured={onFlagCaptured}
+          onQueryRun={() => setQueryCount((c) => c + 1)}
+          onTranscriptChange={(t) => {
+            transcriptRef.current = t;
+          }}
+        />
       </div>
+
+      <CyberLabAI
+        key={scenario.id}
+        getContext={() => ({
+          kind: 'lab',
+          title: scenario.title,
+          subtitle: `${scenario.difficulty} · ${TOOL_LABEL[scenario.tool]}`,
+          bodyText:
+            scenario.briefing +
+            '\n\nGuided steps:\n' +
+            scenario.objectives
+              .map((o, i) => {
+                const step = typeof o === 'string' ? { text: o } : o;
+                return `${i + 1}. ${step.text}${step.why ? ` (Why: ${step.why})` : ''}`;
+              })
+              .join('\n'),
+          terminalTranscript: transcriptRef.current,
+          revealedHints: scenario.hints.slice(0, hintIndex),
+        })}
+      />
     </div>
   );
 }
