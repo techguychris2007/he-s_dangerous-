@@ -68,7 +68,13 @@ export default function CodeTaskPage() {
         <p className="text-sm text-[var(--color-text-dim)] leading-relaxed mb-5 whitespace-pre-line">{task.prompt}</p>
 
         <button
-          onClick={() => setHintIndex((i) => Math.min(i + 1, task.hints.length))}
+          onClick={() =>
+            setHintIndex((i) => {
+              const next = Math.min(i + 1, task.hints.length);
+              progress.recordCodeTaskHintUsed(task.id, next);
+              return next;
+            })
+          }
           disabled={hintIndex >= task.hints.length}
           className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] text-xs font-semibold text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-heading)] disabled:opacity-50 transition-colors"
         >
@@ -85,7 +91,12 @@ export default function CodeTaskPage() {
         )}
 
         <button
-          onClick={() => setShowSolution((v) => !v)}
+          onClick={() =>
+            setShowSolution((v) => {
+              if (!v) progress.recordCodeTaskSolutionRevealed(task.id);
+              return !v;
+            })
+          }
           className="w-full mt-3 px-3 py-2 rounded-lg border border-[var(--color-border)] text-xs font-semibold text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-heading)] transition-colors"
         >
           {showSolution ? 'Hide solution' : 'Reveal solution'}
@@ -109,6 +120,7 @@ export default function CodeTaskPage() {
           starterCode={task.starterCode}
           testCode={task.testCode}
           onAllTestsPassed={() => progress.completeCodeTask(task.id)}
+          onTestsAttempted={() => progress.recordCodeTaskAttempt(task.id)}
           onCodeChange={(code) => {
             currentCodeRef.current = code;
           }}

@@ -15,13 +15,25 @@ export interface ProgressState {
    *  (see SyncableProgress below): a synced streak would need a real backend clock and schema
    *  change neither of which this device-local, best-effort sync model is built for yet. */
   activityDates: string[];
+  /** How many "Run tests" attempts a Code Portal task has had, win or lose — the raw signal behind
+   *  "how many tries did this actually take," not just pass/fail. Device-local (see SyncableProgress). */
+  codeTaskAttempts: Record<string, number>;
+  /** The highest hint index ever revealed for a Code Portal task — a "0 hints" solve is a genuinely
+   *  different learning outcome than a "needed all 3" one. Device-local (see SyncableProgress). */
+  codeTaskHintsUsed: Record<string, number>;
+  /** Whether the reference solution was ever opened for a task — device-local (see SyncableProgress). */
+  codeTaskSolutionRevealed: Record<string, boolean>;
 }
 
 /** The subset that's actually synced to Supabase — `learnerName` stays device-local since it's
- *  redundant with the account's own name/email once real accounts exist, and `activityDates`
- *  stays device-local because streaks are a per-device engagement signal, not account data (and
- *  syncing it would need a Supabase migration this change deliberately avoids requiring). */
-export type SyncableProgress = Omit<ProgressState, 'learnerName' | 'activityDates'>;
+ *  redundant with the account's own name/email once real accounts exist; `activityDates` and the
+ *  three `codeTask*` learning-signal fields stay device-local because they're per-device engagement
+ *  telemetry, not account data a second device needs to see (and syncing any of them would need a
+ *  Supabase migration this change deliberately avoids requiring). */
+export type SyncableProgress = Omit<
+  ProgressState,
+  'learnerName' | 'activityDates' | 'codeTaskAttempts' | 'codeTaskHintsUsed' | 'codeTaskSolutionRevealed'
+>;
 
 const STORAGE_KEY = 'hackerhub.progress.v1';
 const EMPTY_STATE: ProgressState = {
@@ -33,6 +45,9 @@ const EMPTY_STATE: ProgressState = {
   labCompletedAt: {},
   completedCodeTasks: {},
   activityDates: [],
+  codeTaskAttempts: {},
+  codeTaskHintsUsed: {},
+  codeTaskSolutionRevealed: {},
 };
 
 /** "YYYY-MM-DD" in the learner's own local timezone — deliberately not UTC, since a streak should
@@ -76,6 +91,9 @@ interface ProgressApi extends ProgressState {
   markLabCompleted: (labId: string) => void;
   completeCodeTask: (taskId: string) => void;
   isCodeTaskComplete: (taskId: string) => boolean;
+  recordCodeTaskAttempt: (taskId: string) => void;
+  recordCodeTaskHintUsed: (taskId: string, hintIndex: number) => void;
+  recordCodeTaskSolutionRevealed: (taskId: string) => void;
   /** Folds a remote snapshot into local state without ever losing progress on either side:
    *  flags/completions/bookmarks union, quiz scores take the higher value, completion
    *  timestamps take the earlier one. Safe to call with a partial/empty remote snapshot. */
@@ -165,6 +183,22 @@ export function useProgressState(): ProgressApi {
     [state.completedCodeTasks],
   );
 
+  const recordCodeTaskAttempt = useCallback((taskId: string) => {
+    setState((s) => ({ ...s, ...withActivityToday(s), codeTaskAttempts: { ...s.codeTaskAttempts, [taskId]: (s.codeTaskAttempts[taskId] ?? 0) + 1 } }));
+  }, []);
+
+  const recordCodeTaskHintUsed = useCallback((taskId: string, hintIndex: number) => {
+    setState((s) => {
+      const current = s.codeTaskHintsUsed[taskId] ?? 0;
+      if (hintIndex <= current) return s;
+      return { ...s, codeTaskHintsUsed: { ...s.codeTaskHintsUsed, [taskId]: hintIndex } };
+    });
+  }, []);
+
+  const recordCodeTaskSolutionRevealed = useCallback((taskId: string) => {
+    setState((s) => (s.codeTaskSolutionRevealed[taskId] ? s : { ...s, codeTaskSolutionRevealed: { ...s.codeTaskSolutionRevealed, [taskId]: true } }));
+  }, []);
+
   const mergeFromRemote = useCallback((remote: Partial<SyncableProgress>) => {
     setState((s) => {
       const completedLessons = { ...s.completedLessons };
@@ -214,6 +248,9 @@ export function useProgressState(): ProgressApi {
       markLabCompleted,
       completeCodeTask,
       isCodeTaskComplete,
+      recordCodeTaskAttempt,
+      recordCodeTaskHintUsed,
+      recordCodeTaskSolutionRevealed,
       mergeFromRemote,
     }),
     [
@@ -233,6 +270,9 @@ export function useProgressState(): ProgressApi {
       markLabCompleted,
       completeCodeTask,
       isCodeTaskComplete,
+      recordCodeTaskAttempt,
+      recordCodeTaskHintUsed,
+      recordCodeTaskSolutionRevealed,
       mergeFromRemote,
     ],
   );

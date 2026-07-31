@@ -2,7 +2,7 @@ import { LABS } from '../data/labs';
 import { MODULES } from '../data/curriculum';
 import { useProgress } from '../state/progressStore';
 import { ACHIEVEMENTS, computeStreak } from '../data/achievements';
-import { IconUser, IconFlag, IconCheck, IconBookmark } from '../components/layout/icons';
+import { IconUser, IconFlag, IconCheck, IconBookmark, IconCode } from '../components/layout/icons';
 
 const POINTS: Record<string, number> = { Easy: 10, Medium: 20, Hard: 30 };
 
@@ -39,6 +39,14 @@ export default function ProfilePage() {
   }, 0);
   const streak = computeStreak(progress.activityDates);
   const unlockedAchievements = ACHIEVEMENTS.filter((a) => a.isUnlocked(progress));
+
+  const attemptedTaskIds = Object.keys(progress.codeTaskAttempts);
+  const totalAttempts = Object.values(progress.codeTaskAttempts).reduce((a, b) => a + b, 0);
+  const solvedTaskIds = Object.keys(progress.completedCodeTasks).filter((id) => progress.completedCodeTasks[id]);
+  const avgAttemptsPerSolve = solvedTaskIds.length ? Math.round((totalAttempts / solvedTaskIds.length) * 10) / 10 : 0;
+  const cleanSolves = solvedTaskIds.filter((id) => !progress.codeTaskHintsUsed[id]).length;
+  const noSolutionSolves = solvedTaskIds.filter((id) => !progress.codeTaskSolutionRevealed[id]).length;
+  const cleanSolveRate = solvedTaskIds.length ? Math.round((cleanSolves / solvedTaskIds.length) * 100) : 0;
 
   return (
     <div className="max-w-3xl mx-auto px-8 py-14">
@@ -102,10 +110,33 @@ export default function ProfilePage() {
         </div>
       </div>
 
+      {attemptedTaskIds.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-sm font-bold text-[var(--color-heading)] uppercase tracking-wide mb-3">
+            How You Actually Learn
+          </h2>
+          <p className="text-xs text-[var(--color-text-dim)] mb-3 leading-relaxed">
+            Real signal from the Code Portal, not just pass/fail — how many tries things actually took, and
+            how often you got there without leaning on a hint or the reference solution.
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <StatCard label="Tasks attempted" value={attemptedTaskIds.length} icon={<IconCode className="w-5 h-5" />} />
+            <StatCard label="Avg. attempts per solve" value={avgAttemptsPerSolve || '—'} icon={<IconCode className="w-5 h-5" />} />
+            <StatCard label="Solved with zero hints" value={`${cleanSolves}/${solvedTaskIds.length}`} icon={<IconCode className="w-5 h-5" />} />
+            <StatCard label="Clean-solve rate" value={solvedTaskIds.length ? `${cleanSolveRate}%` : '—'} icon={<IconCode className="w-5 h-5" />} />
+          </div>
+          {solvedTaskIds.length > 0 && (
+            <p className="text-xs text-[var(--color-text-dim)] mt-3">
+              {noSolutionSolves}/{solvedTaskIds.length} solved tasks were solved without ever opening the reference solution.
+            </p>
+          )}
+        </div>
+      )}
+
       <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 text-sm text-[var(--color-text-dim)] leading-relaxed">
         Your lesson/lab/quiz progress syncs to your account so it follows you across devices. Your streak,
-        achievements, and display name shown here stay local to this browser only — clearing your browser
-        data resets those (but not your synced progress) completely.
+        achievements, learning-insight stats, and display name shown here stay local to this browser only —
+        clearing your browser data resets those (but not your synced progress) completely.
       </div>
     </div>
   );

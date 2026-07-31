@@ -14,6 +14,9 @@ interface CodeConsoleProps {
   /** fires on every keystroke — lets a parent (e.g. the AI lab tutor) see what the learner has
    *  actually written without CodeConsole giving up ownership of the editor's state */
   onCodeChange?: (code: string) => void;
+  /** fires once per "Run tests" click, win or lose — the raw signal behind "how many tries did
+   *  this actually take," independent of whether it eventually passed. */
+  onTestsAttempted?: () => void;
 }
 
 type Status = 'idle' | 'booting' | 'running' | 'error' | 'done';
@@ -26,7 +29,7 @@ const RUNNERS: Record<CodeLanguage, (code: string) => Promise<{ stdout: string; 
   javascript: runJs,
 };
 
-export default function CodeConsole({ language, starterCode, testCode, onAllTestsPassed, onCodeChange }: CodeConsoleProps) {
+export default function CodeConsole({ language, starterCode, testCode, onAllTestsPassed, onCodeChange, onTestsAttempted }: CodeConsoleProps) {
   const [code, setCode] = useState(starterCode);
   const [output, setOutput] = useState('');
   const [status, setStatus] = useState<Status>('idle');
@@ -46,6 +49,7 @@ export default function CodeConsole({ language, starterCode, testCode, onAllTest
   }, [starterCode]);
 
   const run = async (withTests: boolean) => {
+    if (withTests) onTestsAttempted?.();
     setStatus(language === 'python' && !isPyodideBooted() ? 'booting' : 'running');
     setOutput('');
     setTestSummary(null);
