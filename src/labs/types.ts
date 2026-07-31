@@ -44,6 +44,45 @@ export interface HostUser {
   canDcsync?: boolean;
 }
 
+export interface AwsS3Object {
+  key: string;
+  content: string;
+}
+
+export interface AwsS3Bucket {
+  name: string;
+  /** true = readable by anyone with no credentials at all, the classic public-bucket misconfiguration */
+  publicRead?: boolean;
+  /** if not publicRead, the exact IAM role name (see AwsIamRole.name) required to read this bucket */
+  requiredRole?: string;
+  objects: AwsS3Object[];
+}
+
+export interface AwsIamRole {
+  name: string;
+  /** plain-text policy summary printed by `aws iam list-attached-role-policies` */
+  policySummary: string;
+  /** usernames/roles allowed to attach (PassRole) this role to a new EC2 instance without being able to assume it directly */
+  passableBy?: string[];
+}
+
+export interface AwsCredential {
+  accessKeyId: string;
+  secretAccessKey: string;
+  arn: string;
+  role: string;
+  accountId: string;
+}
+
+export interface AwsAccountDef {
+  accountId: string;
+  buckets: AwsS3Bucket[];
+  roles: AwsIamRole[];
+  /** every stealable/assumable credential that exists in this scenario — what `export AWS_ACCESS_KEY_ID=...`
+   *  needs to match before `aws sts get-caller-identity` (and anything gated on that role) will work */
+  credentials: AwsCredential[];
+}
+
 export interface HostDef {
   hostname: string;
   ip: string;
@@ -57,12 +96,17 @@ export interface HostDef {
   exploitableAs?: string;
   /** pre-formatted NTDS.dit-style hash dump text (with an embedded flag) returned by `secretsdump` when a canDcsync user's creds are supplied */
   ntdsHashes?: string;
+  /** the AWS account this host represents/fronts — real `aws s3`/`aws sts`/`aws iam`/`aws ec2` commands operate against this */
+  awsAccount?: AwsAccountDef;
 }
 
 export interface AttackerBox {
   hostname: string;
   user: string;
   root: FsNode;
+  /** env vars already set when the lab starts — e.g. a low-privilege AWS credential already
+   *  configured on the attacker's own workstation, exactly like a real day-to-day dev account. */
+  env?: Record<string, string>;
 }
 
 /** A guided step can be plain text, or text plus a rationale explaining why that command/action matters. */

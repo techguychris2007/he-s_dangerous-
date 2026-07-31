@@ -174,40 +174,50 @@ export const cloudAdvancedLabs: LabScenario[] = [
     difficulty: 'Hard',
     category: 'Cloud',
     briefing:
-      'You have a low-privilege cloud account (developer-readonly) that cannot directly access sensitive ' +
-      'data — but it does have permission to launch new compute instances AND to attach any IAM role to them ' +
-      'via the "PassRole" permission. This specific combination is one of the most common real-world AWS ' +
-      'privilege escalation paths, because the two permissions look harmless individually but are dangerous ' +
-      'together.',
+      'Your workstation already has a low-privilege AWS credential configured (developer-readonly) — a real, ' +
+      'day-to-day dev account that cannot directly access sensitive data. But it does have permission to ' +
+      'launch new compute instances AND to attach any IAM role to them via the "PassRole" permission. This ' +
+      'specific combination is one of the most common real-world AWS privilege escalation paths, because the ' +
+      'two permissions look harmless individually but are dangerous together — and every command in this lab ' +
+      'is the exact real AWS CLI syntax a cloud pentester actually runs to find and use it.',
     objectives: [
-      { text: 'Confirm developer-readonly cannot directly read the sensitive bucket', why: 'Establishes the baseline: this account is genuinely supposed to be low-privilege.' },
-      { text: 'Check what roles developer-readonly is allowed to pass to new instances', why: 'The PassRole permission alone does nothing dangerous — it becomes a privilege escalation path only combined with the ability to launch instances that then use the passed role.' },
-      { text: 'Launch an instance with the high-privilege role attached and read the sensitive data through it', why: 'This is the exact escalation chain: low-privilege account -> launch instance with a role it can "pass" but not directly assume -> the instance itself now has that role\'s full permissions, and the low-privilege account controls the instance.' },
+      { text: 'aws sts get-caller-identity', why: 'Confirms exactly which account/role you are starting as before doing anything else — standard first move with any AWS credential.' },
+      { text: 'aws s3 ls s3://sensitive-data-bucket/', why: 'Establishes the baseline: this account is genuinely supposed to be low-privilege, confirmed by a real AccessDenied response rather than assumed.' },
+      { text: 'aws iam list-attached-role-policies --role-name developer-readonly', why: 'Reveals developer-readonly\'s own attached policy — including an iam:PassRole statement scoped to data-admin-role. The PassRole permission alone does nothing dangerous; it becomes an escalation path only combined with the ability to launch instances that then use the passed role.' },
+      { text: 'aws ec2 run-instances --iam-instance-profile Name=data-admin-role ...', why: 'This is the exact escalation chain: a low-privilege account launches an instance with a role it can "pass" but never directly assume — the instance itself now carries that role\'s full permissions, and the low-privilege account controls the instance.' },
+      { text: 'export the credentials the launch reveals, then aws s3 ls / aws s3 cp the sensitive bucket', why: 'Confirms the escalation actually works end to end — the same low-privilege account now reads data it was explicitly denied at the start of the lab.' },
     ],
     hints: [
-      'curl "10.10.109.5/s3/sensitive-data?role=developer-readonly"  — confirm access denied.',
-      'curl "10.10.109.5/iam/passable-roles?user=developer-readonly"',
-      'curl "10.10.109.5/ec2/launch?role=data-admin-role"',
+      'aws sts get-caller-identity',
+      'aws s3 ls s3://sensitive-data-bucket/  — confirm access denied as developer-readonly.',
+      'aws iam list-attached-role-policies --role-name developer-readonly',
+      'aws ec2 run-instances --iam-instance-profile Name=data-admin-role --image-id ami-sim01 --instance-type t3.micro',
+      'export AWS_ACCESS_KEY_ID=<the AccessKeyId the launch just revealed>',
+      'aws s3 ls s3://sensitive-data-bucket/ then aws s3 cp s3://sensitive-data-bucket/secret.txt - for the flag.',
     ],
     totalFlags: 1,
-    attacker: attacker(),
+    attacker: { ...attacker(), env: { AWS_ACCESS_KEY_ID: 'AKIA-DEV-READONLY001' } },
     network: [
       {
         hostname: 'iam-privesc-lab', ip: '10.10.109.5', os: 'Cloud IAM simulation',
-        services: [{
-          port: 80, name: 'http', version: 'Cloud IAM policy simulator',
-          http: {
-            '/s3/sensitive-data': '{"error":"AccessDenied","message":"developer-readonly cannot read this bucket directly"}',
-            '/iam/passable-roles': '{"passable_roles":["data-admin-role"],"note":"developer-readonly can attach data-admin-role to new EC2 instances via iam:PassRole, even though it cannot assume that role itself"}',
-          },
-          vulnRoutes: [{
-            kind: 'auth-bypass', path: '/ec2/launch', param: 'role',
-            triggerSubstrings: ['data-admin-role'],
-            vulnerableResponse: '{"status":"instance_launched","attached_role":"data-admin-role","s3_access":"full","flag":"flag{iam_passrole_privilege_escalation}"}',
-            normalResponse: '{"error":"role not passable by this user"}',
-          }],
-        }],
+        services: [{ port: 80, name: 'http', version: 'Cloud IAM policy simulator' }],
         users: [], root: dir({}),
+        awsAccount: {
+          accountId: '558822104471',
+          roles: [
+            { name: 'developer-readonly', policySummary: 'AmazonS3ReadOnlyAccess (no matching bucket policy); iam:PassRole restricted to resource arn:aws:iam::558822104471:role/data-admin-role', passableBy: [] },
+            { name: 'data-admin-role', policySummary: 'AmazonS3FullAccess', passableBy: ['developer-readonly'] },
+          ],
+          credentials: [
+            { accessKeyId: 'AKIA-DEV-READONLY001', secretAccessKey: 'REDACTED', role: 'developer-readonly', accountId: '558822104471', arn: 'arn:aws:iam::558822104471:user/developer-readonly' },
+            { accessKeyId: 'AKIA-DATA-ADMIN-8842', secretAccessKey: 'REDACTED', role: 'data-admin-role', accountId: '558822104471', arn: 'arn:aws:sts::558822104471:assumed-role/data-admin-role/i-0privesc' },
+          ],
+          buckets: [{
+            name: 'sensitive-data-bucket',
+            requiredRole: 'data-admin-role',
+            objects: [{ key: 'secret.txt', content: 'internal_finance_export=true\nflag{iam_passrole_privilege_escalation}' }],
+          }],
+        },
       } as HostDef,
     ],
   },
