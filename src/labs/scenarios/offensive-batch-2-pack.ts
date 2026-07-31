@@ -1,8 +1,17 @@
 import { dir, file } from '../vfs';
 import type { LabScenario, HostDef } from '../types';
 
-function attacker() {
-  return { hostname: 'kali', user: 'root', root: dir({ root: dir({ wordlists: dir({ 'mini-rockyou.txt': file('123456\npassword\nletmein\nadmin123\nsummer2024\nqwerty\ndragon\ntrustno1\n') }) }) }) };
+function attacker(extra?: Record<string, ReturnType<typeof file> | ReturnType<typeof dir>>) {
+  return {
+    hostname: 'kali',
+    user: 'root',
+    root: dir({
+      root: dir({
+        wordlists: dir({ 'mini-rockyou.txt': file('123456\npassword\nletmein\nadmin123\nsummer2024\nqwerty\ndragon\ntrustno1\n') }),
+        ...(extra ?? {}),
+      }),
+    }),
+  };
 }
 
 export const offensiveBatch2Labs: LabScenario[] = [
@@ -230,15 +239,16 @@ export const offensiveBatch2Labs: LabScenario[] = [
     difficulty: 'Medium',
     category: 'Linux',
     briefing:
-      'Corvid Analytics leaves a backup share (10.10.140.6) open to anonymous FTP. Inside it sits a leftover ' +
-      'password hash dump from a decommissioned server — exactly the kind of forgotten artifact a real ' +
-      'attacker (or a real red-team engagement) finds constantly. On its own, a hash is not a password. But ' +
-      'once you have it offline, there\'s no rate limit, no lockout, and no logging: you get to try every ' +
-      'candidate password in a wordlist as fast as your hardware allows. This lab uses the same real hashcat ' +
-      'and john the ripper commands, syntax and all, that operators run daily.',
+      'Corvid Analytics leaves a backup share (10.10.140.6) open to anonymous FTP. Inside it sits a manifest ' +
+      'confirming a leftover NTLM hash dump exists from a decommissioned server — exactly the kind of forgotten ' +
+      'artifact a real attacker (or a real red-team engagement) finds constantly — and that same dump is already ' +
+      'sitting in your own working directory from an earlier collection pass. On its own, a hash is not a ' +
+      'password. But once you have it offline, there\'s no rate limit, no lockout, and no logging: you get to try ' +
+      'every candidate password in a wordlist as fast as your hardware allows. This lab uses the same real ' +
+      'hashcat and john the ripper commands, syntax and all, that operators run daily.',
     objectives: [
       { text: 'Scan 10.10.140.6 and confirm anonymous FTP access', why: 'An open anonymous FTP share on a "decommissioned" host is a very common real source of forgotten credential material — always worth a quick look before assuming a box is a dead end.' },
-      { text: 'Download the hash dump: ftp 10.10.140.6 then ftp-get 10.10.140.6 ntlm_dump.txt', why: 'Getting the file locally is what turns this into an offline attack — no more risk of the target noticing repeated failed logins.' },
+      { text: 'Use ftp-get to retrieve the backup manifest and confirm the dump\'s origin', why: 'Confirming which host and account a hash actually came from is standard operator hygiene before spending offline cracking time on it.' },
       {
         text: 'Crack it offline: hashcat -m 1000 ntlm_dump.txt /root/wordlists/mini-rockyou.txt',
         why: 'Mode 1000 is hashcat\'s real identifier for raw NTLM hashes — picking the correct mode for the hash type you actually have is the first thing every real cracking attempt requires.',
@@ -247,13 +257,20 @@ export const offensiveBatch2Labs: LabScenario[] = [
     ],
     hints: [
       'nmap -sV 10.10.140.6',
-      'ftp 10.10.140.6 then ftp-get 10.10.140.6 ntlm_dump.txt',
+      'ftp 10.10.140.6 then ftp-get 10.10.140.6 backup-manifest.txt',
+      'cat ntlm_dump.txt — the hash dump is already in your own working directory.',
       'hashcat -m 1000 ntlm_dump.txt /root/wordlists/mini-rockyou.txt  — mode 1000 is raw NTLM.',
       'Prefer john? john --wordlist=/root/wordlists/mini-rockyou.txt ntlm_dump.txt works the same way against the same file.',
       'Once cracked, ssh dbackup@10.10.140.6 with the recovered password, then cat user.txt for the flag.',
     ],
     totalFlags: 1,
-    attacker: attacker(),
+    attacker: attacker({
+      'ntlm_dump.txt': file(
+        '#HASHCAT_HASH:dbackup:1001:aad3b435b51404eeaad3b435b51404ee:8846f7eaee8fb117ad06bdd830b7586c:::\n' +
+        '#HASHCAT_PLAINTEXT:Summer2024!\n' +
+        '(raw hash dump — no readable content without cracking)\n',
+      ),
+    }),
     network: [
       {
         hostname: 'backup-legacy01',
@@ -267,11 +284,10 @@ export const offensiveBatch2Labs: LabScenario[] = [
         root: dir({
           srv: dir({
             ftp: dir({
-              'ntlm_dump.txt': file(
-                '#HASHCAT_HASH:dbackup:1001:aad3b435b51404eeaad3b435b51404ee:8846f7eaee8fb117ad06bdd830b7586c:::\n' +
-                '#HASHCAT_PLAINTEXT:Summer2024!\n' +
-                '#HASHCAT_FLAG:flag{ntlm_hash_cracked_offline_with_hashcat_mode_1000}\n' +
-                '(raw hash dump — no readable content without cracking)\n',
+              'backup-manifest.txt': file(
+                'Decommissioned host backup manifest — Corvid Analytics.\n' +
+                'legacy-web01.bak.tar.gz — 2023-11-02\n' +
+                'ntlm_dump.txt — SAM hash dump pulled during decommission, account: dbackup — never deleted.\n',
               ),
             }),
           }),

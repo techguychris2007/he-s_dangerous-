@@ -103,7 +103,10 @@ export const ML_UNSUPERVISED_TASKS: CodeTask[] = [
     testCode:
       '__results__ = []\n' +
       'def __check__(name, actual, expected):\n' +
-      '    ok = all(abs(a - b) < 1e-9 for a, b in zip(actual, expected)) and len(actual) == len(expected)\n' +
+      '    if isinstance(expected, (int, float)):\n' +
+      '        ok = abs(actual - expected) < 1e-9\n' +
+      '    else:\n' +
+      '        ok = len(actual) == len(expected) and all(abs(a - b) < 1e-9 for a, b in zip(actual, expected))\n' +
       '    __results__.append((name, ok, actual, expected))\n\n' +
       '__check__("basic", explained_variance_ratio([8, 2]), [0.8, 0.2])\n' +
       '__check__("three components", explained_variance_ratio([6, 3, 1]), [0.6, 0.3, 0.1])\n' +

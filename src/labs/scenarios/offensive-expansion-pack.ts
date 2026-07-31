@@ -13,33 +13,32 @@ export const offensiveExpansionLabs: LabScenario[] = [
     difficulty: 'Medium',
     category: 'Network',
     briefing:
-      'During an on-site engagement at MeridianCorp HQ, the wireless assessment step of the methodology captured ' +
-      'a WPA2 4-way handshake off the air using the aircrack-ng suite (airmon-ng to enable monitor mode, ' +
-      'airodump-ng to capture, and a deauth frame to force a client to re-associate and re-send the handshake). ' +
+      'During an on-site engagement at MeridianCorp HQ, the wireless assessment captured a full WPA2 4-way ' +
+      'handshake using the aircrack-ng suite (airmon-ng for monitor mode, airodump-ng to capture, and a deauth ' +
+      'frame to force a client to re-associate and re-send the handshake) — the raw capture came back with the ' +
+      'operator and is already sitting in your working directory. What is NOT with you yet is the field log: the ' +
+      'small drop appliance left on-site overnight tracks exactly which ESSID/BSSID each capture belongs to, and ' +
+      'you need to confirm that metadata before trusting the handshake enough to spend cracking time on it. ' +
       'WPA2-Personal networks remain one of the most common real physical-engagement footholds precisely because ' +
       'their security reduces to a single passphrase — if that passphrase is a dictionary word, the handshake ' +
       'cracks offline in seconds once captured, with zero further interaction with the network required.',
     objectives: [
-      { text: 'Review the wireless engagement notes', why: 'Confirms exactly what was captured (ESSID, BSSID, handshake type) before spending time on an offline crack attempt.' },
+      { text: 'Scan 10.10.150.1 and identify the field-capture appliance', why: 'Confirms the device is still reachable on the engagement network before assuming its logs can be pulled at all.' },
+      { text: 'Use anonymous FTP on 10.10.150.1 to retrieve the field log and confirm which capture it describes', why: 'The appliance was left running unattended overnight with anonymous FTP enabled for easy retrieval — realistic field-engagement sloppiness, and exactly how a real operator confirms a capture\'s metadata before trusting it.' },
       {
-        text: 'hashcat -m 22000 handshake.hc22000 wordlists/mini-rockyou.txt',
+        text: 'hashcat -m 22000 handshake.hc22000 /root/wordlists/mini-rockyou.txt',
         why: 'Mode 22000 is the modern hashcat mode for WPA-PBKDF2-PMKID+EAPOL handshakes (superseding the deprecated mode 2500). Cracking is entirely offline and silent — the access point never sees another packet from you after the handshake is captured.',
       },
     ],
     hints: [
-      'cat wifi-engagement-notes.txt',
-      'hashcat -m 22000 handshake.hc22000 wordlists/mini-rockyou.txt — mode 22000 is WPA2 EAPOL/PMKID, and the passphrase is a common dictionary word.',
+      'nmap -sV 10.10.150.1',
+      'ftp 10.10.150.1 then ftp-get 10.10.150.1 wifi-engagement-notes.txt to read the field log.',
+      'cat handshake.hc22000 — the raw capture is already in your own working directory.',
+      'hashcat -m 22000 handshake.hc22000 /root/wordlists/mini-rockyou.txt — mode 22000 is WPA2 EAPOL/PMKID, and the passphrase is a common dictionary word.',
     ],
     totalFlags: 1,
     attacker: attacker({
-      'wifi-engagement-notes.txt': file(
-        'On-site wireless assessment — MeridianCorp HQ.\n' +
-          'ESSID: MeridianCorp-Guest\n' +
-          'BSSID: 00:1A:2B:3C:4D:5E\n' +
-          'Captured a full WPA2 4-way handshake via airodump-ng after a targeted deauth (aireplay-ng --deauth 5) ' +
-          'forced a connected client to reassociate.\n' +
-          'Handshake saved as handshake.hc22000 — ready for an offline dictionary attack.\n',
-      ),
+      wordlists: dir({ 'mini-rockyou.txt': file('123456\npassword\nsunshine1\nletmein\nqwerty\ndragon\n') }),
       'handshake.hc22000': file(
         '#HASHCAT_HASH:a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4\n' +
           '#HASHCAT_PLAINTEXT:sunshine1\n' +
@@ -48,9 +47,31 @@ export const offensiveExpansionLabs: LabScenario[] = [
           'BSSID: 00:1A:2B:3C:4D:5E\n' +
           'Handshake type: WPA2 4-way (EAPOL), PMKID not present\n',
       ),
-      wordlists: dir({ 'mini-rockyou.txt': file('123456\npassword\nsunshine1\nletmein\nqwerty\ndragon\n') }),
     }),
-    network: [],
+    network: [
+      {
+        hostname: 'wifi-capture01',
+        ip: '10.10.150.1',
+        os: 'Raspberry Pi OS (field wireless-capture appliance)',
+        services: [{ port: 21, name: 'ftp', version: 'vsftpd 3.0.3', banner: 'vsftpd 3.0.3 ready', ftpAnonymous: true }],
+        users: [],
+        root: dir({
+          srv: dir({
+            ftp: dir({
+              'wifi-engagement-notes.txt': file(
+                'On-site wireless assessment — MeridianCorp HQ.\n' +
+                  'ESSID: MeridianCorp-Guest\n' +
+                  'BSSID: 00:1A:2B:3C:4D:5E\n' +
+                  'Captured a full WPA2 4-way handshake via airodump-ng after a targeted deauth ' +
+                  '(aireplay-ng --deauth 5) forced a connected client to reassociate.\n' +
+                  'Matches the handshake.hc22000 capture already brought back to the team laptop — ' +
+                  'confirmed ready for an offline dictionary attack.\n',
+              ),
+            }),
+          }),
+        }),
+      } as HostDef,
+    ],
   },
 
   // 2 — Active Directory

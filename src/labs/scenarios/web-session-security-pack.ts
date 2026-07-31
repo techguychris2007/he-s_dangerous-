@@ -95,6 +95,7 @@ export const webSessionSecurityLabs: LabScenario[] = [
       'that same pre-chosen session ID to inherit their now-authenticated session. Unlike cookie theft, the ' +
       'attacker never has to intercept or read anything — they chose the session ID before the victim ever logged in.',
     objectives: [
+      { text: 'nmap -sV 10.10.127.3', why: 'Confirms the webmail service before probing how it handles session identifiers.' },
       { text: 'Set a fixed, attacker-chosen session ID via the login URL', why: 'Confirms the application accepts a client-supplied session identifier at all — the precondition for fixation, and something a securely-designed session manager should never allow.' },
       {
         text: 'Simulate the victim logging in normally, then reuse the same fixed session ID',
@@ -102,6 +103,7 @@ export const webSessionSecurityLabs: LabScenario[] = [
       },
     ],
     hints: [
+      'nmap -sV 10.10.127.3',
       'curl "http://10.10.127.3/login?sessionid=ATTACKER_FIXED_00112233"',
       'curl -H "Cookie: sessionid=ATTACKER_FIXED_00112233" 10.10.127.3/account',
     ],
@@ -158,6 +160,7 @@ export const webSessionSecurityLabs: LabScenario[] = [
       'invisibly-overlaid "Delete my account" button underneath — a classic UI-redress attack responsible for ' +
       'numerous real disclosed bounty reports against exactly this kind of unprotected sensitive action page.',
     objectives: [
+      { text: 'nmap -sV 10.10.127.4', why: 'Confirms the account service before checking its response headers.' },
       { text: 'curl -I 10.10.127.4/account/delete', why: 'Checking response headers for X-Frame-Options / Content-Security-Policy frame-ancestors is the standard first test for clickjacking exposure — their absence is the entire vulnerability.' },
       {
         text: 'Simulate the click-through by sending the confirmation request as the invisible iframe would',
@@ -165,6 +168,7 @@ export const webSessionSecurityLabs: LabScenario[] = [
       },
     ],
     hints: [
+      'nmap -sV 10.10.127.4',
       'curl -I 10.10.127.4/account/delete',
       'curl -X POST -d "confirm=true&via=clickjack-overlay" 10.10.127.4/account/delete',
     ],
@@ -216,6 +220,7 @@ export const webSessionSecurityLabs: LabScenario[] = [
       'common real-world CSRF protection bypasses found in bug bounty programs — the fix looks correct in code ' +
       'review until someone tries simply not sending the parameter at all.',
     objectives: [
+      { text: 'nmap -sV 10.10.127.5', why: 'Confirms the account service before probing its CSRF validation logic.' },
       { text: 'Confirm CSRF protection exists by sending an invalid token', why: 'Establishes that the endpoint really does check something, ruling out "there is simply no CSRF protection at all" before looking for a bypass.' },
       {
         text: 'Resend the request with the csrf_token parameter omitted entirely',
@@ -223,6 +228,7 @@ export const webSessionSecurityLabs: LabScenario[] = [
       },
     ],
     hints: [
+      'nmap -sV 10.10.127.5',
       'curl -X POST -d "email=victim@example.com&csrf_token=invalid_token" 10.10.127.5/account/update-email',
       'curl -X POST -d "email=attacker@evil.example" 10.10.127.5/account/update-email',
     ],
@@ -328,6 +334,7 @@ export const webSessionSecurityLabs: LabScenario[] = [
       'first used here to flip an authorization flag, then to reach a dangerous sink that executes a ' +
       'polluted value as a shell command.',
     objectives: [
+      { text: 'nmap -sV 10.10.127.7', why: 'Confirms the config service before probing how its settings-merge endpoint handles nested keys.' },
       { text: 'Pollute Object.prototype with an isAdmin flag via the settings merge endpoint', why: 'Because __proto__ is not blocked, this single merge call adds isAdmin:true to literally every object in the running process — including ones the authorization check reads from, without ever touching your own user record.' },
       {
         text: 'Pollute a "shell" property and trigger the render endpoint that reads it into a dangerous sink',
@@ -335,6 +342,7 @@ export const webSessionSecurityLabs: LabScenario[] = [
       },
     ],
     hints: [
+      'nmap -sV 10.10.127.7',
       'curl -X POST -d \'settings={"__proto__":{"isAdmin":true}}\' 10.10.127.7/api/config/merge',
       'curl -X POST -d \'settings={"__proto__":{"shell":"cat /etc/passwd"}}\' 10.10.127.7/api/config/merge-and-render',
     ],
@@ -392,6 +400,7 @@ export const webSessionSecurityLabs: LabScenario[] = [
       'to every single visitor of that URL until the cache expires — a "fire once, poison everyone" attack with ' +
       'none of the usual per-victim delivery problem other web attacks have.',
     objectives: [
+      { text: 'nmap -sV 10.10.127.8', why: 'Confirms the caching front-end before probing what it does and does not key on.' },
       { text: 'curl 10.10.127.8/home', why: 'Establishes the normal, unpoisoned cached response first.' },
       {
         text: 'Send a request with a malicious X-Forwarded-Host header and confirm it gets cached for everyone',
@@ -399,6 +408,7 @@ export const webSessionSecurityLabs: LabScenario[] = [
       },
     ],
     hints: [
+      'nmap -sV 10.10.127.8',
       'curl 10.10.127.8/home',
       'curl -H "X-Forwarded-Host: evil.attacker.example" 10.10.127.8/home',
     ],
@@ -452,6 +462,7 @@ export const webSessionSecurityLabs: LabScenario[] = [
       'admin assertion in the position the parser actually reads identity from. The signature still verifies; ' +
       'the identity it approves is not the identity that was signed.',
     objectives: [
+      { text: 'nmap -sV 10.10.127.9', why: 'Confirms the SAML consumer endpoint before probing how it validates incoming assertions.' },
       { text: 'Log in normally with a legitimately-signed viewer-role assertion', why: 'Confirms the baseline SSO flow and gives you a real, validly-signed assertion to abuse in the next step.' },
       {
         text: 'Submit an XML-signature-wrapped assertion claiming the admin role',
@@ -459,6 +470,7 @@ export const webSessionSecurityLabs: LabScenario[] = [
       },
     ],
     hints: [
+      'nmap -sV 10.10.127.9',
       'curl -X POST -d "SAMLResponse=signed-assertion-role-viewer-valid" 10.10.127.9/sso/consume',
       'curl -X POST -d "SAMLResponse=xsw-wrapped-assertion-forged-role-admin" 10.10.127.9/sso/consume-admin',
     ],
@@ -517,6 +529,7 @@ export const webSessionSecurityLabs: LabScenario[] = [
       'hover-preview — right up until it silently forwards to an attacker-controlled credential-harvesting ' +
       'clone. The redirect is the whole attack; there is no injection or authentication bypass involved at all.',
     objectives: [
+      { text: 'nmap -sV 10.10.127.10', why: 'Confirms the redirect service before probing what destinations it will actually accept.' },
       { text: 'Confirm the redirect endpoint works for a legitimate destination', why: 'Establishes the expected, benign behavior of the feature before showing it accepts anywhere at all.' },
       {
         text: 'Confirm the same endpoint forwards to an arbitrary attacker-controlled domain',
@@ -524,6 +537,7 @@ export const webSessionSecurityLabs: LabScenario[] = [
       },
     ],
     hints: [
+      'nmap -sV 10.10.127.10',
       'curl "http://10.10.127.10/redirect?url=https://trustedbank17.example/login"',
       'curl "http://10.10.127.10/redirect?url=https://attacker-phish.evil/fake-login"',
     ],
