@@ -32,6 +32,13 @@
   /* AI companion response text — dark and readable in light mode, switches to a terminal-green in
      dark mode (see below) so AI-generated answers stay visually distinct from the surrounding UI. */
   --color-ai-text: #12161f;
+
+  /* Elevation scale: colored/soft rather than flat black, since a default black box-shadow is nearly
+     invisible on the dark theme's near-black surfaces. `--shadow-*` tokens auto-generate matching
+     `shadow-*` utilities in Tailwind v4 — color-mix references var(--color-accent)/var(--color-heading)
+     so they correctly track whichever theme (light/dark) is active, not a fixed color baked in here. */
+  --shadow-card: 0 1px 2px 0 color-mix(in srgb, var(--color-heading) 6%, transparent), 0 1px 1px 0 color-mix(in srgb, var(--color-heading) 4%, transparent);
+  --shadow-glow-accent: 0 12px 40px -14px color-mix(in srgb, var(--color-accent) 55%, transparent), 0 2px 8px -2px color-mix(in srgb, var(--color-accent) 25%, transparent);
 }
 
 :root[data-theme="dark"] {
