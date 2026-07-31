@@ -10,11 +10,18 @@ export interface ProgressState {
   labCompletedAt: Record<string, number>;
   /** Code Portal practice tasks (Python/C++/JS) whose test harness has fully passed at least once. */
   completedCodeTasks: Record<string, boolean>;
+  /** Local-date strings ("YYYY-MM-DD", learner's own timezone) on which at least one real learning
+   *  action happened — the raw signal streaks are computed from. Deliberately device-local only
+   *  (see SyncableProgress below): a synced streak would need a real backend clock and schema
+   *  change neither of which this device-local, best-effort sync model is built for yet. */
+  activityDates: string[];
 }
 
 /** The subset that's actually synced to Supabase — `learnerName` stays device-local since it's
- *  redundant with the account's own name/email once real accounts exist. */
-export type SyncableProgress = Omit<ProgressState, 'learnerName'>;
+ *  redundant with the account's own name/email once real accounts exist, and `activityDates`
+ *  stays device-local because streaks are a per-device engagement signal, not account data (and
+ *  syncing it would need a Supabase migration this change deliberately avoids requiring). */
+export type SyncableProgress = Omit<ProgressState, 'learnerName' | 'activityDates'>;
 
 const STORAGE_KEY = 'hackerhub.progress.v1';
 const EMPTY_STATE: ProgressState = {
@@ -25,7 +32,23 @@ const EMPTY_STATE: ProgressState = {
   bookmarkedLabs: {},
   labCompletedAt: {},
   completedCodeTasks: {},
+  activityDates: [],
 };
+
+/** "YYYY-MM-DD" in the learner's own local timezone — deliberately not UTC, since a streak should
+ *  track the day the learner actually experienced, not a timezone-shifted one. */
+function todayLocalDate(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+/** Appends today's date to activityDates if it isn't already the most recent entry — cheap
+ *  no-op check first since this runs on every single progress-recording action. */
+function withActivityToday(s: ProgressState): Pick<ProgressState, 'activityDates'> {
+  const today = todayLocalDate();
+  if (s.activityDates[s.activityDates.length - 1] === today) return { activityDates: s.activityDates };
+  return { activityDates: [...s.activityDates, today] };
+}
 
 function loadState(): ProgressState {
   try {
@@ -69,7 +92,7 @@ export function useProgressState(): ProgressApi {
   }, [state]);
 
   const completeLesson = useCallback((lessonId: string) => {
-    setState((s) => ({ ...s, completedLessons: { ...s.completedLessons, [lessonId]: true } }));
+    setState((s) => ({ ...s, ...withActivityToday(s), completedLessons: { ...s.completedLessons, [lessonId]: true } }));
   }, []);
 
   const isLessonComplete = useCallback(
@@ -81,7 +104,7 @@ export function useProgressState(): ProgressApi {
     setState((s) => {
       const existing = s.labFlags[labId] ?? [];
       if (existing.includes(flag)) return s;
-      return { ...s, labFlags: { ...s.labFlags, [labId]: [...existing, flag] } };
+      return { ...s, ...withActivityToday(s), labFlags: { ...s.labFlags, [labId]: [...existing, flag] } };
     });
   }, []);
 
@@ -93,7 +116,7 @@ export function useProgressState(): ProgressApi {
   const flagCount = useCallback((labId: string) => (state.labFlags[labId] ?? []).length, [state.labFlags]);
 
   const recordQuizScore = useCallback((lessonId: string, score: number) => {
-    setState((s) => ({ ...s, quizScores: { ...s.quizScores, [lessonId]: score } }));
+    setState((s) => ({ ...s, ...withActivityToday(s), quizScores: { ...s.quizScores, [lessonId]: score } }));
   }, []);
 
   const resetAll = useCallback(() => {
@@ -129,12 +152,12 @@ export function useProgressState(): ProgressApi {
   const markLabCompleted = useCallback((labId: string) => {
     setState((s) => {
       if (s.labCompletedAt[labId]) return s;
-      return { ...s, labCompletedAt: { ...s.labCompletedAt, [labId]: Date.now() } };
+      return { ...s, ...withActivityToday(s), labCompletedAt: { ...s.labCompletedAt, [labId]: Date.now() } };
     });
   }, []);
 
   const completeCodeTask = useCallback((taskId: string) => {
-    setState((s) => (s.completedCodeTasks[taskId] ? s : { ...s, completedCodeTasks: { ...s.completedCodeTasks, [taskId]: true } }));
+    setState((s) => (s.completedCodeTasks[taskId] ? s : { ...s, ...withActivityToday(s), completedCodeTasks: { ...s.completedCodeTasks, [taskId]: true } }));
   }, []);
 
   const isCodeTaskComplete = useCallback(

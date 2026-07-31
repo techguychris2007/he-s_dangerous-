@@ -1,6 +1,7 @@
 import { LABS } from '../data/labs';
 import { MODULES } from '../data/curriculum';
 import { useProgress } from '../state/progressStore';
+import { ACHIEVEMENTS, computeStreak } from '../data/achievements';
 import { IconUser, IconFlag, IconCheck, IconBookmark } from '../components/layout/icons';
 
 const POINTS: Record<string, number> = { Easy: 10, Medium: 20, Hard: 30 };
@@ -36,6 +37,8 @@ export default function ProfilePage() {
     const done = progress.flagCount(l.scenario.id) >= l.scenario.totalFlags;
     return sum + (done ? POINTS[l.scenario.difficulty] ?? 10 : 0);
   }, 0);
+  const streak = computeStreak(progress.activityDates);
+  const unlockedAchievements = ACHIEVEMENTS.filter((a) => a.isUnlocked(progress));
 
   return (
     <div className="max-w-3xl mx-auto px-8 py-14">
@@ -60,12 +63,49 @@ export default function ProfilePage() {
         <StatCard label="Bookmarked labs" value={bookmarked} icon={<IconBookmark className="w-5 h-5" />} />
         <StatCard label="Quizzes taken" value={quizzesTaken} icon={<IconUser className="w-5 h-5" />} />
         <StatCard label="Average quiz score" value={`${avgQuizScore}%`} icon={<IconUser className="w-5 h-5" />} />
+        <StatCard
+          label={streak.current > 0 ? 'Current streak' : 'Longest streak'}
+          value={`${streak.current > 0 ? streak.current : streak.longest} day${(streak.current > 0 ? streak.current : streak.longest) === 1 ? '' : 's'}`}
+          icon={<span className="text-lg leading-none">🔥</span>}
+        />
+      </div>
+
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-bold text-[var(--color-heading)] uppercase tracking-wide">Achievements</h2>
+          <span className="text-xs font-mono text-[var(--color-text-dim)]">
+            {unlockedAchievements.length}/{ACHIEVEMENTS.length} unlocked
+          </span>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {ACHIEVEMENTS.map((a) => {
+            const unlocked = a.isUnlocked(progress);
+            return (
+              <div
+                key={a.id}
+                className={`rounded-xl border p-4 flex items-start gap-3 transition-colors ${
+                  unlocked
+                    ? 'border-[var(--color-gold)]/50 bg-[var(--color-gold-soft)]'
+                    : 'border-[var(--color-border)] bg-[var(--color-surface)] opacity-50'
+                }`}
+              >
+                <span className="text-2xl leading-none shrink-0" aria-hidden>
+                  {unlocked ? a.icon : '🔒'}
+                </span>
+                <div className="min-w-0">
+                  <div className="text-sm font-bold text-[var(--color-heading)] leading-tight">{a.title}</div>
+                  <div className="text-xs text-[var(--color-text-dim)] leading-snug mt-0.5">{a.description}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 text-sm text-[var(--color-text-dim)] leading-relaxed">
-        Your name and every stat above lives only in this browser's local storage — there is no account, no
-        server, and no way for anyone else to see this profile. Clearing your browser data resets it
-        completely.
+        Your lesson/lab/quiz progress syncs to your account so it follows you across devices. Your streak,
+        achievements, and display name shown here stay local to this browser only — clearing your browser
+        data resets those (but not your synced progress) completely.
       </div>
     </div>
   );
