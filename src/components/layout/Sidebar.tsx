@@ -3,6 +3,7 @@ import { MODULES, findModule } from '../../data/curriculum';
 import { LABS } from '../../data/labs';
 import { useProgress } from '../../state/progressStore';
 import { useAuth } from '../../state/authStore';
+import { isInstructor } from '../../lib/instructorConfig';
 import Logo from './Logo';
 import {
   ModuleIcon,
@@ -20,6 +21,7 @@ import {
   IconHelp,
   IconExternal,
   IconCode,
+  IconCrown,
 } from './icons';
 
 const navItemClass = ({ isActive }: { isActive: boolean }) =>
@@ -109,6 +111,11 @@ export default function Sidebar() {
           <IconBook className="w-4 h-4" /> Library
           <IconExternal className="w-3 h-3 ml-auto opacity-60" />
         </NavLink>
+        {isInstructor(auth.user?.email) && (
+          <NavLink to="/instructor" className={navItemClass}>
+            <IconCrown className="w-4 h-4" /> Instructor Dashboard
+          </NavLink>
+        )}
       </nav>
 
       <div className="border-t border-[var(--color-border)] pt-4 flex-1">

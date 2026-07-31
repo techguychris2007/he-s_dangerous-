@@ -26,15 +26,28 @@ import MlPortalPage from './pages/MlPortalPage';
 import MlLessonPage from './pages/MlLessonPage';
 import LibraryPage from './pages/LibraryPage';
 import BookReaderPage from './pages/BookReaderPage';
+import InstructorDashboardPage from './pages/InstructorDashboardPage';
 import InstallPrompt from './components/layout/InstallPrompt';
 import { ProgressContext, useProgressState, useProgress } from './state/progressStore';
 import { AuthContext, useAuthState, useAuth } from './state/authStore';
 import { pullProgress, pushProgress } from './lib/progressSync';
+import { isInstructor } from './lib/instructorConfig';
 
 function RequireLogin({ children }: { children: React.ReactNode }) {
   const auth = useAuth();
   if (auth.loading) return <FullScreenLoader />;
   if (!auth.user) return <Navigate to="/welcome" replace />;
+  return <>{children}</>;
+}
+
+/** Route-level gate for the Instructor Dashboard — purely a UX nicety (redirects a non-instructor
+ *  straight back to the dashboard instead of showing a broken page). The actual access control is
+ *  server-side: instructor_dashboard_progress() rejects any caller whose email doesn't match, so
+ *  this check being bypassed somehow still can't leak any data. */
+function RequireInstructor({ children }: { children: React.ReactNode }) {
+  const auth = useAuth();
+  if (auth.loading) return <FullScreenLoader />;
+  if (!isInstructor(auth.user?.email)) return <Navigate to="/" replace />;
   return <>{children}</>;
 }
 
@@ -212,6 +225,14 @@ function App() {
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/security" element={<SecurityPage />} />
               <Route path="/help" element={<HelpFaqPage />} />
+              <Route
+                path="/instructor"
+                element={
+                  <RequireInstructor>
+                    <InstructorDashboardPage />
+                  </RequireInstructor>
+                }
+              />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
           </Routes>
