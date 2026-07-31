@@ -23,11 +23,50 @@ function homeOf(session: Session): string[] {
   return user === 'root' ? ['root'] : ['home', session.user];
 }
 
+/** Every real command name this engine recognizes — the single source of truth for both the
+ *  dispatch switch below and tab-completion, so the two can never silently drift out of sync. */
+const KNOWN_COMMANDS = [
+  'help', 'pwd', 'ls', 'cd', 'cat', 'strings', 'file', 'checksec', 'objdump', 'gdb', 'yara',
+  'hashcat', 'echo', 'find', 'grep', 'whoami', 'id', 'ifconfig', 'ip', 'netstat', 'ping', 'nmap',
+  'curl', 'wget', 'ftp', 'ftp-get', 'ssh', 'hydra', 'crackmapexec', 'cme', 'netexec', 'exploit',
+  'secretsdump', 'dig', 'nslookup', 'gobuster', 'ffuf', 'dirsearch', 'nikto', 'whatweb', 'sqlmap',
+  'john', 'cewl', 'enum4linux', 'smbclient', 'masscan', 'rustscan', 'nc', 'netcat', 'sudo', 'su',
+  'exit', 'logout', 'clear', 'objectives', 'hint', 'chmod', 'history',
+];
+
+/** Simulated per-command latency, roughly proportional to how long the real tool actually takes
+ *  against a single host — a quick lookup (`cat`, `whoami`, `ls`) is instant, a real network scan
+ *  or offline crack is not. Read by the UI layer before revealing a command's output. */
+export const COMMAND_LATENCY_MS: Record<string, number> = {
+  nmap: 900,
+  masscan: 350,
+  rustscan: 300,
+  hydra: 850,
+  gobuster: 800,
+  ffuf: 750,
+  dirsearch: 800,
+  nikto: 700,
+  whatweb: 400,
+  sqlmap: 900,
+  hashcat: 650,
+  john: 650,
+  enum4linux: 600,
+  smbclient: 400,
+  crackmapexec: 500,
+  cme: 500,
+  netexec: 500,
+  secretsdump: 550,
+  exploit: 750,
+  cewl: 500,
+  ping: 250,
+};
+
 export class TerminalEngine {
   private scenario: LabScenario;
   private attackerRoot: FsNode;
   private stack: Session[];
   private hintIndex = 0;
+  private commandHistory: string[] = [];
   private awaitingAuth: { ip: string; user: string; host: HostDef } | null = null;
 
   constructor(scenario: LabScenario) {
@@ -1038,15 +1077,32 @@ export class TerminalEngine {
     ];
   }
 
+  /** Command names for the current word, or filesystem entries in the current directory for a
+   *  later argument — real bash resolves completion candidates from $PATH vs. cwd the same way. */
+  getCompletions(partial: string, isFirstWord: boolean): string[] {
+    if (isFirstWord) {
+      return KNOWN_COMMANDS.filter((c) => c.startsWith(partial)).sort();
+    }
+    const node = getNode(this.fsRoot(), this.session.cwd);
+    if (!node || node.type !== 'dir') return [];
+    return Object.keys(node.children)
+      .filter((name) => name.startsWith(partial))
+      .sort();
+  }
+
   run(raw: string, onFlag: (flag: string) => void): OutLine[] {
     const line = raw.trim();
     if (this.awaitingAuth) {
       return this.submitPassword(line);
     }
     if (!line) return [];
+    if (line !== 'history') this.commandHistory.push(line);
     const [cmd, ...args] = tokenize(line);
 
     switch (cmd) {
+      case 'history':
+        if (this.commandHistory.length === 0) return [{ kind: 'muted', text: '(no commands yet)' }];
+        return this.commandHistory.map((c, i) => ({ kind: 'output' as const, text: `  ${String(i + 1).padStart(4)}  ${c}` }));
       case 'help':
         return this.help();
       case 'pwd':

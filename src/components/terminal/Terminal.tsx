@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { TerminalEngine, type OutLine } from '../../labs/engine';
+import { TerminalEngine, COMMAND_LATENCY_MS, type OutLine } from '../../labs/engine';
 import type { LabScenario } from '../../labs/types';
 
 interface DisplayLine extends OutLine {
@@ -40,6 +40,7 @@ export default function Terminal({ scenario, onFlagCaptured, onCommandRun, onTra
   const [input, setInput] = useState('');
   const [historyList, setHistoryList] = useState<string[]>([]);
   const [historyPos, setHistoryPos] = useState<number | null>(null);
+  const [busy, setBusy] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -57,6 +58,7 @@ export default function Terminal({ scenario, onFlagCaptured, onCommandRun, onTra
     ]);
     setHistoryList([]);
     setHistoryPos(null);
+    setBusy(false);
   }, [scenario]);
 
   useEffect(() => {
@@ -66,36 +68,88 @@ export default function Terminal({ scenario, onFlagCaptured, onCommandRun, onTra
   const focusInput = () => inputRef.current?.focus();
 
   const submit = (raw: string) => {
+    if (busy) return;
     const engine = engineRef.current;
     const prompt = engine.getPrompt();
     const isPassword = engine.isAwaitingPassword();
     const echoText = isPassword ? '•'.repeat(raw.length) : raw;
 
     const newLines: DisplayLine[] = [{ id: idCounter++, kind: 'input', text: `${prompt} ${echoText}` }];
-
-    const result = engine.run(raw, (flag) => onFlagCaptured(flag));
-
-    for (const line of result) {
-      if (line.text === '__CLEAR__') {
-        setLines([]);
-        setInput('');
-        return;
-      }
-      line.text.split('\n').forEach((t) => newLines.push({ id: idCounter++, kind: line.kind, text: t }));
-    }
-
     setLines((prev) => [...prev, ...newLines]);
+    setInput('');
+    setHistoryPos(null);
     if (!isPassword && raw.trim()) {
       setHistoryList((prev) => [...prev, raw]);
-      onCommandRun?.();
     }
-    setHistoryPos(null);
-    setInput('');
+
+    // The engine itself runs synchronously (state changes — cd, ssh login, etc. — happen right
+    // away, exactly when the real command would take effect); only REVEALING the output is
+    // delayed, the same way a real nmap/hydra/hashcat run makes you wait before printing results.
+    const result = engine.run(raw, (flag) => onFlagCaptured(flag));
+    const firstWord = raw.trim().split(/\s+/)[0]?.toLowerCase();
+    const latency = isPassword ? 0 : (COMMAND_LATENCY_MS[firstWord] ?? 0);
+
+    const reveal = () => {
+      const outLines: DisplayLine[] = [];
+      for (const line of result) {
+        if (line.text === '__CLEAR__') {
+          setLines([]);
+          setBusy(false);
+          return;
+        }
+        line.text.split('\n').forEach((t) => outLines.push({ id: idCounter++, kind: line.kind, text: t }));
+      }
+      setLines((prev) => [...prev, ...outLines]);
+      setBusy(false);
+    };
+
+    if (latency > 0) {
+      setBusy(true);
+      setTimeout(reveal, latency);
+    } else {
+      reveal();
+    }
+    if (!isPassword && raw.trim()) onCommandRun?.();
+  };
+
+  const applyCompletion = (candidates: string[]) => {
+    if (candidates.length === 0) return;
+    const words = input.split(/\s+/);
+    const lastWord = words[words.length - 1] ?? '';
+    if (candidates.length === 1) {
+      words[words.length - 1] = candidates[0];
+      setInput(words.join(' ') + (words.length === 1 ? ' ' : ''));
+      return;
+    }
+    // Multiple matches with no unambiguous completion: real bash prints the candidate list below
+    // the prompt (on a second Tab press) rather than guessing — list them and leave the input alone.
+    const commonPrefix = candidates.reduce((acc, c) => {
+      let i = 0;
+      while (i < acc.length && i < c.length && acc[i] === c[i]) i++;
+      return acc.slice(0, i);
+    });
+    if (commonPrefix.length > lastWord.length) {
+      words[words.length - 1] = commonPrefix;
+      setInput(words.join(' '));
+      return;
+    }
+    setLines((prev) => [
+      ...prev,
+      { id: idCounter++, kind: 'input', text: `${engineRef.current.getPrompt()} ${input}` },
+      { id: idCounter++, kind: 'muted', text: candidates.join('  ') },
+    ]);
   };
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       submit(input);
+    } else if (e.key === 'Tab') {
+      e.preventDefault();
+      if (busy || engineRef.current.isAwaitingPassword()) return;
+      const words = input.split(/\s+/);
+      const lastWord = words[words.length - 1] ?? '';
+      const isFirstWord = words.length <= 1;
+      applyCompletion(engineRef.current.getCompletions(lastWord, isFirstWord));
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       if (historyList.length === 0) return;
@@ -113,6 +167,13 @@ export default function Terminal({ scenario, onFlagCaptured, onCommandRun, onTra
         setHistoryPos(nextPos);
         setInput(historyList[nextPos]);
       }
+    } else if (e.key === 'l' && e.ctrlKey) {
+      e.preventDefault();
+      setLines([]);
+    } else if (e.key === 'c' && e.ctrlKey) {
+      e.preventDefault();
+      setLines((prev) => [...prev, { id: idCounter++, kind: 'input', text: `${engineRef.current.getPrompt()} ${input}^C` }]);
+      setInput('');
     }
   };
 
@@ -128,6 +189,7 @@ export default function Terminal({ scenario, onFlagCaptured, onCommandRun, onTra
         <span className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
         <span className="w-3 h-3 rounded-full bg-[#27c93f]" />
         <span className="ml-3 text-xs text-[#c9a15f]">{scenario.attacker.hostname} — bash</span>
+        {busy && <span className="ml-auto text-[11px] text-[#7a7264] animate-pulse">running&hellip;</span>}
       </div>
       <div className="flex-1 overflow-y-auto p-3 space-y-0.5 min-h-0">
         {lines.map((l) => (
@@ -135,21 +197,23 @@ export default function Terminal({ scenario, onFlagCaptured, onCommandRun, onTra
             {l.text}
           </pre>
         ))}
-        <div className="flex items-center gap-2">
-          <span className="text-[#e8a33d] shrink-0">{isPassword ? '' : engineRef.current.getPrompt()}</span>
-          <input
-            ref={inputRef}
-            autoFocus
-            type={isPassword ? 'password' : 'text'}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={onKeyDown}
-            className="flex-1 bg-transparent outline-none text-[#d8d0c0] min-w-0"
-            spellCheck={false}
-            autoComplete="off"
-            autoCapitalize="off"
-          />
-        </div>
+        {!busy && (
+          <div className="flex items-center gap-2">
+            <span className="text-[#e8a33d] shrink-0">{isPassword ? '' : engineRef.current.getPrompt()}</span>
+            <input
+              ref={inputRef}
+              autoFocus
+              type={isPassword ? 'password' : 'text'}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={onKeyDown}
+              className="flex-1 bg-transparent outline-none text-[#d8d0c0] min-w-0"
+              spellCheck={false}
+              autoComplete="off"
+              autoCapitalize="off"
+            />
+          </div>
+        )}
         <div ref={bottomRef} />
       </div>
     </div>
