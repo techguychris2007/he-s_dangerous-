@@ -108,6 +108,8 @@ export default function CodeConsole({ language, starterCode, testCode, onAllTest
         {status === 'running' && <span className="text-xs text-[var(--color-text-dim)] font-mono">Running&hellip;</span>}
         {testSummary && (
           <span
+            role="status"
+            aria-live="polite"
             className={`ml-auto flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full ${
               testSummary.passed === testSummary.total
                 ? 'bg-[var(--color-success)]/15 text-[var(--color-success)]'
@@ -122,6 +124,8 @@ export default function CodeConsole({ language, starterCode, testCode, onAllTest
 
       {(output || busy) && (
         <pre
+          role="status"
+          aria-live="polite"
           className={`rounded-lg border p-3 font-mono text-xs leading-relaxed whitespace-pre-wrap break-words max-h-64 overflow-y-auto ${
             status === 'error'
               ? 'border-[var(--color-danger)]/30 bg-[var(--color-danger)]/5 text-[var(--color-danger)]'

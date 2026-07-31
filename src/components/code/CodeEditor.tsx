@@ -8,7 +8,15 @@ interface CodeEditorProps {
  *  noise. No syntax highlighting — keeping this dependency-free was worth more than a prettier editor. */
 export default function CodeEditor({ value, onChange, disabled }: CodeEditorProps) {
   const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key !== 'Tab') return;
+    // Escape is the standard keyboard-only escape hatch out of a textarea that otherwise captures
+    // Tab — without it, a keyboard-only user who tabs in here can never tab back out.
+    if (e.key === 'Escape') {
+      e.currentTarget.blur();
+      return;
+    }
+    // Only plain Tab inserts a soft indent; Shift+Tab is left alone so it does its native job of
+    // moving focus to the previous control instead of also getting trapped.
+    if (e.key !== 'Tab' || e.shiftKey) return;
     e.preventDefault();
     const el = e.currentTarget;
     const start = el.selectionStart;

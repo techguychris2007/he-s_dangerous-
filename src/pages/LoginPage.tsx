@@ -242,6 +242,7 @@ export default function LoginPage() {
               style={{ background: 'rgba(6,13,22,0.55)', border: '1px solid #c9a15f4d' }}
             >
               <IconUser className="w-4 h-4 text-[#c9a15f] shrink-0" />
+              <span className="sr-only">Full name</span>
               <input
                 autoFocus
                 value={fullName}
@@ -257,6 +258,7 @@ export default function LoginPage() {
             style={{ background: 'rgba(6,13,22,0.55)', border: '1px solid #c9a15f4d' }}
           >
             <IconMail className="w-4 h-4 text-[#c9a15f] shrink-0" />
+            <span className="sr-only">Email address</span>
             <input
               autoFocus={mode !== 'signup'}
               type="email"
@@ -273,6 +275,7 @@ export default function LoginPage() {
               style={{ background: 'rgba(6,13,22,0.55)', border: '1px solid #c9a15f4d' }}
             >
               <IconLock className="w-4 h-4 text-[#c9a15f] shrink-0" />
+              <span className="sr-only">{mode === 'signup' ? 'Password (min. 6 characters)' : 'Password'}</span>
               <input
                 type="password"
                 value={password}
@@ -289,6 +292,7 @@ export default function LoginPage() {
               style={{ background: 'rgba(6,13,22,0.55)', border: '1px solid #c9a15f4d' }}
             >
               <IconLock className="w-4 h-4 text-[#c9a15f] shrink-0" />
+              <span className="sr-only">Confirm password</span>
               <input
                 type="password"
                 value={confirmPassword}

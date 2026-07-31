@@ -6,6 +6,7 @@ import { useProgress } from '../../state/progressStore';
 import { LABS, MODULE_TO_LAB_CATEGORY } from '../../data/labs';
 import { findModule } from '../../data/curriculum';
 import { IconCheck, IconCertificate, IconExternal } from '../layout/icons';
+import { useModalA11y } from '../../hooks/useModalA11y';
 
 const MODULE_SLUG_FOR_CATEGORY = Object.fromEntries(
   Object.entries(MODULE_TO_LAB_CATEGORY).map(([slug, category]) => [category, slug]),
@@ -23,6 +24,7 @@ export default function ShareWriteupModal({ entry, onClose }: { entry: LabEntry;
   const progress = useProgress();
   const [tab, setTab] = useState<Tab>('linkedin');
   const [copied, setCopied] = useState(false);
+  const panelRef = useModalA11y(onClose);
 
   const moduleForLab = findModule(MODULE_SLUG_FOR_CATEGORY[entry.scenario.category]);
 
@@ -56,7 +58,12 @@ export default function ShareWriteupModal({ entry, onClose }: { entry: LabEntry;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={onClose}>
       <div
-        className="w-full max-w-2xl max-h-[85vh] rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-xl flex flex-col overflow-hidden"
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="share-writeup-title"
+        tabIndex={-1}
+        className="w-full max-w-2xl max-h-[85vh] rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-xl flex flex-col overflow-hidden outline-none"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-4 border-b border-[var(--color-border)] flex items-center justify-between">
@@ -64,10 +71,11 @@ export default function ShareWriteupModal({ entry, onClose }: { entry: LabEntry;
             <div className="text-xs font-mono font-bold uppercase tracking-widest text-[var(--color-accent)] mb-0.5">
               Auto-generated
             </div>
-            <h2 className="font-bold text-[var(--color-heading)]">Share this win</h2>
+            <h2 id="share-writeup-title" className="font-bold text-[var(--color-heading)]">Share this win</h2>
           </div>
           <button
             onClick={onClose}
+            aria-label="Close"
             className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-heading)]"
           >
             &times;

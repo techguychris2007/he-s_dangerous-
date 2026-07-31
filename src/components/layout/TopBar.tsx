@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { findModule, findLesson } from '../../data/curriculum';
 import { findLab } from '../../data/labs';
@@ -60,10 +60,23 @@ export default function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
   const { theme, toggle } = useTheme();
   const [notifOpen, setNotifOpen] = useState(false);
   const activity = useRecentActivity();
+  const notifButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     setNotifOpen(false);
   }, [location.pathname]);
+
+  useEffect(() => {
+    if (!notifOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setNotifOpen(false);
+        notifButtonRef.current?.focus();
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [notifOpen]);
 
   return (
     <header className="h-14 shrink-0 border-b border-[var(--color-border)] bg-[var(--color-surface)] flex items-center gap-3 px-5 relative">
@@ -80,6 +93,7 @@ export default function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
         <button
           onClick={toggle}
           title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
           className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-heading)] transition-colors"
         >
           {theme === 'dark' ? <IconSun className="w-4 h-4" /> : <IconMoon className="w-4 h-4" />}
@@ -87,8 +101,12 @@ export default function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
 
         <div className="relative">
           <button
+            ref={notifButtonRef}
             onClick={() => setNotifOpen((o) => !o)}
             title="Notifications"
+            aria-label="Notifications"
+            aria-haspopup="true"
+            aria-expanded={notifOpen}
             className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-heading)] transition-colors relative"
           >
             <IconBell className="w-4 h-4" />
@@ -99,7 +117,7 @@ export default function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
           {notifOpen && (
             <>
               <div className="fixed inset-0 z-30" onClick={() => setNotifOpen(false)} />
-              <div className="absolute right-0 top-10 w-72 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-lg z-40 overflow-hidden">
+              <div role="menu" aria-label="Recent activity" className="absolute right-0 top-10 w-72 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-lg z-40 overflow-hidden">
                 <div className="px-3.5 py-2.5 border-b border-[var(--color-border)] text-xs font-bold uppercase tracking-wide text-[var(--color-text-dim)]">
                   Recent activity
                 </div>

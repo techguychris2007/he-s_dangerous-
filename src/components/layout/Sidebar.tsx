@@ -201,6 +201,7 @@ export default function Sidebar() {
             navigate('/welcome');
           }}
           title="Log out"
+          aria-label="Log out"
           className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-danger)] shrink-0"
         >
           <IconExternal className="w-4 h-4" />

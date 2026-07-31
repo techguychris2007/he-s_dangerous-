@@ -55,6 +55,7 @@ export default function StepChecklist({ steps, title = 'Guided Steps', autoCheck
                 className="w-full flex items-start gap-2.5 text-left group"
                 type="button"
                 title={auto ? 'Auto-detected as complete — click to override' : undefined}
+                aria-pressed={done}
               >
                 <span
                   className={`mt-0.5 w-5 h-5 shrink-0 rounded-md border flex items-center justify-center text-[10px] font-bold transition-colors ${

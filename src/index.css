@@ -21,7 +21,10 @@
   --color-danger: #dc2626;
   --color-success: #16a34a;
   --color-text: #414863;
-  --color-text-dim: #7d84a0;
+  /* #5f6684 (darkened from #7d84a0): the old value was ~3.4:1 against --color-bg, below the 4.5:1
+     AA threshold for normal text — this measures ~5.2:1 against --color-bg while staying visibly
+     lighter/more muted than --color-text. */
+  --color-text-dim: #5f6684;
   --color-gold: #a8792f;
   --color-gold-dim: #8a6323;
   --color-gold-soft: #a8792f26;
@@ -46,7 +49,10 @@
   --color-danger: #f43f5e;
   --color-success: #34d399;
   --color-text: #b6bdd6;
-  --color-text-dim: #6b7290;
+  /* #7e85a3 (lightened from #6b7290): the old value was as low as ~3.6:1 against --color-surface-2,
+     below the 4.5:1 AA threshold for normal text — this measures ~4.7:1 against the lightest
+     surface it's used on while staying visibly darker/more muted than --color-text. */
+  --color-text-dim: #7e85a3;
   --color-gold: #c9a15f;
   --color-gold-dim: #e9c98a;
   --color-gold-soft: #c9a15f22;
@@ -69,7 +75,7 @@
     --color-danger: #f43f5e;
     --color-success: #34d399;
     --color-text: #b6bdd6;
-    --color-text-dim: #6b7290;
+    --color-text-dim: #7e85a3;
     --color-gold: #c9a15f;
     --color-gold-dim: #e9c98a;
     --color-gold-soft: #c9a15f22;

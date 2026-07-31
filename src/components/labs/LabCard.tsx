@@ -60,6 +60,8 @@ export default function LabCard({ lab, variant = 'catalog' }: { lab: LabEntry; v
             progress.toggleBookmark(lab.scenario.id);
           }}
           title={bookmarked ? 'Remove bookmark' : 'Bookmark this lab'}
+          aria-label={bookmarked ? 'Remove bookmark' : 'Bookmark this lab'}
+          aria-pressed={bookmarked}
           className="absolute top-2 right-2 w-8 h-8 rounded-lg bg-black/35 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/55 transition-colors"
         >
           <IconBookmark className="w-4 h-4" filled={bookmarked} />

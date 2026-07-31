@@ -143,7 +143,9 @@ export default function Terminal({ scenario, onFlagCaptured, onCommandRun, onTra
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       submit(input);
-    } else if (e.key === 'Tab') {
+    } else if (e.key === 'Tab' && !e.shiftKey) {
+      // Shift+Tab is deliberately left alone (real bash has no meaning for it either) so a
+      // keyboard-only user always has a way to tab backward out of the terminal input.
       e.preventDefault();
       if (busy || engineRef.current.isAwaitingPassword()) return;
       const words = input.split(/\s+/);
@@ -191,7 +193,7 @@ export default function Terminal({ scenario, onFlagCaptured, onCommandRun, onTra
         <span className="ml-3 text-xs text-[#c9a15f]">{scenario.attacker.hostname} — bash</span>
         {busy && <span className="ml-auto text-[11px] text-[#7a7264] animate-pulse">running&hellip;</span>}
       </div>
-      <div className="flex-1 overflow-y-auto p-3 space-y-0.5 min-h-0">
+      <div className="flex-1 overflow-y-auto p-3 space-y-0.5 min-h-0" role="log" aria-live="polite" aria-label={`${scenario.attacker.hostname} terminal output`}>
         {lines.map((l) => (
           <pre key={l.id} className={`whitespace-pre-wrap break-all ${KIND_CLASS[l.kind]}`}>
             {l.text}
@@ -209,7 +211,8 @@ export default function Terminal({ scenario, onFlagCaptured, onCommandRun, onTra
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={onKeyDown}
-            className="flex-1 bg-transparent outline-none text-[#d8d0c0] min-w-0"
+            aria-label="Terminal command input"
+            className="flex-1 bg-transparent outline-none text-[#d8d0c0] min-w-0 focus-visible:ring-1 focus-visible:ring-[var(--color-accent)] rounded-sm"
             spellCheck={false}
             autoComplete="off"
             autoCapitalize="off"

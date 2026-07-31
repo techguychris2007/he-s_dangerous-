@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { QuizQuestion } from '../../types';
+import { IconCheck, IconX } from '../layout/icons';
 
 interface QuizProps {
   questions: QuizQuestion[];
@@ -49,9 +50,20 @@ export default function Quiz({ questions, onComplete }: QuizProps) {
                       key={ci}
                       disabled={submitted}
                       onClick={() => setAnswers((prev) => ({ ...prev, [q.id]: ci }))}
-                      className={`w-full text-left text-sm px-3 py-2 rounded-lg border transition-colors ${cls} disabled:cursor-default`}
+                      className={`w-full flex items-center gap-2 text-left text-sm px-3 py-2 rounded-lg border transition-colors ${cls} disabled:cursor-default`}
                     >
-                      {choice}
+                      {/* Correctness must never be color-only — the icon (or reserved empty space
+                          matching its width) carries the same information for colorblind users. */}
+                      {submitted ? (
+                        isCorrect ? (
+                          <IconCheck className="w-3.5 h-3.5 text-[var(--color-success)] shrink-0" />
+                        ) : isChosen ? (
+                          <IconX className="w-3.5 h-3.5 text-[var(--color-danger)] shrink-0" />
+                        ) : (
+                          <span className="w-3.5 h-3.5 shrink-0" />
+                        )
+                      ) : null}
+                      <span>{choice}</span>
                     </button>
                   );
                 })}

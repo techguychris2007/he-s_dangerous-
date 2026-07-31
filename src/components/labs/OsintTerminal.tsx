@@ -178,7 +178,7 @@ export default function OsintTerminal({
         <span className="ml-3 text-xs text-[#c9a15f]">kali — bash — {scenario.datasetLabel}</span>
         {busy && <span className="ml-auto text-[11px] text-[#7a7264] animate-pulse">running&hellip;</span>}
       </div>
-      <div className="flex-1 overflow-y-auto p-3 space-y-0.5 min-h-0">
+      <div className="flex-1 overflow-y-auto p-3 space-y-0.5 min-h-0" role="log" aria-live="polite" aria-label="OSINT terminal output">
         {lines.map((l) => (
           <pre key={l.id} className={`whitespace-pre-wrap break-all ${KIND_CLASS[l.kind]}`}>
             {l.text}
@@ -196,7 +196,8 @@ export default function OsintTerminal({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={onKeyDown}
-            className="flex-1 bg-transparent outline-none text-[#d8d0c0] min-w-0"
+            aria-label="Terminal command input"
+            className="flex-1 bg-transparent outline-none text-[#d8d0c0] min-w-0 focus-visible:ring-1 focus-visible:ring-[var(--color-accent)] rounded-sm"
             spellCheck={false}
             autoComplete="off"
             autoCapitalize="off"
