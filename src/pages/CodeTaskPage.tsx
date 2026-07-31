@@ -8,15 +8,10 @@ import { SECURITY_TASKS } from '../labs/securityTasks';
 import { useProgress } from '../state/progressStore';
 import CodeConsole from '../components/code/CodeConsole';
 import CyberLabAI from '../components/labs/CyberLabAI';
+import DifficultyPill from '../components/common/DifficultyPill';
 import { IconCheck, IconCode } from '../components/layout/icons';
 
 const ALL_CODE_TASKS = [...PYTHON_TASKS, ...CPP_TASKS, ...JS_TASKS, ...ML_TASKS, ...SECURITY_TASKS];
-
-const DIFFICULTY_CLASS: Record<string, string> = {
-  Easy: 'bg-[var(--color-success)]/15 text-[var(--color-success)]',
-  Medium: 'bg-[var(--color-warn)]/15 text-[var(--color-warn)]',
-  Hard: 'bg-[var(--color-danger)]/15 text-[var(--color-danger)]',
-};
 
 export default function CodeTaskPage() {
   const { taskId } = useParams();
@@ -54,7 +49,7 @@ export default function CodeTaskPage() {
           &larr; Back to {backLabel}
         </Link>
         <div className="flex items-center gap-2 mb-2 flex-wrap">
-          <span className={`pill ${DIFFICULTY_CLASS[task.difficulty]}`}>{task.difficulty}</span>
+          <DifficultyPill difficulty={task.difficulty} />
           <span className="pill bg-[var(--color-surface-2)] text-[var(--color-text-dim)] flex items-center gap-1">
             <IconCode className="w-3 h-3" /> {task.category}
           </span>

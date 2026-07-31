@@ -6,6 +6,7 @@ import Terminal from '../components/terminal/Terminal';
 import StepChecklist from '../components/lesson/StepChecklist';
 import ShareWriteupModal from '../components/labs/ShareWriteupModal';
 import CyberLabAI from '../components/labs/CyberLabAI';
+import DifficultyPill from '../components/common/DifficultyPill';
 import { IconFlag, IconCheck } from '../components/layout/icons';
 
 export default function LabPage() {
@@ -32,17 +33,7 @@ export default function LabPage() {
     <div className="h-full flex flex-col lg:flex-row">
       <div className="lg:w-96 shrink-0 border-b lg:border-b-0 lg:border-r border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-6 overflow-y-auto">
         <div className="flex items-center gap-2 mb-2">
-          <span
-            className={`pill ${
-              scenario.difficulty === 'Easy'
-                ? 'bg-[var(--color-success)]/15 text-[var(--color-success)]'
-                : scenario.difficulty === 'Medium'
-                ? 'bg-[var(--color-warn)]/15 text-[var(--color-warn)]'
-                : 'bg-[var(--color-danger)]/15 text-[var(--color-danger)]'
-            }`}
-          >
-            {scenario.difficulty}
-          </span>
+          <DifficultyPill difficulty={scenario.difficulty} />
           <span className="flex items-center gap-1 text-xs text-[var(--color-text-dim)]">
             <IconFlag className="w-3.5 h-3.5" />
             {captured}/{scenario.totalFlags} flags

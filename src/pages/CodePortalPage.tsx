@@ -70,7 +70,7 @@ export default function CodePortalPage() {
           }}
         />
         <div className="relative max-w-5xl mx-auto px-6 sm:px-8 py-10">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between flex-wrap gap-2 mb-8">
             <Link to="/" className="flex items-center gap-2 text-sm font-semibold text-white/70 hover:text-white transition-colors">
               <Logo className="w-6 h-6" />
               &larr; Back to DarkWorld
@@ -183,6 +183,7 @@ export default function CodePortalPage() {
                   setLanguageFilter(tab.value);
                   setCategoryFilter('All');
                 }}
+                aria-pressed={languageFilter === tab.value}
                 className={`px-3.5 py-1.5 rounded-full text-sm font-semibold border transition-colors ${
                   languageFilter === tab.value
                     ? 'bg-[var(--color-heading)] border-[var(--color-heading)] text-[var(--color-bg)]'
@@ -199,6 +200,7 @@ export default function CodePortalPage() {
               <button
                 key={cat}
                 onClick={() => setCategoryFilter(cat)}
+                aria-pressed={categoryFilter === cat}
                 className={`px-3.5 py-1.5 rounded-full text-sm font-medium border transition-colors ${
                   categoryFilter === cat
                     ? 'bg-[var(--color-accent)] border-[var(--color-accent)] text-white'

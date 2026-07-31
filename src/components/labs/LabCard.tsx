@@ -3,13 +3,8 @@ import type { LabEntry } from '../../data/labs';
 import { useProgress } from '../../state/progressStore';
 import { IconBookmark, IconCertificate, IconCheck, ModuleIcon } from '../layout/icons';
 import ModuleBanner from '../layout/ModuleBanner';
+import DifficultyPill from '../common/DifficultyPill';
 import { getLabIconKey } from '../../data/labIcon';
-
-const DIFFICULTY_CLASS: Record<string, string> = {
-  Easy: 'bg-[var(--color-success)]/20 text-[var(--color-success)] border border-[var(--color-success)]/30',
-  Medium: 'bg-[var(--color-warn)]/20 text-[var(--color-warn)] border border-[var(--color-warn)]/30',
-  Hard: 'bg-[var(--color-danger)]/20 text-[var(--color-danger)] border border-[var(--color-danger)]/30',
-};
 
 const POINTS: Record<string, number> = { Easy: 10, Medium: 20, Hard: 30 };
 
@@ -75,9 +70,8 @@ export default function LabCard({ lab, variant = 'catalog' }: { lab: LabEntry; v
 
       <div className="p-4 flex flex-col flex-1">
         <div className="flex items-center gap-1.5 mb-2 flex-wrap">
-          <span className="pill bg-[var(--color-surface-2)] text-[var(--color-text-dim)]">Cybersecurity</span>
           <span className="pill bg-[var(--color-surface-2)] text-[var(--color-text-dim)]">{lab.scenario.category}</span>
-          <span className={`pill ${DIFFICULTY_CLASS[lab.scenario.difficulty]}`}>{lab.scenario.difficulty}</span>
+          <DifficultyPill difficulty={lab.scenario.difficulty} />
           {variant === 'task' && <span className="pill bg-[var(--color-accent)]/10 text-[var(--color-accent-dim)]">Report</span>}
         </div>
 
@@ -106,9 +100,13 @@ export default function LabCard({ lab, variant = 'catalog' }: { lab: LabEntry; v
 
         <div className="mt-auto">
           <div className="flex items-center justify-between text-xs text-[var(--color-text-dim)] pt-3 mb-3 border-t border-[var(--color-border)]">
-            <span className="flex items-center gap-1.5 text-[var(--color-gold-dim)]">
-              <IconCertificate className="w-3.5 h-3.5" /> <span className="text-[var(--color-text-dim)]">Certificate</span>
-            </span>
+            {done ? (
+              <span className="flex items-center gap-1.5 text-[var(--color-gold-dim)] font-semibold">
+                <IconCertificate className="w-3.5 h-3.5" /> Certificate earned
+              </span>
+            ) : (
+              <span />
+            )}
             <span className="flex items-center gap-3">
               <span className="font-mono">{captured}/{total} flags</span>
               <span className="font-mono font-bold text-[var(--color-accent-dim)]">{points} pts</span>

@@ -3,6 +3,7 @@ import { MODULES } from '../data/curriculum';
 import { LABS } from '../data/labs';
 import { useProgress } from '../state/progressStore';
 import { IconCheck } from '../components/layout/icons';
+import StatCard from '../components/common/StatCard';
 
 export default function ProgressPage() {
   const progress = useProgress();
@@ -28,19 +29,20 @@ export default function ProgressPage() {
       <h1 className="text-3xl font-extrabold text-[var(--color-heading)] mb-8">Progress</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
-        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 flex flex-col items-center justify-center">
-          <svg viewBox="0 0 120 120" className="w-32 h-32 -rotate-90">
-            <circle cx="60" cy="60" r="54" fill="none" stroke="var(--color-surface-2)" strokeWidth="10" />
-            <circle
-              cx="60" cy="60" r="54" fill="none" stroke="var(--color-accent)" strokeWidth="10" strokeLinecap="round"
-              strokeDasharray={`${dash} ${circumference}`}
-            />
-          </svg>
-          <div className="text-center -mt-20">
-            <div className="text-2xl font-extrabold text-[var(--color-heading)]">{scorePct}%</div>
-            <div className="text-xs text-[var(--color-text-dim)]">Overall</div>
+        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 flex items-center justify-center">
+          <div className="relative w-32 h-32">
+            <svg viewBox="0 0 120 120" className="w-32 h-32 -rotate-90">
+              <circle cx="60" cy="60" r="54" fill="none" stroke="var(--color-surface-2)" strokeWidth="10" />
+              <circle
+                cx="60" cy="60" r="54" fill="none" stroke="var(--color-accent)" strokeWidth="10" strokeLinecap="round"
+                strokeDasharray={`${dash} ${circumference}`}
+              />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <div className="text-2xl font-extrabold text-[var(--color-heading)]">{scorePct}%</div>
+              <div className="text-xs text-[var(--color-text-dim)]">Overall</div>
+            </div>
           </div>
-          <div className="h-14" />
         </div>
         <StatCard label="Lessons completed" value={`${completedLessons.length} / ${totalLessons}`} />
         <StatCard label="Lab flags captured" value={`${capturedFlags} / ${totalFlags}`} />
@@ -75,15 +77,6 @@ export default function ProgressPage() {
           })}
         </div>
       </div>
-    </div>
-  );
-}
-
-function StatCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 flex flex-col items-center justify-center text-center">
-      <div className="text-3xl font-extrabold text-[var(--color-heading)] mb-1">{value}</div>
-      <div className="text-xs text-[var(--color-text-dim)] uppercase tracking-wide">{label}</div>
     </div>
   );
 }

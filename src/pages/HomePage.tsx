@@ -4,6 +4,7 @@ import { LABS } from '../data/labs';
 import { useProgress } from '../state/progressStore';
 import { IconChart, IconFlask, IconCheck } from '../components/layout/icons';
 import ModuleBanner from '../components/layout/ModuleBanner';
+import StatCard from '../components/common/StatCard';
 
 export default function HomePage() {
   const progress = useProgress();
@@ -52,7 +53,6 @@ export default function HomePage() {
               <ModuleBanner icon={mod.icon} moduleId={mod.id} className="h-28 w-full" />
               <div className="p-4 flex flex-col flex-1">
                 <div className="flex flex-wrap gap-1.5 mb-2">
-                  <span className="pill bg-[var(--color-surface-2)] text-[var(--color-text-dim)]">Cybersecurity</span>
                   <span className="pill bg-[var(--color-accent)]/10 text-[var(--color-accent-dim)]">{mod.lessons.length} lessons</span>
                 </div>
                 <div className="font-bold text-[var(--color-heading)] mb-1">{mod.title}</div>
@@ -83,23 +83,9 @@ export default function HomePage() {
             Active Directory, cloud, malware analysis, and binary exploitation.
           </p>
         </div>
-        <Link to="/roadmap" className="px-4 py-2 rounded-lg bg-[var(--color-accent)] text-white text-sm font-semibold hover:brightness-110 transition shrink-0">
+        <Link to="/roadmap" className="px-4 py-2 rounded-lg bg-white text-[var(--color-accent)] text-sm font-semibold hover:bg-white/90 transition shrink-0">
           View roadmap &rarr;
         </Link>
-      </div>
-    </div>
-  );
-}
-
-function StatCard({ icon, color, label, value }: { icon: React.ReactNode; color: string; label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 flex items-center gap-4">
-      <span className="w-11 h-11 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `color-mix(in srgb, ${color} 15%, transparent)`, color }}>
-        {icon}
-      </span>
-      <div>
-        <div className="text-xl font-extrabold text-[var(--color-heading)]">{value}</div>
-        <div className="text-xs text-[var(--color-text-dim)] uppercase tracking-wide">{label}</div>
       </div>
     </div>
   );

@@ -33,6 +33,7 @@ export default function LabsIndexPage() {
           <button
             key={cat}
             onClick={() => setFilter(cat)}
+            aria-pressed={filter === cat}
             className={`px-3.5 py-1.5 rounded-full text-sm font-medium border transition-colors ${
               filter === cat
                 ? 'bg-[var(--color-accent)] border-[var(--color-accent)] text-white'
@@ -47,11 +48,17 @@ export default function LabsIndexPage() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {filtered.map((lab) => (
-          <LabCard key={lab.slug} lab={lab} variant="catalog" />
-        ))}
-      </div>
+      {filtered.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-[var(--color-border)] p-10 text-center text-sm text-[var(--color-text-dim)]">
+          No labs in the "{filter}" category yet.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {filtered.map((lab) => (
+            <LabCard key={lab.slug} lab={lab} variant="catalog" />
+          ))}
+        </div>
+      )}
 
       {filter === 'All' && (
         <div className="mt-14">
