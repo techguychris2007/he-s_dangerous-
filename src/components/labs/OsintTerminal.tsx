@@ -184,23 +184,24 @@ export default function OsintTerminal({
             {l.text}
           </pre>
         ))}
-        {!busy && (
-          <div className="flex items-center gap-2">
-            <span className="text-[#e8a33d] shrink-0">{prompt}</span>
-            <input
-              ref={inputRef}
-              autoFocus
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={onKeyDown}
-              className="flex-1 bg-transparent outline-none text-[#d8d0c0] min-w-0"
-              spellCheck={false}
-              autoComplete="off"
-              autoCapitalize="off"
-            />
-          </div>
-        )}
+        {/* Always mounted, even while busy — a real terminal buffers type-ahead input instead of
+            discarding keystrokes typed while a command is still running; submit() already no-ops
+            on Enter while busy, so typed text just waits here until the prompt returns. */}
+        <div className="flex items-center gap-2">
+          <span className="text-[#e8a33d] shrink-0">{busy ? '' : prompt}</span>
+          <input
+            ref={inputRef}
+            autoFocus
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={onKeyDown}
+            className="flex-1 bg-transparent outline-none text-[#d8d0c0] min-w-0"
+            spellCheck={false}
+            autoComplete="off"
+            autoCapitalize="off"
+          />
+        </div>
         <div ref={bottomRef} />
       </div>
     </div>

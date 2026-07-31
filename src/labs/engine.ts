@@ -96,6 +96,15 @@ export class TerminalEngine {
     return s.isRoot ? 'root' : s.user;
   }
 
+  /** Real Linux: /root is mode 0700, owned by root — no other account can read, list, or traverse
+   *  into it, full stop, regardless of what's inside. Every "read the flag before you've actually
+   *  escalated" shortcut this engine needs to reject funnels through this one check. Only applies on
+   *  remote target hosts — the attacker's own /root is genuinely their own home directory. */
+  private isUnderRootDenied(path: string[]): boolean {
+    const s = this.session;
+    return !s.isAttacker && path[0] === 'root' && this.effectiveUser() !== 'root';
+  }
+
   getPrompt(): string {
     if (this.awaitingAuth) return `Password for ${this.awaitingAuth.user}@${this.awaitingAuth.ip}:`;
     const s = this.session;
@@ -121,6 +130,7 @@ export class TerminalEngine {
     const long = args.includes('-la') || args.includes('-l') || args.includes('-al');
     const positional = args.filter((a) => !a.startsWith('-'));
     const target = positional[0] ? this.resolveInSession(positional[0]) : this.session.cwd;
+    if (this.isUnderRootDenied(target)) return [{ kind: 'error', text: `ls: cannot open directory '${positional[0] ?? '.'}': Permission denied` }];
     const node = getNode(this.fsRoot(), target);
     if (!node) return [{ kind: 'error', text: `ls: cannot access '${positional[0] ?? '.'}': No such file or directory` }];
     if (node.type === 'file') return [{ kind: 'output', text: positional[0] ?? '' }];
@@ -145,6 +155,7 @@ export class TerminalEngine {
   private cd(args: string[]): OutLine[] {
     const target = args[0] ?? '~';
     const resolved = this.resolveInSession(target);
+    if (this.isUnderRootDenied(resolved)) return [{ kind: 'error', text: `bash: cd: ${target}: Permission denied` }];
     const node = getNode(this.fsRoot(), resolved);
     if (!node) return [{ kind: 'error', text: `bash: cd: ${target}: No such file or directory` }];
     if (node.type !== 'dir') return [{ kind: 'error', text: `bash: cd: ${target}: Not a directory` }];
@@ -157,6 +168,10 @@ export class TerminalEngine {
     const out: OutLine[] = [];
     for (const arg of args) {
       const resolved = this.resolveInSession(arg);
+      if (this.isUnderRootDenied(resolved)) {
+        out.push({ kind: 'error', text: `cat: ${arg}: Permission denied` });
+        continue;
+      }
       const node = getNode(this.fsRoot(), resolved);
       if (!node) {
         out.push({ kind: 'error', text: `cat: ${arg}: No such file or directory` });
@@ -177,6 +192,7 @@ export class TerminalEngine {
   private strings(args: string[], onFlag: (flag: string) => void): OutLine[] {
     if (args.length === 0) return [{ kind: 'error', text: 'strings: missing operand' }];
     const resolved = this.resolveInSession(args[0]);
+    if (this.isUnderRootDenied(resolved)) return [{ kind: 'error', text: `strings: ${args[0]}: Permission denied` }];
     const node = getNode(this.fsRoot(), resolved);
     if (!node || node.type !== 'file') return [{ kind: 'error', text: `strings: ${args[0]}: No such file or directory` }];
     const lines = node.content.split('\n').filter((l) => !l.startsWith('#FILETYPE:') && !l.startsWith('#CRACKME_'));
@@ -333,6 +349,11 @@ export class TerminalEngine {
     const regex = pattern ? new RegExp('^' + pattern.split('*').map(escapeRe).join('.*') + '$', 'i') : null;
     const results: string[] = [];
     const walk = (node: FsNode, path: string[]) => {
+      // Real `find /` as a non-root user can't descend into /root (mode 0700) at all — the
+      // directory itself is unreadable, so nothing under it is ever discoverable this way,
+      // SUID-hunting included. (Learners conventionally pipe this through 2>/dev/null anyway,
+      // which is exactly why this stays a silent skip rather than a printed error line.)
+      if (this.isUnderRootDenied(path)) return;
       const name = path[path.length - 1] ?? '';
       const nameOk = !regex || regex.test(name);
       const suidOk = !wantsSuid || (node.type === 'file' && /^-rws/.test(node.mode ?? ''));
@@ -372,6 +393,7 @@ export class TerminalEngine {
       if (match) onFlag(match[0]);
     };
     const resolved = this.resolveInSession(targetPath);
+    if (this.isUnderRootDenied(resolved)) return [{ kind: 'error', text: `grep: ${targetPath}: Permission denied` }];
     const node = getNode(this.fsRoot(), resolved);
     if (!node) return [{ kind: 'error', text: `grep: ${targetPath}: No such file or directory` }];
 
@@ -379,6 +401,7 @@ export class TerminalEngine {
       if (!recursive) return [{ kind: 'error', text: `grep: ${targetPath}: Is a directory` }];
       const out: OutLine[] = [];
       const walk = (n: FsNode, path: string[]) => {
+        if (this.isUnderRootDenied(path)) return;
         if (n.type === 'file') {
           n.content.split('\n').forEach((l) => {
             if (matchesLine(l)) {
