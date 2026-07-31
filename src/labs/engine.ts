@@ -1,4 +1,4 @@
-import { getNode, pathToString, resolvePath, type FsNode } from './vfs';
+import { getNode, setNode, pathToString, resolvePath, type FsNode } from './vfs';
 import type { HostDef, LabScenario, AwsAccountDef, AwsCredential } from './types';
 
 export type LineKind = 'input' | 'output' | 'error' | 'success' | 'system' | 'muted';
@@ -32,6 +32,7 @@ const KNOWN_COMMANDS = [
   'secretsdump', 'dig', 'nslookup', 'gobuster', 'ffuf', 'dirsearch', 'nikto', 'whatweb', 'sqlmap',
   'john', 'cewl', 'enum4linux', 'smbclient', 'masscan', 'rustscan', 'nc', 'netcat', 'sudo', 'su',
   'exit', 'logout', 'clear', 'objectives', 'hint', 'chmod', 'history', 'export', 'aws',
+  'wc', 'sort', 'uniq', 'head', 'tail', 'cut', 'tr', 'xargs',
 ];
 
 /** Simulated per-command latency, roughly proportional to how long the real tool actually takes
@@ -1267,6 +1268,9 @@ export class TerminalEngine {
       { kind: 'output', text: 'hashcat/john -m/--wordlist .., cewl <url>     — password cracking' },
       { kind: 'output', text: 'sudo -l, sudo <cmd>, exit                     — privesc / sessions' },
       { kind: 'output', text: 'objectives, hint, clear, history               — lab helpers' },
+      { kind: 'output', text: 'cmd1 | cmd2, cmd1 && cmd2, cmd1 ; cmd2         — pipes & chaining' },
+      { kind: 'output', text: 'grep/wc/sort/uniq/head/tail/cut/tr/xargs       — pipeline filters (right side of |)' },
+      { kind: 'output', text: 'cmd > file, cmd >> file, cmd 2>/dev/null       — redirects' },
     ];
   }
 
@@ -1290,6 +1294,202 @@ export class TerminalEngine {
     }
     if (!line) return [];
     if (line !== 'history') this.commandHistory.push(line);
+
+    // Zero-risk fast path: the overwhelming majority of real commands (and every existing lab's
+    // expected invocations) contain none of these characters at all, so route them straight into
+    // the original single-command dispatcher completely untouched. Only a line that actually uses
+    // shell grammar pays the cost of the quote-aware chain/pipe/redirect parser below.
+    if (!/[|;&>]/.test(line)) {
+      return this.dispatchOne(line, onFlag);
+    }
+    return this.runChain(line, onFlag);
+  }
+
+  /** Splits on top-level `;` / `&&` / `||` (outside quotes), then runs each stage's pipeline in
+   *  turn, honoring `&&`/`||` short-circuiting the same way a real shell does based on whether the
+   *  previous stage produced any error ('error' kind stands in for a non-zero exit here). */
+  private runChain(line: string, onFlag: (flag: string) => void): OutLine[] {
+    const stages = splitChain(line);
+    const out: OutLine[] = [];
+    let prevSucceeded = true;
+    for (const stage of stages) {
+      if (stage.op === '&&' && !prevSucceeded) continue;
+      if (stage.op === '||' && prevSucceeded) continue;
+      const stageText = stage.text.trim();
+      if (!stageText) continue;
+      const pipeCmds = splitPipe(stageText);
+      const { lines, succeeded } = this.runPipeline(pipeCmds, onFlag);
+      out.push(...lines);
+      prevSucceeded = succeeded;
+    }
+    return out;
+  }
+
+  /** Runs a `|`-separated pipeline: the first command executes normally (files/network/etc, exactly
+   *  like a standalone command); each subsequent stage runs as a stdin-driven filter over the
+   *  previous stage's stdout-equivalent text. A trailing `>`/`>>` on the LAST stage writes the
+   *  pipeline's final output to a real file in the current filesystem instead of printing it —
+   *  genuinely persisted, so a later `cat` on that file actually reads it back. */
+  private runPipeline(cmds: string[], onFlag: (flag: string) => void): { lines: OutLine[]; succeeded: boolean } {
+    if (cmds.length === 0) return { lines: [], succeeded: true };
+    let stdinText = '';
+    let lastLines: OutLine[] = [];
+    let sawError = false;
+    let fileRedirect: { mode: '>' | '>>'; target: string } | null = null;
+
+    cmds.forEach((rawStage, idx) => {
+      const isLast = idx === cmds.length - 1;
+      const { text, redirect, suppressStderr } = extractRedirect(rawStage);
+      if (isLast) fileRedirect = redirect;
+      if (!text) {
+        lastLines = [{ kind: 'error', text: 'bash: syntax error near unexpected token' }];
+        sawError = true;
+        stdinText = '';
+        return;
+      }
+      let lines = idx === 0 ? this.dispatchOne(text, onFlag) : this.dispatchFilter(text, stdinText, onFlag);
+      if (suppressStderr) lines = lines.filter((l) => l.kind !== 'error');
+      if (lines.some((l) => l.kind === 'error')) sawError = true;
+      stdinText = lines.filter((l) => l.kind !== 'error').map((l) => l.text).join('\n');
+      lastLines = lines;
+    });
+
+    if (fileRedirect) {
+      const writeErr = this.writeRedirectFile(fileRedirect, stdinText);
+      const stderrOnly = lastLines.filter((l) => l.kind === 'error');
+      return { lines: [...stderrOnly, ...writeErr], succeeded: !sawError && writeErr.length === 0 };
+    }
+    return { lines: lastLines, succeeded: !sawError };
+  }
+
+  /** The right-hand side of a pipe: a small set of real Unix text filters operating on the previous
+   *  stage's captured stdout text instead of a file or the network. Anything not in this list falls
+   *  back to running as a normal standalone command (matching real bash, which happily runs e.g.
+   *  `cat file | ls` — the right side just ignores stdin it never reads). */
+  private dispatchFilter(cmdText: string, stdinText: string, onFlag: (flag: string) => void): OutLine[] {
+    const [cmd, ...args] = tokenize(cmdText);
+    const inputLines = stdinText.length ? stdinText.split('\n') : [];
+    switch (cmd) {
+      case 'grep':
+        return this.grepLines(inputLines, args, onFlag);
+      case 'wc': {
+        const words = stdinText.split(/\s+/).filter(Boolean).length;
+        if (args.includes('-l')) return [{ kind: 'output', text: String(inputLines.length) }];
+        if (args.includes('-w')) return [{ kind: 'output', text: String(words) }];
+        if (args.includes('-c')) return [{ kind: 'output', text: String(stdinText.length) }];
+        return [{ kind: 'output', text: `${inputLines.length} ${words} ${stdinText.length}` }];
+      }
+      case 'sort': {
+        let sorted = [...inputLines];
+        if (args.includes('-n')) sorted.sort((a, b) => Number(a) - Number(b));
+        else sorted.sort((a, b) => a.localeCompare(b));
+        if (args.includes('-r')) sorted.reverse();
+        if (args.includes('-u')) sorted = [...new Set(sorted)];
+        return sorted.map((l) => ({ kind: 'output' as const, text: l }));
+      }
+      case 'uniq': {
+        const names: string[] = [];
+        const counts: number[] = [];
+        for (const l of inputLines) {
+          if (names.length && names[names.length - 1] === l) counts[counts.length - 1] += 1;
+          else {
+            names.push(l);
+            counts.push(1);
+          }
+        }
+        if (args.includes('-c')) return names.map((l, i) => ({ kind: 'output' as const, text: `${String(counts[i]).padStart(7)} ${l}` }));
+        return names.map((l) => ({ kind: 'output' as const, text: l }));
+      }
+      case 'head': {
+        const nIdx = args.indexOf('-n');
+        const n = nIdx >= 0 ? Number(args[nIdx + 1]) : 10;
+        return inputLines.slice(0, n).map((l) => ({ kind: 'output' as const, text: l }));
+      }
+      case 'tail': {
+        const nIdx = args.indexOf('-n');
+        const n = nIdx >= 0 ? Number(args[nIdx + 1]) : 10;
+        return inputLines.slice(-n).map((l) => ({ kind: 'output' as const, text: l }));
+      }
+      case 'cut': {
+        const dIdx = args.indexOf('-d');
+        const delim = dIdx >= 0 ? args[dIdx + 1] : '\t';
+        const fFlag = args.find((a) => a.startsWith('-f'));
+        const field = Number(fFlag === '-f' ? args[args.indexOf('-f') + 1] : fFlag?.slice(2));
+        if (!field) return [{ kind: 'error', text: 'cut: you must specify a list of fields' }];
+        return inputLines.map((l) => ({ kind: 'output' as const, text: l.split(delim as string)[field - 1] ?? '' }));
+      }
+      case 'tr': {
+        const [from, to] = args;
+        if (!from || !to) return [{ kind: 'error', text: 'usage: tr <set1> <set2>' }];
+        return inputLines.map((l) => {
+          let text = l;
+          for (let i = 0; i < from.length; i++) text = text.split(from[i]).join(to[i] ?? '');
+          return { kind: 'output' as const, text };
+        });
+      }
+      case 'xargs': {
+        const subCmd = args.join(' ');
+        if (!subCmd) return inputLines.map((l) => ({ kind: 'output' as const, text: l }));
+        const results: OutLine[] = [];
+        for (const l of inputLines) {
+          if (!l.trim()) continue;
+          results.push(...this.dispatchOne(`${subCmd} ${l.trim()}`, onFlag));
+        }
+        return results;
+      }
+      default:
+        return this.dispatchOne(cmdText, onFlag);
+    }
+  }
+
+  /** `grep` reused against a piped-in list of lines instead of a file — same matching semantics
+   *  (regex when valid, literal substring fallback otherwise) as the file-mode `grep` below. */
+  private grepLines(lines: string[], args: string[], onFlag: (flag: string) => void): OutLine[] {
+    const ignoreCase = args.includes('-i');
+    const invert = args.includes('-v');
+    const countOnly = args.includes('-c');
+    const positional = args.filter((a) => !a.startsWith('-'));
+    const rawPattern = positional[0];
+    if (!rawPattern) return [{ kind: 'error', text: 'usage: grep [-i] [-v] [-c] <pattern>' }];
+    const clean = rawPattern.replace(/^["']|["']$/g, '');
+    let regex: RegExp | null = null;
+    try {
+      regex = new RegExp(clean, ignoreCase ? 'i' : undefined);
+    } catch {
+      regex = null;
+    }
+    const needle = ignoreCase ? clean.toLowerCase() : clean;
+    const matchesLine = (l: string) => (regex ? regex.test(l) : (ignoreCase ? l.toLowerCase() : l).includes(needle));
+    const matches = lines.filter((l) => (invert ? !matchesLine(l) : matchesLine(l)));
+    matches.forEach((l) => {
+      const m = l.match(FLAG_RE);
+      if (m) onFlag(m[0]);
+    });
+    if (countOnly) return [{ kind: 'output', text: String(matches.length) }];
+    return matches.map((l) => ({ kind: 'output' as const, text: l }));
+  }
+
+  /** Genuinely persists a pipeline's final stdout to the filesystem, same as real `>`/`>>` — a
+   *  later `cat`/`grep`/etc. on that path reads back exactly what was written here. */
+  private writeRedirectFile(redirect: { mode: '>' | '>>'; target: string }, content: string): OutLine[] {
+    const resolved = this.resolveInSession(redirect.target);
+    if (this.isUnderRootDenied(resolved)) return [{ kind: 'error', text: `bash: ${redirect.target}: Permission denied` }];
+    const existing = getNode(this.fsRoot(), resolved);
+    if (existing && existing.type === 'dir') return [{ kind: 'error', text: `bash: ${redirect.target}: Is a directory` }];
+    const finalContent =
+      redirect.mode === '>>' && existing && existing.type === 'file'
+        ? existing.content
+          ? `${existing.content}\n${content}`
+          : content
+        : content;
+    setNode(this.fsRoot(), resolved, { type: 'file', content: finalContent });
+    return [];
+  }
+
+  /** The original single-command dispatcher — tokenizes one command line and runs it. This is the
+   *  leaf executor for every path (plain commands, each stage of a chain, the first stage of a
+   *  pipe) and its behavior is untouched by the chain/pipe/redirect layer above it. */
+  private dispatchOne(line: string, onFlag: (flag: string) => void): OutLine[] {
     const [cmd, ...args] = tokenize(line);
 
     switch (cmd) {
@@ -1409,6 +1609,15 @@ export class TerminalEngine {
         return this.exportVar(args);
       case 'aws':
         return this.aws(args, onFlag);
+      case 'wc':
+      case 'sort':
+      case 'uniq':
+      case 'head':
+      case 'tail':
+      case 'cut':
+      case 'tr':
+      case 'xargs':
+        return [{ kind: 'muted', text: `${cmd}: reads from standard input — pipe another command into it, e.g. cat file.txt | ${cmd}${cmd === 'tr' ? ' a b' : ''}` }];
       default: {
         const suidResult = this.runSuidBinary(cmd);
         if (suidResult) return suidResult;
@@ -1438,6 +1647,195 @@ function ipInCidr(ip: string, baseIp: string, prefix: number): boolean {
   if (ipNum === null || baseNum === null) return false;
   const mask = prefix === 0 ? 0 : (0xffffffff << (32 - prefix)) >>> 0;
   return (ipNum & mask) === (baseNum & mask);
+}
+
+/** Splits a raw line on top-level `;` / `&&` / `||` (never inside quotes), preserving which
+ *  operator preceded each resulting stage so the caller can honor `&&`/`||` short-circuiting. */
+function splitChain(line: string): { text: string; op: ';' | '&&' | '||' | null }[] {
+  const result: { text: string; op: ';' | '&&' | '||' | null }[] = [];
+  let cur = '';
+  let inS = false;
+  let inD = false;
+  let pendingOp: ';' | '&&' | '||' | null = null;
+  let i = 0;
+  while (i < line.length) {
+    const c = line[i];
+    if (inS) {
+      cur += c;
+      if (c === "'") inS = false;
+      i += 1;
+      continue;
+    }
+    if (inD) {
+      cur += c;
+      if (c === '"') inD = false;
+      i += 1;
+      continue;
+    }
+    if (c === "'") {
+      inS = true;
+      cur += c;
+      i += 1;
+      continue;
+    }
+    if (c === '"') {
+      inD = true;
+      cur += c;
+      i += 1;
+      continue;
+    }
+    if (c === '&' && line[i + 1] === '&') {
+      result.push({ text: cur, op: pendingOp });
+      pendingOp = '&&';
+      cur = '';
+      i += 2;
+      continue;
+    }
+    if (c === '|' && line[i + 1] === '|') {
+      result.push({ text: cur, op: pendingOp });
+      pendingOp = '||';
+      cur = '';
+      i += 2;
+      continue;
+    }
+    if (c === ';') {
+      result.push({ text: cur, op: pendingOp });
+      pendingOp = ';';
+      cur = '';
+      i += 1;
+      continue;
+    }
+    cur += c;
+    i += 1;
+  }
+  result.push({ text: cur, op: pendingOp });
+  return result;
+}
+
+/** Splits one chain-stage on top-level `|` (never inside quotes) into its pipeline commands. By the
+ *  time this runs, `&&`/`||` have already been fully consumed by splitChain, so a lone `|` here is
+ *  unambiguously a pipe. */
+function splitPipe(text: string): string[] {
+  const result: string[] = [];
+  let cur = '';
+  let inS = false;
+  let inD = false;
+  let i = 0;
+  while (i < text.length) {
+    const c = text[i];
+    if (inS) {
+      cur += c;
+      if (c === "'") inS = false;
+      i += 1;
+      continue;
+    }
+    if (inD) {
+      cur += c;
+      if (c === '"') inD = false;
+      i += 1;
+      continue;
+    }
+    if (c === "'") {
+      inS = true;
+      cur += c;
+      i += 1;
+      continue;
+    }
+    if (c === '"') {
+      inD = true;
+      cur += c;
+      i += 1;
+      continue;
+    }
+    if (c === '|') {
+      result.push(cur);
+      cur = '';
+      i += 1;
+      continue;
+    }
+    cur += c;
+    i += 1;
+  }
+  result.push(cur);
+  return result.map((s) => s.trim()).filter(Boolean);
+}
+
+/** Strips redirect/stderr-handling syntax (`2>/dev/null`, `2>&1`, `>`/`>>`) out of one command's raw
+ *  text, quote-aware so it never misfires on a legitimate `>` inside a quoted argument. Returns the
+ *  command with that syntax removed, plus what it meant. Later matches win, matching real bash. */
+function extractRedirect(cmdText: string): { text: string; redirect: { mode: '>' | '>>'; target: string } | null; suppressStderr: boolean } {
+  let inS = false;
+  let inD = false;
+  let suppressStderr = false;
+  let redirect: { mode: '>' | '>>'; target: string } | null = null;
+  let out = '';
+  let i = 0;
+  while (i < cmdText.length) {
+    const c = cmdText[i];
+    if (inS) {
+      out += c;
+      if (c === "'") inS = false;
+      i += 1;
+      continue;
+    }
+    if (inD) {
+      out += c;
+      if (c === '"') inD = false;
+      i += 1;
+      continue;
+    }
+    if (c === "'") {
+      inS = true;
+      out += c;
+      i += 1;
+      continue;
+    }
+    if (c === '"') {
+      inD = true;
+      out += c;
+      i += 1;
+      continue;
+    }
+    if (cmdText.startsWith('2>&1', i)) {
+      i += 4;
+      continue;
+    }
+    if (cmdText.startsWith('&>/dev/null', i)) {
+      suppressStderr = true;
+      i += 11;
+      continue;
+    }
+    if (cmdText.startsWith('2>/dev/null', i)) {
+      suppressStderr = true;
+      i += 11;
+      continue;
+    }
+    if (cmdText.startsWith('>>', i)) {
+      i += 2;
+      while (cmdText[i] === ' ') i += 1;
+      let target = '';
+      while (i < cmdText.length && cmdText[i] !== ' ') {
+        target += cmdText[i];
+        i += 1;
+      }
+      if (target) redirect = { mode: '>>', target };
+      continue;
+    }
+    if (c === '>') {
+      i += 1;
+      while (cmdText[i] === ' ') i += 1;
+      let target = '';
+      while (i < cmdText.length && cmdText[i] !== ' ') {
+        target += cmdText[i];
+        i += 1;
+      }
+      if (target) redirect = { mode: '>', target };
+      continue;
+    }
+    out += c;
+    i += 1;
+  }
+  return { text: out.trim().replace(/\s+/g, ' '), redirect, suppressStderr };
 }
 
 /** Shell-like tokenizer: splits on whitespace but keeps "..."/'...' groups (with spaces) as one token. */
