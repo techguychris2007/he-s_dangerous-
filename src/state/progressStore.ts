@@ -23,6 +23,10 @@ export interface ProgressState {
   codeTaskHintsUsed: Record<string, number>;
   /** Whether the reference solution was ever opened for a task — device-local (see SyncableProgress). */
   codeTaskSolutionRevealed: Record<string, boolean>;
+  /** Consent flag: whether this account's name + score should be visible to other learners on the
+   *  real cross-account leaderboard. False by default — synced (unlike the fields above) since it's
+   *  the actual access-control signal the leaderboard_entries() Supabase function filters on. */
+  leaderboardOptIn: boolean;
 }
 
 /** The subset that's actually synced to Supabase — `learnerName` stays device-local since it's
@@ -48,6 +52,7 @@ const EMPTY_STATE: ProgressState = {
   codeTaskAttempts: {},
   codeTaskHintsUsed: {},
   codeTaskSolutionRevealed: {},
+  leaderboardOptIn: false,
 };
 
 /** "YYYY-MM-DD" in the learner's own local timezone — deliberately not UTC, since a streak should
@@ -94,6 +99,7 @@ interface ProgressApi extends ProgressState {
   recordCodeTaskAttempt: (taskId: string) => void;
   recordCodeTaskHintUsed: (taskId: string, hintIndex: number) => void;
   recordCodeTaskSolutionRevealed: (taskId: string) => void;
+  setLeaderboardOptIn: (optIn: boolean) => void;
   /** Folds a remote snapshot into local state without ever losing progress on either side:
    *  flags/completions/bookmarks union, quiz scores take the higher value, completion
    *  timestamps take the earlier one. Safe to call with a partial/empty remote snapshot. */
@@ -199,6 +205,10 @@ export function useProgressState(): ProgressApi {
     setState((s) => (s.codeTaskSolutionRevealed[taskId] ? s : { ...s, codeTaskSolutionRevealed: { ...s.codeTaskSolutionRevealed, [taskId]: true } }));
   }, []);
 
+  const setLeaderboardOptIn = useCallback((optIn: boolean) => {
+    setState((s) => (s.leaderboardOptIn === optIn ? s : { ...s, leaderboardOptIn: optIn }));
+  }, []);
+
   const mergeFromRemote = useCallback((remote: Partial<SyncableProgress>) => {
     setState((s) => {
       const completedLessons = { ...s.completedLessons };
@@ -226,7 +236,12 @@ export function useProgressState(): ProgressApi {
       const completedCodeTasks = { ...s.completedCodeTasks };
       for (const [k, v] of Object.entries(remote.completedCodeTasks ?? {})) if (v) completedCodeTasks[k] = true;
 
-      return { ...s, completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt, completedCodeTasks };
+      // Not a "union" like the maps above — it's a single consent flag, so the remote (last
+      // synced) value wins if present at all; a local toggle after this pull re-pushes and stays
+      // authoritative from then on.
+      const leaderboardOptIn = remote.leaderboardOptIn ?? s.leaderboardOptIn;
+
+      return { ...s, completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt, completedCodeTasks, leaderboardOptIn };
     });
   }, []);
 
@@ -251,6 +266,7 @@ export function useProgressState(): ProgressApi {
       recordCodeTaskAttempt,
       recordCodeTaskHintUsed,
       recordCodeTaskSolutionRevealed,
+      setLeaderboardOptIn,
       mergeFromRemote,
     }),
     [
@@ -273,6 +289,7 @@ export function useProgressState(): ProgressApi {
       recordCodeTaskAttempt,
       recordCodeTaskHintUsed,
       recordCodeTaskSolutionRevealed,
+      setLeaderboardOptIn,
       mergeFromRemote,
     ],
   );

@@ -8,6 +8,7 @@ interface UserProgressRow {
   bookmarked_labs: Record<string, boolean>;
   lab_completed_at: Record<string, number>;
   completed_code_tasks: Record<string, boolean>;
+  leaderboard_opt_in: boolean;
 }
 
 /** Fetches the account's remote progress snapshot. Returns null on any failure (offline, table not
@@ -15,7 +16,7 @@ interface UserProgressRow {
 export async function pullProgress(userId: string): Promise<Partial<SyncableProgress> | null> {
   const { data, error } = await supabase
     .from('user_progress')
-    .select('completed_lessons, lab_flags, quiz_scores, bookmarked_labs, lab_completed_at, completed_code_tasks')
+    .select('completed_lessons, lab_flags, quiz_scores, bookmarked_labs, lab_completed_at, completed_code_tasks, leaderboard_opt_in')
     .eq('user_id', userId)
     .maybeSingle<UserProgressRow>();
 
@@ -27,6 +28,7 @@ export async function pullProgress(userId: string): Promise<Partial<SyncableProg
     bookmarkedLabs: data.bookmarked_labs ?? {},
     labCompletedAt: data.lab_completed_at ?? {},
     completedCodeTasks: data.completed_code_tasks ?? {},
+    leaderboardOptIn: data.leaderboard_opt_in ?? false,
   };
 }
 
@@ -42,6 +44,7 @@ export async function pushProgress(userId: string, progress: SyncableProgress): 
     bookmarked_labs: progress.bookmarkedLabs,
     lab_completed_at: progress.labCompletedAt,
     completed_code_tasks: progress.completedCodeTasks,
+    leaderboard_opt_in: progress.leaderboardOptIn,
     updated_at: new Date().toISOString(),
   });
   return !error;

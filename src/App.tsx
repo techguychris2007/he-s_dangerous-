@@ -101,26 +101,26 @@ function ProgressSync() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth.user]);
 
-  const { completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt, completedCodeTasks } = progress;
+  const { completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt, completedCodeTasks, leaderboardOptIn } = progress;
   useEffect(() => {
     if (!auth.user) return;
     const userId = auth.user.id;
     if (pushTimer.current) clearTimeout(pushTimer.current);
     pushTimer.current = setTimeout(() => {
-      if (navigator.onLine) pushProgress(userId, { completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt, completedCodeTasks });
+      if (navigator.onLine) pushProgress(userId, { completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt, completedCodeTasks, leaderboardOptIn });
     }, 2000);
     return () => {
       if (pushTimer.current) clearTimeout(pushTimer.current);
     };
-  }, [auth.user, completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt, completedCodeTasks]);
+  }, [auth.user, completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt, completedCodeTasks, leaderboardOptIn]);
 
   useEffect(() => {
     if (!auth.user) return;
     const userId = auth.user.id;
-    const onOnline = () => pushProgress(userId, { completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt, completedCodeTasks });
+    const onOnline = () => pushProgress(userId, { completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt, completedCodeTasks, leaderboardOptIn });
     window.addEventListener('online', onOnline);
     return () => window.removeEventListener('online', onOnline);
-  }, [auth.user, completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt, completedCodeTasks]);
+  }, [auth.user, completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt, completedCodeTasks, leaderboardOptIn]);
 
   return null;
 }
