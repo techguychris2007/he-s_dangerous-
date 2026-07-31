@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import CodeEditor from './CodeEditor';
-import { runPython, isPyodideBooted } from '../../lib/pyodideRunner';
+import { runPython, runPythonTraced, isPyodideBooted, type TraceStep } from '../../lib/pyodideRunner';
 import { runCpp } from '../../lib/cppRunner';
 import { runJs } from '../../lib/jsRunner';
 import type { CodeLanguage } from '../../labs/codeTypes';
 import { IconCheck } from '../layout/icons';
+import DebugTraceView from './DebugTraceView';
 
 interface CodeConsoleProps {
   language: CodeLanguage;
@@ -34,6 +35,7 @@ export default function CodeConsole({ language, starterCode, testCode, onAllTest
   const [output, setOutput] = useState('');
   const [status, setStatus] = useState<Status>('idle');
   const [testSummary, setTestSummary] = useState<{ passed: number; total: number } | null>(null);
+  const [trace, setTrace] = useState<{ steps: TraceStep[]; stepLimitHit: boolean } | null>(null);
 
   useEffect(() => {
     onCodeChange?.(code);
@@ -45,6 +47,7 @@ export default function CodeConsole({ language, starterCode, testCode, onAllTest
     setCode(starterCode);
     setOutput('');
     setTestSummary(null);
+    setTrace(null);
     setStatus('idle');
   }, [starterCode]);
 
@@ -53,6 +56,7 @@ export default function CodeConsole({ language, starterCode, testCode, onAllTest
     setStatus(language === 'python' && !isPyodideBooted() ? 'booting' : 'running');
     setOutput('');
     setTestSummary(null);
+    setTrace(null);
     const fullCode = withTests ? `${code}\n\n${testCode}` : code;
     const result = await RUNNERS[language](fullCode);
     const combined = [result.stdout, result.stderr].filter(Boolean).join(result.stdout && result.stderr ? '\n' : '');
@@ -68,6 +72,20 @@ export default function CodeConsole({ language, starterCode, testCode, onAllTest
         if (passed === total && total > 0) onAllTestsPassed?.();
       }
     }
+  };
+
+  /** Runs just the learner's own code (never the test harness — a debugger for someone else's
+   *  assertions isn't useful) through the real CPython line tracer instead of a plain run. */
+  const debug = async () => {
+    setStatus(!isPyodideBooted() ? 'booting' : 'running');
+    setOutput('');
+    setTestSummary(null);
+    setTrace(null);
+    const result = await runPythonTraced(code);
+    const combined = [result.stdout, result.stderr].filter(Boolean).join(result.stdout && result.stderr ? '\n' : '');
+    setOutput(combined || (result.ok ? '(no output)' : 'Something went wrong running your code.'));
+    setTrace({ steps: result.steps, stepLimitHit: result.stepLimitHit });
+    setStatus(result.ok ? 'done' : 'error');
   };
 
   const busy = status === 'booting' || status === 'running';
@@ -93,6 +111,16 @@ export default function CodeConsole({ language, starterCode, testCode, onAllTest
         >
           Run tests
         </button>
+        {language === 'python' && (
+          <button
+            onClick={debug}
+            disabled={busy}
+            title="Step through your code line by line with real variable state at each step"
+            className="px-4 py-2 rounded-lg border border-[var(--color-accent-2)]/40 text-sm font-semibold text-[var(--color-accent-2)] hover:bg-[var(--color-accent-2)]/10 disabled:opacity-50 transition-colors"
+          >
+            Debug (step through)
+          </button>
+        )}
         <button
           onClick={() => setCode(starterCode)}
           disabled={busy}
@@ -135,6 +163,8 @@ export default function CodeConsole({ language, starterCode, testCode, onAllTest
           {busy ? 'Working…' : output}
         </pre>
       )}
+
+      {trace && !busy && <DebugTraceView code={code} steps={trace.steps} stepLimitHit={trace.stepLimitHit} />}
     </div>
   );
 }
