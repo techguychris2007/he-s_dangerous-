@@ -50,15 +50,12 @@ export default function Sidebar() {
 
   return (
     <aside className="w-72 shrink-0 h-full overflow-y-auto border-r border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-5 flex flex-col">
-      <NavLink to="/" className="flex items-center gap-2.5 px-2 mb-1">
+      <NavLink to="/" className="flex items-center gap-2.5 px-2 mb-1.5">
         <Logo className="w-7 h-7 shrink-0" />
         <span className="font-extrabold text-[var(--color-heading)] tracking-tight text-lg">DarkWorld</span>
       </NavLink>
-      <div className="px-2 mb-5">
-        <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[var(--color-accent)]">Intern Portal</div>
-        <div className="text-xs font-semibold text-[var(--color-heading)] uppercase tracking-wide truncate">
-          Cybersecurity &middot; Offensive Security
-        </div>
+      <div className="px-2 mb-5 text-xs text-[var(--color-text-dim)] leading-snug">
+        Hands-on cybersecurity learning platform
       </div>
 
       <nav className="flex flex-col gap-1 mb-2">
