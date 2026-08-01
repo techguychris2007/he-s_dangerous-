@@ -57,9 +57,15 @@ function seedFor(id, variant) {
   return h % 1000000;
 }
 
+// Override with e.g. `IMAGE_MODEL=gptimage node scripts/generateModuleBanners.mjs python:gpt` to try
+// a different free backend for a specific module. See https://gen.pollinations.ai/image/models for
+// the full list — flux (Black Forest Labs), gptimage (OpenAI GPT Image 1 Mini), zimage, dreamshaper
+// are all free at time of writing.
+const MODEL = process.env.IMAGE_MODEL || 'flux';
+
 async function generateOne(m, variant) {
   const prompt = buildPrompt(m);
-  const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${WIDTH}&height=${HEIGHT}&model=flux&seed=${seedFor(m.id, variant)}&nologo=true`;
+  const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${WIDTH}&height=${HEIGHT}&model=${MODEL}&seed=${seedFor(m.id, variant)}&nologo=true`;
 
   const res = await fetch(url);
   if (!res.ok) {
@@ -96,7 +102,7 @@ async function main() {
   }
   const targets = requests.length ? requests.map((r) => ({ m: MODULES.find((mod) => mod.id === r.id), variant: r.variant })) : MODULES.map((m) => ({ m, variant: undefined }));
 
-  console.log(`Generating ${targets.length} banner(s) via Pollinations.ai (Flux)...\n`);
+  console.log(`Generating ${targets.length} banner(s) via Pollinations.ai (model: ${MODEL})...\n`);
 
   for (const { m, variant } of targets) {
     process.stdout.write(`${m.id}${variant ? `:${variant}` : ''}... `);

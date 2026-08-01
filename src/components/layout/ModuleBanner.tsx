@@ -1,10 +1,10 @@
 import { ModuleIcon } from './icons';
-import circuitBoardPhoto from '../../assets/banners/circuit-board.jpg';
 import networkingPhoto from '../../assets/banners/networking.jpg';
 import linuxPhoto from '../../assets/banners/linux.jpg';
 import reconPhoto from '../../assets/banners/recon.jpg';
 import webappPhoto from '../../assets/banners/webapp.jpg';
 import redteamPhoto from '../../assets/banners/redteam.jpg';
+import pythonPhoto from '../../assets/banners/python.jpg';
 import bugbountyPhoto from '../../assets/banners/bugbounty.jpg';
 import socPhoto from '../../assets/banners/soc.jpg';
 import forensicsPhoto from '../../assets/banners/forensics.jpg';
@@ -28,7 +28,7 @@ const BANNERS: Record<string, BannerConfig> = {
   networking: { from: '#0f2a4a', to: '#1c4f82', pattern: 'circuit', photo: networkingPhoto, fit: 'cover' },
   linux: { from: '#0d1b12', to: '#1f4d2e', pattern: 'grid', photo: linuxPhoto, fit: 'cover' },
   recon: { from: '#0c2a2e', to: '#125e63', pattern: 'scan', photo: reconPhoto, fit: 'cover' },
-  python: { from: '#12294f', to: '#d9a441', pattern: 'dots', photo: circuitBoardPhoto, fit: 'cover' },
+  python: { from: '#12294f', to: '#d9a441', pattern: 'dots', photo: pythonPhoto, fit: 'cover' },
   webapp: { from: '#241247', to: '#5b2a8c', pattern: 'grid', photo: webappPhoto, fit: 'cover' },
   redteam: { from: '#3a0d0d', to: '#7a1f1f', pattern: 'circuit', photo: redteamPhoto, fit: 'cover' },
   bugbounty: { from: '#0d2e1f', to: '#1f8a53', pattern: 'dots', photo: bugbountyPhoto, fit: 'cover' },
