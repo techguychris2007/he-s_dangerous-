@@ -27,16 +27,22 @@ export interface ProgressState {
    *  real cross-account leaderboard. False by default — synced (unlike the fields above) since it's
    *  the actual access-control signal the leaderboard_entries() Supabase function filters on. */
   leaderboardOptIn: boolean;
+  /** The Supabase user id last seen signing in on this browser — purely local bookkeeping, never
+   *  synced. Lets syncIdentity() detect "a different account just signed in on this device" (a
+   *  shared-computer scenario) and reset the device-local fields below instead of leaking the
+   *  previous account's name/streak/achievements into the new session. */
+  lastUserId: string | null;
 }
 
 /** The subset that's actually synced to Supabase — `learnerName` stays device-local since it's
  *  redundant with the account's own name/email once real accounts exist; `activityDates` and the
  *  three `codeTask*` learning-signal fields stay device-local because they're per-device engagement
  *  telemetry, not account data a second device needs to see (and syncing any of them would need a
- *  Supabase migration this change deliberately avoids requiring). */
+ *  Supabase migration this change deliberately avoids requiring). `lastUserId` is local bookkeeping
+ *  only and must never sync either. */
 export type SyncableProgress = Omit<
   ProgressState,
-  'learnerName' | 'activityDates' | 'codeTaskAttempts' | 'codeTaskHintsUsed' | 'codeTaskSolutionRevealed'
+  'learnerName' | 'activityDates' | 'codeTaskAttempts' | 'codeTaskHintsUsed' | 'codeTaskSolutionRevealed' | 'lastUserId'
 >;
 
 const STORAGE_KEY = 'hackerhub.progress.v1';
@@ -53,6 +59,7 @@ const EMPTY_STATE: ProgressState = {
   codeTaskHintsUsed: {},
   codeTaskSolutionRevealed: {},
   leaderboardOptIn: false,
+  lastUserId: null,
 };
 
 /** "YYYY-MM-DD" in the learner's own local timezone — deliberately not UTC, since a streak should
@@ -89,7 +96,12 @@ interface ProgressApi extends ProgressState {
   recordQuizScore: (lessonId: string, score: number) => void;
   resetAll: () => void;
   resetModuleProgress: (lessonIds: string[]) => void;
-  login: (name: string) => void;
+  /** Call once whenever a Supabase session becomes available, with a fallback display name derived
+   *  from the account (real name or email prefix). If this is a different account than whichever
+   *  one's data is currently sitting in this browser's device-local fields, those are reset first —
+   *  see the `lastUserId` field doc for why. Safe to call on every render; no-ops once the account
+   *  matches and a name is already set. */
+  syncIdentity: (userId: string, fallbackName: string) => void;
   logout: () => void;
   toggleBookmark: (labId: string) => void;
   isBookmarked: (labId: string) => boolean;
@@ -159,8 +171,28 @@ export function useProgressState(): ProgressApi {
     });
   }, []);
 
-  const login = useCallback((name: string) => {
-    setState((s) => ({ ...s, learnerName: name.trim() }));
+  const syncIdentity = useCallback((userId: string, fallbackName: string) => {
+    setState((s) => {
+      if (s.lastUserId === userId) {
+        // Same account as last time on this device — leave streak/achievements/etc. alone, only
+        // backfill the name if it's somehow still empty.
+        return s.learnerName ? s : { ...s, learnerName: fallbackName.trim() };
+      }
+      // Either the first sign-in ever on this browser, or a genuinely different account than
+      // whichever one's local-only data is currently here (a shared-computer scenario) — either
+      // way, the device-local fields should only ever reflect this account. Synced fields aren't
+      // touched here since pullProgress()/mergeFromRemote() immediately overwrite them with this
+      // account's real data right after this runs.
+      return {
+        ...s,
+        lastUserId: userId,
+        learnerName: fallbackName.trim(),
+        activityDates: [],
+        codeTaskAttempts: {},
+        codeTaskHintsUsed: {},
+        codeTaskSolutionRevealed: {},
+      };
+    });
   }, []);
 
   const logout = useCallback(() => {
@@ -256,7 +288,7 @@ export function useProgressState(): ProgressApi {
       recordQuizScore,
       resetAll,
       resetModuleProgress,
-      login,
+      syncIdentity,
       logout,
       toggleBookmark,
       isBookmarked,
@@ -279,7 +311,7 @@ export function useProgressState(): ProgressApi {
       recordQuizScore,
       resetAll,
       resetModuleProgress,
-      login,
+      syncIdentity,
       logout,
       toggleBookmark,
       isBookmarked,

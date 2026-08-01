@@ -61,17 +61,22 @@ function FullScreenLoader() {
 
 /** Keeps the local, device-scoped progress store's display name in sync with the authenticated
  *  Supabase account, so the rest of the app (which only knows about `progress.learnerName`) needs
- *  no changes to reflect real accounts. */
+ *  no changes to reflect real accounts. Also detects a different account signing in on this same
+ *  browser (a shared-computer scenario) via syncIdentity() and resets the device-local fields
+ *  (streak, achievements, learning-insight stats) so they never leak from one account to another. */
 function SyncAuthToProgress() {
   const auth = useAuth();
   const progress = useProgress();
 
   useEffect(() => {
-    if (auth.user && !progress.learnerName) {
-      const name = (auth.user.user_metadata?.full_name as string | undefined) || auth.user.email?.split('@')[0] || 'Learner';
-      progress.login(name);
-    }
-  }, [auth.user, progress]);
+    if (!auth.user) return;
+    const name = (auth.user.user_metadata?.full_name as string | undefined) || auth.user.email?.split('@')[0] || 'Learner';
+    progress.syncIdentity(auth.user.id, name);
+    // progress.syncIdentity is stable (useCallback) and itself no-ops once nothing needs to change;
+    // omitting it and `progress` from deps avoids re-running this every time unrelated progress
+    // state changes, since only auth.user actually determines whether this should re-run.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auth.user]);
 
   return null;
 }
