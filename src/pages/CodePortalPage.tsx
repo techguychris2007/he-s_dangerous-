@@ -9,7 +9,7 @@ import type { CodeLanguage } from '../labs/codeTypes';
 import { useProgress } from '../state/progressStore';
 import CodeTaskCard from '../components/code/CodeTaskCard';
 import Logo from '../components/layout/Logo';
-import { IconBook, IconCheck, IconCode, IconFlask } from '../components/layout/icons';
+import { IconBook, IconCheck, IconCode, IconFlask, IconSearch, IconX } from '../components/layout/icons';
 import { booksInTrack } from '../data/books';
 
 const CODE_MODULE_SLUGS = ['code-python-fundamentals', 'code-python-oop', 'code-python-advanced'];
@@ -33,6 +33,7 @@ export default function CodePortalPage() {
   const progress = useProgress();
   const [languageFilter, setLanguageFilter] = useState<CodeLanguage | 'All'>('All');
   const [categoryFilter, setCategoryFilter] = useState<string>('All');
+  const [search, setSearch] = useState('');
 
   const codeModules = CODE_MODULE_SLUGS.map((slug) => findModule(slug)).filter((m): m is NonNullable<typeof m> => Boolean(m));
   const totalLessons = codeModules.reduce((sum, m) => sum + m.lessons.length, 0);
@@ -47,9 +48,11 @@ export default function CodePortalPage() {
     return CATEGORIES_BY_LANGUAGE[languageFilter];
   }, [languageFilter]);
 
+  const search_ = search.trim().toLowerCase();
   const filteredTasks = ALL_TASKS.filter((t) => {
     if (languageFilter !== 'All' && t.language !== languageFilter) return false;
     if (categoryFilter !== 'All' && t.category !== categoryFilter) return false;
+    if (search_ && !t.title.toLowerCase().includes(search_) && !t.category.toLowerCase().includes(search_)) return false;
     return true;
   });
 
@@ -88,12 +91,18 @@ export default function CodePortalPage() {
             feedback.
           </p>
           <div className="flex flex-wrap gap-4">
-            <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
-              <div className="text-lg font-bold text-white">{lessonsDone}/{totalLessons}</div>
+            <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3 min-w-[160px]">
+              <div className="text-lg font-bold text-white mb-1.5">{lessonsDone}/{totalLessons}</div>
+              <div className="h-1 rounded-full bg-white/15 overflow-hidden mb-1.5">
+                <div className="h-full rounded-full bg-[var(--color-accent)]" style={{ width: `${totalLessons ? (100 * lessonsDone) / totalLessons : 0}%` }} />
+              </div>
               <div className="text-[11px] text-white/60 uppercase tracking-wide">Lessons complete</div>
             </div>
-            <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
-              <div className="text-lg font-bold text-white">{tasksDone}/{ALL_TASKS.length}</div>
+            <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3 min-w-[160px]">
+              <div className="text-lg font-bold text-white mb-1.5">{tasksDone}/{ALL_TASKS.length}</div>
+              <div className="h-1 rounded-full bg-white/15 overflow-hidden mb-1.5">
+                <div className="h-full rounded-full bg-[var(--color-success)]" style={{ width: `${ALL_TASKS.length ? (100 * tasksDone) / ALL_TASKS.length : 0}%` }} />
+              </div>
               <div className="text-[11px] text-white/60 uppercase tracking-wide">Tasks solved</div>
             </div>
             <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
@@ -175,6 +184,27 @@ export default function CodePortalPage() {
             tests," get an instant PASS/FAIL report.
           </p>
 
+          <div className="relative mb-4 max-w-md">
+            <IconSearch className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-dim)] pointer-events-none" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search tasks by name or category&hellip;"
+              aria-label="Search practice tasks"
+              className="w-full pl-9 pr-9 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-sm text-[var(--color-heading)] placeholder:text-[var(--color-text-dim)] outline-none focus:border-[var(--color-accent)]/60 transition-colors"
+            />
+            {search && (
+              <button
+                onClick={() => setSearch('')}
+                aria-label="Clear search"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center text-[var(--color-text-dim)] hover:text-[var(--color-heading)] hover:bg-[var(--color-surface-2)]"
+              >
+                <IconX className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+
           <div className="flex flex-wrap gap-2 mb-3">
             {LANGUAGE_TABS.map((tab) => (
               <button
@@ -217,6 +247,11 @@ export default function CodePortalPage() {
             ))}
           </div>
 
+          {filteredTasks.length === 0 && (
+            <div className="rounded-xl border border-dashed border-[var(--color-border)] p-10 text-center text-sm text-[var(--color-text-dim)] mb-5">
+              {search_ ? <>No tasks match &ldquo;{search}&rdquo;.</> : 'No tasks match this filter.'}
+            </div>
+          )}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {filteredTasks.map((task) => (
               <CodeTaskCard key={task.id} task={task} />
