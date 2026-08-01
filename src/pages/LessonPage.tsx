@@ -21,6 +21,7 @@ export default function LessonPage() {
   const prev = mod.lessons[idx - 1];
   const next = mod.lessons[idx + 1];
   const complete = progress.isLessonComplete(lesson.id);
+  const completedInModule = mod.lessons.filter((l) => progress.isLessonComplete(l.id)).length;
   const { Content } = lesson;
   const labSlugs = labsForLesson(lesson.id);
   const quiz = lesson.quiz;
@@ -29,8 +30,15 @@ export default function LessonPage() {
     <div className="h-full flex flex-col lg:flex-row">
       <div className="flex-1 min-w-0 h-full overflow-y-auto">
         <div className="max-w-3xl mx-auto px-8 py-12">
-          <div className="text-xs text-[var(--color-text-dim)] mb-3 font-mono">
-            {mod.title} &middot; {lesson.minutes} min read
+          <div className="flex items-center justify-between gap-3 text-xs text-[var(--color-text-dim)] mb-2 font-mono">
+            <span>{mod.title} &middot; {lesson.minutes} min read</span>
+            <span className="shrink-0">Lesson {idx + 1} of {mod.lessons.length}</span>
+          </div>
+          <div className="h-1 rounded-full bg-[var(--color-surface-2)] overflow-hidden mb-6">
+            <div
+              className="h-full rounded-full bg-[var(--color-accent)] transition-all"
+              style={{ width: `${(completedInModule / mod.lessons.length) * 100}%` }}
+            />
           </div>
 
           <div ref={contentRef}>
