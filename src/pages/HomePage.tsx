@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom';
 import { MODULES } from '../data/curriculum';
-import { LABS } from '../data/labs';
+import { LABS, LAB_CATEGORIES, labsForCategory } from '../data/labs';
 import { useProgress } from '../state/progressStore';
 import { ACHIEVEMENTS, computeStreak } from '../data/achievements';
-import { IconChart, IconFlask, IconCheck, IconFlag, IconArrowRight } from '../components/layout/icons';
+import { IconChart, IconFlask, IconCheck, IconFlag, IconArrowRight, ModuleIcon } from '../components/layout/icons';
 import ModuleBanner from '../components/layout/ModuleBanner';
 import StatCard from '../components/common/StatCard';
+import { CATEGORY_BANNER } from '../components/labs/LabCard';
 
 export default function HomePage() {
   const progress = useProgress();
@@ -20,6 +21,13 @@ export default function HomePage() {
   const labsDone = LABS.filter((l) => progress.flagCount(l.scenario.id) >= l.scenario.totalFlags).length;
   const streak = computeStreak(progress.activityDates);
   const unlockedAchievements = ACHIEVEMENTS.filter((a) => a.isUnlocked(progress));
+
+  // "What skills am I building?" — real per-category lab completion, not a fabricated skill score.
+  const skillProgress = LAB_CATEGORIES.map((category) => {
+    const catLabs = labsForCategory(category);
+    const done = catLabs.filter((l) => progress.flagCount(l.scenario.id) >= l.scenario.totalFlags).length;
+    return { category, done, total: catLabs.length };
+  });
 
   // "What should I do next?" — an in-progress lab wins (you already have real momentum on it);
   // otherwise the next incomplete lesson in curriculum order; otherwise everything's done.
@@ -118,7 +126,30 @@ export default function HomePage() {
         </div>
       )}
 
-      <h2 className="text-base font-bold text-[var(--color-heading)] mb-4 reveal" style={{ '--reveal-delay': '0.18s' } as React.CSSProperties}>Modules</h2>
+      <h2 className="text-base font-bold text-[var(--color-heading)] mb-4 reveal" style={{ '--reveal-delay': '0.16s' } as React.CSSProperties}>Skills</h2>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-10 reveal" style={{ '--reveal-delay': '0.18s' } as React.CSSProperties}>
+        {skillProgress.map(({ category, done, total }) => (
+          <Link
+            key={category}
+            to={`/labs?category=${encodeURIComponent(category)}`}
+            className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3.5 hover:border-[var(--color-accent)]/50 transition-colors"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <ModuleIcon icon={CATEGORY_BANNER[category] ?? 'linux'} className="w-4 h-4 text-[var(--color-accent)] shrink-0" />
+              <span className="text-sm font-semibold text-[var(--color-heading)] truncate">{category}</span>
+            </div>
+            <div className="h-1.5 rounded-full bg-[var(--color-surface-2)] overflow-hidden mb-1.5">
+              <div
+                className={`h-full rounded-full ${done === total && total > 0 ? 'bg-[var(--color-success)]' : 'bg-[var(--color-accent)]'}`}
+                style={{ width: `${total ? (100 * done) / total : 0}%` }}
+              />
+            </div>
+            <div className="text-xs text-[var(--color-text-dim)]">{done}/{total} labs</div>
+          </Link>
+        ))}
+      </div>
+
+      <h2 className="text-base font-bold text-[var(--color-heading)] mb-4 reveal" style={{ '--reveal-delay': '0.22s' } as React.CSSProperties}>Modules</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-10">
         {MODULES.map((mod, i) => {
           const done = mod.lessons.filter((l) => progress.isLessonComplete(l.id)).length;
@@ -128,7 +159,7 @@ export default function HomePage() {
               key={mod.id}
               to={mod.lessons.length ? `/module/${mod.slug}/lesson/${mod.lessons[0].slug}` : '/roadmap'}
               className="group rounded-xl overflow-hidden border border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-accent)]/50 hover:shadow-md transition-all flex flex-col reveal"
-              style={{ '--reveal-delay': `${0.22 + Math.min(i, 5) * 0.05}s` } as React.CSSProperties}
+              style={{ '--reveal-delay': `${0.26 + Math.min(i, 5) * 0.05}s` } as React.CSSProperties}
             >
               <ModuleBanner icon={mod.icon} moduleId={mod.id} className="h-28 w-full" />
               <div className="p-4 flex flex-col flex-1">

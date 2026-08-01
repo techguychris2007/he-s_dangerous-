@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { LABS, LAB_CATEGORIES, LABS_IN_ROADMAP_ORDER } from '../data/labs';
 import { OSINT_LABS } from '../labs/osintScenarios';
 import { useProgress } from '../state/progressStore';
@@ -15,7 +16,12 @@ const DIFFICULTY_ACTIVE_CLASS: Record<string, string> = {
 
 export default function LabsIndexPage() {
   const progress = useProgress();
-  const [filter, setFilter] = useState<string>('All');
+  const [searchParams] = useSearchParams();
+  // Deep-linkable via ?category=<name> (e.g. from the Dashboard's skills breakdown) — falls back to
+  // "All" for a bad/missing param instead of silently showing an empty catalog.
+  const categoryParam = searchParams.get('category');
+  const initialCategory = categoryParam && (LAB_CATEGORIES as readonly string[]).includes(categoryParam) ? categoryParam : 'All';
+  const [filter, setFilter] = useState<string>(initialCategory);
   const [difficultyFilter, setDifficultyFilter] = useState<string>('All');
   const [search, setSearch] = useState('');
 
