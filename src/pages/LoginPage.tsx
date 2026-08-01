@@ -94,8 +94,12 @@ export default function LoginPage() {
       setSubmitting(false);
       if (signUpError) return setError(signUpError);
       if (needsEmailConfirm) {
-        setInfo('Account created — check your email to confirm it before signing in.');
+        // switchMode() itself resets `info` to null — call it FIRST so the success message set right
+        // after is what actually survives to the next render, not silently clobbered by the same
+        // batched update. (This is exactly the bug that shipped before: the message was computed but
+        // never visible, leaving a new user with no idea they needed to check their email.)
         switchMode('signin');
+        setInfo('Account created — check your email to confirm it before signing in.');
         return;
       }
       navigate('/', { replace: true });
