@@ -40,7 +40,13 @@ export default function Companion() {
     const currentCompleted = new Set(LABS.filter((l) => isDone(progress, l)).map((l) => l.scenario.id));
 
     if (prevCompletedIds.current === null) {
-      // first mount / first render after a full reload — just establish the baseline, no celebration.
+      // first mount / first render after a full reload — never show a celebration toast for something
+      // the learner may have actually finished hours or days ago, BUT still record completion for
+      // anything already done: markLabCompleted is the only place labCompletedAt is ever written, so
+      // a lab that crossed its flag threshold while the app wasn't open (e.g. a multi-lab remote
+      // merge on a fresh device) would otherwise silently never get recorded on this device at all —
+      // it's already a guarded no-op for anything that's genuinely already recorded.
+      for (const id of currentCompleted) progress.markLabCompleted(id);
       prevCompletedIds.current = currentCompleted;
       return;
     }
@@ -49,10 +55,14 @@ export default function Companion() {
     prevCompletedIds.current = currentCompleted;
     if (newlyDone.length === 0) return;
 
+    // Record completion for every lab that just crossed the finish line in this update, not just the
+    // one the toast below celebrates — labCompletedAt is what the "N labs completed" achievements key
+    // off, and prevCompletedIds has already advanced past all of them above, so any lab left out here
+    // could never trigger this again on a later render.
+    for (const id of newlyDone) progress.markLabCompleted(id);
+
     const lab = LABS.find((l) => l.scenario.id === newlyDone[0]);
     if (!lab) return;
-
-    progress.markLabCompleted(lab.scenario.id);
 
     const now = Date.now();
     const otherTimestamps = Object.entries(progress.labCompletedAt)
