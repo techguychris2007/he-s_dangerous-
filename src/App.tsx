@@ -31,7 +31,7 @@ import InstructorDashboardPage from './pages/InstructorDashboardPage';
 import InstallPrompt from './components/layout/InstallPrompt';
 import { ProgressContext, useProgressState, useProgress } from './state/progressStore';
 import { AuthContext, useAuthState, useAuth } from './state/authStore';
-import { pullProgress, pushProgress } from './lib/progressSync';
+import { pullProgress, pushProgressWithRetry } from './lib/progressSync';
 import { isInstructor } from './lib/instructorConfig';
 
 function RequireLogin({ children }: { children: React.ReactNode }) {
@@ -113,7 +113,7 @@ function ProgressSync() {
     const userId = auth.user.id;
     if (pushTimer.current) clearTimeout(pushTimer.current);
     pushTimer.current = setTimeout(() => {
-      if (navigator.onLine) pushProgress(userId, { completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt, completedCodeTasks, leaderboardOptIn });
+      if (navigator.onLine) pushProgressWithRetry(userId, { completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt, completedCodeTasks, leaderboardOptIn });
     }, 2000);
     return () => {
       if (pushTimer.current) clearTimeout(pushTimer.current);
@@ -123,7 +123,7 @@ function ProgressSync() {
   useEffect(() => {
     if (!auth.user) return;
     const userId = auth.user.id;
-    const onOnline = () => pushProgress(userId, { completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt, completedCodeTasks, leaderboardOptIn });
+    const onOnline = () => pushProgressWithRetry(userId, { completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt, completedCodeTasks, leaderboardOptIn });
     window.addEventListener('online', onOnline);
     return () => window.removeEventListener('online', onOnline);
   }, [auth.user, completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt, completedCodeTasks, leaderboardOptIn]);

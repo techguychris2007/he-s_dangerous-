@@ -80,8 +80,12 @@ export async function runPython(code: string): Promise<RunResult> {
   const pyodide = await getPyodide();
   let stdout = '';
   let stderr = '';
-  pyodide.setStdout({ batched: (msg) => { stdout += msg; } });
-  pyodide.setStderr({ batched: (msg) => { stderr += msg; } });
+  // Pyodide's "batched" callback delivers one complete line per call with the trailing newline
+  // already stripped — without adding it back, consecutive print()s run together with no separator
+  // at all (e.g. "expected False__RESULT__ 0/9"), which also broke the Code Portal's own last-line
+  // result-line detection, not just readability.
+  pyodide.setStdout({ batched: (msg) => { stdout += msg + '\n'; } });
+  pyodide.setStderr({ batched: (msg) => { stderr += msg + '\n'; } });
   try {
     await pyodide.loadPackagesFromImports(code);
     await pyodide.runPythonAsync(code);
@@ -157,8 +161,12 @@ export async function runPythonTraced(code: string): Promise<TracedRunResult> {
   const pyodide = await getPyodide();
   let stdout = '';
   let stderr = '';
-  pyodide.setStdout({ batched: (msg) => { stdout += msg; } });
-  pyodide.setStderr({ batched: (msg) => { stderr += msg; } });
+  // Pyodide's "batched" callback delivers one complete line per call with the trailing newline
+  // already stripped — without adding it back, consecutive print()s run together with no separator
+  // at all (e.g. "expected False__RESULT__ 0/9"), which also broke the Code Portal's own last-line
+  // result-line detection, not just readability.
+  pyodide.setStdout({ batched: (msg) => { stdout += msg + '\n'; } });
+  pyodide.setStderr({ batched: (msg) => { stderr += msg + '\n'; } });
   pyodide.globals.set('__user_code__', code);
   try {
     await pyodide.loadPackagesFromImports(code);

@@ -22,7 +22,21 @@ interface CodeConsoleProps {
 
 type Status = 'idle' | 'booting' | 'running' | 'error' | 'done';
 
-const RESULT_RE = /__RESULT__ (\d+)\/(\d+)/;
+// Anchored to a full line (^...$) and checked only against the LAST non-empty line of stdout — the
+// harness's result line is always the final thing testCode prints (it runs after the learner's own
+// code). Matching anywhere in stdout would let a learner "pass" by printing a fake matching line of
+// their own before their real code runs; requiring it to be the trailing line means a real result
+// from the harness always wins even if a fake one was printed earlier.
+const RESULT_RE = /^__RESULT__ (\d+)\/(\d+)$/;
+
+function lastNonEmptyLine(text: string): string {
+  const lines = text.split('\n');
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const line = lines[i].trim();
+    if (line) return line;
+  }
+  return '';
+}
 
 const RUNNERS: Record<CodeLanguage, (code: string) => Promise<{ stdout: string; stderr: string; ok: boolean }>> = {
   python: runPython,
@@ -64,7 +78,7 @@ export default function CodeConsole({ language, starterCode, testCode, onAllTest
     setStatus(result.ok ? 'done' : 'error');
 
     if (withTests) {
-      const m = result.stdout.match(RESULT_RE);
+      const m = lastNonEmptyLine(result.stdout).match(RESULT_RE);
       if (m) {
         const passed = Number(m[1]);
         const total = Number(m[2]);
