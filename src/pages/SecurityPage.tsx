@@ -2,20 +2,24 @@ import { IconShieldCheck, IconLock } from '../components/layout/icons';
 
 const POINTS: { title: string; body: string }[] = [
   {
-    title: 'Nothing you type is sent anywhere',
-    body: 'The terminal, labs, and lessons all run as client-side JavaScript. There is no backend API this app calls to execute a command, check a flag, or record a completion — every "network" you attack is a plain in-memory data structure.',
+    title: 'Every command you type stays 100% client-side',
+    body: 'The terminal, labs, and SIEM consoles all run as client-side JavaScript against an in-memory simulated filesystem/network. There is no backend that executes your commands, checks a flag, or scores a lab — every "network" you attack is a plain data structure in your own browser tab.',
   },
   {
-    title: 'No account, no password, no server-side identity',
-    body: 'Your "login" is a display name stored in localStorage. There is nothing to breach because there is no credential store, no session token, and no server holding your data in the first place.',
+    title: 'Real accounts, protected by Row Level Security',
+    body: 'Signing in uses real Supabase Auth (email + password) — this is a genuine credential store with hashed passwords and session tokens, not a display-name-only login. Your lesson/lab/quiz progress is stored server-side so it follows you across devices, but Row Level Security means your account can only ever read or write its own row — not another learner\'s, not even an admin\'s, without an explicit, narrowly-scoped exception (see below).',
+  },
+  {
+    title: 'Two deliberately narrow exceptions to "only you can see your data"',
+    body: 'An opt-in leaderboard (off by default) can show your name and score to other learners — nothing else, and never unless you turn it on yourself. Separately, one specific instructor account can view cohort-wide progress for teaching purposes, enforced by a server-side check on the caller\'s identity, not a setting the app\'s frontend controls.',
   },
   {
     title: 'No analytics, no tracking scripts, no third-party requests',
-    body: 'This build ships with zero third-party analytics or tracking pixels. Your click-path, time-on-lesson, and lab attempts are not observed by anyone, including the people who built this platform.',
+    body: 'This build ships with zero third-party analytics or tracking pixels. Your click-path and time-on-lesson are not observed by anyone — the only network calls this app makes are to Supabase, for the account/progress sync described above.',
   },
   {
-    title: 'Your data lives and dies with your browser storage',
-    body: 'Progress persists only in localStorage on the device and browser profile you used. Clearing site data, using a private/incognito window, or switching browsers starts you over — there is no cloud backup because there is no cloud component at all.',
+    title: 'Some signals are deliberately local-only, not synced',
+    body: 'Your streak, unlocked achievements, and Code Portal learning-insight stats (hints used, attempts per solve) live only in this browser\'s local storage — clearing site data or switching browsers resets those specifically, without touching your synced lesson/lab/quiz progress.',
   },
 ];
 
