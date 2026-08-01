@@ -1,10 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { findModule, findLesson } from '../../data/curriculum';
+import { MODULES, findModule, findLesson } from '../../data/curriculum';
 import { findLab } from '../../data/labs';
 import { useProgress } from '../../state/progressStore';
 import { useTheme } from '../../state/theme';
 import { IconMenu, IconSun, IconMoon, IconBell, IconCheck, IconFlag } from './icons';
+
+/** completedLessons is keyed by lesson id, not slug — there's no direct id lookup in curriculum.ts,
+ *  so this scans once. Fine at this scale (a few hundred lessons total, called from a useMemo). */
+function findLessonTitleById(lessonId: string): string | undefined {
+  for (const mod of MODULES) {
+    const lesson = mod.lessons.find((l) => l.id === lessonId);
+    if (lesson) return lesson.title;
+  }
+  return undefined;
+}
 
 const PAGE_TITLES: Record<string, string> = {
   tasks: 'My tasks',
@@ -45,10 +55,13 @@ function useRecentActivity(): Notification[] {
   return useMemo(() => {
     const items: Notification[] = [];
     for (const [labId, flags] of Object.entries(progress.labFlags)) {
-      for (const flag of flags) items.push({ key: `${labId}:${flag}`, text: `Captured a flag in ${labId}`, icon: 'flag' });
+      const labTitle = findLab(labId)?.scenario.title ?? labId;
+      for (const flag of flags) items.push({ key: `${labId}:${flag}`, text: `Captured a flag in ${labTitle}`, icon: 'flag' });
     }
     for (const lessonId of Object.keys(progress.completedLessons)) {
-      if (progress.completedLessons[lessonId]) items.push({ key: `lesson:${lessonId}`, text: `Completed lesson ${lessonId}`, icon: 'check' });
+      if (progress.completedLessons[lessonId]) {
+        items.push({ key: `lesson:${lessonId}`, text: `Completed "${findLessonTitleById(lessonId) ?? lessonId}"`, icon: 'check' });
+      }
     }
     return items.slice(-6).reverse();
   }, [progress.labFlags, progress.completedLessons]);

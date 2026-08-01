@@ -31,6 +31,14 @@ const navItemClass = ({ isActive }: { isActive: boolean }) =>
       : 'text-[var(--color-text)] border-transparent hover:bg-[var(--color-surface-2)] hover:text-[var(--color-heading)]'
   }`;
 
+function NavSectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="px-3 mt-4 mb-1 text-[10px] font-mono font-bold uppercase tracking-widest text-[var(--color-text-dim)] first:mt-0">
+      {children}
+    </div>
+  );
+}
+
 export default function Sidebar() {
   const progress = useProgress();
   const auth = useAuth();
@@ -53,13 +61,28 @@ export default function Sidebar() {
         </div>
       </div>
 
-      <nav className="flex flex-col gap-1 mb-6">
+      <nav className="flex flex-col gap-1 mb-2">
+        <NavSectionLabel>Learn</NavSectionLabel>
         <NavLink to="/" end className={navItemClass}>
           <IconDashboard className="w-4 h-4" /> Dashboard
         </NavLink>
         <NavLink to="/labs" className={navItemClass}>
           <IconFlask className="w-4 h-4" /> Labs
         </NavLink>
+        <NavLink to="/code-portal" className={navItemClass}>
+          <IconCode className="w-4 h-4" /> Code Portal
+          <IconExternal className="w-3 h-3 ml-auto opacity-60" />
+        </NavLink>
+        <NavLink to="/ml-portal" className={navItemClass}>
+          <IconChart className="w-4 h-4" /> ML Portal
+          <IconExternal className="w-3 h-3 ml-auto opacity-60" />
+        </NavLink>
+        <NavLink to="/soc-portal" className={navItemClass}>
+          <IconShieldCheck className="w-4 h-4" /> SOC Portal
+          <IconExternal className="w-3 h-3 ml-auto opacity-60" />
+        </NavLink>
+
+        <NavSectionLabel>Track</NavSectionLabel>
         <NavLink to="/tasks" className={navItemClass}>
           <IconCheck className="w-4 h-4" /> My tasks
           {tasksRemaining > 0 && (
@@ -74,18 +97,26 @@ export default function Sidebar() {
         <NavLink to="/roadmap" className={navItemClass}>
           <IconMap className="w-4 h-4" /> Roadmap
         </NavLink>
-        <NavLink to="/schedule" className={navItemClass}>
-          <IconCalendar className="w-4 h-4" /> Schedule
-        </NavLink>
         <NavLink to="/leaderboard" className={navItemClass}>
           <IconTrophy className="w-4 h-4" /> Leaderboard
+        </NavLink>
+
+        <NavSectionLabel>Resources</NavSectionLabel>
+        <NavLink to="/library" className={navItemClass}>
+          <IconBook className="w-4 h-4" /> Library
+          <IconExternal className="w-3 h-3 ml-auto opacity-60" />
         </NavLink>
         <NavLink to="/resources" className={navItemClass}>
           <IconBook className="w-4 h-4" /> Resources
         </NavLink>
+        <NavLink to="/schedule" className={navItemClass}>
+          <IconCalendar className="w-4 h-4" /> Schedule
+        </NavLink>
         <NavLink to="/announcements" className={navItemClass}>
           <IconMegaphone className="w-4 h-4" /> Announcements
         </NavLink>
+
+        <NavSectionLabel>Account</NavSectionLabel>
         <NavLink to="/profile" className={navItemClass}>
           <IconUser className="w-4 h-4" /> Profile
         </NavLink>
@@ -95,26 +126,13 @@ export default function Sidebar() {
         <NavLink to="/help" className={navItemClass}>
           <IconHelp className="w-4 h-4" /> Help &amp; FAQ
         </NavLink>
-        <NavLink to="/soc-portal" className={navItemClass}>
-          <IconShieldCheck className="w-4 h-4" /> SOC Portal
-          <IconExternal className="w-3 h-3 ml-auto opacity-60" />
-        </NavLink>
-        <NavLink to="/code-portal" className={navItemClass}>
-          <IconCode className="w-4 h-4" /> Code Portal
-          <IconExternal className="w-3 h-3 ml-auto opacity-60" />
-        </NavLink>
-        <NavLink to="/ml-portal" className={navItemClass}>
-          <IconChart className="w-4 h-4" /> ML Portal
-          <IconExternal className="w-3 h-3 ml-auto opacity-60" />
-        </NavLink>
-        <NavLink to="/library" className={navItemClass}>
-          <IconBook className="w-4 h-4" /> Library
-          <IconExternal className="w-3 h-3 ml-auto opacity-60" />
-        </NavLink>
         {isInstructor(auth.user?.email) && (
-          <NavLink to="/instructor" className={navItemClass}>
-            <IconCrown className="w-4 h-4" /> Instructor Dashboard
-          </NavLink>
+          <>
+            <NavSectionLabel>Instructor</NavSectionLabel>
+            <NavLink to="/instructor" className={navItemClass}>
+              <IconCrown className="w-4 h-4" /> Instructor Dashboard
+            </NavLink>
+          </>
         )}
       </nav>
 
@@ -195,13 +213,15 @@ export default function Sidebar() {
       </div>
 
       <div className="border-t border-[var(--color-border)] pt-3 mt-3 flex items-center gap-2.5 px-2">
-        <span className="w-8 h-8 rounded-full bg-[var(--color-accent)] text-white text-xs font-bold flex items-center justify-center shrink-0">
-          {initial}
-        </span>
-        <div className="min-w-0 flex-1">
-          <div className="text-sm font-semibold text-[var(--color-heading)] truncate">{progress.learnerName}</div>
-          <div className="text-[11px] text-[var(--color-text-dim)] truncate">Cybersecurity &middot; Offensive Security</div>
-        </div>
+        <NavLink to="/profile" className="flex items-center gap-2.5 min-w-0 flex-1 group">
+          <span className="w-8 h-8 rounded-full bg-[var(--color-accent)] text-white text-xs font-bold flex items-center justify-center shrink-0">
+            {initial}
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-semibold text-[var(--color-heading)] truncate">{progress.learnerName}</div>
+            <div className="text-[11px] text-[var(--color-text-dim)] group-hover:text-[var(--color-accent)] transition-colors">View profile</div>
+          </div>
+        </NavLink>
         <button
           onClick={() => {
             auth.signOut();
