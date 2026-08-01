@@ -29,6 +29,8 @@ export default function LabPage() {
   const autoCheckedCount =
     captured >= scenario.totalFlags ? scenario.objectives.length : Math.min(commandCount, scenario.objectives.length);
 
+  const done = captured >= scenario.totalFlags;
+
   return (
     <div className="h-full flex flex-col lg:flex-row">
       <div className="lg:w-96 shrink-0 border-b lg:border-b-0 lg:border-r border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-6 overflow-y-auto">
@@ -39,22 +41,22 @@ export default function LabPage() {
             {captured}/{scenario.totalFlags} flags
           </span>
         </div>
+        <div className="h-1 rounded-full bg-[var(--color-surface-2)] overflow-hidden mb-3">
+          <div
+            className={`h-full rounded-full transition-all ${done ? 'bg-[var(--color-success)]' : 'bg-[var(--color-accent)]'}`}
+            style={{ width: `${Math.round((100 * captured) / scenario.totalFlags)}%` }}
+          />
+        </div>
         <h1 className="text-2xl font-bold text-[var(--color-heading)] mb-3">{scenario.title}</h1>
         <p className="text-sm text-[var(--color-text-dim)] leading-relaxed mb-5">{scenario.briefing}</p>
 
-        <div className="mb-6">
-          <StepChecklist steps={scenario.objectives} autoCheckedCount={autoCheckedCount} />
-        </div>
-
-        <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] p-3 text-xs text-[var(--color-text-dim)] leading-relaxed">
-          Stuck? Type <code className="text-[var(--color-accent-2)]">hint</code> in the terminal for a
-          progressive nudge, or <code className="text-[var(--color-accent-2)]">objectives</code> to
-          re-read your goals. Type <code className="text-[var(--color-accent-2)]">help</code> for the full
-          command list.
-        </div>
-
-        {captured >= scenario.totalFlags && (
-          <div className="mt-5">
+        {/* The single most important thing to see the moment the last flag lands — placed before the
+            checklist instead of appended after it, so it's never buried below a long objectives list. */}
+        {done && (
+          <div
+            className="rounded-xl border border-[var(--color-success)]/30 bg-[var(--color-success)]/5 p-4 mb-6"
+            style={{ boxShadow: 'var(--shadow-card)' }}
+          >
             <div className="flex items-center gap-2 text-sm font-semibold text-[var(--color-success)] mb-3">
               <IconCheck className="w-4 h-4" /> Lab complete — all flags captured!
             </div>
@@ -64,6 +66,19 @@ export default function LabPage() {
             >
               Generate shareable documentation &rarr;
             </button>
+          </div>
+        )}
+
+        <div className="mb-6">
+          <StepChecklist steps={scenario.objectives} autoCheckedCount={autoCheckedCount} />
+        </div>
+
+        {!done && (
+          <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] p-3 text-xs text-[var(--color-text-dim)] leading-relaxed">
+            Stuck? Type <code className="text-[var(--color-accent-2)]">hint</code> in the terminal for a
+            progressive nudge, or <code className="text-[var(--color-accent-2)]">objectives</code> to
+            re-read your goals. Type <code className="text-[var(--color-accent-2)]">help</code> for the full
+            command list.
           </div>
         )}
       </div>
