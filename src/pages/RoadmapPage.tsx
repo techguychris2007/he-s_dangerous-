@@ -40,6 +40,7 @@ export default function RoadmapPage() {
           <button
             key={tab.value}
             onClick={() => setTrack(tab.value)}
+            aria-pressed={track === tab.value}
             className={`px-4 py-2 rounded-full text-sm font-semibold border transition-colors ${
               track === tab.value
                 ? 'bg-[var(--color-accent)] border-[var(--color-accent)] text-white'

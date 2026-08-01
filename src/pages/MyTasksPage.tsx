@@ -45,6 +45,7 @@ export default function MyTasksPage() {
           <button
             key={key}
             onClick={() => setFilter(key)}
+            aria-pressed={filter === key}
             className={`px-3.5 py-1.5 rounded-full text-sm font-medium border transition-colors ${
               filter === key
                 ? 'bg-[var(--color-accent)] border-[var(--color-accent)] text-white'

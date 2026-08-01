@@ -198,6 +198,7 @@ export default function BookReaderPage() {
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => setSearchOpen((v) => !v)}
+              aria-pressed={searchOpen}
               className={`pill flex items-center gap-1 border ${
                 searchOpen
                   ? 'bg-[var(--color-accent)] border-[var(--color-accent)] text-white'
