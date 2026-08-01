@@ -225,3 +225,14 @@ main h1, .page-title {
   50%, 100% { opacity: 0; }
 }
 .cursor-blink { animation: blink 1s step-start infinite; }
+
+/* "You are here" wayfinding ring on the roadmap's current-stage node — a soft, slow pulse rather
+   than a hard blink, since this marks a resting state (where you are) not an active alert. */
+@keyframes here-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-accent) 45%, transparent); }
+  50% { box-shadow: 0 0 0 8px color-mix(in srgb, var(--color-accent) 0%, transparent); }
+}
+.here-pulse-ring { animation: here-pulse 2.2s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .here-pulse-ring { animation: none; }
+}
