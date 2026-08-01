@@ -236,3 +236,18 @@ main h1, .page-title {
 @media (prefers-reduced-motion: reduce) {
   .here-pulse-ring { animation: none; }
 }
+
+/* Progress page module/lesson accordions (<details>): hide the native disclosure marker so the
+   reused IconArrowRight can act as the sole open/closed indicator, rotating 90deg when expanded. */
+.progress-accordion > summary {
+  list-style: none;
+}
+.progress-accordion > summary::-webkit-details-marker {
+  display: none;
+}
+.progress-accordion-chevron {
+  transition: transform 0.2s ease;
+}
+.progress-accordion[open] > summary .progress-accordion-chevron {
+  transform: rotate(90deg);
+}
