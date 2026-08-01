@@ -33,6 +33,7 @@ import RedteamVsPentest from '../content/redteam/01-redteam-vs-pentest';
 import InternalNetworkAttacks from '../content/redteam/02-internal-network-attacks';
 import ActiveDirectoryFundamentals from '../content/redteam/03-active-directory-fundamentals';
 import KerberosAdPrivesc from '../content/redteam/04-kerberos-ad-privesc';
+import C2AndPersistence from '../content/redteam/05-c2-and-persistence';
 
 import HowBugBountyWorks from '../content/bugbounty/01-how-bug-bounty-works';
 import ReconAtScale from '../content/bugbounty/02-recon-at-scale';
@@ -237,12 +238,13 @@ export const MODULES: ModuleMeta[] = [
       { id: 'rt-1', slug: 'redteam-vs-pentest', title: 'Red Team vs. Pentest: Methodology & OPSEC', summary: 'Objective-driven engagements and operational security discipline.', minutes: 11, Content: RedteamVsPentest },
       { id: 'rt-2', slug: 'internal-network-attacks', title: 'Internal Network Attacks & Lateral Movement', summary: 'Credential reuse, pass-the-hash, and pivoting.', minutes: 13, Content: InternalNetworkAttacks },
       { id: 'rt-3', slug: 'active-directory-fundamentals', title: 'Active Directory Fundamentals & Enumeration', summary: 'Domains, OUs, groups, and BloodHound attack-path mapping.', minutes: 14, Content: ActiveDirectoryFundamentals },
+      { id: 'rt-4', slug: 'kerberos-ad-privesc', title: 'Kerberos Attacks & AD Privilege Escalation', summary: 'Kerberoasting, AS-REP Roasting, and the path to Domain Admin.', minutes: 14, Content: KerberosAdPrivesc },
       {
-        id: 'rt-4', slug: 'kerberos-ad-privesc', title: 'Kerberos Attacks & AD Privilege Escalation', summary: 'Kerberoasting, AS-REP Roasting, and the path to Domain Admin.', minutes: 14, Content: KerberosAdPrivesc,
+        id: 'rt-5', slug: 'c2-and-persistence', title: 'Command & Control Frameworks & Post-Exploitation Persistence', summary: 'Beacon/listener architecture, malleable C2 profiles, and the standard Windows persistence toolkit.', minutes: 12, Content: C2AndPersistence,
         quiz: [
-          { id: 'q1', prompt: 'What makes Kerberoasting attractive to attackers?', choices: ['It requires Domain Admin rights already', 'Any authenticated domain user can request the ticket, with no elevated privileges needed', 'It only works over Telnet', 'It requires physical access to the DC'], correctIndex: 1, explanation: 'Any domain user can request service tickets for SPN accounts — no special privileges required to begin the attack.' },
-          { id: 'q2', prompt: 'What is the primary difference between a pentest and a red team engagement?', choices: ['Red team engagements are always shorter', 'Red team focuses on a specific objective and evading detection; pentest focuses on finding all vulnerabilities', 'Pentests are illegal, red teaming is not', 'There is no real difference'], correctIndex: 1, explanation: 'Pentests aim for breadth of findings; red team engagements aim for a specific objective while testing detection/response.' },
-          { id: 'q3', prompt: 'Why does compromising the KRBTGT account matter so much?', choices: ['It has no special significance', 'It lets an attacker forge valid-looking Kerberos tickets for any user (a Golden Ticket)', 'It only affects printer access', 'It is used exclusively for DNS'], correctIndex: 1, explanation: 'KRBTGT encrypts all Kerberos tickets domain-wide — compromising it enables forging tickets for any account.' },
+          { id: 'q1', prompt: 'What is "jitter" in the context of a C2 beacon?', choices: ['The encryption algorithm used for C2 traffic', 'A random variance around the beacon\'s check-in interval, so callbacks don\'t land at a perfectly regular cadence', 'A type of persistence mechanism', 'The name of a specific C2 framework'], correctIndex: 1, explanation: 'Jitter randomizes the check-in timing so beacon traffic doesn\'t stand out as a perfectly regular heartbeat.' },
+          { id: 'q2', prompt: 'Why is a WMI event subscription considered a "quiet" persistence mechanism?', choices: ['It requires Domain Admin to create', 'It doesn\'t appear in the places defenders check first, like Task Scheduler or Services', 'It only works on Linux', 'It is not actually persistence at all'], correctIndex: 1, explanation: 'WMI event subscriptions don\'t show up in Task Scheduler or the Services list, which is exactly why MITRE ATT&CK tracks it as its own distinct technique.' },
+          { id: 'q3', prompt: 'What does a tool like Autoruns give a blue team defending against persistence?', choices: ['A way to decrypt C2 traffic', 'A single-pass enumeration of every auto-start location, diffable against a known-good baseline', 'A way to patch Kerberos', 'A list of open network ports only'], correctIndex: 1, explanation: 'Autoruns enumerates every auto-start location (Run keys, Scheduled Tasks, Services, WMI subscriptions) so new/unsigned entries stand out against a baseline.' },
         ],
       },
     ],
