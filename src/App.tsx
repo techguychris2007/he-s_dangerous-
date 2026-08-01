@@ -9,6 +9,7 @@ import LabsIndexPage from './pages/LabsIndexPage';
 import RoadmapPage from './pages/RoadmapPage';
 import ProgressPage from './pages/ProgressPage';
 import LoginPage from './pages/LoginPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import IntroPage from './pages/IntroPage';
 import MyTasksPage from './pages/MyTasksPage';
 import SchedulePage from './pages/SchedulePage';
@@ -144,6 +145,7 @@ function App() {
           <Routes>
             <Route path="/welcome" element={<IntroPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route
               path="/soc-portal"
               element={
