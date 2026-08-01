@@ -3,6 +3,7 @@ import { LABS } from '../data/labs';
 import { MODULES } from '../data/curriculum';
 import { fetchAllLearnerProgress, type LearnerProgressRow } from '../lib/instructorDashboard';
 import { IconUser, IconFlag, IconCheck, IconChart } from '../components/layout/icons';
+import StatCard from '../components/common/StatCard';
 
 const TOTAL_LESSONS = MODULES.reduce((sum, m) => sum + m.lessons.length, 0);
 const TOTAL_LABS = LABS.length;
@@ -44,20 +45,6 @@ function computeStats(row: LearnerProgressRow): LearnerStats {
 }
 
 type SortKey = 'displayName' | 'lessonsCompleted' | 'labsCompleted' | 'totalFlags' | 'avgQuizScore' | 'codeTasksSolved' | 'lastActive';
-
-function StatCard({ label, value, icon }: { label: string; value: string | number; icon: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 flex items-center gap-3">
-      <span className="w-10 h-10 rounded-lg bg-[var(--color-accent)]/10 text-[var(--color-accent)] flex items-center justify-center shrink-0">
-        {icon}
-      </span>
-      <div>
-        <div className="text-xl font-extrabold text-[var(--color-heading)] leading-none mb-1">{value}</div>
-        <div className="text-xs text-[var(--color-text-dim)]">{label}</div>
-      </div>
-    </div>
-  );
-}
 
 function SortHeader({ label, sortKey, active, dir, onClick }: { label: string; sortKey: SortKey; active: SortKey; dir: 1 | -1; onClick: (k: SortKey) => void }) {
   const isActive = sortKey === active;
