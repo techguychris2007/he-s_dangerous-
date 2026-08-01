@@ -1,37 +1,44 @@
 import { ModuleIcon } from './icons';
-import tuxPhoto from '../../assets/banners/tux.svg';
-import padlockPhoto from '../../assets/banners/padlock.svg';
-import magnifyingGlassPhoto from '../../assets/banners/magnifying-glass.svg';
-import worldMapPhoto from '../../assets/banners/world-map.svg';
 import circuitBoardPhoto from '../../assets/banners/circuit-board.jpg';
-import binaryCodePhoto from '../../assets/banners/binary-code.png';
-import serverRackPhoto from '../../assets/banners/server-rack.jpg';
+import networkingPhoto from '../../assets/banners/networking.jpg';
+import linuxPhoto from '../../assets/banners/linux.jpg';
+import reconPhoto from '../../assets/banners/recon.jpg';
+import webappPhoto from '../../assets/banners/webapp.jpg';
+import redteamPhoto from '../../assets/banners/redteam.jpg';
+import bugbountyPhoto from '../../assets/banners/bugbounty.jpg';
+import socPhoto from '../../assets/banners/soc.jpg';
+import forensicsPhoto from '../../assets/banners/forensics.jpg';
+import cloudPhoto from '../../assets/banners/cloud.jpg';
+import securityplusPhoto from '../../assets/banners/securityplus.jpg';
+import binaryanalysisPhoto from '../../assets/banners/binaryanalysis.jpg';
+import malwarePhoto from '../../assets/banners/malware.jpg';
+import secengineeringPhoto from '../../assets/banners/secengineering.jpg';
 
 interface BannerConfig {
   from: string;
   to: string;
   pattern: 'grid' | 'dots' | 'circuit' | 'scan';
-  /** background photo (public-domain / CC0, sourced from Wikimedia Commons) rendered under the gradient tint */
+  /** background photo rendered under the gradient tint */
   photo?: string;
-  /** how the photo should sit in its frame — most of these source images are tall/portrait, not wide banners */
+  /** how the photo should sit in its frame */
   fit?: 'cover' | 'contain';
 }
 
 const BANNERS: Record<string, BannerConfig> = {
-  networking: { from: '#0f2a4a', to: '#1c4f82', pattern: 'circuit', photo: worldMapPhoto, fit: 'contain' },
-  linux: { from: '#0d1b12', to: '#1f4d2e', pattern: 'grid', photo: tuxPhoto, fit: 'contain' },
-  recon: { from: '#0c2a2e', to: '#125e63', pattern: 'scan', photo: magnifyingGlassPhoto, fit: 'contain' },
+  networking: { from: '#0f2a4a', to: '#1c4f82', pattern: 'circuit', photo: networkingPhoto, fit: 'cover' },
+  linux: { from: '#0d1b12', to: '#1f4d2e', pattern: 'grid', photo: linuxPhoto, fit: 'cover' },
+  recon: { from: '#0c2a2e', to: '#125e63', pattern: 'scan', photo: reconPhoto, fit: 'cover' },
   python: { from: '#12294f', to: '#d9a441', pattern: 'dots', photo: circuitBoardPhoto, fit: 'cover' },
-  webapp: { from: '#241247', to: '#5b2a8c', pattern: 'grid', photo: circuitBoardPhoto, fit: 'cover' },
-  redteam: { from: '#3a0d0d', to: '#7a1f1f', pattern: 'circuit', photo: serverRackPhoto, fit: 'cover' },
-  bugbounty: { from: '#0d2e1f', to: '#1f8a53', pattern: 'dots', photo: magnifyingGlassPhoto, fit: 'contain' },
-  soc: { from: '#062633', to: '#0d7d94', pattern: 'scan', photo: serverRackPhoto, fit: 'cover' },
-  forensics: { from: '#1a1220', to: '#4a2d63', pattern: 'grid', photo: magnifyingGlassPhoto, fit: 'contain' },
-  cloud: { from: '#0a2a4f', to: '#2f6fed', pattern: 'dots', photo: worldMapPhoto, fit: 'contain' },
-  securityplus: { from: '#1a2a1a', to: '#16305c', pattern: 'grid', photo: padlockPhoto, fit: 'contain' },
-  binaryanalysis: { from: '#1a1a2e', to: '#3a1f5c', pattern: 'circuit', photo: binaryCodePhoto, fit: 'contain' },
-  malware: { from: '#1a0d0d', to: '#4a1f1f', pattern: 'scan', photo: binaryCodePhoto, fit: 'contain' },
-  secengineering: { from: '#0d1a2a', to: '#2a4a6e', pattern: 'dots', photo: padlockPhoto, fit: 'contain' },
+  webapp: { from: '#241247', to: '#5b2a8c', pattern: 'grid', photo: webappPhoto, fit: 'cover' },
+  redteam: { from: '#3a0d0d', to: '#7a1f1f', pattern: 'circuit', photo: redteamPhoto, fit: 'cover' },
+  bugbounty: { from: '#0d2e1f', to: '#1f8a53', pattern: 'dots', photo: bugbountyPhoto, fit: 'cover' },
+  soc: { from: '#062633', to: '#0d7d94', pattern: 'scan', photo: socPhoto, fit: 'cover' },
+  forensics: { from: '#1a1220', to: '#4a2d63', pattern: 'grid', photo: forensicsPhoto, fit: 'cover' },
+  cloud: { from: '#0a2a4f', to: '#2f6fed', pattern: 'dots', photo: cloudPhoto, fit: 'cover' },
+  securityplus: { from: '#1a2a1a', to: '#16305c', pattern: 'grid', photo: securityplusPhoto, fit: 'cover' },
+  binaryanalysis: { from: '#1a1a2e', to: '#3a1f5c', pattern: 'circuit', photo: binaryanalysisPhoto, fit: 'cover' },
+  malware: { from: '#1a0d0d', to: '#4a1f1f', pattern: 'scan', photo: malwarePhoto, fit: 'cover' },
+  secengineering: { from: '#0d1a2a', to: '#2a4a6e', pattern: 'dots', photo: secengineeringPhoto, fit: 'cover' },
 };
 
 function PatternDefs({ id, pattern }: { id: string; pattern: BannerConfig['pattern'] }) {
