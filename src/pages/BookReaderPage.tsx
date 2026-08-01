@@ -98,14 +98,18 @@ export default function BookReaderPage() {
     };
   }, []);
 
+  const currentBookIdRef = useRef(bookId);
   useEffect(() => {
     // reset per-book state when navigating between books
+    currentBookIdRef.current = bookId;
     stopRef.current = true;
     window.speechSynthesis.cancel();
     setReadState('idle');
     setResults(null);
     setQuery('');
     setSearchOpen(false);
+    setSearching(false);
+    setSearchProgress({ done: 0, total: 0 });
     setCurrentPage(1);
     setNumPagesLoaded(0);
     setStartPageInput('1');
@@ -132,10 +136,20 @@ export default function BookReaderPage() {
 
   const runSearch = async () => {
     if (!viewerRef.current || !query.trim()) return;
+    // viewerRef points at the same PdfViewer instance across book navigation (it isn't remounted),
+    // so a search that's still in flight when the visitor jumps to another book would otherwise keep
+    // reading that new book's pages under the old query and silently overwrite this book's search
+    // state once it resolves. Guard every state write with a check that we're still on the book the
+    // search was started for.
+    const requestedBookId = bookId;
     setSearching(true);
     setSearchProgress({ done: 0, total: viewerRef.current.numPages });
     setResults(null);
-    const matches = await searchAllPages(viewerRef.current, query.trim(), (done, total) => setSearchProgress({ done, total }));
+    const matches = await searchAllPages(viewerRef.current, query.trim(), (done, total) => {
+      if (currentBookIdRef.current !== requestedBookId) return;
+      setSearchProgress({ done, total });
+    });
+    if (currentBookIdRef.current !== requestedBookId) return;
     setResults(matches);
     setSearching(false);
   };
@@ -436,7 +450,7 @@ export default function BookReaderPage() {
         </div>
       )}
 
-      <AiReadingCompanion bookTitle={book.title} currentPage={currentPage} viewerRef={viewerRef} />
+      <AiReadingCompanion key={book.id} bookTitle={book.title} currentPage={currentPage} viewerRef={viewerRef} />
     </div>
   );
 }

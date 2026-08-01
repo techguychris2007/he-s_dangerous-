@@ -86,7 +86,14 @@ const PdfViewer = forwardRef<PdfViewerHandle, PdfViewerProps>(function PdfViewer
     canvas.style.height = `${cssViewport.height}px`;
     const context = canvas.getContext('2d');
     if (!context) return;
-    await page.render({ canvas, canvasContext: context, viewport: renderViewport }).promise;
+    try {
+      await page.render({ canvas, canvasContext: context, viewport: renderViewport }).promise;
+    } catch (err) {
+      // pdf.js throws RenderingCancelledException by design when the owning document is destroyed
+      // mid-render — which happens on every book switch while a page is still rendering (the `url`
+      // effect above calls loadingTask.destroy() on cleanup). Expected, not a real error.
+      if (!(err instanceof Error && err.name === 'RenderingCancelledException')) throw err;
+    }
   };
 
   useEffect(() => {

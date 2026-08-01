@@ -82,7 +82,6 @@ export class TerminalEngine {
       cwd: scenario.attacker.user === 'root' ? ['root'] : ['home', scenario.attacker.user],
       isRoot: scenario.attacker.user === 'root',
     };
-    (base as any).__attackerRoot = this.attackerRoot;
     this.stack = [base];
     this.sessionEnv = { ...(scenario.attacker.env ?? {}) };
   }
