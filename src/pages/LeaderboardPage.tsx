@@ -46,8 +46,8 @@ export default function LeaderboardPage() {
         />
         <span className="text-sm text-[var(--color-text)] leading-relaxed">
           <span className="font-semibold text-[var(--color-heading)]">Show me on the leaderboard.</span>{' '}
-          Off by default — other learners in your cohort only ever see your name and score here if you
-          turn this on. Your progress stays private otherwise.
+          Off by default — any other learner on this platform only ever sees your name and score here
+          if you turn this on. Your progress stays private otherwise.
         </span>
       </label>
 
@@ -56,8 +56,8 @@ export default function LeaderboardPage() {
       {entries === null && (
         <>
           <div className="rounded-xl border border-[var(--color-warn)]/40 bg-[var(--color-warn)]/5 p-4 mb-6 text-sm text-[var(--color-text)] leading-relaxed">
-            Live leaderboard is unavailable right now (offline, or the cohort hasn't been migrated for it
-            yet) — showing just your own progress.
+            Live leaderboard is unavailable right now (offline, or this Supabase project hasn't run the
+            leaderboard migration yet) — showing just your own progress.
           </div>
           <YouCard initial={initial} name={progress.learnerName} labsCompleted={labsCompleted} points={points} />
         </>

@@ -94,7 +94,6 @@ interface ProgressApi extends ProgressState {
   hasFlag: (labId: string, flag: string) => boolean;
   flagCount: (labId: string) => number;
   recordQuizScore: (lessonId: string, score: number) => void;
-  resetAll: () => void;
   resetModuleProgress: (lessonIds: string[]) => void;
   /** Call once whenever a Supabase session becomes available, with a fallback display name derived
    *  from the account (real name or email prefix). If this is a different account than whichever
@@ -102,7 +101,6 @@ interface ProgressApi extends ProgressState {
    *  see the `lastUserId` field doc for why. Safe to call on every render; no-ops once the account
    *  matches and a name is already set. */
   syncIdentity: (userId: string, fallbackName: string) => void;
-  logout: () => void;
   toggleBookmark: (labId: string) => void;
   isBookmarked: (labId: string) => boolean;
   markLabCompleted: (labId: string) => void;
@@ -155,10 +153,6 @@ export function useProgressState(): ProgressApi {
     setState((s) => ({ ...s, ...withActivityToday(s), quizScores: { ...s.quizScores, [lessonId]: score } }));
   }, []);
 
-  const resetAll = useCallback(() => {
-    setState((s) => ({ ...EMPTY_STATE, learnerName: s.learnerName }));
-  }, []);
-
   const resetModuleProgress = useCallback((lessonIds: string[]) => {
     setState((s) => {
       const completedLessons = { ...s.completedLessons };
@@ -193,10 +187,6 @@ export function useProgressState(): ProgressApi {
         codeTaskSolutionRevealed: {},
       };
     });
-  }, []);
-
-  const logout = useCallback(() => {
-    setState({ ...EMPTY_STATE });
   }, []);
 
   const toggleBookmark = useCallback((labId: string) => {
@@ -286,10 +276,8 @@ export function useProgressState(): ProgressApi {
       hasFlag,
       flagCount,
       recordQuizScore,
-      resetAll,
       resetModuleProgress,
       syncIdentity,
-      logout,
       toggleBookmark,
       isBookmarked,
       markLabCompleted,
@@ -309,10 +297,8 @@ export function useProgressState(): ProgressApi {
       hasFlag,
       flagCount,
       recordQuizScore,
-      resetAll,
       resetModuleProgress,
       syncIdentity,
-      logout,
       toggleBookmark,
       isBookmarked,
       markLabCompleted,
