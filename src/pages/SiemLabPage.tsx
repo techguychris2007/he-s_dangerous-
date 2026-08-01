@@ -7,6 +7,7 @@ import StepChecklist from '../components/lesson/StepChecklist';
 import SiemConsole from '../components/siem/SiemConsole';
 import OsintTerminal from '../components/labs/OsintTerminal';
 import CyberLabAI from '../components/labs/CyberLabAI';
+import DifficultyPill from '../components/common/DifficultyPill';
 import { IconFlag, IconCheck } from '../components/layout/icons';
 
 const TOOL_LABEL: Record<string, string> = {
@@ -58,17 +59,7 @@ export default function SiemLabPage() {
           &larr; Back to {isOsint ? 'Lab Catalog' : 'SOC Portal'}
         </Link>
         <div className="flex items-center gap-2 mb-2">
-          <span
-            className={`pill ${
-              scenario.difficulty === 'Easy'
-                ? 'bg-[var(--color-success)]/15 text-[var(--color-success)]'
-                : scenario.difficulty === 'Medium'
-                ? 'bg-[var(--color-warn)]/15 text-[var(--color-warn)]'
-                : 'bg-[var(--color-danger)]/15 text-[var(--color-danger)]'
-            }`}
-          >
-            {scenario.difficulty}
-          </span>
+          <DifficultyPill difficulty={scenario.difficulty} />
           <span className="pill bg-[var(--color-surface-2)] text-[var(--color-text-dim)]">{TOOL_LABEL[scenario.tool]}</span>
           <span className="flex items-center gap-1 text-xs text-[var(--color-text-dim)]">
             <IconFlag className="w-3.5 h-3.5" />
@@ -78,36 +69,42 @@ export default function SiemLabPage() {
         <h1 className="text-2xl font-bold text-[var(--color-heading)] mb-3">{scenario.title}</h1>
         <p className="text-sm text-[var(--color-text-dim)] leading-relaxed mb-5">{scenario.briefing}</p>
 
+        {/* Placed before the checklist instead of appended after it, so it's never buried below a
+            long objectives list — same fix as the offensive-lab LabPage. */}
+        {captured >= scenario.totalFlags && (
+          <div className="rounded-xl border border-[var(--color-success)]/30 bg-[var(--color-success)]/5 p-4 mb-6 flex items-center gap-2 text-sm font-semibold text-[var(--color-success)]">
+            <IconCheck className="w-4 h-4" /> Lab complete — all flags captured!
+          </div>
+        )}
+
         <div className="mb-6">
           <StepChecklist steps={scenario.objectives} autoCheckedCount={autoCheckedCount} />
         </div>
 
-        <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] p-3 text-xs text-[var(--color-text-dim)] leading-relaxed mb-3">
-          {isOsint
-            ? `Type the real ${TOOL_LABEL[scenario.tool]} command straight into the terminal, exactly as a hint shows it — output streams back the way the real tool would.`
-            : `Type your filter/query directly into the ${TOOL_LABEL[scenario.tool]} bar and run it — the tool highlights whatever matches, exactly like the real thing.`}
-        </div>
+        {captured < scenario.totalFlags && (
+          <>
+            <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] p-3 text-xs text-[var(--color-text-dim)] leading-relaxed mb-3">
+              {isOsint
+                ? `Type the real ${TOOL_LABEL[scenario.tool]} command straight into the terminal, exactly as a hint shows it — output streams back the way the real tool would.`
+                : `Type your filter/query directly into the ${TOOL_LABEL[scenario.tool]} bar and run it — the tool highlights whatever matches, exactly like the real thing.`}
+            </div>
 
-        <button
-          onClick={() => setHintIndex((i) => Math.min(i + 1, scenario.hints.length))}
-          className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] text-xs font-semibold text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-heading)] transition-colors"
-        >
-          {hintIndex === 0 ? 'Show a hint' : 'Next hint'}
-        </button>
-        {hintIndex > 0 && (
-          <div className="mt-2 space-y-1.5">
-            {scenario.hints.slice(0, hintIndex).map((h, i) => (
-              <div key={i} className="text-xs font-mono bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2 py-1.5 text-[var(--color-accent-dim)]">
-                {h}
+            <button
+              onClick={() => setHintIndex((i) => Math.min(i + 1, scenario.hints.length))}
+              className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] text-xs font-semibold text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-heading)] transition-colors"
+            >
+              {hintIndex === 0 ? 'Show a hint' : 'Next hint'}
+            </button>
+            {hintIndex > 0 && (
+              <div className="mt-2 space-y-1.5">
+                {scenario.hints.slice(0, hintIndex).map((h, i) => (
+                  <div key={i} className="text-xs font-mono bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2 py-1.5 text-[var(--color-accent-dim)]">
+                    {h}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        )}
-
-        {captured >= scenario.totalFlags && (
-          <div className="mt-5 flex items-center gap-2 text-sm font-semibold text-[var(--color-success)]">
-            <IconCheck className="w-4 h-4" /> Lab complete — all flags captured!
-          </div>
+            )}
+          </>
         )}
       </div>
 

@@ -73,13 +73,13 @@ export default function SocPortalPage() {
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-3">SOC Portal</h1>
           <p className="text-white/70 max-w-2xl leading-relaxed mb-6">
-            Mostly real SIEM/analyst platform tooling, not a hacking terminal — 14 labs run inside simulated
-            Splunk, Microsoft Sentinel, IBM QRadar, Elastic Security, Suricata, Chronicle, and tcpdump consoles,
-            each one rebuilt from a real, publicly documented incident: the 2013 Target breach, the 2016
-            Bangladesh Bank SWIFT heist, the 2020 SolarWinds/SUNBURST compromise, the 2023 Storm-0558 email
-            breach, the 2020 Twitter insider breach, and Log4Shell mass exploitation among them. A small set of
-            5 terminal-based investigations rounds it out, for the raw cat/grep log-reading work every analyst
-            still does before ever opening a SIEM console.
+            Mostly real SIEM/analyst platform tooling, not a hacking terminal — {SIEM_LABS.length} labs run
+            inside simulated Splunk, Microsoft Sentinel, IBM QRadar, Elastic Security, Suricata, Chronicle,
+            and tcpdump consoles, each one rebuilt from a real, publicly documented incident: the 2013 Target
+            breach, the 2016 Bangladesh Bank SWIFT heist, the 2020 SolarWinds/SUNBURST compromise, the 2023
+            Storm-0558 email breach, the 2020 Twitter insider breach, and Log4Shell mass exploitation among
+            them. A small set of {terminalLabs.length} terminal-based investigations rounds it out, for the
+            raw cat/grep log-reading work every analyst still does before ever opening a SIEM console.
           </p>
           <div className="flex flex-wrap gap-4">
             <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
