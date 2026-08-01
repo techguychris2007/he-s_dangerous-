@@ -11,7 +11,7 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: 'Where is my progress saved?',
-    a: 'Entirely in your browser\'s localStorage, under a single key. There is no account system, no backend database, and no analytics pipeline collecting what you do. If you clear your browser storage or switch browsers/devices, your progress does not follow you — there is nothing to recover, because nothing was ever sent anywhere.',
+    a: 'Your lesson, lab, and quiz progress is saved to your account — real Supabase Auth plus a database row that Row Level Security guarantees only you can read — so it follows you across devices as long as you\'re signed in. A few signals stay local to this specific browser instead: your streak, unlocked achievements, display name, and Code Portal learning-insight stats (hints used, attempts per solve). Clearing this browser\'s site data resets those specifically, without touching your synced progress.',
   },
   {
     q: 'What do the flags actually verify?',
@@ -27,11 +27,11 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: 'Can I reset my progress?',
-    a: 'Yes — logging out clears your local progress entirely (name, completed lessons, captured flags, quiz scores, bookmarks). There is currently no "soft reset" that keeps your name but clears progress; if you need that, clear the specific browser storage key manually.',
+    a: 'There\'s a per-module reset — the "Reset this module\'s progress" button on any module page clears just that module\'s completed lessons and quiz scores. There\'s currently no single button that wipes everything at once. Signing out does not clear anything: your synced lesson/lab/quiz progress stays in your account, and this browser\'s local-only signals (streak, achievements, name) aren\'t touched by signing out either.',
   },
   {
     q: 'Is there a certificate at the end?',
-    a: 'Each lab shows a "Certificate" indicator to mark it as counting toward the certificate track for its module, and your Profile page tracks completion against the full curriculum. There is no downloadable PDF certificate — the value here is the skill and the flags in your own progress record, not a printable credential.',
+    a: 'Yes — once a lab\'s flags are all captured, its page offers a real downloadable PDF certificate with your name and the lab\'s details, plus a separate PDF write-up you can put in a portfolio. It\'s a genuine record of what you actually did, not a third-party-accredited credential.',
   },
 ];
 
