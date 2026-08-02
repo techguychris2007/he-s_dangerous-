@@ -530,3 +530,26 @@ caught two real "would not actually work" mistakes before they shipped rather th
 **Updated running total**: labs 219 → 242 (+23 across the last three batches, +38 total toward the "up to
 500" target). The realism brief didn't change the standing verification method, but it's a good example of
 why that method exists — two labs in this batch would have been unsolvable as first drafted.
+
+- **`d0f7f43`** — 6 more labs (242 → 248): Logjam-style DHE_EXPORT cipher downgrade (Cryptography — the
+  real CVE-2015-4000, ~8% of top-1M HTTPS domains affected at disclosure) and a batch GCD attack recovering
+  a shared RSA prime factor (Cryptography — the real 2012 "Mining Your Ps and Qs" technique, deliberately
+  small illustrative primes flagged explicitly as toy-sized rather than implying realistic key material), a
+  GraphQL field-suggestion schema leak that survives disabled introspection (API) and pagination cursor
+  tampering bypassing an ownership filter (API), a DCShadow rogue domain controller attack (Active
+  Directory — MITRE T1207, pushes changes via AD's own trusted replication protocol, evading standard
+  Security event log detection), and PowerShell ScriptBlock Logging (Event ID 4104) revealing a fully
+  de-obfuscated attacker command regardless of delivery-time base64/concatenation obfuscation (Forensics).
+  Full citations in `NOTES.md` batch 7.
+
+  Verification caught the same "port defaults to 80" mistake twice more in this single batch (the Logjam
+  lab's `https://` URL and the DCShadow lab's port-389 LDAP service) — now flagged in `NOTES.md` as the
+  single most common mistake class across the last three batches, worth treating as a standing checklist
+  item rather than a one-off. Also independently recomputed the pagination-cursor lab's base64 encoding
+  with Node before trusting it, standing practice since the OAuth JWT typo two batches back. tsc/lint clean,
+  headless-Chrome boot check clean.
+- **`b0e82a1`** — Updated `labs-index.md` (248 total, Active Directory 19→20, Forensics 12→13, API 10→12,
+  Cryptography 8→10) and `NOTES.md` (batch 7 citations + the port-default pattern called out explicitly).
+
+**Updated running total**: labs 219 → 248 (+29 across the last four batches, +44 total toward the "up to
+500" target).
