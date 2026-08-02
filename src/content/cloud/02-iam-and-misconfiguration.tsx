@@ -131,11 +131,29 @@ scout gcp
         cluster.
       </p>
 
-      <h2>Module complete</h2>
+      <h2>One more IAM leak worth naming explicitly: credentials committed to a public repo</h2>
       <p>
-        The three labs in this module let you exploit exactly the misconfigurations covered here: a public
-        storage bucket, an SSRF-to-metadata credential theft, and a leaked infrastructure-as-code secret —
-        the three patterns responsible for the overwhelming majority of real-world cloud security incidents.
+        Every misconfiguration covered so far assumes the credential itself was generated and stored
+        correctly, then reached by an attacker through some other flaw (SSRF, an open bucket, a state file).
+        The single most common real way IAM credentials actually leak skips all of that: a developer commits
+        an AWS access key directly into source code — often in a config file meant to be gitignored but
+        pushed once by mistake — and pushes it to a public GitHub repository. Automated scanners (both
+        GitHub's own secret-scanning and attacker-run tools scraping public commits in real time) find keys
+        like this within minutes of the push, frequently faster than the developer who committed it notices.
+      </p>
+      <Callout variant="warn">
+        <p>
+          This is why AWS automatically flags and often auto-quarantines access keys it detects in public
+          GitHub repos — the window between an accidental commit and automated discovery is measured in
+          minutes, not the days a manual security review would take to catch the same mistake.
+        </p>
+      </Callout>
+      <p>
+        The labs in this module let you exploit exactly the misconfigurations covered here: a public storage
+        bucket, an SSRF-to-metadata credential theft, a credential leaked straight into a public repo, and a
+        leaked infrastructure-as-code secret — together responsible for the overwhelming majority of
+        real-world cloud security incidents. The next lesson moves from storage and identity to the layer
+        most modern cloud workloads actually run on: containers, Kubernetes, and infrastructure-as-code.
       </p>
     </div>
   );

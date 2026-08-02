@@ -58,7 +58,7 @@ export const LESSON_LABS: Record<string, string[]> = {
 
   // Cloud Security
   'cloud-1': ['cloud-public-s3-bucket', 'cloud-metadata-ssrf', 'cloud-exposed-kubernetes-dashboard', 'cloud-exposed-docker-api', 'cloud-public-write-bucket'],
-  'cloud-2': ['cloud-exposed-terraform-state', 'cloud-waf-ssrf-breach-chain', 'cloud-lambda-overpermissioned-role', 'cloud-iam-passrole-privesc', 'cloud-disabled-logging-coverup', 'saas-oauth-token-theft-chain'],
+  'cloud-2': ['cloud-exposed-terraform-state', 'cloud-waf-ssrf-breach-chain', 'cloud-lambda-overpermissioned-role', 'cloud-iam-passrole-privesc', 'cloud-disabled-logging-coverup', 'saas-oauth-token-theft-chain', 'cloud-github-leaked-iam-keys'],
 
   // Security+ Deep Dive
   'secplus-1': ['secplus-breach-notification-timeline', 'secplus-firewall-rule-audit', 'secplus-cvss-triage'],
