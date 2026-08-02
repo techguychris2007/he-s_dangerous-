@@ -428,3 +428,58 @@ genuinely work against a real target, not just read plausibly.
   fixed and reverified. This is now unambiguously the single most common mistake class across this entire
   expansion; every future lab targeting a non-80/443-without-explicit-port service should treat "did I
   specify the port explicitly" as a mandatory pre-commit check, not an occasional reminder.
+
+## Sources checked, batch 10
+
+- **PBKDF2 iteration counts** — [OWASP Password Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html).
+  Confirmed the 2023 revision's current minimum of 600,000 iterations for PBKDF2-HMAC-SHA256 (up from the
+  older 210,000 baseline), and that PBKDF2-HMAC-SHA256 itself remains a sound, real KDF — the defect this
+  lab models is purely a stale tuning parameter, not a broken algorithm.
+- **GOT overwrite via format string, RELRO** — general, well-established binary exploitation technique
+  (format-string arbitrary-write primitive redirecting a GOT entry to attacker-controlled code). Confirmed
+  the real, standard mitigation distinction between Partial RELRO (GOT stays writable for the process's
+  lifetime — what this lab requires) and Full RELRO (GOT is eagerly resolved and mprotected read-only at
+  startup, which would block this exact technique) — a different, complementary condition from this
+  session's existing ret2libc lab (NX/ASLR bypass) and heap-unlink lab (allocator metadata corruption),
+  none of which overlap mechanically.
+- **USN Change Journal ($UsnJrnl:$J) forensics** — well-documented real NTFS artifact: a running log of
+  file-level change events (FILE_CREATE, DATA_EXTEND, CLOSE, BASIC_INFO_CHANGE, etc.) maintained
+  independently of $MFT's $STANDARD_INFORMATION/$FILE_NAME attributes, and specifically useful for
+  cross-referencing against a suspected timestomped file because a timestomping tool edits $SI but
+  essentially never also rewrites the separate USN journal history for that file. Confirmed as a distinct
+  technique from this session's existing $SI/$FN mismatch timestomping lab (batch 4) — that lab detects
+  timestomping via internal MFT-attribute inconsistency, this one detects it via an independent, external
+  artifact, which is the real, standard "second source" corroboration technique in practice.
+- **Kubernetes `automountServiceAccountToken` default** — well-documented real Kubernetes default
+  (`true` unless explicitly set to `false` on the pod or service account), with the token delivered to
+  `/var/run/secrets/kubernetes.io/serviceaccount/token` inside every pod. Confirmed the accurate nuance
+  that the token alone is normally low-impact against a cluster following least privilege, since a bare
+  "default" service account holds no RBAC permissions under modern Kubernetes — the lab deliberately pairs
+  the automount default with an explicit, separately-stated permissive ClusterRoleBinding rather than
+  implying automount alone is the exploit, to avoid overclaiming.
+- **Client-side prototype pollution via URL fragment → DOM XSS** — real, currently-researched vulnerability
+  class distinct from JavaScript prototype pollution generally; PortSwigger's DOM Invader tooling exists
+  specifically to find this class dynamically, and academic research (2024) has found real gadget chains at
+  scale across live sites. Confirmed as mechanically distinct from this session's existing SERVER-SIDE
+  settings-merge prototype-pollution-to-RCE lab (`web-prototype-pollution-rce`, in
+  `web-session-security-pack.ts`) — that one pollutes via a JSON request body read by server code; this one
+  pollutes entirely client-side via `location.hash`, which by HTTP's own design never reaches the server at
+  all, making it invisible to every server-side log or defense.
+- **PCI DSS log retention** — real PCI DSS Requirement 10.5.1 (numbered 10.7 in PCI DSS v3.2.1): audit log
+  history must be retained for at least 12 months, with at least the most recent 3 months (90 days)
+  immediately available for analysis. This is the same real retention figure already used narratively
+  elsewhere on this platform's SOC/incident-response content, so this lab's numbers are consistent with
+  that existing material rather than introducing a conflicting figure.
+
+## NEEDS REVIEW (labs/topics), batch 10
+
+- The client-side prototype pollution / DOM XSS lab cannot be mechanically modeled as a live exploit in this
+  engine at all: `TerminalEngine`'s `curl` only ever sees the path and query string of a URL, and a URL
+  fragment (everything after `#`) is a client-only construct that real browsers never transmit to a server —
+  there is no `location.hash`, no DOM, and no JS execution to simulate here. Modeled as a code-review lab
+  (`cat` the vulnerable client JS, `cat` a DOM-Invader-style PoC analysis file) using the same convention
+  already established for the ECB-penguin lab in batch 9, rather than faking a live network exploit path
+  that wouldn't reflect how this vulnerability class actually manifests.
+- No other techniques in this batch required skipping or faking; all six were mechanically modeled with
+  full fidelity to how `TerminalEngine` actually works (confirmed by reading the relevant `engine.ts`
+  functions before writing each lab, not just assuming prior-batch conventions still applied).

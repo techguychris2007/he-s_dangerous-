@@ -4,25 +4,25 @@ Running count and category breakdown for the offensive-security lab expansion. S
 full narrative detail on every batch (what was added, why, and how each one was verified); this file is
 just the running tally `NOTES.md`'s citations and the "when I'm back" summary can point at.
 
-**Total labs: 260** (204 at the start of this expansion → 260 now, +56 so far toward the "up to 500, quality
+**Total labs: 266** (204 at the start of this expansion → 266 now, +62 so far toward the "up to 500, quality
 first" target). Every count below is the actual `LABS.length` broken out by `category`, not an estimate.
 
 | Category | Count | This expansion added |
 |---|---|---|
 | Linux | 22 | — |
 | Network | 26 | +1 (SMTP open relay abuse) |
-| Web | 41 | +1 (DNS rebinding SSRF-allowlist bypass) |
+| Web | 42 | +2 (DNS rebinding SSRF-allowlist bypass, client-side prototype pollution via URL fragment to DOM XSS) |
 | Active Directory | 21 | +6 (ADCS ESC1, RBCD abuse, Silver Ticket, Shadow Credentials, DCShadow rogue DC, GPP cpassword/MS14-025) |
 | Bug Bounty | 20 | — |
 | SOC | 17 | +1 (Golden SAML detection via missing ADFS/Kerberos events) |
-| Forensics | 14 | +4 (Volume Shadow Copy NTDS.dit dump, NTFS timestomping $SI/$FN mismatch, PowerShell ScriptBlock de-obfuscation, Recycle Bin $I metadata) |
-| Cloud | 17 | +5 (IMDSv2 bypass, Docker-socket container escape, Lambda env-var secrets exposure, overly-permissive Azure SAS token, GCP allUsers Cloud Function) |
-| Security+ | 13 | +2 (SPF/DMARC misconfiguration enables spoofing, missing HSTS enables SSL stripping) |
-| Binary Analysis | 14 | +4 (stack canary leak via format string, use-after-free function pointer hijack, ret2libc defeating NX/ASLR, heap unlink metadata corruption) |
+| Forensics | 15 | +5 (Volume Shadow Copy NTDS.dit dump, NTFS timestomping $SI/$FN mismatch, PowerShell ScriptBlock de-obfuscation, Recycle Bin $I metadata, USN Change Journal contradicts a timestomped file) |
+| Cloud | 18 | +6 (IMDSv2 bypass, Docker-socket container escape, Lambda env-var secrets exposure, overly-permissive Azure SAS token, GCP allUsers Cloud Function, Kubernetes default automountServiceAccountToken + permissive RBAC) |
+| Security+ | 14 | +3 (SPF/DMARC misconfiguration enables spoofing, missing HSTS enables SSL stripping, insufficient log retention violates PCI DSS 10.5.1) |
+| Binary Analysis | 15 | +5 (stack canary leak via format string, use-after-free function pointer hijack, ret2libc defeating NX/ASLR, heap unlink metadata corruption, GOT overwrite via format-string arbitrary write) |
 | Malware | 16 | +3 (process hollowing detection via PEB/VAD mismatch, DLL sideloading via search-order hijacking, LNK whitespace-padding command hiding) |
 | Security Engineering | 14 | +4 (secret still live in git history, forged webhook via missing signature verification, remember-me token survives password reset, ECB-penguin pattern leak) |
 | **API** (new category) | 14 | +14 (BFLA, JWT kid injection, legacy-version IDOR, excessive data exposure, rate-limit bypass, WebAuthn downgrade, method-override authz bypass, GraphQL field-level authz bypass, Referer-header API key leak, OAuth audience confusion, GraphQL field-suggestion leak, pagination cursor tampering, upload content-type spoofing, exposed OpenAPI spec) |
-| **Cryptography** (new category) | 11 | +11 (ECB block-shuffling, hash length extension, JWT algorithm confusion, predictable PRNG session tokens, AES-CTR nonce reuse, Bleichenbacher RSA padding oracle, UUIDv1 reset-token entropy, ECDSA nonce reuse, Logjam DHE_EXPORT downgrade, batch GCD shared-prime attack, TOTP shared-secret reuse) |
+| **Cryptography** (new category) | 12 | +12 (ECB block-shuffling, hash length extension, JWT algorithm confusion, predictable PRNG session tokens, AES-CTR nonce reuse, Bleichenbacher RSA padding oracle, UUIDv1 reset-token entropy, ECDSA nonce reuse, Logjam DHE_EXPORT downgrade, batch GCD shared-prime attack, TOTP shared-secret reuse, PBKDF2 insufficient iteration count) |
 
 ## Batches shipped so far
 
@@ -60,6 +60,13 @@ first" target). Every count below is the actual `LABS.length` broken out by `cat
    an exposed OpenAPI/Swagger spec leaking an undocumented admin endpoint (API), Recycle Bin $I file
    metadata revealing a deleted file's origin (Forensics), and a missing HSTS header enabling SSL stripping
    (Security+).
+10. **`47c982d`** — 6 labs: PBKDF2 with an insufficient iteration count (Cryptography), GOT overwrite via a
+    format-string arbitrary write requiring Partial RELRO (Binary Analysis), USN Change Journal
+    BASIC_INFO_CHANGE records contradicting a timestomped file's forged $SI timestamps (Forensics),
+    Kubernetes' `automountServiceAccountToken` default combined with a permissive ClusterRoleBinding
+    (Cloud), client-side prototype pollution via a URL fragment reaching an `innerHTML` sink (Web, modeled
+    as code review since the engine has no DOM/browser execution and URL fragments never reach a server),
+    and insufficient log retention against PCI DSS Requirement 10.5.1's 12-month mandate (Security+).
 
 ## What's explicitly NOT attempted, and why
 
