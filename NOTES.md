@@ -173,3 +173,59 @@ instructions), same as every lab before it.
   with Node rather than by hand; (2) both forensics labs' suggested `grep "A\|B"` hints used backslash-escaped
   alternation, which this engine's JS-`RegExp`-based `grep` treats as a literal escaped pipe character, not
   alternation — fixed to plain `A|B` and reverified. Neither would have been caught by reading the code alone.
+
+## Sources checked, batch 5 (OAuth audience confusion, ECDSA nonce reuse, Lambda secrets, process hollowing, git-history secret)
+
+- **OAuth token audience (`aud`) confusion / confused deputy** — [MojoAuth: JWT Audience Claim — Complete Developer Guide](https://mojoauth.com/blog/jwt-audience-claim-complete-developer-guide-with-examples),
+  [Anomity: AI Gateways and User-Level OAuth — Token Exchange vs Passthrough (2026)](https://anomity.ai/blog/ai-gateway-oauth-passthrough-mcp/).
+  Confirmed: failing to validate the `aud` claim means an API accepts any validly-signed token from the
+  shared identity provider regardless of which resource server it was actually issued for — the 2026 source
+  explicitly names "token passthrough" as the confused-deputy anti-pattern this lab models.
+- **ECDSA nonce reuse → private key recovery** — [GitHub: ECDSA-Nonce-Reuse-Exploit-Example (worked algebra + code)](https://github.com/Marsh61/ECDSA-Nonce-Reuse-Exploit-Example),
+  [NotSoSecure: ECDSA Nonce Reuse Attack](https://notsosecure.com/ecdsa-nonce-reuse-attack),
+  [Schneier on Security: Sony PS3 Security Broken](https://www.schneier.com/blog/archives/2011/01/sony_ps3_securi.html).
+  Confirmed and double-checked the recovery algebra (`k = (m1-m2)/(s1-s2) mod n`, `private_key =
+  (s1*k-m1)/r mod n`) against the GitHub worked example before writing the lab's analysis file. Confirmed
+  the Sony PS3 detail precisely: Sony didn't merely reuse a nonce by accident, it used a **constant** k for
+  every firmware signature, making every single signature it ever produced part of one giant reusable-nonce
+  set.
+- **Lambda `GetFunctionConfiguration` plaintext secrets exposure** — [Datadog Security Labs: Secrets exposed in Lambda function environment variables](https://securitylabs.datadoghq.com/cloud-security-atlas/vulnerabilities/lambda-function-secrets-in-environment-variables/),
+  [AJ Stuyvenberg: Ultimate guide to secrets in Lambda](https://aaronstuyvenberg.com/posts/ultimate-lambda-secrets-guide).
+  Confirmed: `lambda:GetFunctionConfiguration` is commonly bundled into broad `ViewOnlyAccess`/`SecurityAudit`
+  managed policies, and AWS auto-decrypts environment variables and returns them in plaintext through this
+  exact call — no separate KMS decrypt permission is needed, which is the specific surprising detail the
+  lab's briefing leads with.
+- **Process hollowing detection (PEB/VAD mismatch)** — [MITRE ATT&CK T1055.012: Process Hollowing](https://www.startupdefense.io/mitre-attack-techniques/t1055-012-process-hollowing),
+  [Cysinfo: Detecting Deceptive Process Hollowing Techniques Using HollowFind](https://cysinfo.com/detecting-deceptive-hollowing-techniques/).
+  Confirmed the exact detection mechanism modeled in the lab: a hollowed process's VAD (kernel-tracked
+  virtual address descriptor) is marked `Private` instead of `Image` because `ZwUnmapViewOfSection`
+  destroys the original section mapping, while the PEB (which the process itself can misreport) still shows
+  the legitimate on-disk path — this PEB-vs-VAD comparison is exactly what the real HollowFind Volatility
+  plugin automates.
+- **Secret still live in git history after later "removal"** — well-established, extremely common real
+  finding in secret-scanning tooling (GitGuardian, TruffleHog, gitleaks all specifically scan full commit
+  history, not just HEAD, for exactly this reason); not independently re-searched this batch since it
+  follows directly from how git's content-addressable object model works (a later commit never deletes an
+  earlier commit's blob) rather than from a specific disclosed vulnerability report.
+
+## NEEDS REVIEW (labs/topics), batch 5
+
+- **S3 cross-account "confused deputy" (missing `sts:ExternalId` condition)** — real and well-documented
+  ([AWS's own docs on the confused deputy problem](https://docs.aws.amazon.com/IAM/latest/UserGuide/confused-deputy.html)),
+  but this platform's `aws sts` simulation (`src/labs/engine.ts`) only implements `get-caller-identity` —
+  there is no `assume-role` command at all, so the specific mechanism (a role assumable cross-account
+  without an ExternalId check) cannot be honestly modeled without adding a new engine command first. Not
+  attempted rather than faked with a generic curl stand-in that wouldn't actually demonstrate the real
+  AWS STS mechanism.
+- **VLAN hopping via 802.1Q double-tagging** — real and well-documented, but Layer-2 frame forwarding
+  across switch trunk ports doesn't map cleanly onto this engine's request/response HTTP-simulation model
+  the way SNMP/DNS-AXFR's curl-fakeout convention did — those still had a clear "one request, one response"
+  shape; double-tagging's exploit is about how TWO switches independently process ONE frame differently,
+  which is a fundamentally different mechanic. Left for a future engine extension rather than forced into
+  a misleading curl stand-in.
+- One real mistake caught by verification before commit: the OAuth audience-confusion lab's
+  `triggerSubstrings` had a single-character typo (an `i`/`j` mixup) from hand-copying the same base64 JWT
+  into two separate places in the file — the benign-request check passed, but the actual solve-path curl
+  command initially came back as a `MISMATCH` (0 flags captured instead of 1). Root-caused with a targeted
+  Node diff script rather than re-reading the file by eye, then fixed by generating the trigger value
+  programmatically from the single source string instead of retyping it a second time.
