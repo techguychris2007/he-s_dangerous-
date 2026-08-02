@@ -60,9 +60,11 @@ import ComplianceReporting from '../content/soc-ir/03-compliance-reporting';
 
 import ForensicsFundamentals from '../content/forensics/01-forensics-fundamentals';
 import MemoryArtifactAnalysis from '../content/forensics/02-memory-artifact-analysis';
+import LogsAndNetworkArtifacts from '../content/forensics/03-logs-and-network-artifacts';
 
 import CloudSecurityFundamentals from '../content/cloud/01-cloud-security-fundamentals';
 import IamAndMisconfiguration from '../content/cloud/02-iam-and-misconfiguration';
+import ContainersAndIacSecrets from '../content/cloud/03-containers-and-iac-secrets';
 
 import GrcFundamentals from '../content/securityplus/01-grc-fundamentals';
 import CryptographyFundamentals from '../content/securityplus/02-cryptography-fundamentals';
@@ -379,11 +381,13 @@ export const MODULES: ModuleMeta[] = [
     icon: 'forensics',
     lessons: [
       { id: 'for-1', slug: 'forensics-fundamentals', title: 'Digital Forensics Fundamentals', summary: 'Chain of custody, the three artifact categories, and timeline analysis.', minutes: 12, Content: ForensicsFundamentals },
+      { id: 'for-2', slug: 'memory-artifact-analysis', title: 'Memory & Artifact Analysis', summary: 'Strings extraction, C2 beacon indicators, and deleted-file recovery.', minutes: 13, Content: MemoryArtifactAnalysis },
       {
-        id: 'for-2', slug: 'memory-artifact-analysis', title: 'Memory & Artifact Analysis', summary: 'Strings extraction, C2 beacon indicators, and deleted-file recovery.', minutes: 13, Content: MemoryArtifactAnalysis,
+        id: 'for-3', slug: 'logs-and-network-artifacts', title: 'Windows Event Logs, Browser History & Web Shell Artifacts', summary: 'Security Event IDs, USB device history, and finding what an attacker left behind.', minutes: 13, Content: LogsAndNetworkArtifacts,
         quiz: [
-          { id: 'q1', prompt: 'Why should a forensic examiner always work from a copy, never the original evidence?', choices: ['Copies are faster to analyze', 'Analysis can inadvertently modify timestamps/data, contaminating the original evidence', 'Originals cannot be hashed', 'There is no real reason'], correctIndex: 1, explanation: 'Preserving the untouched original (verified by hash) is essential so findings remain defensible and reproducible.' },
-          { id: 'q2', prompt: 'When a file is deleted on most filesystems, what actually happens?', choices: ['The data is immediately and permanently erased', 'Only the directory pointer is removed; the data often remains until overwritten', 'The file is encrypted automatically', 'Nothing — deletion is purely cosmetic'], correctIndex: 1, explanation: 'This is exactly why deleted-file recovery from trash metadata or unallocated space is often possible.' },
+          { id: 'q1', prompt: 'What logon type in a Windows Security Event Log is most associated with pass-the-hash / lateral movement?', choices: ['Type 2 (Interactive)', 'Type 3 (Network)', 'Type 10 (RemoteInteractive)', 'There is no meaningful difference between logon types'], correctIndex: 1, explanation: 'Type 3 (Network) logons are what pass-the-hash and most lateral movement techniques produce — a privileged account showing only Type 3 bursts is a strong indicator.' },
+          { id: 'q2', prompt: 'Why is browser history still useful evidence even after a user clears it from the browser UI?', choices: ['Browsers cannot actually clear history', 'The underlying local database file is rarely actually wiped, just hidden from the UI', 'Clearing history requires admin rights', 'It is not useful — cleared history is gone'], correctIndex: 1, explanation: 'Clearing history in the browser UI typically does not securely wipe the underlying SQLite database file, which can still be read directly.' },
+          { id: 'q3', prompt: 'Why does the USB device history in the Windows registry record a serial number?', choices: ['It is required for the USB port to function', 'It lets an examiner identify that exact physical device, not just "a USB drive"', 'It has no forensic value', 'It only applies to USB keyboards/mice'], correctIndex: 1, explanation: 'The recorded serial number is specific enough to correlate the exact same physical device across multiple machines in a wider investigation.' },
         ],
       },
     ],
@@ -400,11 +404,13 @@ export const MODULES: ModuleMeta[] = [
     icon: 'cloud',
     lessons: [
       { id: 'cloud-1', slug: 'cloud-security-fundamentals', title: 'Cloud Security Fundamentals', summary: 'Shared responsibility, public buckets, and the instance metadata service.', minutes: 12, Content: CloudSecurityFundamentals },
+      { id: 'cloud-2', slug: 'iam-and-misconfiguration', title: 'IAM & Common Cloud Misconfigurations', summary: 'Least privilege, instance roles, and the cloud misconfiguration checklist.', minutes: 12, Content: IamAndMisconfiguration },
       {
-        id: 'cloud-2', slug: 'iam-and-misconfiguration', title: 'IAM & Common Cloud Misconfigurations', summary: 'Least privilege, instance roles, and the cloud misconfiguration checklist.', minutes: 12, Content: IamAndMisconfiguration,
+        id: 'cloud-3', slug: 'containers-and-iac-secrets', title: 'Container, Kubernetes & Infrastructure-as-Code Security', summary: 'Exposed Docker/Kubernetes APIs, Terraform state secrets, and serverless least privilege.', minutes: 13, Content: ContainersAndIacSecrets,
         quiz: [
-          { id: 'q1', prompt: 'Under the shared responsibility model, who is responsible for IAM configuration?', choices: ['The cloud provider, always', 'The customer', 'Neither party', 'It varies with no clear standard'], correctIndex: 1, explanation: 'IAM configuration is squarely "security IN the cloud" — the customer\'s responsibility.' },
-          { id: 'q2', prompt: 'Why is an SSRF vulnerability especially dangerous on a cloud-hosted app with an attached instance role?', choices: ['It never matters', 'The vulnerable server can be tricked into requesting the metadata endpoint, leaking that role\'s credentials', 'SSRF cannot reach internal endpoints', 'Instance roles prevent all SSRF impact'], correctIndex: 1, explanation: 'SSRF-to-metadata is one of the highest-impact real-world cloud attack chains.' },
+          { id: 'q1', prompt: 'Why does an unauthenticated Docker API on a host lead to full host compromise, not just "container access"?', choices: ['It does not — access is limited to containers only', 'A new container can be started with the host filesystem mounted inside it', 'Docker containers always run as a separate physical machine', 'The Docker API cannot create new containers'], correctIndex: 1, explanation: 'Starting a container with the host\'s root filesystem bind-mounted inside it gives read/write access to the real host, not just container-scoped access.' },
+          { id: 'q2', prompt: 'Are Kubernetes Secrets encrypted by default?', choices: ['Yes, always encrypted at rest and in transit', 'No — they are only base64-encoded, which is trivially reversible', 'Only if the cluster has more than one node', 'Kubernetes does not support storing secrets'], correctIndex: 1, explanation: 'Kubernetes Secrets are base64-encoded, not encrypted — the same false-sense-of-security mistake as treating HTTP Basic Auth as protection.' },
+          { id: 'q3', prompt: 'Why can a Terraform state file leak a secret even when the .tf template itself looks clean (using a variable, not a hardcoded value)?', choices: ['State files are always encrypted so this cannot happen', 'The state file stores the fully resolved value of every deployed attribute in plaintext JSON', 'Terraform never actually deploys real secrets', 'Only CloudFormation has this issue, not Terraform'], correctIndex: 1, explanation: 'Terraform state tracks the actual deployed values, including resolved secrets, in plaintext JSON — regardless of how "clean" the source template looks.' },
         ],
       },
     ],
