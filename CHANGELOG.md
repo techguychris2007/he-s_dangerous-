@@ -162,6 +162,21 @@ carrying forward as if nothing changed:
   Cribl/Logstash/Fluentd — two of those from tonight's own new lessons) and added them to their matching
   groups. Same "make an explicit claim on the page actually true" logic as the Announcements staleness fix
   earlier, applied to a different page.
+- **`0b5d7f9`** — Checked LibraryPage, IntroPage, and LoginPage as redesign candidates this round; all three
+  already well-designed/intentional (LibraryPage's book count is computed dynamically so can't go stale the
+  way Announcements/Resources did; IntroPage's stats are all computed too; LoginPage's hardcoded colors are
+  a deliberate "classified stamp" theme from an earlier redesign pass, not an inconsistency). While
+  researching NTLM-relay labs as this iteration's fallback unit, built a scanner checking every lab's
+  `#HASHCAT_PLAINTEXT` marker against every wordlist file in its own attacker filesystem, across all 199
+  labs — found one genuinely **unsolvable** lab: "Crack a Captured Password Hash with Real hashcat/john"
+  set its plaintext to "Summer2024!" but the wordlist its own hints tell you to run only contains
+  "summer2024" (no cap, no `!`), so the exact instructed command never cracks it. Fixed by aligning the
+  plaintext and the SSH account password to the wordlist's actual entry, verified by scripting the complete
+  solve path (ftp -> ftp-get -> cat -> hashcat -> ssh -> password -> cat user.txt) end to end through
+  `TerminalEngine` and confirming the flag now fires. This is a different bug CLASS than tonight's earlier
+  finds (a truly broken/unsolvable lab, not a stale claim or missing lesson content) — the same
+  "script the actual engine, don't just read the code" verification habit that caught it is worth applying
+  again on other lab types if there's ever reason to suspect it.
 - Next: continue the same pattern — next-thinnest module or page needing a pass, one bounded/verified unit
   at a time. Not attempting to define a literal "done" for "best in the world" (see reply upthread); this
   log is the honest record of what actually shipped and how it was checked.
