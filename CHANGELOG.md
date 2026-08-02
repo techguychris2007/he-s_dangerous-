@@ -494,3 +494,39 @@ as a quota to hit by any means.
 
 **Updated running total**: labs 219 → 236 (+17 across the last two batches, +32 total toward the "up to
 500" target).
+
+### "Would this work on a real machine" batch — explicit realism brief from the user
+
+A follow-up instruction asked specifically to keep going on labs while, for each one, asking "would this
+actually work on a real machine" before writing it — not just read plausibly. This didn't change the
+verification *process* (technique-accuracy-via-research + mechanical-correctness-via-`TerminalEngine` was
+already the standing method — see `NOTES.md`'s opening section), but it's the direct reason this batch
+caught two real "would not actually work" mistakes before they shipped rather than after.
+
+- **`75a257c`** — 6 labs (236 → 242): SPF/DMARC misconfiguration enabling email spoofing (Security+ — real
+  SPF `?all`/DMARC `p=none` semantics, grounded in a January 2026 Microsoft Security Blog post naming this
+  exact non-enforcing combination as an active phishing-actor abuse vector), a forged payment webhook via
+  missing signature verification (Security Engineering — grounded in a real early-2026 CVE where an empty
+  Stripe webhook signing secret let signatures be forged), SMTP open relay abuse (Network — the real manual
+  MAIL FROM/RCPT TO test methodology), an overly-permissive long-lived Azure SAS token (Cloud — grounded in
+  Microsoft's own real 2023 38TB internal-data exposure incident), ret2libc defeating NX and ASLR via a
+  leaked libc address (Binary Analysis — real offset arithmetic, computed with Node this time), and DLL
+  sideloading detection via search-order hijacking (Malware Analysis — the real PEB-path-vs-actual-load-
+  path signal Sysmon Event ID 7 surfaces).
+
+  Verification caught two real "would not actually work" mistakes before commit — exactly what this
+  round's brief was aimed at: (1) the SPF/DMARC lab initially told the user to run literal `dig TXT`
+  commands, but this engine's `dig` (confirmed by reading `engine.ts`) only resolves lab hostnames to A
+  records with no TXT-record support at all — rewritten to the curl-mirrors-`dig` convention already
+  established for SNMP/AXFR. (2) The Azure SAS lab's curl target was a realistic
+  `*.blob.core.windows.net` hostname, which this engine's `curl` genuinely cannot parse (its URL regex
+  requires an IP address) — rewritten to hit the lab's IP directly. Both would have shipped as unsolvable
+  labs if verification had been skipped or treated as a formality. tsc/lint clean, headless-Chrome boot
+  check clean.
+- **`be2c771`** — Updated `labs-index.md` (242 total, Network 25→26, Cloud 15→16, Security+ 11→12, Binary
+  Analysis 12→13, Malware 14→15, Security Engineering 11→12) and `NOTES.md` (batch 6 citations + the two
+  real engine-mismatch mistakes verification caught).
+
+**Updated running total**: labs 219 → 242 (+23 across the last three batches, +38 total toward the "up to
+500" target). The realism brief didn't change the standing verification method, but it's a good example of
+why that method exists — two labs in this batch would have been unsolvable as first drafted.
