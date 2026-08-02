@@ -144,6 +144,17 @@ carrying forward as if nothing changed:
   Also grepped all of src/content for other "Module complete"/finality-style claims this iteration (per the
   hypothesis that rt-4/cloud-2 might not be isolated) — cross-checked all 13 matches against curriculum.ts's
   actual lesson ordering and found no further mismatches; that specific bug class looks exhausted for now.
+- **`d4d7e1d`** — 3 more offensive-security labs (196 -> 199 unique titles): DNS zone-transfer (AXFR)
+  misconfiguration (Network — a technique the Networking module's own traffic lesson already names but
+  never had a lab for), BYOVD EDR-killer driver identification (Malware — static triage, matching the
+  existing malware-pack pattern), and OAuth device-code phishing (Bug Bounty — the real technique
+  Microsoft/Volexity documented against 2023-2025 nation-state campaigns). Considered adding a 4th lesson
+  to a code-python-* module instead (still at 3 lessons each) but found those lessons link to specific,
+  individually-graded Code Portal practice tasks via `PracticeTasksCallout` — a heavier lift (new gradeable
+  exercises, not just prose) than fit this iteration's bounded scope, so picked labs instead this round.
+  Verified by scripting `TerminalEngine` directly for all three, including a precise port-53 recheck on the
+  AXFR lab after the generic benign-request harness guessed the wrong port. tsc/lint clean, headless-Chrome
+  boot check clean.
 - Next: continue the same pattern — next-thinnest module or page needing a pass, one bounded/verified unit
   at a time. Not attempting to define a literal "done" for "best in the world" (see reply upthread); this
   log is the honest record of what actually shipped and how it was checked.
