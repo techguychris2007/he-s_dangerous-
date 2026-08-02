@@ -575,3 +575,28 @@ why that method exists — two labs in this batch would have been unsolvable as 
 
 **Updated running total**: labs 219 → 254 (+35 across the last five batches, +50 total toward the "up to
 500" target).
+
+- **`6ac2ef9`** — 6 more labs (254 → 260): GPP cpassword decryption / MS14-025 (Active Directory — SYSVOL
+  is readable by any authenticated domain user by design, and Microsoft itself published the AES key GPP
+  uses, so a years-old, never-cleaned-up GPP file stays decryptable forever), heap unlink exploitation via
+  forged chunk metadata (Binary Analysis — the classic doubly-linked-list arbitrary-write technique), the
+  real "ECB penguin" pattern leak (Security Engineering — AES is fine, MODE_ECB is the actual defect,
+  directly checkable via a repeated-ciphertext-block hex dump), an exposed OpenAPI/Swagger spec leaking an
+  undocumented admin endpoint (API — real documented incidents of dev-convenience docs left enabled in
+  production), Recycle Bin $I file metadata revealing a "deleted" file's origin (Forensics — the real $I/$R
+  artifact pair, recoverable even after the Recycle Bin is emptied), and a missing HSTS header enabling SSL
+  stripping (Security+ — the real first-contact vulnerability window every HTTP→HTTPS redirect leaves open).
+  Full citations in `NOTES.md` batch 9.
+
+  Verification caught two more real mistakes before commit: a hand-computed hex-to-decimal conversion
+  wrong in the first draft (recomputed with Node), and a UNC-path `smbclient` syntax that doesn't match
+  this engine's actual implementation (confirmed by reading `engine.ts` — it only accepts a plain IP
+  argument) — fixed to the real supported syntax. The port-defaults-to-80 mistake also recurred a fifth
+  time (the HSTS lab's port-443 target); `NOTES.md` now flags explicit port-specification as a mandatory
+  pre-commit check for any future lab, not an occasional reminder. tsc/lint clean, headless-Chrome boot
+  check clean.
+- **`a4d9d2e`** — Updated `labs-index.md` (260 total, Active Directory 20→21, Forensics 13→14, Security+
+  12→13, Binary Analysis 13→14, Security Engineering 13→14, API 13→14) and `NOTES.md` (batch 9 citations).
+
+**Updated running total**: labs 219 → 260 (+41 across the last six batches, +56 total toward the "up to
+500" target).
