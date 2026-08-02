@@ -134,6 +134,16 @@ carrying forward as if nothing changed:
   via the Labs index/roadmap ordering — not a confirmed bug the way the two "stale Module complete" cases
   were. Mass-editing 23+ Web labs on a guess about intent risked doing more harm than good, so left those
   alone this round; if you want every lab lesson-embedded regardless of count, say so and it's a quick pass.
+- **`5988a85`** — soc-siem's 4th lesson: "Log Source Onboarding & Managing Data Volume at Scale." This was
+  the last remaining thin SOC submodule (3 lessons). Grepped for cribl/logstash/fluentd/"parser
+  maintenance"/onboarding first — none appeared anywhere, confirming a genuine gap: existing lessons cover
+  what a SIEM does conceptually, nothing on the operational reality of running one (a parser silently
+  breaking after a vendor format change with no alert, the volume-vs-cost tradeoff that shapes real SIEM
+  architecture once licensing is billed by GB/day). Every SOC submodule (soc, soc-siem, soc-detection,
+  soc-ir) is now at 4 lessons — the whole SOC track has had a real, non-redundant lesson added tonight.
+  Also grepped all of src/content for other "Module complete"/finality-style claims this iteration (per the
+  hypothesis that rt-4/cloud-2 might not be isolated) — cross-checked all 13 matches against curriculum.ts's
+  actual lesson ordering and found no further mismatches; that specific bug class looks exhausted for now.
 - Next: continue the same pattern — next-thinnest module or page needing a pass, one bounded/verified unit
   at a time. Not attempting to define a literal "done" for "best in the world" (see reply upthread); this
   log is the honest record of what actually shipped and how it was checked.
