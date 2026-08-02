@@ -68,6 +68,30 @@ NARROW:     exclude login failures specifically from svc_scheduler@10.10.1.9,
         </p>
       </Callout>
 
+      <h2>Worked example: a technique-specific rule for Kerberoasting</h2>
+      <p>
+        Putting "start from a technique, not a tool" into practice: Kerberoasting (MITRE ATT&amp;CK T1558.003)
+        requests a Kerberos service ticket for every registered SPN on the domain, then cracks the tickets
+        offline. Windows Security Event ID 4769 (Kerberos Service Ticket Request) is the data source; the
+        technique-specific signal is two things happening together — a burst of requests for many unrelated
+        services from one account, AND a preference for legacy RC4 encryption over AES, because RC4-encrypted
+        tickets crack far faster offline.
+      </p>
+      <CodeBlock label="the same rule, run through the detection lifecycle above">{`HYPOTHESIS:  Kerberoasting produces a burst of 4769 events, one account, many unrelated
+             SPNs, biased toward RC4 (0x17) over AES (0x12/0x18)
+DATA CHECK:  Confirmed -- Security Event ID 4769 is already collected domain-wide
+DRAFT RULE:  alert if one account requests RC4 tickets for 15+ distinct SPNs within 5 minutes
+BACKTEST:    fired 0 times across 90 days of normal traffic; fired correctly against a
+             simulated Rubeus/GetUserSPNs.py sweep
+TUNE:        excluded one legitimate SPN-inventory scanning service account, reviewed quarterly
+DEPLOY:      live -- the exact rule the "SOC: Detecting Kerberoasting" lab has you reconstruct
+             by hand from the raw 4769 log, before ever seeing it expressed as a rule`}</CodeBlock>
+      <p>
+        This is also the direct blue-team counterpart to the offensive Kerberoasting technique taught in the
+        Active Directory module — the same RC4 preference that makes a captured ticket crack faster offline
+        is precisely what makes the request pattern detectable in the first place.
+      </p>
+
       <h2>Detection-as-code</h2>
       <p>
         Mature detection engineering teams store rules as version-controlled files (often YAML or a

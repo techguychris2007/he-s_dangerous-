@@ -50,6 +50,7 @@ export const LESSON_LABS: Record<string, string[]> = {
   'soc-1': ['soc-ssh-bruteforce-investigation', 'soc-phishing-header-analysis', 'soc-insider-threat-bulk-access', 'soc-bec-mailbox-rule-fraud', 'soc-credential-stuffing-detection'],
   'soc-2': ['soc-web-log-sqli-detection', 'soc-cobalt-strike-beacon', 'soc-dns-tunneling-exfil', 'soc-lolbin-certutil-abuse', 'soc-supply-chain-compromise-indicator', 'ai-orchestrated-ransomware-investigation', 'soc-automated-spearphishing-campaign-analysis', 'soc-deepfake-vishing-ceo-fraud'],
   'soc-ir-4': ['soc-target-2013-alert-fatigue', 'soc-bangladesh-bank-swift-heist'],
+  'soc-detection-1': ['soc-kerberoasting-detection'],
 
   // Digital Forensics
   'for-1': ['forensics-timeline-analysis', 'forensics-deleted-file-recovery', 'forensics-ransomware-note-analysis', 'forensics-usb-exfiltration-history', 'forensics-browser-history-insider', 'forensics-webshell-discovery'],
