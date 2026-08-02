@@ -34,7 +34,14 @@ that's fine:
    once. If you specifically want a new visual direction (not just more pages polished within the
    current one), that's a real design decision I'd want your input on before applying it everywhere.
 
-3. **Volume targets ("50 labs," "30 coding labs")** — I'm treating these as an upper bound / rough
+3. **CTA button letter-spacing (0.15em / 0.2em / 0.25em split)** — LoginPage/ResetPasswordPage's submit
+   buttons use `tracking-[0.25em]`, IntroPage's two serif CTA buttons use `tracking-[0.15em]`, and every
+   `text-xs` section-eyebrow label (SocPortalPage, CodePortalPage, MlPortalPage, MlLessonPage, LibraryPage)
+   uses `tracking-[0.2em]`. These read as three different one-off component types (auth-flow CTA, hero CTA,
+   small-text eyebrow) rather than one drifted value, so I didn't force them to match — but if you want one
+   canonical "tracked uppercase" value used everywhere regardless of component type, say so and it's a
+   5-minute pass.
+4. **Volume targets ("50 labs," "30 coding labs")** — I'm treating these as an upper bound / rough
    sense of scale, not a quota to hit regardless of quality. Every lab and lesson added this session
    (and tonight) gets the same verification: real-browser Playwright checks confirming every flag
    captures / every test passes, not just written-and-assumed-correct. That verification step is
@@ -212,8 +219,44 @@ carrying forward as if nothing changed:
   to interpolate `.length` instead. tsc/lint clean, headless-Chrome boot check (real Chrome, `--headless=new
   --dump-dom`, since no Playwright/puppeteer is installed here) confirms zero console errors beyond a
   benign PWA install-banner notice.
-- Next: continue the same pattern — the unchecked-pages list above (MlLessonPage, CodeTaskPage,
-  InstructorDashboardPage, LessonPage, BookReaderPage, ResetPasswordPage) is the next place to look, plus
-  re-running the hardcoded-literal grep periodically since it keeps finding real instances. Not attempting
-  to define a literal "done" for "best in the world" (see reply upthread); this log is the honest record of
-  what actually shipped and how it was checked.
+### Scope pivot: full frontend audit (typography → visual consistency → responsive/a11y)
+
+Per an explicit autonomous-work instruction covering the whole frontend including the AI chat interfaces
+(CyberLabAI, AiReadingCompanion), working on the `overnight-work` branch, committing after each section,
+never pushing to `main`. Ambiguous "which design choice is right" calls go under NEEDS REVIEW above instead
+of being guessed.
+
+- **`e2f8d84`** — Typography audit (step 1). Cataloged every `text-*`/`font-*`/`leading-*`/`tracking-*`
+  utility class across all 275 `src` files.
+
+  **Before:** font-size had two layers — Tailwind's standard xs(12)/sm(14)/base(16)/lg(18)/xl(20)/
+  2xl(24)/3xl(30)/4xl(36)/6xl(60) scale, which was already consistent and needed no change, sitting
+  alongside ~30 files' worth of ad-hoc arbitrary values with no shared token: `text-[10px]` (29 instances)
+  and `text-[11px]` (40 instances) both used for the identical kind of text — nav section labels, stat
+  captions, badges, AI-chat timestamps/citation chips — with no discernible reason a given spot got 10 vs
+  11; plus `text-[13px]` (CodeEditor, IntroPage terminal demo) and `text-[0.85rem]` (CodeBlock) independently
+  reinvented three times for the same "dense monospace code panel" need. Font-weight (medium/semibold/bold/
+  extrabold — 4 clean, purposeful steps) and line-height (leading-relaxed for prose, leading-none for stat
+  numerals, leading-snug/tight for headings) both audited clean — no drift, no changes made there.
+
+  **After:** two new real scale steps added to the `@theme` block in `index.css`: `--text-2xs` (11px, with
+  a paired `1.45` line-height) absorbs every 10px/11px micro-label instance sitewide; `--text-code` (13px,
+  paired `1.6` line-height) absorbs all three code-panel sizes. Picked 11px (not 10px) as the single value
+  since it's marginally more legible and Tailwind v4's `@theme` namespace generates a real `text-2xs`/
+  `text-code` utility class from these tokens (confirmed present in the compiled CSS with correct paired
+  line-heights, not just assumed from the source).
+
+  Left two things alone on purpose: LoginPage/ResetPasswordPage's matching 13px serif eyebrow (a previously-
+  reviewed intentional theme choice, `0b5d7f9`) is a different component than the numeric UI scale, not
+  drift; MarkdownText.tsx's `0.85em`/`0.9em`/`0.95em` are correct relative-sizing (it renders inside
+  variously-sized containers) not absolute drift. The CTA-button tracking split is logged under NEEDS
+  REVIEW above rather than forced into one value.
+
+  Verified: tsc clean, oxlint clean, production build succeeds, both new utilities confirmed compiled
+  correctly, real headless-Chrome boot check (`chrome --headless=new --dump-dom`, no Playwright/puppeteer
+  available in this environment) shows zero console errors beyond the benign PWA install-banner notice.
+
+- Next: visual consistency (spacing rhythm, ad-hoc hex colors outside the palette, button/card/input
+  consistency, checking the AI chat UI doesn't look bolted-on) — step 2 of the audit — then responsive +
+  accessibility (mobile breakpoints, alt text/aria-labels/focus states, keyboard nav including the chat
+  interfaces) — step 3 — then a full re-scan verification loop until clean, per the original instruction.
