@@ -8,6 +8,7 @@ import { IconCheck, IconCode } from '../components/layout/icons';
 export default function MlPortalPage() {
   const progress = useProgress();
   const tasksDone = ML_TASKS.filter((t) => progress.isCodeTaskComplete(t.id)).length;
+  const liveDemoCount = ML_LESSONS.filter((l) => l.demo).length;
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--color-bg)' }}>
@@ -53,7 +54,7 @@ export default function MlPortalPage() {
               <div className="text-[11px] text-white/60 uppercase tracking-wide">Coding challenges solved</div>
             </div>
             <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
-              <div className="text-lg font-bold text-white">2</div>
+              <div className="text-lg font-bold text-white">{liveDemoCount}</div>
               <div className="text-[11px] text-white/60 uppercase tracking-wide">Live in-browser demos</div>
             </div>
           </div>
