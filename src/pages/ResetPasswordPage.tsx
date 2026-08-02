@@ -78,7 +78,7 @@ export default function ResetPasswordPage() {
             </p>
             <Link
               to="/login"
-              className="text-[11px] font-semibold text-[#7c93ae] hover:text-[#c9e0ff] transition-colors"
+              className="text-2xs font-semibold text-[#7c93ae] hover:text-[#c9e0ff] transition-colors"
             >
               &larr; Back to sign in
             </Link>
@@ -90,7 +90,7 @@ export default function ResetPasswordPage() {
             </p>
             <button
               onClick={() => navigate('/', { replace: true })}
-              className="text-[11px] font-semibold text-[#7c93ae] hover:text-[#c9e0ff] transition-colors"
+              className="text-2xs font-semibold text-[#7c93ae] hover:text-[#c9e0ff] transition-colors"
             >
               Continue to dashboard &rarr;
             </button>

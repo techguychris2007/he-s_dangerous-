@@ -63,7 +63,7 @@ export default function ModulePage() {
               className="flex items-center gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3.5 hover:border-[var(--color-accent)]/50 hover:shadow-md transition-all"
             >
               <span
-                className={`w-6 h-6 shrink-0 rounded-full text-[11px] font-bold flex items-center justify-center ${
+                className={`w-6 h-6 shrink-0 rounded-full text-2xs font-bold flex items-center justify-center ${
                   complete ? 'bg-[var(--color-success)] text-white' : 'bg-[var(--color-surface-2)] text-[var(--color-text-dim)]'
                 }`}
               >

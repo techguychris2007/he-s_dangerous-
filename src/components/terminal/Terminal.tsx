@@ -191,7 +191,7 @@ export default function Terminal({ scenario, onFlagCaptured, onCommandRun, onTra
         <span className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
         <span className="w-3 h-3 rounded-full bg-[#27c93f]" />
         <span className="ml-3 text-xs text-[#c9a15f]">{scenario.attacker.hostname} — bash</span>
-        {busy && <span className="ml-auto text-[11px] text-[#7a7264] animate-pulse">running&hellip;</span>}
+        {busy && <span className="ml-auto text-2xs text-[#7a7264] animate-pulse">running&hellip;</span>}
       </div>
       <div className="flex-1 overflow-y-auto p-3 space-y-0.5 min-h-0" role="log" aria-live="polite" aria-label={`${scenario.attacker.hostname} terminal output`}>
         {lines.map((l) => (

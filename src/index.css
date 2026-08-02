@@ -5,6 +5,18 @@
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-display: "Georgia", "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
 
+  /* Type scale extensions: fills gaps below Tailwind's default `xs` (12px) step and standardizes
+     code-panel sizing. Before this, the codebase had drifted into arbitrary `text-[10px]`,
+     `text-[11px]`, and `text-[13px]`/`text-[0.85rem]` values scattered across ~30 files with no
+     shared token — same value used for the same kind of text (nav section labels, badges,
+     progress captions) but picked inconsistently file to file. `2xs` replaces every 10/11px
+     micro-label instance; `code` replaces every code-panel font-size instance (CodeEditor,
+     CodeBlock, terminal-demo snippets). See CHANGELOG.md for the full before/after audit. */
+  --text-2xs: 0.6875rem; /* 11px */
+  --text-2xs--line-height: 1.45;
+  --text-code: 0.8125rem; /* 13px */
+  --text-code--line-height: 1.6;
+
   /* Classic platform theme: electric blue + violet, with a gold secondary accent used sparingly
      for premium framing (dividers, badges, hover accents). */
   --color-bg: #f4f6fb;

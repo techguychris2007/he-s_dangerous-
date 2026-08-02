@@ -69,10 +69,10 @@ export default function MlLessonPage() {
                     <span className="font-semibold text-[var(--color-heading)] text-xs">{r.title}</span>
                     <IconExternal className="w-3 h-3 text-[var(--color-text-dim)] shrink-0" />
                   </div>
-                  <span className="pill bg-[var(--color-accent)]/10 text-[var(--color-accent)] text-[10px] mb-1.5 inline-block capitalize">
+                  <span className="pill bg-[var(--color-accent)]/10 text-[var(--color-accent)] text-2xs mb-1.5 inline-block capitalize">
                     {r.kind}
                   </span>
-                  <p className="text-[11px] text-[var(--color-text-dim)] leading-relaxed">{r.note}</p>
+                  <p className="text-2xs text-[var(--color-text-dim)] leading-relaxed">{r.note}</p>
                 </a>
               ))}
             </div>

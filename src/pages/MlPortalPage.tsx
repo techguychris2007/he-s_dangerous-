@@ -47,15 +47,15 @@ export default function MlPortalPage() {
           <div className="flex flex-wrap gap-4">
             <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
               <div className="text-lg font-bold text-white">{ML_LESSONS.length}</div>
-              <div className="text-[11px] text-white/60 uppercase tracking-wide">Lessons across {ML_UNITS.length} units</div>
+              <div className="text-2xs text-white/60 uppercase tracking-wide">Lessons across {ML_UNITS.length} units</div>
             </div>
             <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
               <div className="text-lg font-bold text-white">{tasksDone}/{ML_TASKS.length}</div>
-              <div className="text-[11px] text-white/60 uppercase tracking-wide">Coding challenges solved</div>
+              <div className="text-2xs text-white/60 uppercase tracking-wide">Coding challenges solved</div>
             </div>
             <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
               <div className="text-lg font-bold text-white">{liveDemoCount}</div>
-              <div className="text-[11px] text-white/60 uppercase tracking-wide">Live in-browser demos</div>
+              <div className="text-2xs text-white/60 uppercase tracking-wide">Live in-browser demos</div>
             </div>
           </div>
         </div>
@@ -96,7 +96,7 @@ export default function MlPortalPage() {
                         <span className="text-xs font-mono text-[var(--color-text-dim)]">{lesson.source}</span>
                         <div className="flex items-center gap-1 shrink-0">
                           {lesson.demo && (
-                            <span className="pill bg-[var(--color-accent)]/15 text-[var(--color-accent)] border border-[var(--color-accent)]/30 text-[10px]">
+                            <span className="pill bg-[var(--color-accent)]/15 text-[var(--color-accent)] border border-[var(--color-accent)]/30 text-2xs">
                               Live demo
                             </span>
                           )}
@@ -108,7 +108,7 @@ export default function MlPortalPage() {
                         dangerouslySetInnerHTML={{ __html: lesson.title }}
                       />
                       {hasChallenge && (
-                        <div className="flex items-center gap-1 text-[11px] text-[var(--color-text-dim)]">
+                        <div className="flex items-center gap-1 text-2xs text-[var(--color-text-dim)]">
                           <IconCode className="w-3 h-3" /> Coding challenge included
                         </div>
                       )}

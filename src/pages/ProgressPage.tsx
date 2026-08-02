@@ -119,7 +119,7 @@ export default function ProgressPage() {
               <div className="text-xs text-[var(--color-text-dim)]">Overall</div>
             </div>
           </div>
-          <div className="text-[11px] text-[var(--color-text-dim)] mt-3 text-center">Lessons + labs + code tasks</div>
+          <div className="text-2xs text-[var(--color-text-dim)] mt-3 text-center">Lessons + labs + code tasks</div>
         </div>
         <StatCard icon={<IconChart className="w-5 h-5" />} color="var(--color-accent-2)" label="Lessons completed" value={`${completedLessons} / ${totalLessons}`} />
         <StatCard icon={<IconFlask className="w-5 h-5" />} color="var(--color-accent)" label="Labs solved" value={`${labsDone} / ${LABS.length}`} />

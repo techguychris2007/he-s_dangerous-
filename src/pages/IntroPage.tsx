@@ -108,7 +108,7 @@ export default function IntroPage() {
           </div>
 
           <div className="text-center max-w-3xl mx-auto reveal" style={{ '--reveal-delay': '0.1s' } as React.CSSProperties}>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-mono tracking-[0.2em] uppercase text-[#c9a15f] border border-[#c9a15f4d] mb-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-2xs font-mono tracking-[0.2em] uppercase text-[#c9a15f] border border-[#c9a15f4d] mb-6">
               Offensive &amp; defensive security, hands-on
             </div>
             <h1 className="text-4xl sm:text-6xl font-extrabold text-white leading-tight mb-5">
@@ -155,7 +155,7 @@ export default function IntroPage() {
           {/* terminal mockup */}
           <div className="relative max-w-2xl mx-auto mt-14 reveal" style={{ '--reveal-delay': '0.22s' } as React.CSSProperties}>
             <div
-              className="rounded-xl overflow-hidden font-mono text-[13px] leading-relaxed"
+              className="rounded-xl overflow-hidden font-mono text-code leading-relaxed"
               style={{
                 background: '#0c0d10',
                 border: '1px solid #3f8cff4d',
@@ -166,7 +166,7 @@ export default function IntroPage() {
                 <span className="w-2.5 h-2.5 rounded-full bg-[#ff5f56]" />
                 <span className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]" />
                 <span className="w-2.5 h-2.5 rounded-full bg-[#27c93f]" />
-                <span className="ml-2.5 text-[11px] text-[#c9a15f]">attacker@darkworld — bash</span>
+                <span className="ml-2.5 text-2xs text-[#c9a15f]">attacker@darkworld — bash</span>
               </div>
               <div className="px-4 py-4 text-left space-y-1.5">
                 <div><span className="text-[#f2c46d]">$</span> <span className="text-[#d8d0c0]">sudo -l</span></div>
@@ -200,7 +200,7 @@ export default function IntroPage() {
           aria-label="Scroll down"
           className="relative mx-auto mb-6 flex flex-col items-center gap-1 text-[#7c93ae] hover:text-[#c9e0ff] transition-colors animate-bounce"
         >
-          <span className="text-[10px] font-mono uppercase tracking-[0.2em]">Scroll</span>
+          <span className="text-2xs font-mono uppercase tracking-[0.2em]">Scroll</span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M12 5v14M5 12l7 7 7-7" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
@@ -276,7 +276,7 @@ export default function IntroPage() {
           style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(63,140,255,0.12) 0%, transparent 60%)' }}
         />
         <div className="relative max-w-5xl mx-auto px-6 sm:px-8 py-16 sm:py-20 text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-mono tracking-[0.2em] uppercase text-[#c9a15f] border border-[#c9a15f4d] mb-5">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-2xs font-mono tracking-[0.2em] uppercase text-[#c9a15f] border border-[#c9a15f4d] mb-5">
             <IconUser className="w-3 h-3" /> free account, no credit card
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-white mb-3">Create your account and start your first lab in under a minute</h2>
@@ -306,7 +306,7 @@ function Stat({ value, label }: { value: string; label: string }) {
   return (
     <div className="text-center">
       <div className="text-2xl sm:text-3xl font-extrabold text-white">{value}</div>
-      <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-[#7c93ae] mt-1">{label}</div>
+      <div className="text-2xs font-mono uppercase tracking-[0.2em] text-[#7c93ae] mt-1">{label}</div>
     </div>
   );
 }

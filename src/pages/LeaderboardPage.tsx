@@ -167,7 +167,7 @@ export default function LeaderboardPage() {
                     </div>
                     <div className="text-right shrink-0">
                       <div className="text-xl font-extrabold text-[var(--color-accent-dim)] font-mono">{e.points}</div>
-                      <div className="text-[11px] text-[var(--color-text-dim)]">pts</div>
+                      <div className="text-2xs text-[var(--color-text-dim)]">pts</div>
                     </div>
                   </div>
                 );

@@ -131,7 +131,7 @@ export default function DebugTraceView({ code, steps, stepLimitHit }: DebugTrace
         </div>
 
         <div className="max-h-72 overflow-y-auto p-2">
-          <div className="text-[10px] font-bold uppercase tracking-wide text-[var(--color-text-dim)] px-1.5 mb-1.5">
+          <div className="text-2xs font-bold uppercase tracking-wide text-[var(--color-text-dim)] px-1.5 mb-1.5">
             Local variables
           </div>
           {localEntries.length === 0 ? (

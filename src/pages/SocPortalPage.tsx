@@ -77,15 +77,15 @@ export default function SocPortalPage() {
           <div className="flex flex-wrap gap-4">
             <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
               <div className="text-lg font-bold text-white">{lessonsDone}/{totalLessons}</div>
-              <div className="text-[11px] text-white/60 uppercase tracking-wide">Lessons complete</div>
+              <div className="text-2xs text-white/60 uppercase tracking-wide">Lessons complete</div>
             </div>
             <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
               <div className="text-lg font-bold text-white">{labsDone}/{allLabsDone.length}</div>
-              <div className="text-[11px] text-white/60 uppercase tracking-wide">Labs solved</div>
+              <div className="text-2xs text-white/60 uppercase tracking-wide">Labs solved</div>
             </div>
             <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
               <div className="text-lg font-bold text-white">{flagsCaptured}/{totalFlags}</div>
-              <div className="text-[11px] text-white/60 uppercase tracking-wide">Flags captured</div>
+              <div className="text-2xs text-white/60 uppercase tracking-wide">Flags captured</div>
             </div>
           </div>
         </div>

@@ -82,7 +82,7 @@ export default function AiReadingCompanion({ bookTitle, currentPage, viewerRef }
           <div className="text-sm font-bold flex items-center gap-1.5">
             <IconLightning className="w-4 h-4" /> Reading Companion
           </div>
-          <div className="text-[11px] text-white/80 truncate">
+          <div className="text-2xs text-white/80 truncate">
             {bookTitle} — page {currentPage}
           </div>
         </div>
@@ -120,7 +120,7 @@ export default function AiReadingCompanion({ bookTitle, currentPage, viewerRef }
                       target="_blank"
                       rel="noopener noreferrer"
                       title={c.title}
-                      className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[var(--color-accent)]/10 text-[var(--color-accent)] text-[10px] font-semibold hover:bg-[var(--color-accent)]/20"
+                      className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[var(--color-accent)]/10 text-[var(--color-accent)] text-2xs font-semibold hover:bg-[var(--color-accent)]/20"
                     >
                       {ci + 1} <IconExternal className="w-2.5 h-2.5" />
                     </a>
@@ -128,7 +128,7 @@ export default function AiReadingCompanion({ bookTitle, currentPage, viewerRef }
                 </div>
               )}
             </div>
-            {m.model && <div className="text-[10px] text-[var(--color-text-dim)] mt-0.5">via {m.model}</div>}
+            {m.model && <div className="text-2xs text-[var(--color-text-dim)] mt-0.5">via {m.model}</div>}
           </div>
         ))}
         {loading && (
@@ -149,7 +149,7 @@ export default function AiReadingCompanion({ bookTitle, currentPage, viewerRef }
             key={qa.mode}
             disabled={loading}
             onClick={() => send(qa.question, qa.mode)}
-            className="px-2 py-1 rounded-md text-[10px] font-semibold bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-heading)] hover:border-[var(--color-accent)]/50 disabled:opacity-50"
+            className="px-2 py-1 rounded-md text-2xs font-semibold bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-heading)] hover:border-[var(--color-accent)]/50 disabled:opacity-50"
           >
             {qa.label}
           </button>

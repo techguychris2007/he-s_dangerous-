@@ -83,7 +83,7 @@ export default function CyberLabAI({ getContext }: CyberLabAIProps) {
           <div className="text-sm font-bold flex items-center gap-1.5">
             <IconLightning className="w-4 h-4" /> CyberLab AI
           </div>
-          <div className="text-[11px] text-white/80 truncate">
+          <div className="text-2xs text-white/80 truncate">
             {isLab ? 'Hint-first lab mentor' : 'Concept explainer'} — {getContext().title}
           </div>
         </div>
@@ -121,7 +121,7 @@ export default function CyberLabAI({ getContext }: CyberLabAIProps) {
                       target="_blank"
                       rel="noopener noreferrer"
                       title={c.title}
-                      className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[var(--color-accent)]/10 text-[var(--color-accent)] text-[10px] font-semibold hover:bg-[var(--color-accent)]/20"
+                      className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[var(--color-accent)]/10 text-[var(--color-accent)] text-2xs font-semibold hover:bg-[var(--color-accent)]/20"
                     >
                       {ci + 1} <IconExternal className="w-2.5 h-2.5" />
                     </a>
@@ -129,7 +129,7 @@ export default function CyberLabAI({ getContext }: CyberLabAIProps) {
                 </div>
               )}
             </div>
-            {m.model && <div className="text-[10px] text-[var(--color-text-dim)] mt-0.5">via {m.model}</div>}
+            {m.model && <div className="text-2xs text-[var(--color-text-dim)] mt-0.5">via {m.model}</div>}
           </div>
         ))}
         {loading && (
@@ -150,21 +150,21 @@ export default function CyberLabAI({ getContext }: CyberLabAIProps) {
             <button
               disabled={loading || hintLevel >= 5}
               onClick={requestNextHint}
-              className="px-2 py-1 rounded-md text-[10px] font-semibold bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-heading)] hover:border-[var(--color-accent)]/50 disabled:opacity-50"
+              className="px-2 py-1 rounded-md text-2xs font-semibold bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-heading)] hover:border-[var(--color-accent)]/50 disabled:opacity-50"
             >
               {hintLevel === 0 ? 'Get a Hint' : hintLevel >= 5 ? 'No more hints' : `Next Hint (${hintLevel + 1}/5)`}
             </button>
             <button
               disabled={loading}
               onClick={() => send('Explain the concept this lab is testing.', 'explain')}
-              className="px-2 py-1 rounded-md text-[10px] font-semibold bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-heading)] hover:border-[var(--color-accent)]/50 disabled:opacity-50"
+              className="px-2 py-1 rounded-md text-2xs font-semibold bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-heading)] hover:border-[var(--color-accent)]/50 disabled:opacity-50"
             >
               Explain Concept
             </button>
             <button
               disabled={loading}
               onClick={() => send('Explain the error or unexpected output I\'m seeing.', 'ask')}
-              className="px-2 py-1 rounded-md text-[10px] font-semibold bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-heading)] hover:border-[var(--color-accent)]/50 disabled:opacity-50"
+              className="px-2 py-1 rounded-md text-2xs font-semibold bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-heading)] hover:border-[var(--color-accent)]/50 disabled:opacity-50"
             >
               Explain Error
             </button>
@@ -174,14 +174,14 @@ export default function CyberLabAI({ getContext }: CyberLabAIProps) {
             <button
               disabled={loading}
               onClick={() => send('Explain this lesson.', 'explain')}
-              className="px-2 py-1 rounded-md text-[10px] font-semibold bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-heading)] hover:border-[var(--color-accent)]/50 disabled:opacity-50"
+              className="px-2 py-1 rounded-md text-2xs font-semibold bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-heading)] hover:border-[var(--color-accent)]/50 disabled:opacity-50"
             >
               Explain This Lesson
             </button>
             <button
               disabled={loading}
               onClick={() => send('Explain this lesson in simpler terms, with an analogy.', 'ask')}
-              className="px-2 py-1 rounded-md text-[10px] font-semibold bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-heading)] hover:border-[var(--color-accent)]/50 disabled:opacity-50"
+              className="px-2 py-1 rounded-md text-2xs font-semibold bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-heading)] hover:border-[var(--color-accent)]/50 disabled:opacity-50"
             >
               Explain Simpler
             </button>

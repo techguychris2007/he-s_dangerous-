@@ -37,7 +37,7 @@ export default function CodeEditor({ value, onChange, disabled }: CodeEditorProp
       spellCheck={false}
       autoCapitalize="off"
       autoCorrect="off"
-      className="w-full h-full min-h-[280px] resize-none bg-[#0c0d10] text-[#d8d0c0] font-mono text-[13px] leading-relaxed p-4 outline-none rounded-lg border border-[var(--color-accent)]/30 focus:border-[var(--color-accent)]/60 disabled:opacity-60"
+      className="w-full h-full min-h-[280px] resize-none bg-[#0c0d10] text-[#d8d0c0] font-mono text-code leading-relaxed p-4 outline-none rounded-lg border border-[var(--color-accent)]/30 focus:border-[var(--color-accent)]/60 disabled:opacity-60"
       style={{ tabSize: 4 }}
     />
   );
