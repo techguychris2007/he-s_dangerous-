@@ -120,6 +120,20 @@ carrying forward as if nothing changed:
   KQL/Elastic EQL). Inserted as the new final lesson, moved Threat Intel Integration to slot 3 ahead of it,
   updated both lessons' transitions, moved the module quiz onto the new last lesson. tsc/lint clean,
   headless-Chrome boot check clean.
+- **`544869f`** — Extended the lesson/lab-mapping audit to Active Directory, Web, Bug Bounty, Linux, Network,
+  Security+, Binary Analysis, Malware, and Security Engineering. Active Directory (13 labs) had exactly 2
+  orphans and the same "stale Module complete" bug already fixed twice tonight — rt-4 closed as if it were
+  the redteam module's last lesson, when rt-5 (C2 & Persistence) has existed after it all along. Fixed both:
+  added a real section on unconstrained delegation abuse (MITRE T1187/T1558, previously uncovered anywhere)
+  with its lab embedded there, mapped the password-spraying lab to rec-4 (whose prose already teaches that
+  exact technique), and corrected the transition into rt-5.
+  **Flagging rather than fixing:** Web (39 labs), Bug Bounty (19), Network (24), Linux (7), and Malware (12)
+  came back with a much larger number of "unmapped" labs (23/9/8/5/2 respectively) than SOC/Cloud/Forensics/
+  AD ever had. Given each of those modules only has 5 lessons, that ratio looks like it might be intentional
+  — LESSON_LABS as a curated highlight per lesson rather than an exhaustive index, with the rest reachable
+  via the Labs index/roadmap ordering — not a confirmed bug the way the two "stale Module complete" cases
+  were. Mass-editing 23+ Web labs on a guess about intent risked doing more harm than good, so left those
+  alone this round; if you want every lab lesson-embedded regardless of count, say so and it's a quick pass.
 - Next: continue the same pattern — next-thinnest module or page needing a pass, one bounded/verified unit
   at a time. Not attempting to define a literal "done" for "best in the world" (see reply upthread); this
   log is the honest record of what actually shipped and how it was checked.
