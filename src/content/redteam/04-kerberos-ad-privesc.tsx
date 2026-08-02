@@ -122,7 +122,48 @@ export default function KerberosAdPrivesc() {
           hardening guidance for years, and why modern AD deployments should use constrained or
           resource-based constrained delegation instead — both scope exactly which service an account can be
           impersonated FOR, instead of caching a fully reusable copy of whatever credential happens to pass
-          through.
+          through. That said, "safer than unconstrained delegation" is not the same as "safe" — see RBCD
+          below.
+        </p>
+      </Callout>
+
+      <h2>Beyond Kerberos tickets: certificate and delegation-based paths (ADCS, RBCD, Shadow Credentials)</h2>
+      <p>
+        Kerberoasting and Golden/Silver Tickets are the classic ticket-forging toolkit — but two entire
+        categories of modern AD compromise don't forge a Kerberos ticket at all, and one of them abuses the
+        exact "safer" delegation model just recommended above.
+      </p>
+      <CodeBlock label="ADCS ESC1 — a certificate stands in for a password entirely">{`If Active Directory Certificate Services is deployed, a certificate TEMPLATE can be misconfigured with
+two flags at once: it allows client authentication, AND it lets the person REQUESTING the certificate
+supply their own Subject Alternative Name. Any domain user allowed to enroll can then request a
+certificate claiming to be "administrator" -- and authenticate with it directly. No ticket is forged,
+no password is cracked; the certificate itself IS the credential. This flag combination (tracked as
+"ESC1") is, per current ADCS research, the single most common real-world ADCS privilege-escalation
+path -- tools like Certipy exist specifically to hunt a domain's templates for it.`}</CodeBlock>
+      <CodeBlock label="RBCD -- abusing the 'safer' delegation model itself">{`Resource-Based Constrained Delegation was introduced specifically to REPLACE unconstrained delegation's
+"cache anyone's TGT" problem -- but it has its own abuse path. Any domain user can normally create a
+small number of computer accounts (ms-DS-MachineAccountQuota, default 10). If that same user also holds
+write permission (GenericWrite/GenericAll) over some OTHER computer object's delegation attribute --
+often granted for a mundane reason years earlier and forgotten -- they can point that attribute at their
+own rogue computer account, then use it to request a service ticket impersonating ANY user, including
+Domain Admin, against the target machine. "We migrated off unconstrained delegation" is not the same
+sentence as "delegation is no longer a privilege-escalation path here."`}</CodeBlock>
+      <p>
+        <strong>Shadow Credentials</strong> takes a similar "write access to the right attribute" idea and
+        applies it to a single user account instead of a computer object: <code>GenericWrite</code> over a
+        target user lets an attacker write their own certificate into that user's{' '}
+        <code>msDS-KeyCredentialLink</code> attribute — the same attribute Windows Hello for Business and
+        passwordless sign-in rely on — then authenticate <em>as</em> that user via PKINIT. The target's real
+        password is never touched, reset, or even known by the attacker, which is exactly why this technique
+        leaves such a quiet footprint compared to a forced password reset.
+      </p>
+      <Callout variant="tip">
+        <p>
+          All three of these share one root cause with everything else in this lesson: a permission (an
+          enrollment right, a <code>GenericWrite</code> ACL, a delegation attribute) that was granted for a
+          legitimate operational reason and never revisited. BloodHound surfaces all three attack paths the
+          same way it surfaces classic ACL-abuse chains — which is exactly why a real AD assessment runs it
+          against ADCS templates and delegation attributes, not just group memberships.
         </p>
       </Callout>
 

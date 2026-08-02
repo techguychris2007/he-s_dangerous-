@@ -38,6 +38,26 @@ export default function IamAndMisconfiguration() {
         user permissions.
       </p>
 
+      <h2>IMDSv2: the metadata service's own hardening, and its limit</h2>
+      <p>
+        Because SSRF-to-metadata-theft became such a common, high-impact finding, AWS shipped IMDSv2 —
+        a hardened version of the metadata service that requires a session token before any credential can
+        be read. The token itself is fetched with a <code>PUT</code> request; every metadata <code>GET</code>{' '}
+        afterward must carry that token in a header. A simple SSRF that can only force a <code>GET</code>{' '}
+        request (the classic case) is correctly blocked outright — it can never complete the{' '}
+        <code>PUT</code> step to obtain a token in the first place.
+      </p>
+      <Callout variant="warn">
+        <p>
+          IMDSv2 blocking <em>simple</em> GET-based SSRF is not the same as blocking SSRF entirely. If the
+          vulnerable feature gives an attacker any control over the outgoing request beyond just the URL —
+          a selectable HTTP method, custom headers, or a redirect the app blindly follows — that's often
+          enough to complete IMDSv2's PUT-then-GET handshake server-side, fully defeating the hardening.
+          Never treat "IMDSv2 is enforced" as license to skip metadata testing on an SSRF finding — check
+          exactly how much control the vulnerable feature actually gives you over the request first.
+        </p>
+      </Callout>
+
       <h2>Common misconfiguration checklist</h2>
       <CodeBlock label="what a cloud security review checks for, in priority order">{`1. Public storage buckets/containers with sensitive data
 2. Overly permissive IAM policies (wildcard actions/resources)
