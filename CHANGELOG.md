@@ -271,7 +271,17 @@ of being guessed.
   variables compile to the exact same hex in the built CSS, and a full-page screenshot of the IntroPage
   terminal demo (the most color-dense use of the palette) confirms every line still renders its correct
   color. tsc/lint clean, headless-Chrome boot check zero console errors.
-- Next: visual consistency remainder — spacing rhythm and button/card/input consistency, then checking the
-  AI chat UI doesn't look bolted-on — then responsive + accessibility (mobile breakpoints, alt text/
-  aria-labels/focus states, keyboard nav including the chat interfaces) — step 3 — then a full re-scan
-  verification loop until clean, per the original instruction.
+- Visual consistency, remainder of step 2 (spacing/buttons/cards/AI-chat) — audited, no changes needed.
+  Arbitrary (non-scale) spacing values: exactly one `gap-[3px]` sitewide (a deliberate thin progress-segment
+  gap), everything else already on Tailwind's default spacing scale. Border-radius: a clean, purposeful
+  4-step system (rounded-lg for buttons/inputs at 95 instances, rounded-xl for cards at 76, rounded-full for
+  pills/avatars at 87, rounded-2xl for larger panels at 7) — no arbitrary radius values anywhere, no
+  merging needed. Re-read both AI chat components (CyberLabAI, AiReadingCompanion) end to end against the
+  same bar as every other page: both already use `var(--color-*)` tokens exclusively (no hardcoded colors
+  of their own before this pass), the same pill/badge/button classes used sitewide, and the same
+  rounded-xl-bubble-on-surface-2 treatment as other panels — reads as a native part of the platform, not
+  bolted on. No changes made this section since nothing was actually inconsistent; logged here so the
+  audit's coverage is honest rather than silently skipping straight to step 3.
+- Next: responsive + accessibility — step 3. Mobile breakpoints on every page, alt text/aria-labels/focus
+  states sitewide, keyboard nav including both AI chat interfaces — then a full re-scan verification loop
+  until clean, per the original instruction.
