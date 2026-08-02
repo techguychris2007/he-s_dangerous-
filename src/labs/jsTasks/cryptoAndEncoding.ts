@@ -52,4 +52,122 @@ export const JS_CRYPTO_TASKS: CodeTask[] = [
       'check("non-letters unchanged", caesarEncode("Test-123!", 3), "Whvw-123!");\n' +
       'console.log("__RESULT__ " + __passed + "/" + __total);\n',
   },
+  {
+    id: 'js-crypto-02',
+    title: 'Base64-Encode a Credential Pair',
+    difficulty: 'Easy',
+    language: 'javascript',
+    category: 'Cryptography & Encoding',
+    prompt:
+      'Write function encodeCredential(username, password) that returns the base64 encoding of ' +
+      '"username:password" — exactly what an HTTP Basic Auth header carries after "Authorization: ' +
+      'Basic ". Recognizing that Basic Auth is base64 (an encoding, not encryption — trivially ' +
+      'reversible) is exactly why it\'s considered unsafe over plain HTTP.',
+    starterCode:
+      'function encodeCredential(username, password) {\n' +
+      '  // TODO: return base64("username:password")\n' +
+      '}\n',
+    hints: [
+      'Basic Auth\'s payload is always the literal string "username:password" before encoding — build that string first.',
+      'The browser/Worker global btoa(str) base64-encodes a plain string directly — no library needed.',
+      'Put it together: btoa(`${username}:${password}`)',
+    ],
+    solution:
+      'function encodeCredential(username, password) {\n' +
+      '  return btoa(`${username}:${password}`);\n' +
+      '}\n',
+    testCode:
+      'let __passed = 0;\n' +
+      'let __total = 0;\n' +
+      'function check(name, actual, expected) {\n' +
+      '  __total++;\n' +
+      '  const ok = actual === expected;\n' +
+      '  if (ok) __passed++;\n' +
+      '  console.log((ok ? "[PASS] " : "[FAIL] ") + name + ": got " + actual + ", expected " + expected);\n' +
+      '}\n' +
+      'check("basic", encodeCredential("admin", "secret123"), btoa("admin:secret123"));\n' +
+      'check("round-trips through atob", atob(encodeCredential("bob", "hunter2")), "bob:hunter2");\n' +
+      'console.log("__RESULT__ " + __passed + "/" + __total);\n',
+  },
+  {
+    id: 'js-crypto-03',
+    title: 'A Single-Byte XOR Cipher',
+    difficulty: 'Medium',
+    language: 'javascript',
+    category: 'Cryptography & Encoding',
+    prompt:
+      'Write function xorCipher(text, key) that XORs each character of text against the corresponding ' +
+      'character of key (repeating key as needed) and returns the result as a new string. XOR ciphers ' +
+      'are the building block behind real malware C2 traffic obfuscation and CTF crypto challenges — ' +
+      'and the reason they\'re "cipher" and not "encryption": XOR is its own inverse, so running the ' +
+      'exact same function again with the same key recovers the original text.',
+    starterCode:
+      'function xorCipher(text, key) {\n' +
+      '  // TODO: XOR each char of text against key (repeating key as needed), return the result string\n' +
+      '}\n',
+    hints: [
+      'text.charCodeAt(i) gets a character\'s numeric code; String.fromCharCode(n) converts a number back to a character.',
+      'The XOR operator in JS is ^ — combine a text char code with a key char code using it.',
+      'Repeat the key by indexing it with i % key.length: key.charCodeAt(i % key.length)',
+    ],
+    solution:
+      'function xorCipher(text, key) {\n' +
+      '  let result = "";\n' +
+      '  for (let i = 0; i < text.length; i++) {\n' +
+      '    result += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));\n' +
+      '  }\n' +
+      '  return result;\n' +
+      '}\n',
+    testCode:
+      'let __passed = 0;\n' +
+      'let __total = 0;\n' +
+      'function check(name, actual, expected) {\n' +
+      '  __total++;\n' +
+      '  const ok = actual === expected;\n' +
+      '  if (ok) __passed++;\n' +
+      '  console.log((ok ? "[PASS] " : "[FAIL] ") + name + ": got " + JSON.stringify(actual) + ", expected " + JSON.stringify(expected));\n' +
+      '}\n' +
+      'check("self-inverse round trip", xorCipher(xorCipher("hello world", "key"), "key"), "hello world");\n' +
+      'check("not a no-op", xorCipher("hello", "key") !== "hello", true);\n' +
+      'check("empty text", xorCipher("", "key"), "");\n' +
+      'console.log("__RESULT__ " + __passed + "/" + __total);\n',
+  },
+  {
+    id: 'js-crypto-04',
+    title: 'Hex-Encode a Byte Array',
+    difficulty: 'Medium',
+    language: 'javascript',
+    category: 'Cryptography & Encoding',
+    prompt:
+      'Write function bytesToHex(bytes) that takes an array of numbers (each 0-255) and returns their ' +
+      'lowercase two-digit hex representation concatenated together, e.g. [0, 255, 16] -> "00ff10". ' +
+      'This is exactly how every hash digest (MD5, SHA-256), memory dump, and packet capture byte you\'ve ' +
+      'ever seen printed as a string got that way.',
+    starterCode:
+      'function bytesToHex(bytes) {\n' +
+      '  // TODO: return the lowercase, zero-padded hex string for the given byte array\n' +
+      '}\n',
+    hints: [
+      'A number\'s .toString(16) method returns its hexadecimal representation as a string.',
+      'A single byte can produce a 1-character hex string (e.g. 15 -> "f") — pad it to 2 with .padStart(2, "0").',
+      'bytes.map(b => b.toString(16).padStart(2, "0")).join("") does the whole conversion in one line.',
+    ],
+    solution:
+      'function bytesToHex(bytes) {\n' +
+      '  return bytes.map((b) => b.toString(16).padStart(2, "0")).join("");\n' +
+      '}\n',
+    testCode:
+      'let __passed = 0;\n' +
+      'let __total = 0;\n' +
+      'function check(name, actual, expected) {\n' +
+      '  __total++;\n' +
+      '  const ok = actual === expected;\n' +
+      '  if (ok) __passed++;\n' +
+      '  console.log((ok ? "[PASS] " : "[FAIL] ") + name + ": got " + actual + ", expected " + expected);\n' +
+      '}\n' +
+      'check("basic", bytesToHex([0, 255, 16]), "00ff10");\n' +
+      'check("single low byte needs padding", bytesToHex([171]), "ab");\n' +
+      'check("empty", bytesToHex([]), "");\n' +
+      'console.log("__RESULT__ " + __passed + "/" + __total);\n',
+  },
 ];
