@@ -553,3 +553,25 @@ why that method exists — two labs in this batch would have been unsolvable as 
 
 **Updated running total**: labs 219 → 248 (+29 across the last four batches, +44 total toward the "up to
 500" target).
+
+- **`17f169a`** — 6 more labs (248 → 254): a shared/default TOTP secret across accounts predicting valid
+  2FA codes (Cryptography), file-upload Content-Type spoofing plus a double extension bypassing an
+  allowlist (API — OWASP's own documented bypass pattern), a "remember me" token surviving a password reset
+  (Security Engineering — grounded in a real HackerOne report and a real CVE, Contao CVE-2024-30262, naming
+  the identical root cause), a GCP Cloud Function left publicly invocable via an `allUsers` IAM binding
+  (Cloud — the first non-AWS cloud lab on the platform), a malicious LNK file hiding a PowerShell command
+  via whitespace padding (Malware Analysis — the real, currently-active ZDI-CAN-25373 technique disclosed
+  March 2025 and already adopted by nation-state groups per public reporting), and Golden SAML attack
+  detection via missing ADFS/Kerberos events (SOC — the real detection method: absence of the identity-
+  provider-side event trail, not anything suspicious in the cryptographically-valid forged assertion
+  itself). Full citations in `NOTES.md` batch 8.
+
+  First batch in this expansion where the full verification suite passed cleanly on the first run — no
+  port-default or hand-typed-encoding mistakes this time, which NOTES.md logs as a sign the standing
+  checklist from the last two batches is doing its job, not a reason to relax it. tsc/lint clean,
+  headless-Chrome boot check clean.
+- **`1a76f70`** — Updated `labs-index.md` (254 total, SOC 16→17, Cloud 16→17, Malware 15→16, Security
+  Engineering 12→13, API 12→13, Cryptography 10→11) and `NOTES.md` (batch 8 citations).
+
+**Updated running total**: labs 219 → 254 (+35 across the last five batches, +50 total toward the "up to
+500" target).
