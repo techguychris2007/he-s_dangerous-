@@ -201,7 +201,7 @@ const BRANDING: Record<SiemTool, Branding> = {
     buttonText: 'text-black',
     inputBorder: 'border-slate-400/25',
     inputFocus: 'focus:border-slate-400/60',
-    bodyBg: 'bg-[#0c0d10]',
+    bodyBg: 'bg-[var(--term-bg)]',
     queryLabel: '$ sherlock',
     placeholder: 'username to search, e.g. shadowbroker_88',
     searchLabel: 'Run',

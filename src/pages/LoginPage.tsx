@@ -318,12 +318,12 @@ export default function LoginPage() {
           )}
 
           {error && (
-            <div className="text-xs text-[#ff8a7a] bg-[#ff6b5e14] border border-[#ff6b5e4d] rounded-lg px-3 py-2 leading-relaxed">
+            <div className="text-xs text-[var(--term-error-text)] bg-[var(--term-error)]/8 border border-[var(--term-error)]/30 rounded-lg px-3 py-2 leading-relaxed">
               {error}
             </div>
           )}
           {info && (
-            <div className="text-xs text-[#7ee081] bg-[#7ee08114] border border-[#7ee0814d] rounded-lg px-3 py-2 leading-relaxed">
+            <div className="text-xs text-[var(--term-success)] bg-[var(--term-success)]/8 border border-[var(--term-success)]/30 rounded-lg px-3 py-2 leading-relaxed">
               {info}
             </div>
           )}

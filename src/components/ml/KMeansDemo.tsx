@@ -52,7 +52,7 @@ export default function KMeansDemo() {
             value={csv}
             onChange={(e) => setCsv(e.target.value)}
             spellCheck={false}
-            className="w-full h-40 resize-none bg-[#0c0d10] text-[#d8d0c0] font-mono text-xs p-3 rounded-lg border border-[var(--color-border)] outline-none focus:border-[var(--color-accent)]/60"
+            className="w-full h-40 resize-none bg-[var(--term-bg)] text-[var(--term-output)] font-mono text-xs p-3 rounded-lg border border-[var(--color-border)] outline-none focus:border-[var(--color-accent)]/60"
           />
           <div className="flex items-center gap-3 mt-2">
             <label className="text-xs text-[var(--color-text-dim)] flex items-center gap-1.5">
@@ -63,7 +63,7 @@ export default function KMeansDemo() {
                 max={6}
                 value={k}
                 onChange={(e) => setK(Number(e.target.value))}
-                className="w-14 bg-[#0c0d10] text-[var(--color-text)] border border-[var(--color-border)] rounded px-1.5 py-1"
+                className="w-14 bg-[var(--term-bg)] text-[var(--color-text)] border border-[var(--color-border)] rounded px-1.5 py-1"
               />
             </label>
             <button

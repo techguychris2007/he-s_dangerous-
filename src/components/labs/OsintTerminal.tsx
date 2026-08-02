@@ -19,10 +19,10 @@ const TOOL_BINARY: Record<OsintLabScenario['tool'], string> = {
 };
 
 const KIND_CLASS: Record<DisplayLine['kind'], string> = {
-  input: 'text-[#f2c46d]',
-  output: 'text-[#d8d0c0]',
-  system: 'text-[#e8a33d]',
-  muted: 'text-[#7a7264]',
+  input: 'text-[var(--term-input)]',
+  output: 'text-[var(--term-output)]',
+  system: 'text-[var(--term-system)]',
+  muted: 'text-[var(--term-muted)]',
 };
 
 export default function OsintTerminal({
@@ -168,7 +168,7 @@ export default function OsintTerminal({
 
   return (
     <div
-      className="flex flex-col h-full bg-[#0c0d10] border-2 border-[var(--color-accent)]/50 rounded-lg overflow-hidden font-mono text-sm shadow-[0_0_40px_-12px_var(--color-accent)]"
+      className="flex flex-col h-full bg-[var(--term-bg)] border-2 border-[var(--color-accent)]/50 rounded-lg overflow-hidden font-mono text-sm shadow-[0_0_40px_-12px_var(--color-accent)]"
       onClick={focusInput}
     >
       <div className="flex items-center gap-1.5 px-3 py-2 bg-[#15171c] border-b border-[var(--color-accent)]/30">
@@ -176,7 +176,7 @@ export default function OsintTerminal({
         <span className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
         <span className="w-3 h-3 rounded-full bg-[#27c93f]" />
         <span className="ml-3 text-xs text-[#c9a15f]">kali — bash — {scenario.datasetLabel}</span>
-        {busy && <span className="ml-auto text-2xs text-[#7a7264] animate-pulse">running&hellip;</span>}
+        {busy && <span className="ml-auto text-2xs text-[var(--term-muted)] animate-pulse">running&hellip;</span>}
       </div>
       <div className="flex-1 overflow-y-auto p-3 space-y-0.5 min-h-0" role="log" aria-live="polite" aria-label="OSINT terminal output">
         {lines.map((l) => (
@@ -188,7 +188,7 @@ export default function OsintTerminal({
             discarding keystrokes typed while a command is still running; submit() already no-ops
             on Enter while busy, so typed text just waits here until the prompt returns. */}
         <div className="flex items-center gap-2">
-          <span className="text-[#e8a33d] shrink-0">{busy ? '' : prompt}</span>
+          <span className="text-[var(--term-system)] shrink-0">{busy ? '' : prompt}</span>
           <input
             ref={inputRef}
             autoFocus
@@ -197,7 +197,7 @@ export default function OsintTerminal({
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={onKeyDown}
             aria-label="Terminal command input"
-            className="flex-1 bg-transparent outline-none text-[#d8d0c0] min-w-0 focus-visible:ring-1 focus-visible:ring-[var(--color-accent)] rounded-sm"
+            className="flex-1 bg-transparent outline-none text-[var(--term-output)] min-w-0 focus-visible:ring-1 focus-visible:ring-[var(--color-accent)] rounded-sm"
             spellCheck={false}
             autoComplete="off"
             autoCapitalize="off"

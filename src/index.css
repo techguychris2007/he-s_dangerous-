@@ -45,6 +45,21 @@
      dark mode (see below) so AI-generated answers stay visually distinct from the surrounding UI. */
   --color-ai-text: #12161f;
 
+  /* Retro hacker-terminal palette: the same amber/cream-on-near-black scheme was independently
+     hardcoded as raw hex in 11 different files (Terminal, OsintTerminal, SiemConsole, CodeEditor,
+     the ML demos' code inputs, IntroPage's terminal animation, and the Login/ResetPassword success
+     and error banners borrowing the terminal's green/red) — same values everywhere, just never
+     given a shared name. Deliberately theme-invariant (a real terminal doesn't relight for the
+     site's light/dark toggle), so these live outside the light/dark theme blocks below. */
+  --term-bg: #0c0d10;
+  --term-output: #d8d0c0;
+  --term-input: #f2c46d;
+  --term-system: #e8a33d;
+  --term-muted: #7a7264;
+  --term-error: #ff6b5e;
+  --term-error-text: #ff8a7a;
+  --term-success: #7ee081;
+
   /* Elevation scale: colored/soft rather than flat black, since a default black box-shadow is nearly
      invisible on the dark theme's near-black surfaces. `--shadow-*` tokens auto-generate matching
      `shadow-*` utilities in Tailwind v4 — color-mix references var(--color-accent)/var(--color-heading)

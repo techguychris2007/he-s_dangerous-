@@ -157,7 +157,7 @@ export default function IntroPage() {
             <div
               className="rounded-xl overflow-hidden font-mono text-code leading-relaxed"
               style={{
-                background: '#0c0d10',
+                background: 'var(--term-bg)',
                 border: '1px solid #3f8cff4d',
                 boxShadow: '0 0 60px -16px rgba(63,140,255,0.4), 0 30px 60px -24px rgba(0,0,0,0.7)',
               }}
@@ -169,13 +169,13 @@ export default function IntroPage() {
                 <span className="ml-2.5 text-2xs text-[#c9a15f]">attacker@darkworld — bash</span>
               </div>
               <div className="px-4 py-4 text-left space-y-1.5">
-                <div><span className="text-[#f2c46d]">$</span> <span className="text-[#d8d0c0]">sudo -l</span></div>
-                <div className="text-[#7a7264]">Matching Defaults entries for www-data on target:</div>
-                <div className="text-[#7a7264]">User www-data may run the following commands:</div>
-                <div className="text-[#7ee081]">&nbsp;&nbsp;(root) NOPASSWD: /usr/bin/openssl</div>
-                <div className="mt-2"><span className="text-[#f2c46d]">$</span> <span className="text-[#d8d0c0]">openssl enc -in /root/flag.txt</span></div>
-                <div className="text-[#e8a33d]">[+] privilege escalation path confirmed</div>
-                <div><span className="text-[#f2c46d]">$</span> <span className="animate-pulse text-[#d8d0c0]">_</span></div>
+                <div><span className="text-[var(--term-input)]">$</span> <span className="text-[var(--term-output)]">sudo -l</span></div>
+                <div className="text-[var(--term-muted)]">Matching Defaults entries for www-data on target:</div>
+                <div className="text-[var(--term-muted)]">User www-data may run the following commands:</div>
+                <div className="text-[var(--term-success)]">&nbsp;&nbsp;(root) NOPASSWD: /usr/bin/openssl</div>
+                <div className="mt-2"><span className="text-[var(--term-input)]">$</span> <span className="text-[var(--term-output)]">openssl enc -in /root/flag.txt</span></div>
+                <div className="text-[var(--term-system)]">[+] privilege escalation path confirmed</div>
+                <div><span className="text-[var(--term-input)]">$</span> <span className="animate-pulse text-[var(--term-output)]">_</span></div>
               </div>
             </div>
             <div
