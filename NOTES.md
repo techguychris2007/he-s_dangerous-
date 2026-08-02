@@ -561,3 +561,93 @@ genuinely work against a real target, not just read plausibly.
   full fidelity to how `TerminalEngine` actually works, and all six were verified end-to-end with a scripted
   `tsx` run against the real `TerminalEngine` class — full solve path captures exactly one flag per lab, and
   a plausible-but-wrong request per lab captures none.
+
+## Sources checked, batch 12 (Docker GTFOBins, LDAP anonymous bind, CouchDB Admin Party, exposed source map, CBC bit-flipping, AMSI bypass)
+
+This batch was built against an explicit steer: every lab should be something that would work verbatim
+against a real Kali box and the described real target, with this platform's `TerminalEngine` understood as
+a safe, simulated bridge for practicing that exact command syntax — not a different or simplified
+technique. Re-read the "What 'verified' means here" section above before trusting any single citation below
+in isolation; it hasn't changed, this batch just leaned harder on it.
+
+- **Docker sudo NOPASSWD / GTFOBins bind-mount privesc** — [GTFOBins: docker](https://gtfobins.org/gtfobins/docker/).
+  Confirmed the exact, real, currently-documented command this lab's `gtfobinsArgs` uses verbatim:
+  `docker run -v /:/mnt --rm -it alpine chroot /mnt sh`. Reused this platform's existing
+  `makePrivescLab()` factory (`src/labs/scenarios/linux-privesc-pack.ts`, now exported for reuse) rather
+  than hand-rolling a new host, since this is mechanically the same sudo-NOPASSWD-GTFOBins shape as the
+  15 existing `privesc-*` labs — just a new, previously-uncovered binary. Caught during verification: the
+  factory's shared `WORDLIST` constant only contains 8 specific passwords, and this lab's initial password
+  choice ("Vantage2026!") wasn't one of them, which would have made the lab's own `hydra` objective fail
+  against its own wordlist — fixed to `summer2024`, an existing `WORDLIST` entry, before commit.
+- **LDAP anonymous bind exposing a password in a user's description field** — [Cobalt: A Pentester Guide to LDAP Bind Method Vulnerabilities](https://www.cobalt.io/blog/pentester-guide-ldap-bind-method-vulnerabilities),
+  [HackIndex: LDAP Anonymous Bind – Unauthenticated Data Extraction](https://hackindex.io/services/ldap/exploitation/anonymous-bind).
+  Confirmed the real command (`ldapsearch -x -h <dc-ip> -b "dc=corp,dc=local"`, no `-D`/`-w` at all) and the
+  specific, real, commonly-cited finding pattern: administrators leaving a plaintext temporary password in
+  the freeform `description` attribute, readable by anyone if anonymous bind is enabled. Also confirmed an
+  important accuracy nuance and stated it explicitly in the briefing rather than overclaiming: modern
+  Active Directory disables anonymous LDAP binds by default (only the Root DSE is queryable anonymously
+  out of the box) — this is a real but non-default misconfiguration, framed here as a legacy setting left
+  enabled for an old application, not "how AD normally behaves." This engine has no live `ldapsearch`
+  command, so — consistent with this file's established convention for output the simulator can't live-
+  protocol-simulate — the real command's output is presented via a `cat`-able captured-recon file, with the
+  actual command spelled out explicitly in the hint for full real-Kali transferability.
+- **Apache CouchDB "Admin Party"** — [CouchDB Blog: The Road to CouchDB 3.0 — Security](https://blog.couchdb.org/2020/02/26/the-road-to-couchdb-3-0-security/),
+  [CouchDB: The Definitive Guide — Security](https://guide.couchdb.org/draft/security.html).
+  Confirmed the real term and mechanism (CouchDB's pre-3.0 default: no admin account exists until one is
+  explicitly created, and until then every unauthenticated request is treated as a full administrator) —
+  and caught a real version-accuracy mistake before commit: the lab's first draft used CouchDB 3.2, but
+  CouchDB 3.0+ requires an admin password be set before the server will even start, permanently ending
+  Admin Party mode. Fixed to CouchDB 2.3.1, a real, common pre-3.0 version, so the scenario's own stated
+  software version is consistent with the vulnerability it's demonstrating.
+- **Exposed `.js.map` source map leaking a hardcoded key** — [Sentry: Abusing Exposed Sourcemaps](https://blog.sentry.security/abusing-exposed-sourcemaps/),
+  [Cybersierra: Are You Leaking Secrets Through React Source Maps?](https://cybersierra.co/blog/secure-react-source-maps/).
+  Confirmed the real mechanism (a source map's `sourcesContent` field is the original, un-minified source
+  verbatim, and source maps are never linked from the rendered page, so directory brute-forcing or reading
+  the bundle's own `//# sourceMappingURL=` comment is genuinely how this gets found) and a real, named
+  documented incident matching this exact pattern (a bug-bounty researcher recovering hardcoded Stripe API
+  keys from an exposed source map). Modeled with a live `gobuster`-discoverable path (this engine's
+  `gobuster`/`ffuf`/`dirsearch` implementation only reports a path as found if it's both a real route on the
+  target AND present verbatim in the supplied wordlist file — confirmed by reading `engine.ts`'s `webFuzz()`
+  before writing the lab, so the wordlist file provided to the attacker box genuinely has to contain the
+  right entry for the objective to work, not just narrate that it would).
+- **AES-CBC bit-flipping (no key, no padding oracle)** — [PentesterLab: CBC Bit Flipping Attack](https://pentesterlab.com/glossary/cbc-bit-flipping),
+  [Medium (Oly Hossen): Breaking AES-CBC — The Bit-Flipping Attack to Gain Admin Access](https://medium.com/@olyhossen10/breaking-aes-cbc-the-bit-flipping-attack-to-gain-admin-access-a8d64040e962).
+  Confirmed the real mechanism (flipping bit N of ciphertext block X flips the same bit of decrypted
+  plaintext block X+1, while block X itself decrypts to unrelated garbage) and the real constraint search
+  results confirmed explicitly: without a padding oracle, an attacker can only flip existing characters,
+  never insert new ones without breaking the block structure — exactly why this lab's design uses two
+  fixed-width fields (a sacrificial 16-byte username block, then a fixed `isadmin=0` flag block) rather than
+  a variable-length field. Every hex value in this lab (original ciphertext, forged ciphertext, the exact
+  byte offset and `0x8c`→`0x8d` change) was computed with real Node `crypto` (`aes-128-cbc`,
+  `setAutoPadding(false)`) and the forged value round-trip-verified to decrypt to `isadmin=1AAAAAAA` before
+  being hardcoded into the scenario — not hand-typed, consistent with this file's standing rule on computed
+  cryptographic values (see the batch-4 and batch-9 heap/hex mistakes this rule exists because of).
+- **AMSI bypass via `AmsiUtils.amsiInitFailed` reflection** — [Hacking Articles: A Detailed Guide on AMSI Bypass](https://www.hackingarticles.in/a-detailed-guide-on-amsi-bypass/),
+  [S3cur3Th1sSh1t: Bypass AMSI by manual modification](https://s3cur3th1ssh1t.github.io/Bypass_AMSI_by_manual_modification/).
+  Confirmed this is Matt Graeber's original 2016 technique — the oldest publicly documented AMSI bypass —
+  and its real mechanism: reflection into `System.Management.Automation.AmsiUtils`'s private, static
+  `amsiInitFailed` field, set to `$true` so PowerShell believes AMSI already failed to initialize and skips
+  scanning for the rest of the session. Also confirmed the real, current caveat and reflected it honestly in
+  the briefing rather than presenting this as a live, undetected technique: Defender has signed this exact
+  string since 2017 and reliably detects the un-obfuscated one-liner today — the lab is scoped specifically
+  to the *split/concatenated-string obfuscation* around the same underlying reflection call, which is the
+  part still doing real evasion work now, not the base technique itself.
+
+## NEEDS REVIEW (labs/topics), batch 12
+
+- The LDAP anonymous bind lab's output is presented via a `cat`-able captured-recon file rather than a live
+  `ldapsearch` simulation, since this engine has no LDAP protocol command at all (confirmed by reading
+  `KNOWN_COMMANDS` in `engine.ts`) — the same established convention already used for AWS CLI/IAM-policy-
+  style recon output in multiple earlier batches. The real command is spelled out explicitly in the
+  objective/hint text so it remains directly usable against a real Kali box.
+- No other techniques in this batch required skipping or faking; all six were mechanically modeled with
+  full fidelity to how `TerminalEngine` actually works (confirmed by reading the relevant `engine.ts`
+  functions — `webFuzz()`, `sudo()`, `curl()`'s query-string-stripping path lookup — before writing each
+  lab, not assumed from prior-batch conventions), and all six were verified end-to-end with a scripted
+  `tsx` run against the real `TerminalEngine` class: full solve path captures exactly one flag per lab
+  (two for the multi-stage Docker privesc lab, matching its `totalFlags: 2`), and a plausible-but-wrong
+  request per lab captures none. One route-key mistake was caught and fixed during this same verification
+  pass: the CouchDB lab's `_all_docs` route was initially keyed with a literal `?include_docs=true` query
+  string in the `http` object, which `curl()`'s path-only route lookup (query strings are parsed separately
+  and never part of the path match — confirmed by reading `curl()` in `engine.ts`) could never match,
+  making the lab's own solve path fail 404 until fixed.
