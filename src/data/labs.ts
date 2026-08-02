@@ -45,6 +45,7 @@ import { apiCryptoLabs2 } from '../labs/scenarios/api-crypto-pack-2';
 import { cryptoBinaryForensicsLabs } from '../labs/scenarios/crypto-binary-forensics-pack';
 import { apiCryptoCloudLabs } from '../labs/scenarios/api-crypto-cloud-pack';
 import { realismBatchLabs } from '../labs/scenarios/realism-batch-pack';
+import { cryptoApiAdForensicsLabs } from '../labs/scenarios/crypto-api-ad-forensics-pack';
 import { adCloudAdvancedLabs2 } from '../labs/scenarios/ad-cloud-advanced-pack-2';
 import type { LabScenario } from '../labs/types';
 
@@ -102,6 +103,7 @@ export const LABS: LabEntry[] = [
   ...toEntries(cryptoBinaryForensicsLabs),
   ...toEntries(apiCryptoCloudLabs),
   ...toEntries(realismBatchLabs),
+  ...toEntries(cryptoApiAdForensicsLabs),
   ...toEntries(adCloudAdvancedLabs2),
 ];
 
