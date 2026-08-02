@@ -54,6 +54,7 @@ import RealSiemPlatformsCompared from '../content/soc-siem/03-real-siem-platform
 import WritingTuningDetectionRules from '../content/soc-detection/01-writing-tuning-detection-rules';
 import Ueba from '../content/soc-detection/02-ueba';
 import ThreatIntelIntegration from '../content/soc-detection/03-threat-intel-integration';
+import SigmaRules from '../content/soc-detection/04-sigma-rules';
 
 import IncidentInvestigationMethodology from '../content/soc-ir/01-incident-investigation-methodology';
 import SoarAutomation from '../content/soc-ir/02-soar-automation';
@@ -341,19 +342,21 @@ export const MODULES: ModuleMeta[] = [
     id: 'soc-detection',
     slug: 'soc-detection-engineering',
     title: 'Detection Engineering & UEBA',
-    subtitle: 'Writing and tuning detection rules, behavioral baselining, and threat intelligence integration',
+    subtitle: 'Writing and tuning detection rules, behavioral baselining, threat intelligence, and vendor-neutral detection-as-code',
     description:
-      'Three complementary approaches to generating real findings: hand-written rules mapped to specific ATT&CK techniques, User & Entity Behavior Analytics that catches deviation from a learned baseline with no rule required, and external threat intelligence feeds that flag infrastructure someone else already confirmed is malicious.',
+      'Four complementary approaches to generating real findings: hand-written rules mapped to specific ATT&CK techniques, User & Entity Behavior Analytics that catches deviation from a learned baseline with no rule required, external threat intelligence feeds that flag infrastructure someone else already confirmed is malicious, and Sigma, the open format that lets a detection be written once and compiled to any SIEM.',
     status: 'available',
     sourceBooks: ['Blue Team Handbook', 'The Practice of Network Security Monitoring'],
     icon: 'soc',
     lessons: [
       { id: 'soc-detection-1', slug: 'writing-tuning-detection-rules', title: 'Writing and Tuning Detection Rules', summary: 'The detection lifecycle from hypothesis through backtesting to production tuning.', minutes: 13, Content: WritingTuningDetectionRules },
       { id: 'soc-detection-2', slug: 'ueba', title: 'User & Entity Behavior Analytics (UEBA)', summary: 'Baselining normal behavior to catch novel attacker activity no rule was ever written for.', minutes: 12, Content: Ueba },
+      { id: 'soc-detection-3', slug: 'threat-intel-integration', title: 'Threat Intelligence Integration & IOC Matching', summary: 'Consuming external IOC feeds (IPs, domains, hashes) and matching them against your own environment.', minutes: 12, Content: ThreatIntelIntegration },
       {
-        id: 'soc-detection-3', slug: 'threat-intel-integration', title: 'Threat Intelligence Integration & IOC Matching', summary: 'Consuming external IOC feeds (IPs, domains, hashes) and matching them against your own environment.', minutes: 12, Content: ThreatIntelIntegration,
+        id: 'soc-detection-4', slug: 'sigma-rules', title: 'Sigma Rules: Vendor-Neutral Detection-as-Code', summary: 'Writing one detection rule and compiling it to Splunk SPL, Sentinel KQL, and Elastic EQL alike.', minutes: 13, Content: SigmaRules,
         quiz: [
           { id: 'q1', prompt: 'Why can UEBA catch attacker behavior that a written detection rule misses?', choices: ['UEBA only works on cloud platforms', 'UEBA flags deviation from a learned baseline, requiring no pre-written rule for a specific technique', 'UEBA replaces the need for any log collection', 'UEBA only analyzes network traffic'], correctIndex: 1, explanation: 'UEBA learns what normal looks like for a specific user/entity and flags deviation directly, catching genuinely novel behavior no rule was written for.' },
+          { id: 'q2', prompt: 'What problem does Sigma actually solve?', choices: ['It replaces the need for a SIEM entirely', 'It lets one detection be written in a vendor-neutral format and compiled to whichever platform runs it', 'It is a replacement for STIX/TAXII threat intel feeds', 'It only works with Splunk'], correctIndex: 1, explanation: 'Sigma describes detection logic independently of any query language, then a backend compiles it into platform-specific syntax (SPL, KQL, EQL, etc.).' },
         ],
       },
     ],
