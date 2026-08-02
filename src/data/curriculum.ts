@@ -42,6 +42,16 @@ import WritingReports from '../content/bugbounty/03-writing-reports';
 import SkillsAndRoadmap from '../content/bugbounty/04-skills-and-roadmap';
 import BusinessLogicChaining from '../content/bugbounty/05-business-logic-chaining';
 
+import ApiSecurityFundamentals from '../content/api-security/01-api-security-fundamentals';
+import BolaBflaMassAssignment from '../content/api-security/02-bola-bfla-mass-assignment';
+import JwtAttacks from '../content/api-security/03-jwt-attacks';
+import GraphqlAttacks from '../content/api-security/04-graphql-attacks';
+
+import CryptoAttacksFieldGuide from '../content/crypto-attacks/01-crypto-attacks-field-guide';
+import PaddingOracleAttacks from '../content/crypto-attacks/02-padding-oracle-attacks';
+import EcbAndHashLengthExtension from '../content/crypto-attacks/03-ecb-and-hash-length-extension';
+import HashCrackingStrategy from '../content/crypto-attacks/04-hash-cracking-strategy';
+
 import SocFundamentals from '../content/soc/01-soc-fundamentals';
 import ThreatHuntingDetection from '../content/soc/02-threat-hunting-detection';
 import AttackCoverageMapping from '../content/soc/03-attack-coverage-mapping';
@@ -279,6 +289,54 @@ export const MODULES: ModuleMeta[] = [
           { id: 'q1', prompt: 'What makes a bug a "business logic flaw" rather than a technical vulnerability?', choices: ['It always involves SQL', 'The code works as written, but the workflow itself is missing a rule it should enforce', 'It only affects mobile apps', 'It is always a false positive'], correctIndex: 1, explanation: 'Business logic flaws have no injection or broken escaping — the workflow simply never checks a rule it was supposed to.' },
           { id: 'q2', prompt: 'Why can chaining two "Low" severity findings sometimes be worth more than one "Medium"?', choices: ['Triagers always average severity scores', 'Combined, they can enable an impact (e.g. full account takeover) that neither bug achieves alone', 'Bug bounty programs pay per report regardless of severity', 'It is a reporting technicality with no real impact difference'], correctIndex: 1, explanation: 'Real-world impact often comes from combining bugs — an info leak plus a missing ownership check can chain into account takeover.' },
           { id: 'q3', prompt: 'What is the single highest-leverage question to ask when testing a multi-step workflow?', choices: ['What does the CSS look like?', 'What does the server actually verify, versus what the client just chooses not to show?', 'How many total steps does the flow have?', 'What browser is being used?'], correctIndex: 1, explanation: 'Business logic bugs live almost entirely in the gap between client-side UI restrictions and what the backend actually enforces.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'api-security',
+    slug: 'api-security',
+    title: 'API Security',
+    subtitle: 'REST & GraphQL: BOLA, BFLA, JWT attacks & introspection abuse',
+    description:
+      'Modern apps are mostly APIs underneath their UI. This module covers the distinct attack surface that creates — REST vs. GraphQL, the OWASP API Security Top 10, BOLA/BFLA and mass assignment, JSON Web Token forgery, and GraphQL-specific introspection/batching/depth abuse.',
+    status: 'available',
+    sourceBooks: ['OWASP API Security Top 10', 'Real-World Bug Hunting'],
+    icon: 'key',
+    lessons: [
+      { id: 'api-1', slug: 'api-security-fundamentals', title: 'API Security Fundamentals: REST, GraphQL & Where the Vulnerabilities Live', summary: 'Why APIs are a distinct testing surface, and the OWASP API Security Top 10 mapped to what you already know.', minutes: 12, Content: ApiSecurityFundamentals },
+      { id: 'api-2', slug: 'bola-bfla-mass-assignment', title: 'Broken Object & Function Level Authorization at Scale', summary: 'API-native IDOR and its cousins: BOLA, BFLA, mass assignment, and excessive data exposure.', minutes: 13, Content: BolaBflaMassAssignment },
+      { id: 'api-3', slug: 'jwt-attacks', title: 'Attacking JSON Web Tokens: alg=none, Weak Secrets & kid Injection', summary: 'Forging tokens by exploiting how JWT libraries verify — or fail to verify — their own signatures.', minutes: 13, Content: JwtAttacks },
+      {
+        id: 'api-4', slug: 'graphql-attacks', title: 'GraphQL-Specific Attacks: Introspection, Batching & Depth Limits', summary: 'Schema-leaking introspection, batching past rate limits, and resource-exhaustion queries.', minutes: 12, Content: GraphqlAttacks,
+        quiz: [
+          { id: 'q1', prompt: 'What does a successful GraphQL introspection query hand an attacker?', choices: ['The database\'s root password', 'A complete map of the schema — every type, query, mutation, and field name', 'Direct filesystem access to the server', 'The server\'s TLS private key'], correctIndex: 1, explanation: 'Introspection is meant for internal developer tooling — left enabled in production, it hands over the entire schema to anyone who asks.' },
+          { id: 'q2', prompt: 'How does batching a GraphQL request defeat a per-request rate limiter?', choices: ['It doesn\'t — GraphQL has no batching feature', 'Many queries execute inside ONE HTTP request, so a limiter counting requests massively undercounts the real number of operations', 'It encrypts the request body so the limiter can\'t inspect it', 'It requires a privileged API key the limiter always exempts'], correctIndex: 1, explanation: 'A limiter capped at "5 requests per minute" only sees one request if thousands of queries are batched into it — the exact technique behind the OTP-bypass lab.' },
+          { id: 'q3', prompt: 'What is BOLA, and how do you test for it directly?', choices: ['Broken Object Level Authorization — request another user\'s object id with your own valid token and see if it\'s still returned', 'A GraphQL-only bug that never appears in REST APIs', 'A denial-of-service technique unrelated to authorization', 'A type of SQL injection specific to APIs'], correctIndex: 0, explanation: 'BOLA is IDOR at the API layer — the server checks that you\'re authenticated but not that the object actually belongs to you.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'crypto-attacks',
+    slug: 'crypto-attacks',
+    title: 'Applied Cryptography Attacks',
+    subtitle: 'Padding oracles, ECB leakage, hash length extension & cracking strategy',
+    description:
+      'Real crypto findings almost never break the math — they break the implementation. This module covers the four implementation-failure patterns behind nearly every real-world crypto bug: padding oracle attacks, ECB mode detection, hash length extension, and a genuine cracking-strategy workflow.',
+    status: 'available',
+    sourceBooks: ['Serious Cryptography', 'The Web Application Hacker\'s Handbook'],
+    icon: 'lock',
+    lessons: [
+      { id: 'crypto-1', slug: 'crypto-attacks-field-guide', title: 'Applied Cryptography Attacks: A Pentester\'s Field Guide', summary: 'The four implementation-failure patterns behind almost every real crypto finding, and identifying what you\'re looking at.', minutes: 11, Content: CryptoAttacksFieldGuide },
+      { id: 'crypto-2', slug: 'padding-oracle-attacks', title: 'Padding Oracle Attacks Against CBC-Mode Encryption', summary: 'Recovering plaintext byte by byte using nothing but a server\'s valid/invalid padding responses.', minutes: 13, Content: PaddingOracleAttacks },
+      { id: 'crypto-3', slug: 'ecb-and-hash-length-extension', title: 'ECB Mode Detection & Exploitation, Hash Length Extension Attacks', summary: 'Spotting ECB\'s block-repetition tell, and forging signatures on naive hash(secret+message) schemes.', minutes: 13, Content: EcbAndHashLengthExtension },
+      {
+        id: 'crypto-4', slug: 'hash-cracking-strategy', title: 'Cracking Strategy: Identifying Hash Types & Choosing the Right Attack', summary: 'Fast vs. slow hashes, salting, and a realistic triage workflow instead of brute-forcing everything by default.', minutes: 12, Content: HashCrackingStrategy,
+        quiz: [
+          { id: 'q1', prompt: 'Why does a padding oracle attack succeed without ever learning the encryption key?', choices: ['It exploits a math flaw in AES itself', 'It uses the server\'s valid/invalid padding responses as a yes/no oracle, recovering plaintext one byte at a time via CBC\'s block-XOR chaining', 'It brute-forces the full AES-256 keyspace directly', 'It only works against RSA, never AES'], correctIndex: 1, explanation: 'The cipher is never broken — the server\'s own distinguishable error responses leak one bit of information per guess, enough to reconstruct the plaintext.' },
+          { id: 'q2', prompt: 'What is the unmistakable tell that a cipher is running in ECB mode?', choices: ['The ciphertext is always shorter than the plaintext', 'Identical plaintext blocks always produce identical ciphertext blocks, visible as repeated ciphertext chunks', 'The server returns a 500 error on every request', 'The encryption key is stored in a cookie'], correctIndex: 1, explanation: 'ECB encrypts each block independently with no chaining, so identical input blocks always map to identical output blocks — the classic "encrypted penguin" demonstration.' },
+          { id: 'q3', prompt: 'Why does switching a signature scheme from a bare hash (e.g. SHA256(key+message)) to real HMAC defeat length-extension attacks?', choices: ['HMAC is simply a longer hash output', 'HMAC\'s construction specifically prevents computing a valid continuation of the internal hash state without knowing the key', 'HMAC doesn\'t use SHA-256 internally', 'It doesn\'t — HMAC is equally vulnerable to length extension'], correctIndex: 1, explanation: 'Length extension exploits the Merkle-Damgard internal-state-resumption property directly — HMAC\'s nested construction specifically breaks that resumption.' },
         ],
       },
     ],
@@ -597,6 +655,8 @@ export const ROADMAP: RoadmapStage[] = [
   { title: 'Web Application Hacking', status: 'available', moduleSlug: 'webapp', sourceBooks: ['The Web Application Hacker\'s Handbook', 'PortSwigger Web Security Academy'], track: 'security' },
   { title: 'Red Teaming & Active Directory', status: 'available', moduleSlug: 'redteam', sourceBooks: ['The Hacker Playbook 3'], track: 'security' },
   { title: 'Bug Bounty Methodology', status: 'available', moduleSlug: 'bugbounty', sourceBooks: ['Real-World Bug Hunting', 'Bug Bounty Bootcamp'], track: 'security' },
+  { title: 'API Security', status: 'available', moduleSlug: 'api-security', sourceBooks: ['OWASP API Security Top 10', 'Real-World Bug Hunting'], track: 'security' },
+  { title: 'Applied Cryptography Attacks', status: 'available', moduleSlug: 'crypto-attacks', sourceBooks: ['Serious Cryptography', 'The Web Application Hacker\'s Handbook'], track: 'security' },
   { title: 'SOC Fundamentals & Threat Hunting', status: 'available', moduleSlug: 'soc', sourceBooks: ['Blue Team Handbook', 'The Practice of Network Security Monitoring'], track: 'security' },
   { title: 'SIEM Platforms & Log Management', status: 'available', moduleSlug: 'soc-siem-platforms', sourceBooks: ['Blue Team Handbook', 'The Practice of Network Security Monitoring'], track: 'security' },
   { title: 'Detection Engineering & UEBA', status: 'available', moduleSlug: 'soc-detection-engineering', sourceBooks: ['Blue Team Handbook', 'The Practice of Network Security Monitoring'], track: 'security' },

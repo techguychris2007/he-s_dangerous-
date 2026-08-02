@@ -145,7 +145,9 @@ export interface LabScenario {
     | 'Security+'
     | 'Binary Analysis'
     | 'Malware'
-    | 'Security Engineering';
+    | 'Security Engineering'
+    | 'API'
+    | 'Cryptography';
   briefing: string;
   objectives: (string | ObjectiveStep)[];
   hints: string[];

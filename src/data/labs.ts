@@ -107,6 +107,8 @@ export const LAB_CATEGORIES = [
   'Binary Analysis',
   'Malware',
   'Security Engineering',
+  'API',
+  'Cryptography',
 ] as const;
 
 /** Maps a teaching module slug to the lab category whose labs should appear on that module's page. */
@@ -126,6 +128,8 @@ export const MODULE_TO_LAB_CATEGORY: Record<string, (typeof LAB_CATEGORIES)[numb
   binaryanalysis: 'Binary Analysis',
   malware: 'Malware',
   secengineering: 'Security Engineering',
+  'api-security': 'API',
+  'crypto-attacks': 'Cryptography',
 };
 
 export function findLab(slug?: string): LabEntry | undefined {

@@ -50,6 +50,10 @@ const BANNERS: Record<string, BannerConfig> = {
   'code-python-fundamentals': { from: '#0f172a', to: '#2563eb', pattern: 'grid' },
   'code-python-oop': { from: '#0f172a', to: '#2563eb', pattern: 'grid' },
   'code-python-advanced': { from: '#0f172a', to: '#2563eb', pattern: 'grid' },
+  // Same no-photo-asset-yet situation as the Code Portal modules above — a distinct gradient per
+  // module rather than falling through to Linux's banner.
+  'api-security': { from: '#0d2438', to: '#0891b2', pattern: 'grid' },
+  'crypto-attacks': { from: '#2a1a05', to: '#92660f', pattern: 'scan' },
 };
 
 function PatternDefs({ id, pattern }: { id: string; pattern: BannerConfig['pattern'] }) {
