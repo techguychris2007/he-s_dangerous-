@@ -4,23 +4,23 @@ Running count and category breakdown for the offensive-security lab expansion. S
 full narrative detail on every batch (what was added, why, and how each one was verified); this file is
 just the running tally `NOTES.md`'s citations and the "when I'm back" summary can point at.
 
-**Total labs: 236** (204 at the start of this expansion → 236 now, +32 so far toward the "up to 500, quality
+**Total labs: 242** (204 at the start of this expansion → 242 now, +38 so far toward the "up to 500, quality
 first" target). Every count below is the actual `LABS.length` broken out by `category`, not an estimate.
 
 | Category | Count | This expansion added |
 |---|---|---|
 | Linux | 22 | — |
-| Network | 25 | — |
+| Network | 26 | +1 (SMTP open relay abuse) |
 | Web | 41 | +1 (DNS rebinding SSRF-allowlist bypass) |
 | Active Directory | 19 | +4 (ADCS ESC1, RBCD abuse, Silver Ticket, Shadow Credentials) |
 | Bug Bounty | 20 | — |
 | SOC | 16 | — |
 | Forensics | 12 | +2 (Volume Shadow Copy NTDS.dit dump, NTFS timestomping $SI/$FN mismatch) |
-| Cloud | 15 | +3 (IMDSv2 bypass, Docker-socket container escape, Lambda env-var secrets exposure) |
-| Security+ | 11 | — |
-| Binary Analysis | 12 | +2 (stack canary leak via format string, use-after-free function pointer hijack) |
-| Malware | 14 | +1 (process hollowing detection via PEB/VAD mismatch) |
-| Security Engineering | 11 | +1 (secret still live in git history despite later removal) |
+| Cloud | 16 | +4 (IMDSv2 bypass, Docker-socket container escape, Lambda env-var secrets exposure, overly-permissive Azure SAS token) |
+| Security+ | 12 | +1 (SPF/DMARC misconfiguration enables spoofing) |
+| Binary Analysis | 13 | +3 (stack canary leak via format string, use-after-free function pointer hijack, ret2libc defeating NX/ASLR) |
+| Malware | 15 | +2 (process hollowing detection via PEB/VAD mismatch, DLL sideloading via search-order hijacking) |
+| Security Engineering | 12 | +2 (secret still live in git history, forged webhook via missing signature verification) |
 | **API** (new category) | 10 | +10 (BFLA, JWT kid injection, legacy-version IDOR, excessive data exposure, rate-limit bypass, WebAuthn downgrade, method-override authz bypass, GraphQL field-level authz bypass, Referer-header API key leak, OAuth audience confusion) |
 | **Cryptography** (new category) | 8 | +8 (ECB block-shuffling, hash length extension, JWT algorithm confusion, predictable PRNG session tokens, AES-CTR nonce reuse, Bleichenbacher RSA padding oracle, UUIDv1 reset-token entropy, ECDSA nonce reuse) |
 
@@ -41,6 +41,11 @@ first" target). Every count below is the actual `LABS.length` broken out by `cat
    (Cryptography), Lambda `GetFunctionConfiguration` plaintext secrets (Cloud), process hollowing detection
    via PEB/VAD mismatch (Malware), a secret still live in git history despite later removal (Security
    Engineering).
+6. **`75a257c`** — 6 labs, "would this work on a real machine" batch: SPF/DMARC email-spoofing
+   misconfiguration (Security+), forged payment webhook via missing signature verification (Security
+   Engineering), SMTP open relay abuse (Network), overly-permissive/long-lived Azure SAS token (Cloud),
+   ret2libc defeating NX/ASLR via a leaked libc address (Binary Analysis), DLL sideloading detection
+   (Malware).
 
 ## What's explicitly NOT attempted, and why
 

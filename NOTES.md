@@ -229,3 +229,57 @@ instructions), same as every lab before it.
   command initially came back as a `MISMATCH` (0 flags captured instead of 1). Root-caused with a targeted
   Node diff script rather than re-reading the file by eye, then fixed by generating the trigger value
   programmatically from the single source string instead of retyping it a second time.
+
+## Sources checked, batch 6 ("would this work on a real machine" — SPF/DMARC, webhook, SMTP relay, Azure SAS, ret2libc, DLL sideloading)
+
+Explicit brief this round: for every lab, would the described technique and exact command syntax
+genuinely work against a real target, not just read plausibly.
+
+- **SPF/DMARC misconfiguration → email spoofing** — [Adaptive Security: What Is DMARC Alignment?](https://www.adaptivesecurity.com/blog/dmarc-alignment),
+  [Microsoft Security Blog: Phishing actors exploit complex routing and misconfigurations to spoof domains (Jan 2026)](https://www.microsoft.com/en-us/security/blog/2026/01/06/phishing-actors-exploit-complex-routing-and-misconfigurations-to-spoof-domains/).
+  Confirmed: SPF's `?all` qualifier is genuinely "neutral" (explicitly inconclusive, not a fail) and DMARC
+  `p=none` is genuinely enforcement-free (report-only) — this exact non-enforcing pair is named directly in
+  the Microsoft source as an active, current phishing-actor abuse vector, and DMARC alignment enforcement
+  became a mandatory, auditable requirement as of March 31, 2025 per the search results, not merely a best
+  practice.
+- **Forged webhook via missing signature verification** — [GitHub Security Advisory GHSA-xff3-5c9p-2mr4: Stripe Webhook Signature Bypass via Empty Secret](https://github.com/advisories/GHSA-xff3-5c9p-2mr4),
+  [Stripe's own docs: Resolve webhook signature verification errors](https://docs.stripe.com/webhooks/signature).
+  Confirmed real and current: an actual CVE (early 2026) where an empty signing secret let HMAC-SHA256 be
+  computed with an empty key, forging a valid-looking signature — the lab's briefing specifically calls out
+  this real incident rather than presenting missing signature verification as a purely hypothetical gap.
+- **SMTP open relay abuse** — [Black Hills Information Security: How to Test for Open Mail Relays](https://www.blackhillsinfosec.com/how-to-test-for-open-mail-relays/),
+  [Pen Test Partners: Email Relaying — A how-to and a reminder](https://www.pentestpartners.com/security-blog/email-relaying-a-how-to-and-a-reminder/).
+  Confirmed the real manual test methodology: MAIL FROM and RCPT TO with sender/recipient domains that
+  have no relationship to the mail server or to each other; a 250 OK response (instead of 550 Relaying
+  denied) confirms the relay is open. This engine has no raw multi-line SMTP dialogue simulation (`nc` only
+  prints the connection banner), so the actual relay-test step uses the established curl-mirrors-the-
+  real-protocol convention, with the objectives/hints explicitly naming telnet/nc as the real tool.
+- **Overly permissive, long-lived Azure SAS token** — [MSRC Blog: Microsoft mitigated exposure of internal information in a storage account due to overly-permissive SAS token (2023)](https://msrc.microsoft.com/blog/2023/09/microsoft-mitigated-exposure-of-internal-information-in-a-storage-account-due-to-overly-permissive-sas-token/),
+  [we45: Exposing the Risk of Long-Lived Azure SAS Tokens](https://www.we45.com/post/exposing-the-risk-of-long-lived-azure-sas-tokens-2).
+  Confirmed real query-string semantics (`sp=` permissions, `se=` expiry all self-contained in the URL, no
+  separate CLI/account-key lookup needed to use one) and grounded in Microsoft's own real, publicly
+  disclosed 38TB internal-data exposure incident, itself caused by exactly this failure mode.
+- **ret2libc defeating NX/ASLR via a leaked libc address** — [Practical CTF: ret2libc](https://book.jorianwoltjer.com/binary-exploitation/ret2libc),
+  [Jorge Lajara: Binary Privilege Escalation in x64 — Defeating ASLR with Leaks](https://jlajara.gitlab.io/exploiting/2019/06/15/Privesc_Ret2libc_ASLR_64.html).
+  Confirmed the real technique and arithmetic shape (`libc_base = leaked_address - known_offset`, then
+  `target = libc_base + target_offset`, exploiting that ASLR randomizes only the base while intra-library
+  offsets stay fixed) — computed the lab's specific numbers with Node rather than by hand this time, after
+  two earlier batches (Binary Analysis batch 4, the OAuth JWT typo in batch 5) caught hand-computed
+  mistakes verification would otherwise have missed.
+- **DLL sideloading / search-order hijacking detection** — [MITRE ATT&CK T1574.001: Hijack Execution Flow — DLL](https://attack.mitre.org/techniques/T1574/001/),
+  [Splunk Security Content: Windows DLL Search Order Hijacking Hunt with Sysmon](https://research.splunk.com/endpoint/79c7d1fc-64c7-91be-a616-ccda752efe81/).
+  Confirmed the real detection signal modeled in the lab: a known Windows system DLL name loading from a
+  non-standard (application) directory instead of its expected System32 path, exactly what Sysmon Event ID
+  7 (Image Loaded) telemetry surfaces and what the cited Splunk detection content hunts for directly.
+
+## NEEDS REVIEW (labs/topics), batch 6
+
+- Two real "would not actually work" mistakes caught by verification before commit, exactly the failure
+  mode this round's brief was aimed at: (1) the SPF/DMARC lab's objectives initially told the user to run
+  literal `dig TXT meridiancorp.example` — but this engine's `dig` (confirmed by reading `engine.ts`, not
+  assumed) only resolves lab hostnames to A records, with no TXT-record or arbitrary-domain support at
+  all — rewritten to the curl-mirrors-`dig` convention already established for SNMP/AXFR. (2) The Azure SAS
+  lab's curl target was a realistic `*.blob.core.windows.net` hostname, which this engine's `curl` cannot
+  parse at all (its URL regex requires an IP address) — rewritten to hit the lab's IP directly; the SAS
+  query string itself needed no change since path-based route matching already ignores the query string.
+  Both were caught by actually running the commands through `TerminalEngine`, not by reading the lab code.
