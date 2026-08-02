@@ -32,13 +32,15 @@ export const LESSON_LABS: Record<string, string[]> = {
   'web-2': ['web-sqli-product', 'web-sqli-login-bypass', 'web-sqli-search-filter'],
   'web-3': ['web-xss-search', 'web-xss-feedback'],
   'web-4': ['web-idor-profile-api', 'web-idor-coupon', 'web-auth-bypass-admin'],
-  'web-5': ['web-ssrf-fetch', 'web-ssrf-metadata', 'web-ssrf-image-proxy', 'log4shell-jndi-rce', 'shellshock-cgi-rce', 'cve-2025-53770-sharepoint-toolshell', 'cve-2025-3248-langflow-rce'],
+  'web-5': ['web-ssrf-fetch', 'web-ssrf-metadata', 'web-ssrf-image-proxy', 'log4shell-jndi-rce', 'shellshock-cgi-rce', 'cve-2025-53770-sharepoint-toolshell', 'cve-2025-3248-langflow-rce', 'web-dns-rebinding-ssrf-allowlist-bypass'],
 
   // Red Teaming & Active Directory
   'rt-1': ['ad-credential-reuse-lateral', 'ad-worm-lateral-spread'],
   'rt-2': ['ad-smb-anon-domain-creds', 'eternalblue-smb-rce', 'ad-printnightmare-cve-2021-34527', 'scattered-spider-helpdesk-to-domain-admin'],
   'rt-3': ['ad-kerberoast-crack', 'ad-dcsync-attack'],
-  'rt-4': ['ad-asrep-roast', 'ad-workstation-to-dc', 'ad-zerologon-cve-2020-1472', 'ad-golden-ticket-persistence', 'ad-unconstrained-delegation-abuse'],
+  'rt-4': ['ad-asrep-roast', 'ad-workstation-to-dc', 'ad-zerologon-cve-2020-1472', 'ad-golden-ticket-persistence', 'ad-unconstrained-delegation-abuse', 'ad-adcs-esc1-misconfigured-template', 'ad-rbcd-abuse-domain-admin'],
+  // rt-5 had no embedded labs at all until now.
+  'rt-5': ['ad-silver-ticket-service-persistence', 'ad-shadow-credentials-passwordless-takeover'],
 
   // Bug Bounty Methodology
   'bb-1': ['bb-forgotten-staging', 'bb-subdomain-takeover'],
@@ -55,7 +57,7 @@ export const LESSON_LABS: Record<string, string[]> = {
   'api-2': ['bb-api-idor', 'api-bfla-internal-support-endpoint', 'api-excessive-data-exposure-team-list'],
   // web-jwt-alg-none-bypass and web-jwt-weak-secret-crack existed but had never been embedded
   // anywhere — this lesson is their natural home.
-  'api-3': ['web-jwt-alg-none-bypass', 'web-jwt-weak-secret-crack', 'api-jwt-kid-injection'],
+  'api-3': ['web-jwt-alg-none-bypass', 'web-jwt-weak-secret-crack', 'api-jwt-kid-injection', 'api-webauthn-downgrade-sms-otp-fallback'],
   // bb-graphql-alias-batching-otp-bypass existed but had never been embedded anywhere.
   'api-4': ['bb-graphql-introspection-idor', 'bb-graphql-alias-batching-otp-bypass'],
 
@@ -75,7 +77,9 @@ export const LESSON_LABS: Record<string, string[]> = {
 
   // Cloud Security
   'cloud-1': ['cloud-public-s3-bucket', 'cloud-metadata-ssrf', 'cloud-exposed-kubernetes-dashboard', 'cloud-exposed-docker-api', 'cloud-public-write-bucket'],
-  'cloud-2': ['cloud-exposed-terraform-state', 'cloud-waf-ssrf-breach-chain', 'cloud-lambda-overpermissioned-role', 'cloud-iam-passrole-privesc', 'cloud-disabled-logging-coverup', 'saas-oauth-token-theft-chain', 'cloud-github-leaked-iam-keys'],
+  'cloud-2': ['cloud-exposed-terraform-state', 'cloud-waf-ssrf-breach-chain', 'cloud-lambda-overpermissioned-role', 'cloud-iam-passrole-privesc', 'cloud-disabled-logging-coverup', 'saas-oauth-token-theft-chain', 'cloud-github-leaked-iam-keys', 'cloud-imdsv2-bypass-method-controllable-ssrf'],
+  // cloud-3 had no embedded labs at all until now.
+  'cloud-3': ['cloud-docker-socket-container-escape'],
 
   // Security+ Deep Dive
   'secplus-1': ['secplus-breach-notification-timeline', 'secplus-firewall-rule-audit', 'secplus-cvss-triage'],
