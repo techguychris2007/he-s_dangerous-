@@ -186,6 +186,14 @@ carrying forward as if nothing changed:
   exactly the same bug class as last iteration's fix, caught this time before it ever shipped instead of
   after. All three verified end to end through `TerminalEngine`, including benign-request checks. tsc/lint
   clean, headless-Chrome boot check clean.
+- **`3c93d49`** — SchedulePage checked as a redesign candidate — already solid, dynamic module count, left
+  alone. SocPortalPage checked next and turned up a real bug of a new kind: its "Terminal Investigations"
+  section was built from a hardcoded `TERMINAL_LAB_IDS` array of 5 ids. Checking every SOC-category lab's
+  actual `network` array (not the array's own claims) showed all 16 SOC labs are terminal-style — 11 of
+  them, including tonight's own Target-2013 and Bangladesh-Bank additions, were silently missing from the
+  one page whose entire purpose is grouping them. Fixed by deriving the list from `LABS` instead of a
+  hand-maintained array, so it can't drift again as more SOC labs ship. Verified the derived list is
+  exactly the expected 16.
 - Next: continue the same pattern — next-thinnest module or page needing a pass, one bounded/verified unit
   at a time. Not attempting to define a literal "done" for "best in the world" (see reply upthread); this
   log is the honest record of what actually shipped and how it was checked.
