@@ -177,6 +177,15 @@ carrying forward as if nothing changed:
   finds (a truly broken/unsolvable lab, not a stale claim or missing lesson content) — the same
   "script the actual engine, don't just read the code" verification habit that caught it is worth applying
   again on other lab types if there's ever reason to suspect it.
+- **`e593615`** — 3 more labs (199 -> 202): LLMNR/NBT-NS Poisoning Captures an NTLMv2 Hash and NTLM Relay to
+  LDAP Grants Domain Admin (both Active Directory — surprisingly absent given how foundational they are;
+  confirmed via grep last iteration), plus XML-RPC Pingback SSRF (Web). Given the hashcat/wordlist bug
+  fixed last iteration, the LLMNR lab ships its plaintext in its own lab-local wordlist rather than reusing
+  a shared one. The verification script itself caught a real mistake before commit: the NTLM-relay lab's
+  curl command initially omitted the LDAP port (389), defaulting to 80 and making the lab unsolvable —
+  exactly the same bug class as last iteration's fix, caught this time before it ever shipped instead of
+  after. All three verified end to end through `TerminalEngine`, including benign-request checks. tsc/lint
+  clean, headless-Chrome boot check clean.
 - Next: continue the same pattern — next-thinnest module or page needing a pass, one bounded/verified unit
   at a time. Not attempting to define a literal "done" for "best in the world" (see reply upthread); this
   log is the honest record of what actually shipped and how it was checked.
