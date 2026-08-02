@@ -155,6 +155,13 @@ carrying forward as if nothing changed:
   Verified by scripting `TerminalEngine` directly for all three, including a precise port-53 recheck on the
   AXFR lab after the generic benign-request harness guessed the wrong port. tsc/lint clean, headless-Chrome
   boot check clean.
+- **`eaf5271`** — Checked HelpFaqPage, MyTasksPage, SecurityPage, ResourcesPage as redesign candidates.
+  First three were already well-designed and consistent — left alone. ResourcesPage explicitly claims
+  "every real tool referenced throughout this course, gathered in one place"; grepping for tools actually
+  named in lesson content found 5 missing (Rubeus, Impacket, kube-hunter/kube-bench, SigmaHQ/sigma-cli,
+  Cribl/Logstash/Fluentd — two of those from tonight's own new lessons) and added them to their matching
+  groups. Same "make an explicit claim on the page actually true" logic as the Announcements staleness fix
+  earlier, applied to a different page.
 - Next: continue the same pattern — next-thinnest module or page needing a pass, one bounded/verified unit
   at a time. Not attempting to define a literal "done" for "best in the world" (see reply upthread); this
   log is the honest record of what actually shipped and how it was checked.
