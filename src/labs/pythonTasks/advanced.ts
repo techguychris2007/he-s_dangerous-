@@ -630,4 +630,134 @@ export const PYTHON_ADVANCED_TASKS: CodeTask[] = [
       '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
       'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
   },
+  {
+    id: 'py-adv-14',
+    title: 'A Decorator That Retries a Flaky Network Call',
+    difficulty: 'Hard',
+    language: 'python',
+    category: 'Advanced',
+    prompt:
+      'Write a retry(max_attempts) decorator factory. The decorated function should be called; if it raises ' +
+      'any exception, retry by calling it again, up to max_attempts TOTAL attempts. Return the result ' +
+      'immediately on whichever attempt succeeds — no further calls after that. If every attempt raises, let ' +
+      'the exception from the FINAL attempt propagate to the caller.',
+    starterCode:
+      'def retry(max_attempts):\n' +
+      '    # TODO: return a decorator that retries the wrapped function up to max_attempts times\n' +
+      '    def decorator(func):\n' +
+      '        def wrapper(*args, **kwargs):\n' +
+      '            pass\n' +
+      '        return wrapper\n' +
+      '    return decorator\n',
+    hints: [
+      'retry(max_attempts) must return a decorator — a function that takes func and returns a wrapper.',
+      'Inside wrapper, loop attempt from 1 to max_attempts: try calling func(*args, **kwargs) and return its result immediately on success.',
+      'On the LAST attempt, don\'t catch the exception (or catch it and immediately re-raise) — every earlier attempt should catch-and-continue, but the final failure must propagate.',
+    ],
+    solution:
+      'def retry(max_attempts):\n' +
+      '    def decorator(func):\n' +
+      '        def wrapper(*args, **kwargs):\n' +
+      '            for attempt in range(1, max_attempts + 1):\n' +
+      '                try:\n' +
+      '                    return func(*args, **kwargs)\n' +
+      '                except Exception:\n' +
+      '                    if attempt == max_attempts:\n' +
+      '                        raise\n' +
+      '        return wrapper\n' +
+      '    return decorator\n',
+    testCode:
+      '__results__ = []\n' +
+      'def __check__(name, actual, expected):\n' +
+      '    __results__.append((name, actual == expected, actual, expected))\n\n' +
+      'call_count_a = [0]\n\n' +
+      '@retry(max_attempts=3)\n' +
+      'def flaky_then_succeeds():\n' +
+      '    call_count_a[0] += 1\n' +
+      '    if call_count_a[0] < 3:\n' +
+      '        raise ConnectionError("simulated network blip")\n' +
+      '    return "connected"\n\n' +
+      '__check__("succeeds on the 3rd attempt", flaky_then_succeeds(), "connected")\n' +
+      '__check__("called exactly 3 times", call_count_a[0], 3)\n\n' +
+      'call_count_b = [0]\n\n' +
+      '@retry(max_attempts=2)\n' +
+      'def always_fails():\n' +
+      '    call_count_b[0] += 1\n' +
+      '    raise ConnectionError("always down")\n\n' +
+      'try:\n' +
+      '    always_fails()\n' +
+      '    __results__.append(("propagates final failure", False, "no exception", "ConnectionError"))\n' +
+      'except ConnectionError:\n' +
+      '    __results__.append(("propagates final failure", True, "ConnectionError", "ConnectionError"))\n' +
+      '__check__("stopped after exactly max_attempts calls", call_count_b[0], 2)\n\n' +
+      'for name, ok, actual, expected in __results__:\n' +
+      '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
+      'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
+  },
+  {
+    id: 'py-adv-15',
+    title: 'Build an LRU Cache From Scratch',
+    difficulty: 'Hard',
+    language: 'python',
+    category: 'Advanced',
+    prompt:
+      'Implement an LRUCache class (capacity) with get(key) (returns the value, or None if absent, and marks ' +
+      'the key as most-recently-used) and put(key, value) (inserts or updates a key, marking it ' +
+      'most-recently-used; if this pushes the cache over capacity, evict the LEAST-recently-used entry ' +
+      'first). You may use collections.OrderedDict internally — the point of this task is implementing the ' +
+      'eviction policy correctly, not banning any particular data structure.',
+    starterCode:
+      'from collections import OrderedDict\n\n' +
+      'class LRUCache:\n' +
+      '    def __init__(self, capacity):\n' +
+      '        # TODO: store capacity and set up internal storage\n' +
+      '        pass\n\n' +
+      '    def get(self, key):\n' +
+      '        # TODO: return the value (or None), marking key as most-recently-used on a hit\n' +
+      '        pass\n\n' +
+      '    def put(self, key, value):\n' +
+      '        # TODO: insert/update key, marking it most-recently-used; evict LRU entry if over capacity\n' +
+      '        pass\n',
+    hints: [
+      'OrderedDict.move_to_end(key) moves an existing key to the "most recently used" end without changing its value.',
+      'On get(): if key isn\'t present return None; otherwise move it to the end and return its value.',
+      'On put(): if key already exists, update its value and move it to the end. If it\'s new and adding it pushes len over capacity, remove the LRU entry with self._data.popitem(last=False) — the item at the OPPOSITE end from move_to_end.',
+    ],
+    solution:
+      'from collections import OrderedDict\n\n' +
+      'class LRUCache:\n' +
+      '    def __init__(self, capacity):\n' +
+      '        self.capacity = capacity\n' +
+      '        self._data = OrderedDict()\n\n' +
+      '    def get(self, key):\n' +
+      '        if key not in self._data:\n' +
+      '            return None\n' +
+      '        self._data.move_to_end(key)\n' +
+      '        return self._data[key]\n\n' +
+      '    def put(self, key, value):\n' +
+      '        if key in self._data:\n' +
+      '            self._data.move_to_end(key)\n' +
+      '        self._data[key] = value\n' +
+      '        if len(self._data) > self.capacity:\n' +
+      '            self._data.popitem(last=False)\n',
+    testCode:
+      '__results__ = []\n' +
+      'def __check__(name, actual, expected):\n' +
+      '    __results__.append((name, actual == expected, actual, expected))\n\n' +
+      'cache = LRUCache(capacity=2)\n' +
+      'cache.put(1, "a")\n' +
+      'cache.put(2, "b")\n' +
+      '__check__("get existing key 1", cache.get(1), "a")\n' +
+      "# key 1 was just touched by get() -- key 2 is now the LEAST recently used\n" +
+      'cache.put(3, "c")\n' +
+      '__check__("key 2 evicted (was least recently used)", cache.get(2), None)\n' +
+      '__check__("key 1 survives (was touched more recently)", cache.get(1), "a")\n' +
+      '__check__("key 3 present (just inserted)", cache.get(3), "c")\n\n' +
+      'cache.put(1, "updated")\n' +
+      '__check__("put on existing key updates value", cache.get(1), "updated")\n' +
+      '__check__("missing key returns None", cache.get(999), None)\n\n' +
+      'for name, ok, actual, expected in __results__:\n' +
+      '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
+      'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
+  },
 ];

@@ -747,4 +747,134 @@ export const PYTHON_OOP_TASKS: CodeTask[] = [
       '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
       'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
   },
+  {
+    id: 'py-oop-14',
+    title: 'A Token-Bucket RateLimiter Class',
+    difficulty: 'Medium',
+    language: 'python',
+    category: 'OOP',
+    prompt:
+      'Implement a RateLimiter class using the token-bucket algorithm. __init__(self, capacity, refill_rate) ' +
+      'starts with a full bucket of capacity tokens. tick() adds refill_rate tokens to the bucket, never ' +
+      'exceeding capacity. allow() consumes exactly 1 token and returns True if a token was available, or ' +
+      'returns False (consuming nothing) if the bucket was empty.',
+    starterCode:
+      'class RateLimiter:\n' +
+      '    def __init__(self, capacity, refill_rate):\n' +
+      '        # TODO: store capacity/refill_rate, start with a FULL bucket\n' +
+      '        pass\n\n' +
+      '    def tick(self):\n' +
+      '        # TODO: add refill_rate tokens, capped at capacity\n' +
+      '        pass\n\n' +
+      '    def allow(self):\n' +
+      '        # TODO: consume 1 token and return True if available, else return False\n' +
+      '        pass\n',
+    hints: [
+      'Store self.tokens = capacity in __init__ — the bucket starts full, not empty.',
+      'tick() should do self.tokens = min(self.capacity, self.tokens + self.refill_rate).',
+      'allow() checks if self.tokens >= 1 first — only decrement and return True in that branch, otherwise return False without touching self.tokens.',
+    ],
+    solution:
+      'class RateLimiter:\n' +
+      '    def __init__(self, capacity, refill_rate):\n' +
+      '        self.capacity = capacity\n' +
+      '        self.refill_rate = refill_rate\n' +
+      '        self.tokens = capacity\n\n' +
+      '    def tick(self):\n' +
+      '        self.tokens = min(self.capacity, self.tokens + self.refill_rate)\n\n' +
+      '    def allow(self):\n' +
+      '        if self.tokens >= 1:\n' +
+      '            self.tokens -= 1\n' +
+      '            return True\n' +
+      '        return False\n',
+    testCode:
+      '__results__ = []\n' +
+      'def __check__(name, actual, expected):\n' +
+      '    __results__.append((name, actual == expected, actual, expected))\n\n' +
+      'rl = RateLimiter(capacity=3, refill_rate=1)\n' +
+      '__check__("1st request allowed", rl.allow(), True)\n' +
+      '__check__("2nd request allowed", rl.allow(), True)\n' +
+      '__check__("3rd request allowed", rl.allow(), True)\n' +
+      '__check__("4th request denied (bucket empty)", rl.allow(), False)\n' +
+      'rl.tick()\n' +
+      '__check__("allowed again after a tick refills one token", rl.allow(), True)\n' +
+      '__check__("denied again immediately after", rl.allow(), False)\n\n' +
+      'rl2 = RateLimiter(capacity=2, refill_rate=5)\n' +
+      'rl2.allow()\n' +
+      'rl2.allow()\n' +
+      'rl2.tick()\n' +
+      '__check__("refill never exceeds capacity", rl2.tokens, 2)\n\n' +
+      'for name, ok, actual, expected in __results__:\n' +
+      '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
+      'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
+  },
+  {
+    id: 'py-oop-15',
+    title: 'A Minimal Observer Pattern for Security Alerts',
+    difficulty: 'Medium',
+    language: 'python',
+    category: 'OOP',
+    prompt:
+      'Implement an AlertBus class with subscribe(callback) (registers a callback) and publish(event) (calls ' +
+      'every registered callback with event, in the order they were subscribed). Then implement a ' +
+      'LoggingSubscriber class whose instances are callable (define __call__) — calling one with an event ' +
+      'appends that event to the instance\'s own .log list, so a LoggingSubscriber can be used directly as a ' +
+      'callback passed to subscribe().',
+    starterCode:
+      'class AlertBus:\n' +
+      '    def __init__(self):\n' +
+      '        # TODO: store a list of subscribed callbacks\n' +
+      '        pass\n\n' +
+      '    def subscribe(self, callback):\n' +
+      '        # TODO: register callback\n' +
+      '        pass\n\n' +
+      '    def publish(self, event):\n' +
+      '        # TODO: call every subscribed callback with event, in subscription order\n' +
+      '        pass\n\n' +
+      'class LoggingSubscriber:\n' +
+      '    def __init__(self):\n' +
+      '        # TODO: start with an empty log list\n' +
+      '        pass\n\n' +
+      '    def __call__(self, event):\n' +
+      '        # TODO: append event to self.log\n' +
+      '        pass\n',
+    hints: [
+      'AlertBus needs a plain list of callbacks in __init__; subscribe() just appends to it.',
+      'publish() loops over the stored callbacks in the order they were added, calling each one with event.',
+      '__call__ is what makes an instance usable as if it were a function — callback(event) on a LoggingSubscriber instance runs its __call__(self, event) method.',
+    ],
+    solution:
+      'class AlertBus:\n' +
+      '    def __init__(self):\n' +
+      '        self._subscribers = []\n\n' +
+      '    def subscribe(self, callback):\n' +
+      '        self._subscribers.append(callback)\n\n' +
+      '    def publish(self, event):\n' +
+      '        for callback in self._subscribers:\n' +
+      '            callback(event)\n\n' +
+      'class LoggingSubscriber:\n' +
+      '    def __init__(self):\n' +
+      '        self.log = []\n\n' +
+      '    def __call__(self, event):\n' +
+      '        self.log.append(event)\n',
+    testCode:
+      '__results__ = []\n' +
+      'def __check__(name, actual, expected):\n' +
+      '    __results__.append((name, actual == expected, actual, expected))\n\n' +
+      'bus = AlertBus()\n' +
+      'sub1 = LoggingSubscriber()\n' +
+      'sub2 = LoggingSubscriber()\n' +
+      'bus.subscribe(sub1)\n' +
+      'bus.subscribe(sub2)\n' +
+      'bus.publish("ransomware detected")\n' +
+      'bus.publish("port scan detected")\n\n' +
+      '__check__("sub1 received both events in order", sub1.log, ["ransomware detected", "port scan detected"])\n' +
+      '__check__("sub2 received both events too", sub2.log, ["ransomware detected", "port scan detected"])\n\n' +
+      'bus2 = AlertBus()\n' +
+      'bus2.publish("no subscribers yet")\n' +
+      '__check__("publish with zero subscribers does not error", True, True)\n\n' +
+      'for name, ok, actual, expected in __results__:\n' +
+      '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
+      'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
+  },
 ];
