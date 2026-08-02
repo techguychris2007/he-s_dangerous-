@@ -332,3 +332,48 @@ consolidation → visual-consistency confirmation → one real keyboard-a11y fix
 separately and verified with tsc/lint/build/headless-Chrome at every step. Nothing was pushed to `main` and
 no PR was opened — branch is pushed to `origin/overnight-work`, ready for you to review/merge whenever
 you're back.
+
+### Content expansion: new offensive-security areas, labs, coding tasks
+
+Per a follow-up request to add more offensive-security areas, 50 offensive-security labs, 50+ lesson
+enrichments, and 50 coding-practice tasks weighted toward Python. Same rule as the volume-target note above:
+treating "50"/"50+" as an upper bound to work toward with real verification on every item, not a quota to
+hit by any means — logging actual counts honestly as I go, same as every other session in this file.
+
+- **`37d4616`, `8030f55`** — Two genuinely new modules, **API Security** and **Applied
+  Cryptography Attacks** (4 lessons each, both with a closing quiz), cross-checked against all 204 existing
+  lab titles first so neither duplicates ground already covered (JWT `alg=none`, JWT weak-secret cracking,
+  GraphQL introspection, GraphQL alias-batching, mass assignment, and CBC padding oracle all already
+  existed). Wired into every registration point a new module needs (`curriculum.ts`, `ROADMAP`,
+  `ModuleBanner.tsx` `BANNERS`, two brand-new `LAB_CATEGORIES` — `API` and `Cryptography`). Added 7 new
+  labs for those two categories (204 → 211): BFLA, JWT `kid`-header injection, a legacy `/v1/` API version
+  still carrying a fixed IDOR, excessive data exposure, X-Forwarded-For rate-limit bypass, ECB block-
+  shuffling, and hash length extension — each verified by scripting `TerminalEngine` directly (exact
+  solve-path commands capture the flag, a benign request captures none). Along the way, audited
+  `LESSON_LABS` the same way past sessions did and found 4 more **existing** labs that had been built but
+  never embedded in any lesson (`web-jwt-alg-none-bypass`, `web-jwt-weak-secret-crack`,
+  `bb-graphql-alias-batching-otp-bypass`, `bb-mass-assignment-privesc`) — fixed those too.
+- **`1266c28`, `f823d4c`, `c2de82c`** — 32 new coding-practice tasks, weighted toward Python per the
+  request: **+15 Python** (68 total: entropy/PKCS#7/ECB-fingerprint/XOR-cracking tasks that tie directly
+  into the new crypto-attacks lessons, plus rate-limiter/observer-pattern/LRU-cache/retry-decorator tasks),
+  **+8 C++** (11 total — was by far the thinnest catalog at just 3), **+9 JavaScript** (22 total). Checked
+  every existing task title first in all three languages to avoid duplicates.
+
+  Verified for real, not just read-through: every Python task's `solution + testCode` was run through the
+  actual `python` interpreter on this machine (confirmed installed first) and every `starterCode + testCode`
+  was run too, confirming the tests genuinely discriminate a correct answer from an incomplete stub. Every
+  C++ task was run through the real `JSCPP` package directly via Node (same `unsigned_overflow`/`maxTimeout`
+  options `cppWorker.ts` uses) — this caught two real JSCPP interpreter bugs before they shipped: it cannot
+  brace-initialize a single-element array (`int a[1] = {42};` throws "dimensions do not agree," confirmed
+  specific to exactly one initializer by testing 2+-element and declare-then-assign cases separately) and it
+  crashes on an empty C-string literal (`char s[] = "";`) with an unrelated internal error. Rewrote the two
+  affected test cases rather than ship broken graders. Every JS task was run through the same execution
+  model `jsWorker.ts` uses (`new Function(code)`, no timer/promise awaiting) — this is why debounce/throttle
+  were dropped from the original plan and replaced with synchronous-friendly tasks (deep clone, flatten,
+  query-string parsing, group-by, memoize, deep-equal) instead of shipping tasks that could never pass in
+  this specific grader.
+
+- **Running totals toward the "50/50/50+" targets**: labs 204 → 211 (+7), Python tasks 53 → 68 (+15), C++
+  tasks 3 → 11 (+8), JS tasks 13 → 22 (+9) — 32 coding tasks total so far. Lesson-content enrichments beyond
+  the 8 brand-new lesson files: not yet started as a separate pass. Continuing in the same verified-batch
+  pattern; will keep logging real counts here rather than declaring victory early.
