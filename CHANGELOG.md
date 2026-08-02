@@ -46,4 +46,50 @@ that's fine:
 
 ## Log
 
-(entries added below as work completes, most recent last)
+- **`6ef43e9`** — this file, with the NEEDS REVIEW section above written before any content work started.
+- **`bede0dc`** — Forensics and Cloud were the thinnest modules (2 lessons each, vs. 5 everywhere else after
+  this session's earlier work). Added one lesson to each (both now at 3): Forensics gets "Windows Event
+  Logs, Browser History & Web Shell Artifacts" (fills the conceptual gap behind 4 existing labs that had no
+  lesson teaching their technique); Cloud gets "Container, Kubernetes & Infrastructure-as-Code Security"
+  (same gap-filling logic, 4 more existing labs covered). Both verified rendering at the correct lesson
+  position in a real browser, tsc/lint clean, quiz moved to the new final lesson per the established
+  pattern.
+
+### Environment change mid-session
+
+A new session picked this up later (still same continuous effort, different environment: Windows, not
+the Linux container the earlier commits ran in). Two things worth flagging plainly rather than quietly
+carrying forward as if nothing changed:
+
+- **No `chromium-cli`/Playwright available here**, and the app's real routes are gated behind live
+  Supabase auth with no test account configured. Every commit below is verified via **tsc + lint clean,
+  a headless-Chrome smoke test confirming the app boots with zero console errors after each change, and
+  (for the labs) scripting the actual `TerminalEngine` directly** — running the exact objective commands
+  through the real parser and confirming precisely the intended flag fires, and that a benign request
+  fires none. That's real, mechanical verification, but it is **not** the same thing as clicking through
+  the rendered page in a browser like the earlier commits did, and I'm not going to claim it is.
+- **`.claude/settings.json` was set to `bypassPermissions`** at the user's explicit request (they were
+  going to sleep and asked for it directly), moved from a `.txt`-suffixed file that wasn't actually being
+  read. Noting it here because it's a real change to how much autonomy this session has, not because
+  anything unusual was done with it — the same one-bounded-thing-at-a-time-with-verification pattern
+  continued regardless.
+
+- **`b342209`** — SOC (id `soc`) module's 4th lesson: "Detecting C2: Beaconing, DNS Tunneling & LOLBin
+  Abuse." Same gap-filling logic as the Forensics/Cloud lessons above — three existing labs (Cobalt Strike
+  Beacon Pattern Detection, DNS Tunneling Data Exfiltration, LOLBin Abuse) had no lesson teaching the
+  underlying technique. tsc/lint clean, headless-Chrome boot check clean; full interactive click-through
+  not possible here (see above).
+- **`2aad0c9`** — Redesigned the Module page (banner, canonical `StatCard` tiles instead of an ad-hoc text
+  row, a "back to all modules" breadcrumb) — the last page in the core Roadmap → Module → Lesson flow that
+  hadn't had a pass yet, per the design-system NEEDS REVIEW note above: bounded, page-by-page, within the
+  existing visual language. Also fixed a banner-config gap where 3 SOC submodules and the 3 Code Portal
+  modules had no `BANNERS` entry and were silently falling back to the unrelated Linux banner wherever
+  `ModuleBanner` renders, including on HomePage.
+- **`8f670a7`** — 3 new offensive-security labs, cross-checked against all 194 existing lab titles first to
+  avoid duplicating ground already covered: Zip Slip archive-extraction path traversal (Web), a GitHub
+  Actions `pull_request_target` title-injection secret leak (Bug Bounty), and a GraphQL alias-batching
+  bypass of a per-request OTP rate limit (Bug Bounty). Verified by scripting `TerminalEngine` directly, not
+  just written-and-assumed-correct.
+- Next: continue the same pattern — next-thinnest module or page needing a pass, one bounded/verified unit
+  at a time. Not attempting to define a literal "done" for "best in the world" (see reply upthread); this
+  log is the honest record of what actually shipped and how it was checked.
