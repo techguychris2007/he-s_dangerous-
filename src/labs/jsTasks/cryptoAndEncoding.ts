@@ -170,4 +170,101 @@ export const JS_CRYPTO_TASKS: CodeTask[] = [
       'check("empty", bytesToHex([]), "");\n' +
       'console.log("__RESULT__ " + __passed + "/" + __total);\n',
   },
+  {
+    id: 'js-crypto-05',
+    title: 'A Generalized ROT-N Cipher',
+    difficulty: 'Medium',
+    language: 'javascript',
+    category: 'Cryptography & Encoding',
+    prompt:
+      'Write function rotN(text, n) that shifts every letter in text by n positions through the alphabet ' +
+      '(wrapping z back to a, Z back to A), leaving non-letters untouched — a generalized Caesar cipher where ' +
+      'n can be any integer, including negative values (a negative shift rotates backwards) and values ' +
+      'greater than 26 (which should wrap around correctly, same as ROT13 is just rotN(text, 13)).',
+    starterCode:
+      'function rotN(text, n) {\n' +
+      '  // TODO: shift every letter in text by n positions, wrapping a-z and A-Z; leave non-letters untouched\n' +
+      '  return text;\n' +
+      '}\n',
+    hints: [
+      'Normalize n first so it\'s always a positive value mod 26: const shift = ((n % 26) + 26) % 26 — this handles negative n correctly too.',
+      'Build the result character by character, checking if each char is lowercase (a-z) or uppercase (A-Z) before shifting it; leave anything else unchanged.',
+      'For a lowercase letter c: String.fromCharCode(((c.charCodeAt(0) - 97 + shift) % 26) + 97) — the same idea works for uppercase using 65 instead of 97.',
+    ],
+    solution:
+      'function rotN(text, n) {\n' +
+      '  const shift = ((n % 26) + 26) % 26;\n' +
+      '  let result = "";\n' +
+      '  for (const c of text) {\n' +
+      '    const code = c.charCodeAt(0);\n' +
+      '    if (code >= 97 && code <= 122) {\n' +
+      '      result += String.fromCharCode(((code - 97 + shift) % 26) + 97);\n' +
+      '    } else if (code >= 65 && code <= 90) {\n' +
+      '      result += String.fromCharCode(((code - 65 + shift) % 26) + 65);\n' +
+      '    } else {\n' +
+      '      result += c;\n' +
+      '    }\n' +
+      '  }\n' +
+      '  return result;\n' +
+      '}\n',
+    testCode:
+      'let __passed = 0;\n' +
+      'let __total = 0;\n' +
+      'function check(name, actual, expected) {\n' +
+      '  __total++;\n' +
+      '  const ok = actual === expected;\n' +
+      '  if (ok) __passed++;\n' +
+      '  console.log((ok ? "[PASS] " : "[FAIL] ") + name + ": got " + actual + ", expected " + expected);\n' +
+      '}\n' +
+      'check("basic shift 3", rotN("abc", 3), "def");\n' +
+      'check("wraparound", rotN("xyz", 3), "abc");\n' +
+      'check("rot13 is its own inverse", rotN(rotN("Attack At Dawn", 13), 13), "Attack At Dawn");\n' +
+      'check("negative shift", rotN("def", -3), "abc");\n' +
+      'check("shift greater than 26 wraps", rotN("abc", 29), "def");\n' +
+      'check("non-letters untouched", rotN("a-1!", 1), "b-1!");\n' +
+      'console.log("__RESULT__ " + __passed + "/" + __total);\n',
+  },
+  {
+    id: 'js-crypto-06',
+    title: 'Compute a Simple Checksum (Sum of Char Codes Mod 256)',
+    difficulty: 'Easy',
+    language: 'javascript',
+    category: 'Cryptography & Encoding',
+    prompt:
+      'Write function simpleChecksum(s) that returns the sum of every character\'s char code in string s, ' +
+      'taken mod 256 — a cheap, fast integrity check (not a real hash) used by some legacy protocols to catch ' +
+      'accidental corruption.',
+    starterCode:
+      'function simpleChecksum(s) {\n' +
+      '  // TODO: return the sum of char codes in s, mod 256\n' +
+      '  return 0;\n' +
+      '}\n',
+    hints: [
+      's.charCodeAt(i) gives the char code of the character at position i.',
+      'Loop through every character, adding its char code to a running total.',
+      'Apply % 256 to the FINAL total, not on each step — either works mathematically, but applying it once at the end is simpler.',
+    ],
+    solution:
+      'function simpleChecksum(s) {\n' +
+      '  let total = 0;\n' +
+      '  for (let i = 0; i < s.length; i++) {\n' +
+      '    total += s.charCodeAt(i);\n' +
+      '  }\n' +
+      '  return total % 256;\n' +
+      '}\n',
+    testCode:
+      'let __passed = 0;\n' +
+      'let __total = 0;\n' +
+      'function check(name, actual, expected) {\n' +
+      '  __total++;\n' +
+      '  const ok = actual === expected;\n' +
+      '  if (ok) __passed++;\n' +
+      '  console.log((ok ? "[PASS] " : "[FAIL] ") + name + ": got " + actual + ", expected " + expected);\n' +
+      '}\n' +
+      'check("empty string", simpleChecksum(""), 0);\n' +
+      'check("single char", simpleChecksum("A"), 65);\n' +
+      'check("wraps past 256", simpleChecksum("AAAAA"), (65 * 5) % 256);\n' +
+      'check("mixed string", simpleChecksum("abc"), (97 + 98 + 99) % 256);\n' +
+      'console.log("__RESULT__ " + __passed + "/" + __total);\n',
+  },
 ];

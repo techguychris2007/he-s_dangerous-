@@ -242,4 +242,294 @@ export const JS_FUNDAMENTALS_TASKS: CodeTask[] = [
       'check("single element", mostFrequent(["9.9.9.9"]), "9.9.9.9");\n' +
       'console.log("__RESULT__ " + __passed + "/" + __total);\n',
   },
+  {
+    id: 'js-fund-07',
+    title: 'Deep Clone a Plain Object',
+    difficulty: 'Medium',
+    language: 'javascript',
+    category: 'Fundamentals',
+    prompt:
+      'Write function deepClone(obj) that returns a full deep copy of a plain object or array (nested ' +
+      'objects/arrays included) — mutating the clone must never affect the original. You may assume obj only ' +
+      'ever contains plain objects, arrays, strings, numbers, booleans, and null (no functions, no Date/Map/ ' +
+      'Set, no cyclic references).',
+    starterCode:
+      'function deepClone(obj) {\n' +
+      '  // TODO: return a deep copy of obj (nested objects/arrays included)\n' +
+      '}\n',
+    hints: [
+      'Primitives (string/number/boolean/null/undefined) are already copied by value — just return them as-is.',
+      'If obj is an array, map over it and recursively deepClone each element, returning a new array.',
+      'If obj is a plain object, build a new object and recursively deepClone each of its values — Object.keys(obj) gives you the keys to iterate.',
+    ],
+    solution:
+      'function deepClone(obj) {\n' +
+      '  if (obj === null || typeof obj !== "object") return obj;\n' +
+      '  if (Array.isArray(obj)) return obj.map((item) => deepClone(item));\n' +
+      '  const result = {};\n' +
+      '  for (const key of Object.keys(obj)) {\n' +
+      '    result[key] = deepClone(obj[key]);\n' +
+      '  }\n' +
+      '  return result;\n' +
+      '}\n',
+    testCode:
+      'let __passed = 0;\n' +
+      'let __total = 0;\n' +
+      'function check(name, actual, expected) {\n' +
+      '  __total++;\n' +
+      '  const ok = JSON.stringify(actual) === JSON.stringify(expected);\n' +
+      '  if (ok) __passed++;\n' +
+      '  console.log((ok ? "[PASS] " : "[FAIL] ") + name + ": got " + JSON.stringify(actual) + ", expected " + JSON.stringify(expected));\n' +
+      '}\n' +
+      'const original = { a: 1, b: { c: 2, d: [3, 4, { e: 5 }] } };\n' +
+      'const clone = deepClone(original);\n' +
+      'check("clone matches original", clone, original);\n' +
+      'clone.b.d[2].e = 999;\n' +
+      'check("mutating clone leaves original untouched", original.b.d[2].e, 5);\n' +
+      'check("clone reflects its own mutation", clone.b.d[2].e, 999);\n' +
+      'console.log("__RESULT__ " + __passed + "/" + __total);\n',
+  },
+  {
+    id: 'js-fund-08',
+    title: 'Flatten a Nested Array',
+    difficulty: 'Medium',
+    language: 'javascript',
+    category: 'Fundamentals',
+    prompt:
+      'Write function flattenArray(arr) that returns a new, single-level array containing every non-array ' +
+      'element from arr, no matter how deeply nested the original arrays were — e.g. [1, [2, [3, [4]], 5]] ' +
+      'becomes [1, 2, 3, 4, 5].',
+    starterCode:
+      'function flattenArray(arr) {\n' +
+      '  // TODO: return arr fully flattened, regardless of nesting depth\n' +
+      '  return [];\n' +
+      '}\n',
+    hints: [
+      'For each element: if it\'s an array, recursively flatten it and spread the result in; otherwise push it directly.',
+      'reduce works nicely here: arr.reduce((flat, item) => flat.concat(Array.isArray(item) ? flattenArray(item) : item), [])',
+      'Array.isArray(item) is the check that distinguishes "recurse into this" from "this is a real element."',
+    ],
+    solution:
+      'function flattenArray(arr) {\n' +
+      '  return arr.reduce((flat, item) => flat.concat(Array.isArray(item) ? flattenArray(item) : item), []);\n' +
+      '}\n',
+    testCode:
+      'let __passed = 0;\n' +
+      'let __total = 0;\n' +
+      'function check(name, actual, expected) {\n' +
+      '  __total++;\n' +
+      '  const ok = JSON.stringify(actual) === JSON.stringify(expected);\n' +
+      '  if (ok) __passed++;\n' +
+      '  console.log((ok ? "[PASS] " : "[FAIL] ") + name + ": got " + JSON.stringify(actual) + ", expected " + JSON.stringify(expected));\n' +
+      '}\n' +
+      'check("deeply nested", flattenArray([1, [2, [3, [4]], 5]]), [1, 2, 3, 4, 5]);\n' +
+      'check("already flat", flattenArray([1, 2, 3]), [1, 2, 3]);\n' +
+      'check("empty array", flattenArray([]), []);\n' +
+      'check("nested empty arrays", flattenArray([1, [], [2, []]]), [1, 2]);\n' +
+      'console.log("__RESULT__ " + __passed + "/" + __total);\n',
+  },
+  {
+    id: 'js-fund-09',
+    title: 'Parse a Query String Into an Object',
+    difficulty: 'Medium',
+    language: 'javascript',
+    category: 'Fundamentals',
+    prompt:
+      'Write function parseQueryString(qs) that parses a URL query string (without the leading "?") into a ' +
+      'plain object, e.g. "user=alice&role=admin" becomes {user: "alice", role: "admin"}. Both keys and ' +
+      'values should be URL-decoded with decodeURIComponent. An empty string should return {}.',
+    starterCode:
+      'function parseQueryString(qs) {\n' +
+      '  // TODO: parse qs into a plain object, URL-decoding keys and values\n' +
+      '  return {};\n' +
+      '}\n',
+    hints: [
+      'An empty string should short-circuit to {} immediately — splitting "" on "&" gives [""], not [].',
+      'qs.split("&") gives you each "key=value" pair; split each pair on the FIRST "=" only (a value could itself contain "=").',
+      'indexOf("=") plus slice() lets you split on just the first occurrence: const eq = pair.indexOf("="); const key = pair.slice(0, eq); const value = pair.slice(eq + 1);',
+    ],
+    solution:
+      'function parseQueryString(qs) {\n' +
+      '  if (!qs) return {};\n' +
+      '  const result = {};\n' +
+      '  for (const pair of qs.split("&")) {\n' +
+      '    const eq = pair.indexOf("=");\n' +
+      '    const rawKey = eq === -1 ? pair : pair.slice(0, eq);\n' +
+      '    const rawValue = eq === -1 ? "" : pair.slice(eq + 1);\n' +
+      '    result[decodeURIComponent(rawKey)] = decodeURIComponent(rawValue);\n' +
+      '  }\n' +
+      '  return result;\n' +
+      '}\n',
+    testCode:
+      'let __passed = 0;\n' +
+      'let __total = 0;\n' +
+      'function check(name, actual, expected) {\n' +
+      '  __total++;\n' +
+      '  const ok = JSON.stringify(actual) === JSON.stringify(expected);\n' +
+      '  if (ok) __passed++;\n' +
+      '  console.log((ok ? "[PASS] " : "[FAIL] ") + name + ": got " + JSON.stringify(actual) + ", expected " + JSON.stringify(expected));\n' +
+      '}\n' +
+      'check("basic", parseQueryString("user=alice&role=admin"), { user: "alice", role: "admin" });\n' +
+      'check("url-encoded value", parseQueryString("q=hello%20world"), { q: "hello world" });\n' +
+      'check("empty string", parseQueryString(""), {});\n' +
+      'check("single pair", parseQueryString("id=42"), { id: "42" });\n' +
+      'console.log("__RESULT__ " + __passed + "/" + __total);\n',
+  },
+  {
+    id: 'js-fund-10',
+    title: 'Group Array of Objects by a Key',
+    difficulty: 'Medium',
+    language: 'javascript',
+    category: 'Fundamentals',
+    prompt:
+      'Write function groupBy(items, key) that groups an array of plain objects into an object of arrays, ' +
+      'keyed by each item\'s value at property key — e.g. grouping log entries by their "severity" field into ' +
+      '{low: [...], high: [...]}.',
+    starterCode:
+      'function groupBy(items, key) {\n' +
+      '  // TODO: return an object grouping items by their [key] property\n' +
+      '  return {};\n' +
+      '}\n',
+    hints: [
+      'reduce is a natural fit: for each item, look up groupValue = item[key], then push item into groups[groupValue].',
+      'If groups[groupValue] doesn\'t exist yet, initialize it to an empty array before pushing.',
+      'groups[groupValue] = groups[groupValue] || []; then groups[groupValue].push(item); handles both the "first time seeing this group" and "already exists" cases in two lines.',
+    ],
+    solution:
+      'function groupBy(items, key) {\n' +
+      '  const groups = {};\n' +
+      '  for (const item of items) {\n' +
+      '    const groupValue = item[key];\n' +
+      '    groups[groupValue] = groups[groupValue] || [];\n' +
+      '    groups[groupValue].push(item);\n' +
+      '  }\n' +
+      '  return groups;\n' +
+      '}\n',
+    testCode:
+      'let __passed = 0;\n' +
+      'let __total = 0;\n' +
+      'function check(name, actual, expected) {\n' +
+      '  __total++;\n' +
+      '  const ok = JSON.stringify(actual) === JSON.stringify(expected);\n' +
+      '  if (ok) __passed++;\n' +
+      '  console.log((ok ? "[PASS] " : "[FAIL] ") + name + ": got " + JSON.stringify(actual) + ", expected " + JSON.stringify(expected));\n' +
+      '}\n' +
+      'const alerts = [\n' +
+      '  { id: 1, severity: "high" },\n' +
+      '  { id: 2, severity: "low" },\n' +
+      '  { id: 3, severity: "high" },\n' +
+      '];\n' +
+      'check("groups by severity", groupBy(alerts, "severity"), {\n' +
+      '  high: [{ id: 1, severity: "high" }, { id: 3, severity: "high" }],\n' +
+      '  low: [{ id: 2, severity: "low" }],\n' +
+      '});\n' +
+      'check("empty array", groupBy([], "severity"), {});\n' +
+      'console.log("__RESULT__ " + __passed + "/" + __total);\n',
+  },
+  {
+    id: 'js-fund-11',
+    title: 'Memoize a Pure Function',
+    difficulty: 'Medium',
+    language: 'javascript',
+    category: 'Fundamentals',
+    prompt:
+      'Write function memoize(fn) that returns a new function wrapping fn: the first time it\'s called with a ' +
+      'given set of arguments, it calls fn and caches the result; every subsequent call with the SAME ' +
+      'arguments returns the cached result without calling fn again. Assume fn\'s arguments are always ' +
+      'JSON-serializable (numbers/strings/booleans/plain objects/arrays), so JSON.stringify is a safe way to ' +
+      'build a cache key from them.',
+    starterCode:
+      'function memoize(fn) {\n' +
+      '  // TODO: return a memoized wrapper around fn\n' +
+      '  return fn;\n' +
+      '}\n',
+    hints: [
+      'Keep a cache object (or Map) in a closure, created once when memoize(fn) is called — not inside the returned wrapper.',
+      'Build a cache key from the arguments with JSON.stringify(args) (using the rest-args array, so multi-argument calls are distinguished from each other too).',
+      'On a cache hit, return the stored value without calling fn; on a miss, call fn(...args), store the result under that key, and return it.',
+    ],
+    solution:
+      'function memoize(fn) {\n' +
+      '  const cache = {};\n' +
+      '  return function (...args) {\n' +
+      '    const key = JSON.stringify(args);\n' +
+      '    if (key in cache) return cache[key];\n' +
+      '    const result = fn(...args);\n' +
+      '    cache[key] = result;\n' +
+      '    return result;\n' +
+      '  };\n' +
+      '}\n',
+    testCode:
+      'let __passed = 0;\n' +
+      'let __total = 0;\n' +
+      'function check(name, actual, expected) {\n' +
+      '  __total++;\n' +
+      '  const ok = JSON.stringify(actual) === JSON.stringify(expected);\n' +
+      '  if (ok) __passed++;\n' +
+      '  console.log((ok ? "[PASS] " : "[FAIL] ") + name + ": got " + JSON.stringify(actual) + ", expected " + JSON.stringify(expected));\n' +
+      '}\n' +
+      'let calls = 0;\n' +
+      'function slowSquare(n) {\n' +
+      '  calls++;\n' +
+      '  return n * n;\n' +
+      '}\n' +
+      'const memoSquare = memoize(slowSquare);\n' +
+      'check("first call computes correctly", memoSquare(5), 25);\n' +
+      'check("second call with same arg returns same result", memoSquare(5), 25);\n' +
+      'check("underlying function called only once for repeated arg", calls, 1);\n' +
+      'check("different arg still computes", memoSquare(6), 36);\n' +
+      'check("underlying function called twice total now", calls, 2);\n' +
+      'console.log("__RESULT__ " + __passed + "/" + __total);\n',
+  },
+  {
+    id: 'js-fund-12',
+    title: 'Deep-Equal Comparison of Two Values',
+    difficulty: 'Hard',
+    language: 'javascript',
+    category: 'Fundamentals',
+    prompt:
+      'Write function deepEqual(a, b) that returns true if a and b are structurally equal — same primitive ' +
+      'value, or (for objects/arrays) the same keys/elements each recursively deep-equal, regardless of ' +
+      'whether they are the same object reference. You may assume both only ever contain plain objects, ' +
+      'arrays, strings, numbers, booleans, and null.',
+    starterCode:
+      'function deepEqual(a, b) {\n' +
+      '  // TODO: return true if a and b are structurally equal\n' +
+      '  return false;\n' +
+      '}\n',
+    hints: [
+      'Start with the easy case: if a === b, they\'re trivially equal (covers identical primitives and identical references).',
+      'If either is not a non-null object at that point, they can\'t be equal (one\'s a primitive/null and the other differs, since === already failed).',
+      'For two objects: compare Object.keys(a).length to Object.keys(b).length first, then recursively deepEqual every value in a against the same key in b — if any key is missing from b or any pair isn\'t deepEqual, return false.',
+    ],
+    solution:
+      'function deepEqual(a, b) {\n' +
+      '  if (a === b) return true;\n' +
+      '  if (typeof a !== "object" || typeof b !== "object" || a === null || b === null) return false;\n' +
+      '  const aKeys = Object.keys(a);\n' +
+      '  const bKeys = Object.keys(b);\n' +
+      '  if (aKeys.length !== bKeys.length) return false;\n' +
+      '  for (const key of aKeys) {\n' +
+      '    if (!Object.prototype.hasOwnProperty.call(b, key)) return false;\n' +
+      '    if (!deepEqual(a[key], b[key])) return false;\n' +
+      '  }\n' +
+      '  return true;\n' +
+      '}\n',
+    testCode:
+      'let __passed = 0;\n' +
+      'let __total = 0;\n' +
+      'function check(name, actual, expected) {\n' +
+      '  __total++;\n' +
+      '  const ok = actual === expected;\n' +
+      '  if (ok) __passed++;\n' +
+      '  console.log((ok ? "[PASS] " : "[FAIL] ") + name + ": got " + actual + ", expected " + expected);\n' +
+      '}\n' +
+      'check("equal primitives", deepEqual(5, 5), true);\n' +
+      'check("different primitives", deepEqual(5, 6), false);\n' +
+      'check("equal nested objects", deepEqual({ a: 1, b: { c: [1, 2, 3] } }, { a: 1, b: { c: [1, 2, 3] } }), true);\n' +
+      'check("different nested value", deepEqual({ a: 1, b: { c: [1, 2, 3] } }, { a: 1, b: { c: [1, 2, 9] } }), false);\n' +
+      'check("different key count", deepEqual({ a: 1, b: 2 }, { a: 1 }), false);\n' +
+      'check("arrays with same elements", deepEqual([1, 2, 3], [1, 2, 3]), true);\n' +
+      'console.log("__RESULT__ " + __passed + "/" + __total);\n',
+  },
 ];
