@@ -95,6 +95,14 @@ carrying forward as if nothing changed:
   lesson: soc-siem/soc-detection/soc-ir had **zero** embedded labs across any lesson. Also found 2 labs
   whose exact scenarios soc-2's prose already covers at length (automated spear-phishing, deepfake-voice
   CEO fraud) but that were never actually embedded there — fixed that alongside adding the new lesson.
+- **`22cb280`** — Closed the last SOC lesson/lab gap: added a Kerberoasting-detection worked example to
+  soc-detection-1 rather than a whole new lesson for one orphaned lab. All 16 SOC-category labs (across
+  soc/soc-siem/soc-detection/soc-ir) are now reachable from at least one lesson — the audit that started
+  with "SOC gets a 4th lesson" turned up a real, larger consistency gap and this closes it out.
+- **`d0f25e1`** — Announcements page: added a real entry for tonight's work, and fixed a separate
+  pre-existing bug found while there — three older entries were all still dated "This update" from
+  different past sessions. A changelog with four different "most recent" entries isn't one; relabeled the
+  three stale ones "Earlier."
 - Next: continue the same pattern — next-thinnest module or page needing a pass, one bounded/verified unit
   at a time. Not attempting to define a literal "done" for "best in the world" (see reply upthread); this
   log is the honest record of what actually shipped and how it was checked.
