@@ -166,6 +166,63 @@ export const BOOKS: Book[] = [
       'security shelf, since Rust exists specifically to prevent the memory-corruption bug classes ' +
       'those topics cover. Opens the official book on doc.rust-lang.org in a new tab.',
   },
+  {
+    id: 'you-dont-know-js-yet',
+    title: "You Don't Know JS Yet",
+    subtitle: 'Get Started — 2nd Edition (book series)',
+    author: 'Kyle Simpson',
+    track: 'programming',
+    language: 'javascript',
+    order: 8,
+    // No filename: the manuscript is free to read (CC BY-NC-ND 4.0) on the official GitHub repo,
+    // but the finished/edited book is self-published through O'Reilly's imprint — same reasoning
+    // as the security shelf's commercial-title entries below: link to the real official source
+    // rather than caching a redistributed copy of a commercially-published work.
+    license: 'CC BY-NC-ND 4.0',
+    licenseUrl: 'https://creativecommons.org/licenses/by-nc-nd/4.0/',
+    officialUrl: 'https://github.com/getify/You-Dont-Know-JS',
+    description:
+      'The most widely recommended deep-dive JS series there is, spanning true beginner ("Get ' +
+      'Started") through scopes/closures, objects/classes, types, and async — read any volume free ' +
+      'on the author\'s own GitHub repo, the official source for the whole series.',
+  },
+  {
+    id: 'speaking-javascript',
+    title: 'Speaking JavaScript',
+    subtitle: 'An In-Depth Guide for Programmers',
+    author: 'Dr. Axel Rauschmayer',
+    track: 'programming',
+    language: 'javascript',
+    order: 9,
+    // No filename: published by O'Reilly Media — the author put it up for free reading on his own
+    // site with the publisher's blessing, but it's still a commercially-published title, so this
+    // links to that official free-reading site rather than caching a redistributed PDF.
+    license: 'Free to read online (O\'Reilly-published; author-hosted)',
+    licenseUrl: 'http://speakingjs.com/',
+    officialUrl: 'http://speakingjs.com/',
+    description:
+      'A complete, from-scratch-to-reference guide to the language itself — quick-start chapters ' +
+      'for readers already comfortable with another language, followed by a full reference section ' +
+      'covering every language feature in depth. Opens the author\'s free official reading site.',
+  },
+  {
+    id: 'mostly-adequate-guide-fp',
+    title: "Professor Frisby's Mostly Adequate Guide to Functional Programming",
+    subtitle: 'Functional programming patterns, in JavaScript',
+    author: 'Brian Lonsdorf',
+    track: 'programming',
+    language: 'javascript',
+    order: 10,
+    filename: 'mostly-adequate-guide-fp.pdf',
+    fileSizeMb: '4.8',
+    license: 'CC BY-SA 4.0',
+    licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/',
+    officialUrl: 'https://github.com/MostlyAdequate/mostly-adequate-guide',
+    description:
+      'The advanced end of the JavaScript shelf — pure functions, function composition, functors, ' +
+      'and monads, all taught with real JS code instead of Haskell-first academic notation. The book ' +
+      'that made functional programming concepts click for a generation of JS developers.',
+  },
 
   // --- Cybersecurity track: a 6-stage, beginner-to-advanced self-teaching path. Sourced from
   // NIST (csrc.nist.gov, all public domain U.S. government works) and OWASP (github.com/OWASP,
