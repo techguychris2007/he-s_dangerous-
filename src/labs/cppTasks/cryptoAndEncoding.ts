@@ -72,4 +72,57 @@ export const CPP_CRYPTO_TASKS: CodeTask[] = [
       '    return 0;\n' +
       '}\n',
   },
+  {
+    id: 'cpp-crypto-02',
+    title: 'XOR Checksum of a Byte Array',
+    difficulty: 'Easy',
+    language: 'cpp',
+    category: 'Cryptography & Encoding',
+    prompt:
+      'Write int xorChecksum(int bytes[], int n) that returns the XOR of every element in the first n ' +
+      'elements of bytes — a cheap, fast integrity check some embedded protocols and legacy log formats use ' +
+      'instead of a real hash. Treat each element as if it were a single byte (0-255).',
+    starterCode:
+      '#include <iostream>\n' +
+      'using namespace std;\n\n' +
+      'int xorChecksum(int bytes[], int n) {\n' +
+      '    // TODO: return the XOR of all n elements of bytes\n' +
+      '    return 0;\n' +
+      '}\n',
+    hints: [
+      'Start an accumulator at 0 — 0 XOR anything is just that thing, so this is a safe identity to start from.',
+      'Loop through the array, XOR-ing each element into the accumulator with checksum ^= bytes[i].',
+      'Order doesn\'t matter for XOR (it\'s commutative and associative) — a straightforward left-to-right loop is correct.',
+    ],
+    solution:
+      '#include <iostream>\n' +
+      'using namespace std;\n\n' +
+      'int xorChecksum(int bytes[], int n) {\n' +
+      '    int checksum = 0;\n' +
+      '    for (int i = 0; i < n; i++) {\n' +
+      '        checksum ^= bytes[i];\n' +
+      '    }\n' +
+      '    return checksum;\n' +
+      '}\n',
+    testCode:
+      'int __passed = 0;\n' +
+      'int __total = 0;\n' +
+      'void check(const char* name, int actual, int expected) {\n' +
+      '    __total++;\n' +
+      '    bool ok = actual == expected;\n' +
+      '    if (ok) __passed++;\n' +
+      '    cout << (ok ? "[PASS] " : "[FAIL] ") << name << ": got " << actual << ", expected " << expected << endl;\n' +
+      '}\n' +
+      'int main() {\n' +
+      '    int a1[3] = {0x12, 0x34, 0x56};\n' +
+      '    check("basic", xorChecksum(a1, 3), 0x70);\n\n' +
+      '    int a2[2] = {0xFF, 0xFF};\n' +
+      '    check("self-cancelling pair", xorChecksum(a2, 2), 0);\n\n' +
+      '    int a3[1];\n' +
+      '    a3[0] = 0x42;\n' +
+      '    check("single element", xorChecksum(a3, 1), 0x42);\n\n' +
+      '    cout << "__RESULT__ " << __passed << "/" << __total << endl;\n' +
+      '    return 0;\n' +
+      '}\n',
+  },
 ];
