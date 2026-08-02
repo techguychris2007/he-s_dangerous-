@@ -465,3 +465,32 @@ change what gets built, just confirms the constraint explicitly going forward.
 **Updated running total**: labs 219 → 231 (+12 across the last two batches, +27 total toward the "up to
 500" target). Continuing in the same researched, individually-verified pattern — no volume target treated
 as a quota to hit by any means.
+
+- **`2265f6d`** — 5 more labs (231 → 236): OAuth token audience confusion (API — a validly-signed
+  partner-API token accepted by an admin API because the `aud` claim is never checked, the real "token
+  passthrough" confused-deputy anti-pattern), ECDSA nonce reuse leaking the signing private key
+  (Cryptography — the exact real mistake behind the 2010 Sony PS3 firmware-signing key recovery, where
+  Sony used a *constant* k for every signature), Lambda `GetFunctionConfiguration` leaking plaintext
+  env-var secrets (Cloud — a broadly-granted "view only" permission AWS auto-decrypts through, no KMS
+  access needed), process hollowing detection via PEB/VAD image-type mismatch (Malware Analysis — the real
+  detection method the HollowFind Volatility plugin automates), and a "removed" secret still fully live in
+  git history (Security Engineering — current file looks clean, but an earlier commit's plaintext password
+  is reachable forever regardless of a later "fix").
+
+  Two researched techniques deliberately not attempted, flagged honestly in `NOTES.md` batch 5 rather than
+  faked: an S3 cross-account confused-deputy lab (this platform's `aws sts` simulation has no `assume-role`
+  command at all, only `get-caller-identity` — the specific missing-`ExternalId` mechanism can't be modeled
+  without new engine work) and VLAN double-tagging (Layer-2 frame forwarding across two switches doesn't
+  fit the request/response HTTP-simulation model the way SNMP/DNS-AXFR's curl-fakeout convention did).
+
+  Verification caught a real mistake before commit: the OAuth lab's `triggerSubstrings` had a one-character
+  typo from hand-copying the same base64 JWT into two places in the file, causing a false `MISMATCH` on
+  first run — root-caused with a targeted diff script rather than re-reading by eye, then fixed by
+  generating the trigger value programmatically from a single source string instead of retyping it. tsc/
+  lint clean, headless-Chrome boot check clean.
+- **`fcb470d`** — Updated `labs-index.md` (236 total, API 9→10, Cryptography 7→8, Cloud 14→15, Malware
+  13→14, Security Engineering 10→11) and `NOTES.md` (batch 5 citations + both NEEDS REVIEW entries for the
+  skipped techniques).
+
+**Updated running total**: labs 219 → 236 (+17 across the last two batches, +32 total toward the "up to
+500" target).
