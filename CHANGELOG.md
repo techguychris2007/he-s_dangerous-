@@ -629,3 +629,31 @@ why that method exists — two labs in this batch would have been unsolvable as 
 
 **Updated running total**: labs 219 → 266 (+47 across the last seven batches, +62 total toward the "up to
 500" target).
+
+- **`d904a42`** — 6 more labs (266 → 272): glibc tcache poisoning via a UAF-enabled double-free (Binary
+  Analysis — a use-after-free write clears the freed chunk's glibc-2.29 double-free "key" field before the
+  second free, and this build predates Safe-Linking (added in glibc 2.32), so the forged tcache freelist
+  pointer needs no per-chunk XOR obfuscation to redirect a writable global function pointer; built Full
+  RELRO specifically so it's mechanically non-overlapping with batch 10's Partial-RELRO GOT-overwrite lab),
+  an AWS Lambda Function URL left publicly invocable via `authType: NONE` (Cloud — AWS's own docs confirm
+  Lambda performs no authentication at all under this setting, distinct from every other Cloud
+  misconfiguration already on this platform), Windows Shellbags/`BagMRU` proving folder access that survives
+  both the folder's deletion and its USB volume's removal (Forensics — an independent registry artifact from
+  this session's existing MFT-based timestomping/USN-journal labs), HTTP Host header injection enabling
+  password reset poisoning (Web — PortSwigger's own named vulnerability class, paired with an
+  unauthenticated staging mail-capture endpoint so the full chain resolves within this engine's
+  single-request model; the combination is flagged explicitly in `NOTES.md` batch 11 for transparency),
+  regsvr32.exe "Squiblydoo" application-whitelisting bypass via a remote COM scriptlet (Malware — MITRE
+  ATT&CK T1218.010, a real technique used in nation-state phishing campaigns), and impossible-travel /
+  geo-velocity anomaly detection flagging a compromised account (SOC — the distance/speed figures were
+  computed with Node's haversine formula rather than hand-typed, per this file's standing rule on computed
+  values). Full citations in `NOTES.md` batch 11.
+
+  Verified all six with a scripted `tsx` run directly against the real `TerminalEngine` class: every lab's
+  full solve path captures exactly one flag, and a plausible-but-wrong request per lab captures none. tsc
+  clean, oxlint clean, production `vite build` clean.
+- **`151de7d`** — Updated `labs-index.md` (272 total, Web 42→43, SOC 17→18, Forensics 15→16, Cloud 18→19,
+  Binary Analysis 15→16, Malware 16→17) and `NOTES.md` (batch 11 citations).
+
+**Updated running total**: labs 219 → 272 (+53 across the last eight batches, +68 total toward the "up to
+500" target).
