@@ -283,3 +283,53 @@ genuinely work against a real target, not just read plausibly.
   parse at all (its URL regex requires an IP address) — rewritten to hit the lab's IP directly; the SAS
   query string itself needed no change since path-based route matching already ignores the query string.
   Both were caught by actually running the commands through `TerminalEngine`, not by reading the lab code.
+
+## Sources checked, batch 7 (Logjam, batch GCD, GraphQL field-suggestion leak, cursor tampering, DCShadow, PowerShell 4104)
+
+- **Logjam-style DHE_EXPORT downgrade** — [weakdh.org (the researchers' own site)](https://weakdh.org/),
+  [Red Hat: Logjam TLS vulnerabilities (CVE-2015-4000)](https://access.redhat.com/articles/1456263).
+  Confirmed real cipher suite name (`TLS_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA`), real prime size (512-bit,
+  a deliberate 1990s US export-control cap), and the real disclosure-time impact figure (roughly 8% of the
+  top 1 million HTTPS domains affected, per the search results).
+- **Batch GCD attack on shared RSA prime factors** — [Proton: Batch GCD algorithm security audit](https://proton.me/blog/batch-gcd),
+  [arXiv 2512.22720: When RSA Fails — Exploiting Prime Selection Vulnerabilities](https://arxiv.org/abs/2512.22720).
+  Confirmed the real 2012 "Mining Your Ps and Qs" finding (64,000+ vulnerable TLS hosts) and the real 2013
+  follow-up against Taiwan's Citizen Digital Certificate database (184 vulnerable keys found, 103 sharing
+  prime factors) — the lab's own small illustrative primes are flagged explicitly as toy-sized rather than
+  presented as realistic key material, while the GCD algorithm itself is the identical real technique.
+- **GraphQL field-suggestion leak despite disabled introspection** — [Escape.tech: When GraphQL field suggestions become a Security Issue](https://escape.tech/blog/graphql-verbose-error-suggestions/),
+  a security researcher's public writeup on the technique and the Clairvoyance automation tool (via X/
+  Twitter, cross-referenced against the Escape.tech and PortSwigger GraphQL security content for
+  consistency). Confirmed: disabling introspection alone does not disable "Did you mean" field-suggestion
+  error messages, and real tooling automates full schema reconstruction from suggestions alone.
+- **Pagination cursor tampering** — general, well-established API security knowledge (unsigned base64
+  "opaque" cursors are not encrypted, only encoded) rather than a single disclosed CVE; cross-referenced
+  against standard cursor-pagination security guidance describing HMAC-signing cursors as the fix,
+  confirming the vulnerability class is real and the fix confirms the attack surface.
+- **DCShadow** — [Picus Security: DCShadow Attack Explained (MITRE ATT&CK T1207)](https://www.picussecurity.com/resource/blog/dcshadow-attack-explained-mitre-attack-t120),
+  [ired.team: DCShadow — Becoming a Rogue Domain Controller](https://www.ired.team/offensive-security-experiments/active-directory-kerberos-abuse/t1207-creating-rogue-domain-controllers-with-dcshadow).
+  Confirmed the real prerequisites (Domain Admin credentials + SYSTEM on a domain-joined machine, which
+  does NOT need to already be a DC), the real mechanism (temporary registration as a replication partner in
+  the Configuration Naming Context, then triggering a legitimate DC to pull "replication"), and the real
+  detection-evasion property (changes propagate via replication, never through normal directory-write APIs,
+  so nothing is written to the standard Security event log).
+- **PowerShell ScriptBlock Logging (Event ID 4104) defeating obfuscation** — [JumpCloud: What is PowerShell Script Block Logging?](https://jumpcloud.com/it-index/what-is-powershell-script-block-logging),
+  [EventPeeker: Event ID 4104 — Detect PowerShell Obfuscation & Script Block Execution](https://www.eventpeeker.com/event-id/4104).
+  Confirmed the real mechanism: the PowerShell engine must fully decode/de-obfuscate a script to execute
+  it, and Script Block Logging captures that already-decoded result — even multi-layer base64/string-
+  concatenation obfuscation is fully readable in the resulting log entry. Also noted, honestly, a real
+  limitation this lab does not model: a PowerShell v2 downgrade attack bypasses 4104 entirely, since PSv2
+  lacks Script Block Logging support altogether.
+
+## NEEDS REVIEW (labs/topics), batch 7
+
+- Two more instances of the same "port defaults to 80" mistake class already caught in batch 6, this time
+  in the Logjam lab (an `https://` URL with no explicit `:443`) and the DCShadow lab (LDAP on port 389,
+  not 80) — this engine's `curl` always defaults to port 80 regardless of URL scheme unless a port is
+  given explicitly, confirmed by reading `engine.ts`'s URL-parsing regex. Both fixed and reverified. Given
+  this is now the single most common mistake across the last three batches, worth calling out as a
+  standing checklist item for any future lab targeting a non-80 port: always specify the port explicitly
+  in every curl command, scheme notwithstanding.
+- Independently recomputed the pagination-cursor lab's base64 encoding with Node before trusting the
+  hand-typed `triggerSubstrings` value, rather than assuming it was correct by eye — it matched, but this
+  is now standing practice after the OAuth JWT one-character typo two batches ago.

@@ -4,7 +4,7 @@ Running count and category breakdown for the offensive-security lab expansion. S
 full narrative detail on every batch (what was added, why, and how each one was verified); this file is
 just the running tally `NOTES.md`'s citations and the "when I'm back" summary can point at.
 
-**Total labs: 242** (204 at the start of this expansion → 242 now, +38 so far toward the "up to 500, quality
+**Total labs: 248** (204 at the start of this expansion → 248 now, +44 so far toward the "up to 500, quality
 first" target). Every count below is the actual `LABS.length` broken out by `category`, not an estimate.
 
 | Category | Count | This expansion added |
@@ -12,17 +12,17 @@ first" target). Every count below is the actual `LABS.length` broken out by `cat
 | Linux | 22 | — |
 | Network | 26 | +1 (SMTP open relay abuse) |
 | Web | 41 | +1 (DNS rebinding SSRF-allowlist bypass) |
-| Active Directory | 19 | +4 (ADCS ESC1, RBCD abuse, Silver Ticket, Shadow Credentials) |
+| Active Directory | 20 | +5 (ADCS ESC1, RBCD abuse, Silver Ticket, Shadow Credentials, DCShadow rogue DC) |
 | Bug Bounty | 20 | — |
 | SOC | 16 | — |
-| Forensics | 12 | +2 (Volume Shadow Copy NTDS.dit dump, NTFS timestomping $SI/$FN mismatch) |
+| Forensics | 13 | +3 (Volume Shadow Copy NTDS.dit dump, NTFS timestomping $SI/$FN mismatch, PowerShell ScriptBlock de-obfuscation) |
 | Cloud | 16 | +4 (IMDSv2 bypass, Docker-socket container escape, Lambda env-var secrets exposure, overly-permissive Azure SAS token) |
 | Security+ | 12 | +1 (SPF/DMARC misconfiguration enables spoofing) |
 | Binary Analysis | 13 | +3 (stack canary leak via format string, use-after-free function pointer hijack, ret2libc defeating NX/ASLR) |
 | Malware | 15 | +2 (process hollowing detection via PEB/VAD mismatch, DLL sideloading via search-order hijacking) |
 | Security Engineering | 12 | +2 (secret still live in git history, forged webhook via missing signature verification) |
-| **API** (new category) | 10 | +10 (BFLA, JWT kid injection, legacy-version IDOR, excessive data exposure, rate-limit bypass, WebAuthn downgrade, method-override authz bypass, GraphQL field-level authz bypass, Referer-header API key leak, OAuth audience confusion) |
-| **Cryptography** (new category) | 8 | +8 (ECB block-shuffling, hash length extension, JWT algorithm confusion, predictable PRNG session tokens, AES-CTR nonce reuse, Bleichenbacher RSA padding oracle, UUIDv1 reset-token entropy, ECDSA nonce reuse) |
+| **API** (new category) | 12 | +12 (BFLA, JWT kid injection, legacy-version IDOR, excessive data exposure, rate-limit bypass, WebAuthn downgrade, method-override authz bypass, GraphQL field-level authz bypass, Referer-header API key leak, OAuth audience confusion, GraphQL field-suggestion leak, pagination cursor tampering) |
+| **Cryptography** (new category) | 10 | +10 (ECB block-shuffling, hash length extension, JWT algorithm confusion, predictable PRNG session tokens, AES-CTR nonce reuse, Bleichenbacher RSA padding oracle, UUIDv1 reset-token entropy, ECDSA nonce reuse, Logjam DHE_EXPORT downgrade, batch GCD shared-prime attack) |
 
 ## Batches shipped so far
 
@@ -46,6 +46,10 @@ first" target). Every count below is the actual `LABS.length` broken out by `cat
    Engineering), SMTP open relay abuse (Network), overly-permissive/long-lived Azure SAS token (Cloud),
    ret2libc defeating NX/ASLR via a leaked libc address (Binary Analysis), DLL sideloading detection
    (Malware).
+7. **`d0f7f43`** — 6 labs: Logjam-style DHE_EXPORT cipher downgrade and a batch GCD shared-RSA-prime
+   recovery (Cryptography), a GraphQL field-suggestion schema leak and pagination cursor tampering (API),
+   a DCShadow rogue domain controller attack (Active Directory), PowerShell ScriptBlock Logging revealing
+   a de-obfuscated command (Forensics).
 
 ## What's explicitly NOT attempted, and why
 
