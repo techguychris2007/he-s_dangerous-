@@ -77,11 +77,9 @@ ISO 27001    — an international information-security management standard, audi
       </Callout>
 
       <p>
-        This closes out the four-module SOC curriculum: alert triage and threat hunting, the SIEM platforms
-        themselves, the detection-engineering techniques that generate real findings, and the investigation,
-        automation, and reporting that turn a finding into a properly closed incident. The SOC Portal's SIEM
-        labs let you practice every one of these mechanics directly, inside real platform-style consoles,
-        against both realistic essentials scenarios and reconstructions of major real-world breaches.
+        With triage, automation, and reporting all covered, the final lesson steps back from mechanics to two
+        real, widely-cited breaches — Target in 2013 and the Bangladesh Bank SWIFT heist in 2016 — that show
+        exactly what happens when a detection is correct but the response around it still fails.
       </p>
     </div>
   );

@@ -58,6 +58,7 @@ import ThreatIntelIntegration from '../content/soc-detection/03-threat-intel-int
 import IncidentInvestigationMethodology from '../content/soc-ir/01-incident-investigation-methodology';
 import SoarAutomation from '../content/soc-ir/02-soar-automation';
 import ComplianceReporting from '../content/soc-ir/03-compliance-reporting';
+import LandmarkIncidentCaseStudies from '../content/soc-ir/04-landmark-incident-case-studies';
 
 import ForensicsFundamentals from '../content/forensics/01-forensics-fundamentals';
 import MemoryArtifactAnalysis from '../content/forensics/02-memory-artifact-analysis';
@@ -370,10 +371,12 @@ export const MODULES: ModuleMeta[] = [
     lessons: [
       { id: 'soc-ir-1', slug: 'incident-investigation-methodology', title: 'Incident Investigation Methodology', summary: 'Building a timeline, scoping the full blast radius, and root-cause analysis.', minutes: 13, Content: IncidentInvestigationMethodology },
       { id: 'soc-ir-2', slug: 'soar-automation', title: 'SOAR: Security Orchestration, Automation & Response', summary: 'Automated playbooks that respond in seconds instead of the ~22-minute manual average.', minutes: 12, Content: SoarAutomation },
+      { id: 'soc-ir-3', slug: 'compliance-reporting', title: 'Compliance Reporting (PCI-DSS, HIPAA, SOC 2, ISO 27001)', summary: 'Generating audit-ready evidence that log review is actually happening, not just theoretically enabled.', minutes: 11, Content: ComplianceReporting },
       {
-        id: 'soc-ir-3', slug: 'compliance-reporting', title: 'Compliance Reporting (PCI-DSS, HIPAA, SOC 2, ISO 27001)', summary: 'Generating audit-ready evidence that log review is actually happening, not just theoretically enabled.', minutes: 11, Content: ComplianceReporting,
+        id: 'soc-ir-4', slug: 'landmark-incident-case-studies', title: 'Landmark Incident Case Studies: Target & the Bangladesh Bank SWIFT Heist', summary: 'Two real breaches showing what happens when a detection is correct but the response around it still fails.', minutes: 13, Content: LandmarkIncidentCaseStudies,
         quiz: [
-          { id: 'q1', prompt: 'What does PCI-DSS Requirement 10.6 specifically mandate?', choices: ['Annual password changes', 'Daily log review for systems in the cardholder data environment', 'Encryption of all data at rest', 'A minimum SOC team size'], correctIndex: 1, explanation: 'Requirement 10.6 mandates daily review of logs for systems handling cardholder data, with evidence retained for audit.' },
+          { id: 'q1', prompt: 'What actually failed in the 2013 Target breach, given that FireEye correctly flagged the malware twice?', choices: ['The detection technology itself was faulty', 'The correct alerts were never escalated in time, buried in a high-volume queue', 'No detection system was in place at all', 'The malware was undetectable by design'], correctIndex: 1, explanation: 'The alerts were correct and timely — the failure was downstream: triage/escalation and a reportedly disabled auto-quarantine feature.' },
+          { id: 'q2', prompt: 'What specifically caused one fraudulent SWIFT transfer to be frozen in the 2016 Bangladesh Bank heist?', choices: ['An intrusion detection system alert', 'A misspelled beneficiary name ("Fandation" instead of "Foundation") triggered manual review', 'A firewall rule blocked the transfer', 'The transfer amount exceeded a hard limit'], correctIndex: 1, explanation: 'A routing bank compliance officer noticed the misspelling and froze the transfer for manual review — a human catching an anomaly, not a technical control.' },
         ],
       },
     ],
