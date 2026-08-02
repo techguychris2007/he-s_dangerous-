@@ -333,3 +333,46 @@ genuinely work against a real target, not just read plausibly.
 - Independently recomputed the pagination-cursor lab's base64 encoding with Node before trusting the
   hand-typed `triggerSubstrings` value, rather than assuming it was correct by eye — it matched, but this
   is now standing practice after the OAuth JWT one-character typo two batches ago.
+
+## Sources checked, batch 8 (TOTP reuse, upload spoofing, remember-me, GCP allUsers, LNK padding, Golden SAML)
+
+- **Shared/predictable TOTP secret** — general, well-established TOTP security principle (a predictable or
+  reused shared secret defeats the scheme regardless of correct HMAC math) rather than a single disclosed
+  CVE; cross-referenced against NetSPI's and PanicVault's TOTP security writeups for accuracy on the
+  underlying mechanism (HOTP/TOTP = HMAC over a shared secret + counter/time value).
+- **File upload Content-Type spoofing + double extension** — [OWASP File Upload Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html),
+  [OWASP: Unrestricted File Upload](https://owasp.org/www-community/vulnerabilities/Unrestricted_File_Upload).
+  Confirmed both real bypass mechanics modeled in the lab: the client-supplied Content-Type header is
+  fully attacker-controlled and untrustworthy on its own, and the double-extension pattern
+  (`avatar.php.jpg`) is OWASP's own documented example of defeating a naive "check the extension is in an
+  allowlist" filter.
+- **"Remember me" token surviving a password reset** — [HackerOne Report #15785: Session not invalidated after password reset](https://hackerone.com/reports/15785),
+  [GitHub Advisory: Contao CVE-2024-30262 — remember-me tokens not removed on password change](https://advisories.gitlab.com/pkg/composer/contao/core-bundle/CVE-2024-30262/).
+  Confirmed this is a real, repeatedly-disclosed vulnerability class with both a public bug-bounty report
+  and a real CVE naming the identical root cause: a password-reset handler that clears the regular session
+  table but never touches a separate remember-me/persistent-token store.
+- **GCP Cloud Function public via allUsers IAM binding** — [Google Cloud's own docs: Allowing public (unauthenticated) access](https://docs.cloud.google.com/run/docs/authenticating/public),
+  [Trend Micro Cloud One Conformity: Check for Publicly Accessible Cloud Run Services](https://trendmicro.com/cloudoneconformity/knowledge-base/gcp/CloudRun/gcp-function-public-access.html).
+  Confirmed real, exact mechanics: `--allow-unauthenticated` grants `roles/run.invoker` to the special
+  `allUsers` identity, which Google's own documentation defines as literally any internet user,
+  authenticated or not — this is the first Google Cloud (non-AWS) lab on the platform, diversifying beyond
+  the AWS-only cloud labs built so far.
+- **Malicious LNK whitespace-padding command hiding** — [Cyberpress: Windows LNK File UI Misrepresentation Enables RCE](https://cyberpress.org/windows-lnk-file/),
+  [Cyble: Stealthy Cyber Attacks — LNK Files & SSH Commands Playbook](https://cyble.com/blog/a-stealthy-playbook-for-advanced-cyber-attacks/).
+  Confirmed this is a real, currently-active technique — ZDI-CAN-25373, publicly disclosed March 2025 and
+  rapidly adopted by nation-state groups from multiple countries per the search results (including the
+  XDSpy group's large-scale phishing campaigns against Eastern European government targets) — not a dated
+  or purely historical technique.
+- **Golden SAML detection via missing ADFS/Kerberos events** — [Sygnia: Detection And Hunting Of Golden SAML Attack](https://www.sygnia.co/threat-reports-and-advisories/golden-saml-attack/),
+  [Netwrix: Golden SAML attack — Forged access to hybrid environments](https://netwrix.com/en/cybersecurity-glossary/cyber-security-attacks/golden-saml-attack/).
+  Confirmed the exact real detection method modeled in the lab: search for SAML SSO logins with no
+  corresponding ADFS sign-in event and no Domain Controller Event ID 4769/1200/1202 — a forged assertion is
+  cryptographically indistinguishable from a real one, so the ABSENCE of the identity-provider-side event
+  trail (not any single suspicious field in the assertion itself) is the actual, real-world evidence.
+
+## NEEDS REVIEW (labs/topics), batch 8
+
+- None this batch — all six techniques mapped cleanly onto existing engine commands/conventions
+  (`curl`-simulated HTTP vulnRoutes with explicit non-80 ports where needed, plus file-based `cat`
+  investigations for the two purely analytical labs), and the full verification suite passed on the first
+  run with no port-default or hand-typed-encoding mistakes this time.

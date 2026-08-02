@@ -4,7 +4,7 @@ Running count and category breakdown for the offensive-security lab expansion. S
 full narrative detail on every batch (what was added, why, and how each one was verified); this file is
 just the running tally `NOTES.md`'s citations and the "when I'm back" summary can point at.
 
-**Total labs: 248** (204 at the start of this expansion → 248 now, +44 so far toward the "up to 500, quality
+**Total labs: 254** (204 at the start of this expansion → 254 now, +50 so far toward the "up to 500, quality
 first" target). Every count below is the actual `LABS.length` broken out by `category`, not an estimate.
 
 | Category | Count | This expansion added |
@@ -14,15 +14,15 @@ first" target). Every count below is the actual `LABS.length` broken out by `cat
 | Web | 41 | +1 (DNS rebinding SSRF-allowlist bypass) |
 | Active Directory | 20 | +5 (ADCS ESC1, RBCD abuse, Silver Ticket, Shadow Credentials, DCShadow rogue DC) |
 | Bug Bounty | 20 | — |
-| SOC | 16 | — |
+| SOC | 17 | +1 (Golden SAML detection via missing ADFS/Kerberos events) |
 | Forensics | 13 | +3 (Volume Shadow Copy NTDS.dit dump, NTFS timestomping $SI/$FN mismatch, PowerShell ScriptBlock de-obfuscation) |
-| Cloud | 16 | +4 (IMDSv2 bypass, Docker-socket container escape, Lambda env-var secrets exposure, overly-permissive Azure SAS token) |
+| Cloud | 17 | +5 (IMDSv2 bypass, Docker-socket container escape, Lambda env-var secrets exposure, overly-permissive Azure SAS token, GCP allUsers Cloud Function) |
 | Security+ | 12 | +1 (SPF/DMARC misconfiguration enables spoofing) |
 | Binary Analysis | 13 | +3 (stack canary leak via format string, use-after-free function pointer hijack, ret2libc defeating NX/ASLR) |
-| Malware | 15 | +2 (process hollowing detection via PEB/VAD mismatch, DLL sideloading via search-order hijacking) |
-| Security Engineering | 12 | +2 (secret still live in git history, forged webhook via missing signature verification) |
-| **API** (new category) | 12 | +12 (BFLA, JWT kid injection, legacy-version IDOR, excessive data exposure, rate-limit bypass, WebAuthn downgrade, method-override authz bypass, GraphQL field-level authz bypass, Referer-header API key leak, OAuth audience confusion, GraphQL field-suggestion leak, pagination cursor tampering) |
-| **Cryptography** (new category) | 10 | +10 (ECB block-shuffling, hash length extension, JWT algorithm confusion, predictable PRNG session tokens, AES-CTR nonce reuse, Bleichenbacher RSA padding oracle, UUIDv1 reset-token entropy, ECDSA nonce reuse, Logjam DHE_EXPORT downgrade, batch GCD shared-prime attack) |
+| Malware | 16 | +3 (process hollowing detection via PEB/VAD mismatch, DLL sideloading via search-order hijacking, LNK whitespace-padding command hiding) |
+| Security Engineering | 13 | +3 (secret still live in git history, forged webhook via missing signature verification, remember-me token survives password reset) |
+| **API** (new category) | 13 | +13 (BFLA, JWT kid injection, legacy-version IDOR, excessive data exposure, rate-limit bypass, WebAuthn downgrade, method-override authz bypass, GraphQL field-level authz bypass, Referer-header API key leak, OAuth audience confusion, GraphQL field-suggestion leak, pagination cursor tampering, upload content-type spoofing) |
+| **Cryptography** (new category) | 11 | +11 (ECB block-shuffling, hash length extension, JWT algorithm confusion, predictable PRNG session tokens, AES-CTR nonce reuse, Bleichenbacher RSA padding oracle, UUIDv1 reset-token entropy, ECDSA nonce reuse, Logjam DHE_EXPORT downgrade, batch GCD shared-prime attack, TOTP shared-secret reuse) |
 
 ## Batches shipped so far
 
@@ -50,6 +50,11 @@ first" target). Every count below is the actual `LABS.length` broken out by `cat
    recovery (Cryptography), a GraphQL field-suggestion schema leak and pagination cursor tampering (API),
    a DCShadow rogue domain controller attack (Active Directory), PowerShell ScriptBlock Logging revealing
    a de-obfuscated command (Forensics).
+8. **`17f169a`** — 6 labs: shared TOTP secret across accounts (Cryptography), file-upload content-type
+   spoofing bypassing an extension allowlist (API), a "remember me" token surviving a password reset
+   (Security Engineering), a publicly-invocable GCP Cloud Function via an allUsers IAM binding (Cloud), a
+   malicious LNK file hiding a command via whitespace padding (Malware), and Golden SAML attack detection
+   via missing ADFS/Kerberos events (SOC).
 
 ## What's explicitly NOT attempted, and why
 
