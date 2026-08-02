@@ -121,3 +121,55 @@ instructions), same as every lab before it.
   were in batch 2. All six techniques mapped cleanly onto existing `TerminalEngine` commands (`curl`-style
   HTTP simulation with header/param-based `vulnRoutes`, plus `cat`/`nmap` recon), verified end to end before
   commit.
+
+## Sources checked, batch 4 (RSA padding oracle, UUIDv1 tokens, canary leak, UAF, VSS credential dump, timestomping)
+
+- **Bleichenbacher RSA PKCS#1 v1.5 padding oracle (ROBOT)** — [robotattack.org (the researchers' own site)](https://robotattack.org/),
+  [USENIX Security '18: Return Of Bleichenbacher's Oracle Threat](https://www.usenix.org/conference/usenixsecurity18/presentation/bock),
+  [Invicti: ROBOT Attack Revives Daniel Bleichenbacher's 19-Year-Old Vulnerability](https://www.invicti.com/blog/web-security/robot-attack-revives-bleichenbacher-vulnerability).
+  Confirmed: a genuine 1998 attack that resurfaced as ROBOT in 2017, affecting roughly a third of the top
+  100 Alexa domains at the time (including Facebook and PayPal) and nine different vendors' products — the
+  oracle is any distinguishable padding-valid vs. padding-invalid server response.
+- **UUIDv1 password-reset token entropy** — [HackTricks: UUID Insecurities](https://hacktricks.wiki/en/pentesting-web/uuid-insecurities.html),
+  [Realize Security: Sandwich Attacks — Exploiting UUIDv1](https://www.realizesec.com/blog/sandwich-attacks-exploiting-uuid-v1),
+  [HackerNoon: Never Rely on UUID for Authentication](https://hackernoon.com/never-rely-on-uuid-for-authentication-generation-vulnerabilities-and-best-practices).
+  Confirmed: UUIDv1's 128 bits decompose into a 60-bit timestamp, a 48-bit MAC-address node field (fixed
+  per generating host), and a 14-bit clock sequence — real disclosed "sandwich attack" research demonstrates
+  recovering a target UUIDv1 token by bracketing its generation time with two tokens of your own.
+- **Stack canary bypass via information leak** — [SANS Institute: Stack Canaries — Gingerly Sidestepping the Cage](https://www.sans.org/blog/stack-canaries-gingerly-sidestepping-the-cage),
+  [IBM Research Syssec: SPEAR attacks — stack smashing protector bypass usecase](https://ibm.github.io/system-security-research-updates/2021/06/18/spear-attacks-ssp-usecase).
+  Confirmed: leaking the canary via a separate arbitrary-read primitive (format string, OOB read, etc.) and
+  then including the correct value in a subsequent overflow is the standard, real technique for defeating a
+  present-and-enabled stack canary — canaries only stop overflows that don't already know the canary value.
+- **Use-after-free → function pointer hijack** — [SensePost: Linux Heap Exploitation Intro Series — Used and Abused (Use After Free)](https://sensepost.com/blog/2017/linux-heap-exploitation-intro-series-used-and-abused-use-after-free/),
+  [jkthecjer/exploit-techniques: Use-After-Free writeup](https://github.com/jkthecjer/exploit-techniques/blob/master/writeups/technique-useafterfree/README.md).
+  Confirmed: the standard exploitation shape is free → allocator reuses the same chunk for attacker-
+  controlled data → dangling reference to the original (now-corrupted) object is dereferenced again,
+  frequently through a function pointer or vtable — real-world impact ranges from crash to full RCE.
+- **Volume Shadow Copy abuse for NTDS.dit/SAM dumping** — [Semperis: NTDS.DIT Extraction Explained](https://www.semperis.com/blog/ntds-dit-extraction-explained/),
+  [Picus Security: MITRE ATT&CK T1003 Credential Dumping](https://www.picussecurity.com/resource/blog/picus-10-critical-mitre-attck-techniques-t1003-credential-dumping),
+  [Red Canary Atomic Red Team: T1003.003 OS Credential Dumping — NTDS](https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1003.003/T1003.003.md).
+  Confirmed real and current: `vssadmin`/`ntdsutil` are both legitimate, signed Windows tools; creating a
+  shadow copy to read the otherwise-locked `NTDS.dit` and `SYSTEM` hive is MITRE ATT&CK technique T1003.003,
+  and the search turned up a specific real, publicly-attributed intrusion (the "Stately Taurus" group) using
+  this exact `vssadmin` → `NTDS.dit`/`SYSTEM` hive sequence.
+- **NTFS timestomping detection via $STANDARD_INFORMATION/$FILE_NAME mismatch** — [inversecos: Defence Evasion Technique — Timestomping Detection (NTFS Forensics)](https://www.inversecos.com/2022/04/defence-evasion-technique-timestomping.html),
+  [SANS DFIR Blog: Detecting time stamp manipulation](https://www.sans.org/blog/digital-forensics-detecting-time-stamp-manipulation).
+  Confirmed: `$FILE_NAME` timestamps are kernel-written and not modifiable through the standard Win32 APIs
+  most timestomping tools use to rewrite `$STANDARD_INFORMATION` — the resulting mismatch is the most
+  reliable single NTFS timestomping indicator, though the sources also note a real limitation (a same-volume
+  rename/move after tampering can cause Windows to copy the tampered $SI values into $FN, erasing the
+  mismatch) that the lab's briefing does not currently model — flagged honestly rather than glossed over.
+
+## NEEDS REVIEW (labs/topics), batch 4
+
+- **The timestomping lab's $SI/$FN detection method has a known real-world limitation** (noted above) that
+  isn't represented in the lab itself — the lab teaches the primary, most-common detection signature
+  correctly, but a learner should know from the lesson content (not just this lab) that a sufficiently
+  careful attacker who renames/moves the file afterward can defeat this specific check. Worth a lesson-content
+  note if the Forensics module gets touched again, rather than a full lab rewrite.
+- Two real mistakes caught by verification before commit, logged here for the pattern rather than just the
+  fix: (1) both binary-analysis labs' hex-to-decimal conversions were wrong in the first draft — recomputed
+  with Node rather than by hand; (2) both forensics labs' suggested `grep "A\|B"` hints used backslash-escaped
+  alternation, which this engine's JS-`RegExp`-based `grep` treats as a literal escaped pipe character, not
+  alternation — fixed to plain `A|B` and reverified. Neither would have been caught by reading the code alone.
