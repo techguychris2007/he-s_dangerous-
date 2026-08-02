@@ -4,7 +4,7 @@ Running count and category breakdown for the offensive-security lab expansion. S
 full narrative detail on every batch (what was added, why, and how each one was verified); this file is
 just the running tally `NOTES.md`'s citations and the "when I'm back" summary can point at.
 
-**Total labs: 219** (204 at the start of this expansion → 219 now, +15 so far toward the "up to 500, quality
+**Total labs: 225** (204 at the start of this expansion → 225 now, +21 so far toward the "up to 500, quality
 first" target). Every count below is the actual `LABS.length` broken out by `category`, not an estimate.
 
 | Category | Count | This expansion added |
@@ -21,8 +21,8 @@ first" target). Every count below is the actual `LABS.length` broken out by `cat
 | Binary Analysis | 10 | — |
 | Malware | 13 | — |
 | Security Engineering | 10 | — |
-| **API** (new category) | 6 | +6 (BFLA, JWT kid injection, legacy-version IDOR, excessive data exposure, rate-limit bypass, WebAuthn downgrade) |
-| **Cryptography** (new category) | 2 | +2 (ECB block-shuffling, hash length extension) |
+| **API** (new category) | 9 | +9 (BFLA, JWT kid injection, legacy-version IDOR, excessive data exposure, rate-limit bypass, WebAuthn downgrade, method-override authz bypass, GraphQL field-level authz bypass, Referer-header API key leak) |
+| **Cryptography** (new category) | 5 | +5 (ECB block-shuffling, hash length extension, JWT algorithm confusion, predictable PRNG session tokens, AES-CTR nonce reuse) |
 
 ## Batches shipped so far
 
@@ -31,6 +31,9 @@ first" target). Every count below is the actual `LABS.length` broken out by `cat
    extension).
 2. **`7340eff`** — 8 labs: ADCS ESC1, RBCD abuse, Silver Ticket, Shadow Credentials, IMDSv2 bypass,
    Docker-socket container escape, DNS rebinding, WebAuthn downgrade.
+3. **`a2a3c96`** — 6 labs: API batch 2 (X-HTTP-Method-Override authz bypass, GraphQL nested-field authz
+   bypass, API key leaked via Referer header) + Cryptography batch 2 (JWT algorithm confusion RS256→HS256,
+   predictable time-seeded-PRNG session tokens, AES-CTR nonce reuse / two-time-pad recovery).
 
 ## What's explicitly NOT attempted, and why
 

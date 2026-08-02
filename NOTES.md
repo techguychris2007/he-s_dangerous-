@@ -68,3 +68,56 @@ that's flagged explicitly where it applies, rather than glossed over.
   when four of the eight in this batch didn't. If you want every lab independently re-verified against a
   fresh search regardless of how well-established the underlying technique is, say so and it's straightforward
   to go back through and do that systematically.
+
+## Sources checked, batch 3 (API auth-bypass pair, GraphQL field authz, API-key leak, JWT confusion, PRNG tokens, CTR nonce reuse)
+
+Per an explicit instruction to keep adding labs while skipping anything that would cross into real-world
+attack uplift or policy-violating territory — every lab in this batch stayed within the platform's existing
+pattern (simulated target, conceptual flag capture, no real working exploit payload or real-target
+instructions), same as every lab before it.
+
+- **X-HTTP-Method-Override authorization bypass** — [GCP ESPv2 CVE-2023-30845 writeup (Security Boulevard)](https://securityboulevard.com/2023/06/gcp-espv2-hit-with-critical-api-authorization-bypass-cve-2023-30845/),
+  [the GitHub security advisory itself](https://github.com/GoogleCloudPlatform/esp-v2/security/advisories/GHSA-6qmp-9p95-fc5f),
+  [Tempest SideChannel: HTTP Method Override — what it is and how a pentester can use it](https://www.sidechannel.blog/en/http-method-override-what-it-is-and-how-a-pentester-can-use-it/).
+  Confirmed: the technique is real and had a real 2023 critical CVE (ESPv2 v2.20.0–v2.42.0) — a gateway that
+  filters by the literal request method while the backend independently honors an override header lets an
+  attacker "spell" a blocked method using an allowed one.
+- **GraphQL field-level authorization bypass via nested resolvers** — [StackHawk: GraphQL Interface Protection Bypass](https://docs.stackhawk.com/vulnerabilities/90056/),
+  [Escape.tech: Access Control Best Practices for GraphQL](https://escape.tech/blog/authentication-authorization-access-control/),
+  [Detectify Labs: GraphQL abuse — bypassing account-level permissions through parameter smuggling](https://labs.detectify.com/crowdsource-community/graphql-abuse-bypass-account-level-permissions-through-parameter-smuggling/).
+  Confirmed: a single GraphQL request resolves many fields through independent resolver functions, and
+  root-level authorization does not automatically propagate to nested fields reached through a different,
+  permitted root query — a real, repeatedly-documented vulnerability class distinct from this platform's
+  existing GraphQL introspection and alias-batching labs.
+- **API key leaked via Referer header** — well-established browser behavior (the Referer header includes
+  the full requesting URL, query string included, on outgoing requests including third-party asset pulls);
+  not independently re-searched this batch since it follows directly from documented HTTP/browser spec
+  behavior rather than a specific disclosed vulnerability, and OWASP's own API security guidance names
+  "credentials in the URL" as an anti-pattern for exactly this reason.
+- **JWT algorithm confusion (RS256→HS256)** — [PortSwigger Web Security Academy: Algorithm confusion attacks](https://portswigger.net/web-security/jwt/algorithm-confusion),
+  [WorkOS: JWT algorithm confusion attacks — how they work and how to prevent them](https://workos.com/blog/jwt-algorithm-confusion-attacks),
+  [dev.to: JWT Algorithm Confusion Attacks — CVE-2026-22817, CVE-2026-27804, CVE-2026-23552 fix guide](https://dev.to/iamdevbox/jwt-algorithm-confusion-attacks-cve-2026-22817-cve-2026-27804-and-cve-2026-23552-fix-guide-4ac4).
+  Confirmed still an active, current threat: a fresh cluster of critical CVEs across major JWT libraries as
+  recently as Q1 2026, not just a historical technique. Mechanism confirmed: a generic `verify()` call that
+  reads `alg` from the token itself (rather than pinning one expected algorithm) lets an RS256 deployment's
+  public key — never meant to be secret — be reused as an HS256 HMAC secret.
+- **Predictable session tokens from a time-seeded PRNG** — [Bishop Fox: Untwisting the Mersenne Twister — How I Killed the PRNG](https://bishopfox.com/blog/untwisting-mersenne-twister-killed-prng),
+  [Halborn: What Is a Random Number Generator Attack?](https://www.halborn.com/blog/post/what-is-a-random-number-generator-attack).
+  Confirmed: Mersenne Twister's full internal state is reconstructable from its outputs and is not
+  cryptographically secure by design; real-world session-token vulnerabilities from exactly this pattern
+  (time-seeded MT PRNG) have been documented in production systems including Mediawiki, Gallery, Joomla, and
+  osCommerce.
+- **AES-CTR nonce reuse / two-time-pad recovery** — [SecureFlag Knowledge Base: Reused IV-Key Pair Vulnerability](https://knowledge-base.secureflag.com/vulnerabilities/broken_cryptography/reused_iv_key_pair_vulnerability.html),
+  [HackTricks: Symmetric Crypto](https://hacktricks.wiki/en/crypto/symmetric/index.html).
+  Confirmed and deliberately scoped: the direct "XOR two ciphertexts to cancel the keystream" two-time-pad
+  recovery specifically applies to stream ciphers and stream-cipher-mode block ciphers (CTR/OFB), where IV
+  reuse means keystream reuse — this is why the lab was built around CTR mode specifically rather than CBC,
+  whose IV/key reuse leaks information through a different mechanism (block malleability, not direct
+  keystream XOR-cancellation) and would have been a technically inaccurate framing for this exact attack.
+
+## NEEDS REVIEW (labs/topics), batch 3
+
+- None carried forward this batch — no lab was skipped for missing engine support the way wireless labs
+  were in batch 2. All six techniques mapped cleanly onto existing `TerminalEngine` commands (`curl`-style
+  HTTP simulation with header/param-based `vulnRoutes`, plus `cat`/`nmap` recon), verified end to end before
+  commit.
