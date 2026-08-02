@@ -373,7 +373,41 @@ hit by any means — logging actual counts honestly as I go, same as every other
   query-string parsing, group-by, memoize, deep-equal) instead of shipping tasks that could never pass in
   this specific grader.
 
-- **Running totals toward the "50/50/50+" targets**: labs 204 → 211 (+7), Python tasks 53 → 68 (+15), C++
-  tasks 3 → 11 (+8), JS tasks 13 → 22 (+9) — 32 coding tasks total so far. Lesson-content enrichments beyond
-  the 8 brand-new lesson files: not yet started as a separate pass. Continuing in the same verified-batch
-  pattern; will keep logging real counts here rather than declaring victory early.
+### Mid-turn instruction update: target raised to "up to 500" labs, research + logging requirements added
+
+A follow-up instruction arrived while the above was in progress, raising the labs target from 50 to "up to
+500 (quality first)," adding a requirement to research each technique online before writing it, and asking
+for two new tracking files (`labs-index.md`, `NOTES.md`). Two things flagged rather than silently
+reinterpreted: the new instruction's verification framing ("would this work on a real Kali box") doesn't
+match this codebase's actual architecture — every lab here runs through this project's own simulated
+`TerminalEngine`, not a real target — so verification continues to mean "scripted against the real engine
+and confirmed to capture the flag," which is documented explicitly in `NOTES.md`. And "wireless" labs
+(named in the coverage list) aren't representable without first adding new engine commands (no
+aircrack-ng-family support exists) — logged as NEEDS REVIEW in `NOTES.md` rather than faked.
+
+- **`7340eff`** — 8 more labs (211 → 219): ADCS ESC1, Resource-Based Constrained Delegation abuse, a
+  Silver Ticket, Shadow Credentials, an IMDSv2 bypass, Docker-socket container escape, DNS rebinding, and a
+  WebAuthn step-up downgrade. Researched current (2024-2025) technique details via web search before
+  writing each one this time — see `NOTES.md` for exact sources and which labs got a fresh search vs. which
+  were built on already-well-established knowledge (logged honestly, not blanket-claimed). Also fixed rt-5
+  and cloud-3, which had zero embedded labs despite both modules existing already. Caught a real bug during
+  verification: the `exploit <module> <ip>` command opens a session but doesn't itself print the flag —
+  4 of these 8 labs were initially missing the required follow-up `cat root.txt` step, caught by the
+  verification harness showing 0/1 captured and fixed before commit.
+- **`5ef12ce`** — Added `labs-index.md` (running count/category table, kept in sync with the real
+  `LABS.length`/`LAB_CATEGORIES` breakdown — verified via a throwaway script importing the actual data, not
+  hand-counted) and `NOTES.md` (per-batch source citations + the verification-methodology note above).
+- **`19c6fb9`** — First lesson-enrichment batch (5 lessons): `rt-4` gained a new section on ADCS/RBCD/Shadow
+  Credentials (and a real inaccuracy got fixed along the way — the lesson recommended RBCD as the "safe"
+  alternative to unconstrained delegation without ever mentioning RBCD's own abuse path); `rt-5` gained a
+  "credential-based persistence" section explaining why Silver Ticket/Shadow Credentials belong under a
+  persistence-themed lesson; `cloud-2` gained an IMDSv2 section; `cloud-3` gained a mounted-socket-vs.-
+  exposed-API distinction; `web-5` gained a DNS-rebinding section. Every one reads the target lesson in
+  full first to confirm the gap was real, not assumed — same discipline as every other content addition in
+  this file.
+
+**Running totals toward the "up to 500 labs / 50 coding tasks / 50+ enrichments" targets**: labs 204 → 219
+(+15), Python tasks 53 → 68 (+15), C++ tasks 3 → 11 (+8), JS tasks 13 → 22 (+9) — 32 coding tasks total,
+lesson enrichments 0 → 5. All treated as upper bounds to work toward with real verification per item, not
+quotas — continuing in the same verified-batch pattern, logging real counts rather than declaring victory
+early.
