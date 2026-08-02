@@ -256,7 +256,22 @@ of being guessed.
   correctly, real headless-Chrome boot check (`chrome --headless=new --dump-dom`, no Playwright/puppeteer
   available in this environment) shows zero console errors beyond the benign PWA install-banner notice.
 
-- Next: visual consistency (spacing rhythm, ad-hoc hex colors outside the palette, button/card/input
-  consistency, checking the AI chat UI doesn't look bolted-on) — step 2 of the audit — then responsive +
-  accessibility (mobile breakpoints, alt text/aria-labels/focus states, keyboard nav including the chat
-  interfaces) — step 3 — then a full re-scan verification loop until clean, per the original instruction.
+- **`d1bc8f7`** — Visual consistency (step 2), color usage. Grepped every raw hex literal across `src`
+  (hundreds of matches) and sorted them into three groups: (1) LoginPage/IntroPage/ResetPasswordPage/
+  AgencyBackdrop's gold/navy "classified stamp" theme — already reviewed as an intentional, self-contained
+  one-off (`0b5d7f9`), left alone; (2) CodeBlock.tsx's Dracula-style code-syntax colors — a deliberately
+  different palette for static code snippets, not drift; (3) a retro amber-on-near-black terminal scheme
+  (bg/output/input/system/muted/error/success) hardcoded identically across **11 separate files** —
+  Terminal, OsintTerminal, SiemConsole, CodeEditor, both ML demos' code inputs, IntroPage's terminal
+  animation, and the Login/ResetPassword success/error banners. Same exact hex values everywhere, zero
+  shared token — this is the real "ad-hoc hex scattered across components" the instruction was looking for.
+  Added 8 `--term-*` variables to `index.css` and replaced every instance with `var()`, including converting
+  two Tailwind hex+alpha arbitrary values (`#ff6b5e14`/`#ff6b5e4d`) to the native `var(--term-error)]/8` /
+  `/30` opacity-modifier syntax instead of baked-in alpha. Zero visual change intended or found: the 8
+  variables compile to the exact same hex in the built CSS, and a full-page screenshot of the IntroPage
+  terminal demo (the most color-dense use of the palette) confirms every line still renders its correct
+  color. tsc/lint clean, headless-Chrome boot check zero console errors.
+- Next: visual consistency remainder — spacing rhythm and button/card/input consistency, then checking the
+  AI chat UI doesn't look bolted-on — then responsive + accessibility (mobile breakpoints, alt text/
+  aria-labels/focus states, keyboard nav including the chat interfaces) — step 3 — then a full re-scan
+  verification loop until clean, per the original instruction.
