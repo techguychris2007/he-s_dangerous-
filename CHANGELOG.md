@@ -600,3 +600,32 @@ why that method exists — two labs in this batch would have been unsolvable as 
 
 **Updated running total**: labs 219 → 260 (+41 across the last six batches, +56 total toward the "up to
 500" target).
+
+- **`47c982d`** — 6 more labs (260 → 266): PBKDF2-HMAC-SHA256 hashing with an insufficient iteration count
+  (Cryptography — 10,000 iterations vs. OWASP's current 600,000 minimum, a stale tuning parameter rather
+  than a broken algorithm), GOT overwrite via a format-string arbitrary write (Binary Analysis — requires
+  Partial RELRO specifically, since Full RELRO would map the GOT read-only after startup and block this
+  exact technique; distinct from this session's existing ret2libc and heap-unlink Binary Analysis labs),
+  USN Change Journal BASIC_INFO_CHANGE records contradicting a timestomped file's forged
+  $STANDARD_INFORMATION timestamps (Forensics — an independent NTFS artifact the timestomping tool never
+  touched, distinct from the existing $SI/$FN-mismatch timestomping lab's internal-inconsistency detection),
+  Kubernetes' `automountServiceAccountToken` default of `true` paired with an overly permissive
+  ClusterRoleBinding on the default service account (Cloud — deliberately stated as a two-part
+  misconfiguration, not "automount alone is the exploit," since a bare default SA normally holds no RBAC
+  permissions), client-side prototype pollution via a URL fragment reaching an `innerHTML` sink (Web — a
+  real, currently-researched vulnerability class PortSwigger's DOM Invader targets specifically; modeled as
+  a code-review lab since URL fragments never reach a server and this engine has no DOM/browser execution
+  to simulate live, distinct from the existing server-side settings-merge prototype-pollution-to-RCE lab),
+  and insufficient log retention against PCI DSS Requirement 10.5.1's 12-month/90-day-immediate mandate
+  (Security+). Full citations in `NOTES.md` batch 10.
+
+  Caught and fixed one real mistake class during verification: four of the six labs used the `reviewer()`/
+  `analyst()` file-review helpers without the manual `root: dir({...})` nesting that this platform's
+  attacker-box filesystem convention requires (cwd starts at `/root`, so files must be nested one level
+  under a `root` key) — all four initially captured zero flags on their `cat` solve paths until this was
+  fixed and reverified. tsc/lint clean, headless-Chrome boot check clean.
+- **`3278fbc`** — Updated `labs-index.md` (266 total, Web 41→42, Forensics 14→15, Cloud 17→18, Security+
+  13→14, Binary Analysis 14→15, Cryptography 11→12) and `NOTES.md` (batch 10 citations).
+
+**Updated running total**: labs 219 → 266 (+47 across the last seven batches, +62 total toward the "up to
+500" target).
