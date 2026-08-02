@@ -657,3 +657,35 @@ why that method exists — two labs in this batch would have been unsolvable as 
 
 **Updated running total**: labs 219 → 272 (+53 across the last eight batches, +68 total toward the "up to
 500" target).
+
+- **`ba2cd4c`** — 6 more labs (272 → 278): built against an explicit steer this time — every lab should work
+  verbatim against a real Kali box and the described real target, with this platform's `TerminalEngine`
+  understood as a safe, simulated bridge for practicing that exact command syntax, not a different or
+  watered-down version of it. A Docker sudo-NOPASSWD GTFOBins privesc bind-mounting the host root
+  filesystem (Linux — `docker run -v /:/mnt --rm -it alpine chroot /mnt sh`, GTFOBins' own documented
+  command; reuses this session's existing ssh-foothold-and-privesc factory, now exported, instead of
+  duplicating it), LDAP anonymous bind exposing a password left in a user's description field (Active
+  Directory — real `ldapsearch -x` syntax, with an explicit honest caveat that modern AD disables this by
+  default, framed as a legacy setting rather than "how AD normally behaves"), Apache CouchDB's pre-3.0
+  "Admin Party" default granting full unauthenticated database access (Network — version fixed to 2.3.1
+  after research showed CouchDB 3.0+ closed this by requiring an admin password at first startup), an
+  exposed `.js.map` source map reversing minification to leak a hardcoded API key (API — discoverable via a
+  live `gobuster` run against a wordlist that genuinely contains the path, not narrated), AES-CBC
+  bit-flipping forging an admin cookie with no key and no padding oracle (Cryptography — every ciphertext
+  hex value computed and round-trip-verified with real Node `crypto` before being hardcoded), and an AMSI
+  bypass via reflection-based `amsiInitFailed` patching (Malware — Matt Graeber's 2016 technique, scoped
+  honestly to the still-effective string-obfuscation variant since the base technique has been
+  signature-detected since 2017). Full citations in `NOTES.md` batch 12.
+
+  Caught and fixed two real mistakes during verification: the Docker privesc lab's initial password wasn't
+  one of the 8 entries in the shared GTFOBins-factory wordlist, which would have made the lab's own `hydra`
+  objective fail against its own solve path; and the CouchDB lab's `_all_docs` route was keyed with a
+  literal `?include_docs=true` query string that `curl()`'s path-only route lookup (query strings are
+  parsed separately and never part of the path match) could never match, 404-ing on its own solve path
+  until fixed. Verified all six end-to-end with a scripted `tsx` run against the real `TerminalEngine`
+  class. tsc clean, oxlint clean, production `vite build` clean.
+- **`c657d59`** — Updated `labs-index.md` (278 total, Linux 22→23, Network 26→27, Active Directory 21→22,
+  Malware 17→18, API 14→15, Cryptography 12→13) and `NOTES.md` (batch 12 citations).
+
+**Updated running total**: labs 219 → 278 (+59 across the last nine batches, +74 total toward the "up to
+500" target).
