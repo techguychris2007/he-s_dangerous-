@@ -103,6 +103,16 @@ carrying forward as if nothing changed:
   pre-existing bug found while there — three older entries were all still dated "This update" from
   different past sessions. A changelog with four different "most recent" entries isn't one; relabeled the
   three stale ones "Earlier."
+- **`8f5a991`** — Auditing Forensics and Cloud the same way as SOC (all lesson-embedded labs vs. all labs in
+  the category) turned up two things: Forensics was already fully mapped, but Cloud had one orphaned lab
+  (cloud-github-leaked-iam-keys), and separately, cloud-2 still had a "Module complete" section claiming
+  to be the module's last lesson — stale since cloud-3 was added after it in an earlier commit and never
+  got updated. Fixed both: added a real section on credentials committed to a public GitHub repo (the
+  single most common way IAM credentials actually leak) with the orphaned lab embedded there, and a
+  correct transition into cloud-3. All 12 Cloud and all 10 Forensics labs are now mapped.
+- This is now running as a self-paced loop (started via the `loop` skill) rather than a single reply —
+  each iteration above this line was one bounded, verified unit, committed and logged individually, the
+  same way as everything before it.
 - Next: continue the same pattern — next-thinnest module or page needing a pass, one bounded/verified unit
   at a time. Not attempting to define a literal "done" for "best in the world" (see reply upthread); this
   log is the honest record of what actually shipped and how it was checked.
