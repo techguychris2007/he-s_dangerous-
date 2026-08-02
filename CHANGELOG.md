@@ -282,6 +282,53 @@ of being guessed.
   rounded-xl-bubble-on-surface-2 treatment as other panels — reads as a native part of the platform, not
   bolted on. No changes made this section since nothing was actually inconsistent; logged here so the
   audit's coverage is honest rather than silently skipping straight to step 3.
-- Next: responsive + accessibility — step 3. Mobile breakpoints on every page, alt text/aria-labels/focus
-  states sitewide, keyboard nav including both AI chat interfaces — then a full re-scan verification loop
-  until clean, per the original instruction.
+- Responsive + accessibility (step 3). Surveyed every icon-only button (82 buttons, 31 files) for a missing
+  accessible name, every `onClick` on a non-`<button>`/`<a>` element for a missing keyboard path, every
+  `w-[NNNpx]`/`min-w-[NNNpx]` ≥300px for mobile-overflow risk, and 5 major pages' grid layouts for missing
+  `sm:`/`lg:` breakpoint variants. Nearly all of it was already correct: icon-only buttons already carry
+  `aria-label`/`title` sitewide (including all 5 `&times;` close buttons checked earlier), fixed-width AI
+  chat panels already cap via `max-w-[calc(100vw-2.5rem)]` or a `sm:` override, and every checked page grid
+  already degrades to fewer columns on narrow screens. Both AI chat interfaces are natively keyboard-operable
+  already — real `<button>`/`<form>`/`<input>` elements throughout, no custom widgets needing extra ARIA.
+
+  One real gap: `AppLayout.tsx`'s mobile-sidebar backdrop dismissed on click but had no keyboard equivalent.
+  Fixed by mirroring the Escape-to-close pattern `TopBar.tsx` already uses for its notification panel, and
+  marked the backdrop `aria-hidden` since Escape + the hamburger toggle are the real keyboard paths, not an
+  unlabeled tab stop covering the viewport. tsc/lint clean, build succeeds, headless-Chrome boot check zero
+  console errors. Live click-through of the mobile menu itself isn't possible here (routes gated behind
+  Supabase auth, no test account) — verified via source review against the TopBar precedent it mirrors, not
+  a live interaction test.
+
+- **Full re-scan (step 4).** Re-ran every grep this session's audit was built on: zero remaining stray
+  micro/code text-size values beyond the two already-reviewed exceptions (LoginPage/ResetPasswordPage's
+  13px eyebrow, MarkdownText's em-relative sizes), zero remaining ad-hoc terminal hex anywhere in `src`,
+  and the sitewide arbitrary-spacing count is still exactly the one pre-existing, reviewed `gap-[3px]`. No
+  regressions from this session's own edits. This is a genuine "re-scan finds nothing left against the
+  rules established in steps 1-2" stop point for the sections above — not a claim that the whole platform
+  is now flawless, just that this pass's specific rule set is satisfied.
+
+### Status for when you're back
+
+**Type scale, before → after:**
+| | Before | After |
+|---|---|---|
+| Micro labels (nav sections, badges, captions) | `text-[10px]` (29×) and `text-[11px]` (40×) mixed with no reason | one token, `text-2xs` = 11px, 69 instances across 25 files |
+| Code panels (editor, code blocks, terminal demo) | `text-[13px]` and `text-[0.85rem]` independently invented 3×| one token, `text-code` = 13px |
+| Everything else (`xs`/`sm`/`base`/`lg`/`xl`/`2xl`/`3xl`/`4xl`/`6xl`) | already consistent | unchanged |
+| Font-weight (medium/semibold/bold/extrabold) | already consistent, 4 clean steps | unchanged |
+| Line-height (relaxed/none/snug/tight) | already consistent, purposeful use | unchanged |
+
+**NEEDS REVIEW list (see top of file for full detail on each):**
+1. The two things I can't do as literally stated ("exhaust all internet information," full unbounded design-
+   system replacement) — unchanged from earlier in this file, still applies.
+2. CTA button letter-spacing split (0.15em IntroPage / 0.2em small-text eyebrows / 0.25em Login/Reset
+   buttons) — three different one-off component types, not obviously one drifted value. Say the word and
+   it's a quick pass to unify.
+3. Volume targets — still treated as an upper bound, not a quota.
+
+**What actually shipped this session**, all on the `overnight-work` branch, never `main`: the module-count
+hardcoding fixes from earlier tonight, then the 4-step audit above (typography → terminal-color-palette
+consolidation → visual-consistency confirmation → one real keyboard-a11y fix), each step committed
+separately and verified with tsc/lint/build/headless-Chrome at every step. Nothing was pushed to `main` and
+no PR was opened — branch is pushed to `origin/overnight-work`, ready for you to review/merge whenever
+you're back.
