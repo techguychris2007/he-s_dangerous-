@@ -45,6 +45,7 @@ import BusinessLogicChaining from '../content/bugbounty/05-business-logic-chaini
 import SocFundamentals from '../content/soc/01-soc-fundamentals';
 import ThreatHuntingDetection from '../content/soc/02-threat-hunting-detection';
 import AttackCoverageMapping from '../content/soc/03-attack-coverage-mapping';
+import C2Detection from '../content/soc/04-c2-detection';
 
 import WhatIsASiem from '../content/soc-siem/01-what-is-a-siem';
 import CorrelationRules from '../content/soc-siem/02-correlation-rules';
@@ -302,6 +303,14 @@ export const MODULES: ModuleMeta[] = [
         id: 'soc-3', slug: 'attack-coverage-mapping', title: 'MITRE ATT&CK Coverage Mapping in Practice', summary: 'Turning ATT&CK from an alert-labeling vocabulary into a systematic detection-coverage audit.', minutes: 12, Content: AttackCoverageMapping,
         quiz: [
           { id: 'q1', prompt: 'What is the main purpose of an ATT&CK coverage map?', choices: ['To label individual alerts with a technique ID', 'To identify which attack stages currently have no working detection at all', 'To replace correlation rules entirely', 'To score individual employees on security awareness'], correctIndex: 1, explanation: 'A coverage map surfaces systemic detection gaps across the full attack lifecycle, not just labels for single alerts.' },
+        ],
+      },
+      {
+        id: 'soc-4', slug: 'c2-detection', title: 'Detecting C2: Beaconing, DNS Tunneling & LOLBin Abuse', summary: 'Recognizing beacon jitter patterns, DNS-tunneled exfiltration, and living-off-the-land binary abuse.', minutes: 13, Content: C2Detection,
+        quiz: [
+          { id: 'q1', prompt: 'Why is a single C2 beacon request nearly impossible to flag on its own?', choices: ['Beacon traffic is always unencrypted', 'It looks like ordinary HTTPS traffic — the giveaway is the regular timing across many requests, not any one request', 'Firewalls cannot see HTTPS traffic at all', 'Beacons never use HTTPS'], correctIndex: 1, explanation: 'A single check-in is indistinguishable from normal traffic; the near-exact repeating interval across many requests is what exposes it.' },
+          { id: 'q2', prompt: 'What makes a flood of DNS TXT queries to one domain a tunneling indicator?', choices: ['TXT records are always malicious', 'Normal traffic uses a handful of TXT lookups (SPF/DKIM); dozens of long, high-entropy-looking labels is abnormal volume and shape', 'DNS cannot carry TXT records at all', 'TXT queries are automatically blocked by every firewall'], correctIndex: 1, explanation: 'The tell is volume plus shape — many long, encoded-looking subdomain labels, far beyond the handful of legitimate TXT lookups normal traffic generates.' },
+          { id: 'q3', prompt: 'Why is certutil.exe -urlcache -split -f considered a LOLBin abuse indicator?', choices: ['certutil.exe is malware and should never run', 'It repurposes a legitimate, signed certificate tool\'s undocumented file-download mode, blending in with normal admin activity', 'The flags are required for all certificate operations', 'This command only exists on Linux'], correctIndex: 1, explanation: 'certutil.exe is legitimate and runs constantly for real certificate work — the specific flag combination invoking its file-download capability is what turns routine activity into a detection.' },
         ],
       },
     ],
