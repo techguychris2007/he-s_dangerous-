@@ -376,3 +376,55 @@ genuinely work against a real target, not just read plausibly.
   (`curl`-simulated HTTP vulnRoutes with explicit non-80 ports where needed, plus file-based `cat`
   investigations for the two purely analytical labs), and the full verification suite passed on the first
   run with no port-default or hand-typed-encoding mistakes this time.
+
+## Sources checked, batch 9 (GPP cpassword, heap unlink, ECB penguin, Swagger leak, Recycle Bin, HSTS)
+
+- **GPP cpassword / MS14-025** — [Microsoft's own MSRC blog: MS14-025 — An Update for Group Policy Preferences](https://www.microsoft.com/en-us/msrc/blog/2014/05/ms14-025-an-update-for-group-policy-preferences),
+  [ADSecurity.org: Finding Passwords in SYSVOL & Exploiting Group Policy Preferences](https://adsecurity.org/?p=2288).
+  Confirmed the real, specific, and famous fact this lab depends on: Microsoft published the 32-byte AES
+  private key for GPP cpassword encryption on MSDN, and it is the same key for every domain everywhere —
+  cross-referenced the exact key value (`4e9906e8fcb66cc9faf49310620ffee8f496e806cc57990209b09a433b66c1b`)
+  against multiple independent sources (ADSecurity.org, InternalAllTheThings) rather than trusting a single
+  recollection, since this is a specific, checkable fact a wrong digit would silently break.
+- **Heap unlink exploitation** — [HackTricks: Unlink Attack](https://hacktricks.wiki/en/binary-exploitation/libc-heap/unlink-attack.html),
+  [heap-exploitation.dhavalkapil.com: Unlink Exploit](https://heap-exploitation.dhavalkapil.com/attacks/unlink_exploit).
+  Confirmed the real classic mechanism: forging a fake chunk's `bk`/`fd` pointers so that a subsequent
+  `free()`-triggered unlink operation performs `fp->bk` written into `bk->fd` (and the reverse) with no
+  validation on older/unhardened allocators, turning a doubly-linked-list removal into an attacker-
+  controlled arbitrary write.
+- **ECB mode / "ECB penguin"** — [tonybox.net: Exploring an Encrypted Penguin with AES-ECB](https://tonybox.net/posts/ecb-penguin/),
+  [PentesterLab: ECB Mode Weakness](https://pentesterlab.com/glossary/ecb-mode-weakness).
+  Confirmed the real, famous demonstration and its actual point: AES itself is not the problem (a strong,
+  correctly-implemented cipher), ECB as a mode of operation is — identical plaintext blocks always produce
+  identical ciphertext blocks with zero chaining, which is exactly why large flat-colored image regions
+  remain visually recognizable after "encryption."
+- **Exposed OpenAPI/Swagger spec** — [Medium (hackersatty): Uncovering Vulnerabilities Through Swagger UI Directory Enumeration](https://hackersatty.medium.com/uncovering-vulnerabilities-through-swagger-ui-directory-enumeration-49e6b43558cd),
+  [CloudSEK: Threat Actors Use Exposed Swagger UI to Misuse a Company's Endpoints](https://www.cloudsek.com/threatintelligence/threat-actors-use-exposed-swagger-ui-to-misuse-a-companys-endpoints-and-target-customers).
+  Confirmed the real default path convention (`/v3/api-docs` for Springdoc/OpenAPI 3) and real documented
+  incidents of exactly this pattern: dev-convenience API documentation left enabled in production, revealing
+  undocumented internal/admin routes never linked from any client.
+- **Recycle Bin $I/$R forensics** — [sethenoka.com: Windows Recycle Bin Forensics — $I/$R Files and Deleted File Metadata](https://sethenoka.com/windows-recycle-bin-forensics-on-windows-10-and-11/),
+  [Andrea Fortuna: Windows Forensics — analysis of Recycle bin artifacts](https://andreafortuna.org/2019/09/26/windows-forensics-analysis-of-recycle-bin-artifacts/).
+  Confirmed the real $I (metadata: original path, size, deletion timestamp)/$R (actual content) file-pair
+  convention introduced in Windows Vista, and that these artifacts are routinely recoverable from
+  unallocated space by real forensic tools (Rifiuti2 named specifically) even after the Recycle Bin itself
+  has been emptied.
+- **Missing HSTS / SSL stripping** — [Palo Alto Networks: What Is an SSL Stripping Attack?](https://www.paloaltonetworks.com/cyberpedia/what-is-an-ssl-stripping-attack),
+  [PortSwigger: Strict transport security not enforced](https://portswigger.net/kb/issues/01000300_strict-transport-security-not-enforced).
+  Confirmed the real attack window this lab models: a browser's very first request to a domain (not from a
+  saved `https://` bookmark) goes out over plain HTTP before any redirect happens, and HSTS specifically
+  exists to close that gap by telling the browser to never attempt HTTP again for that domain.
+
+## NEEDS REVIEW (labs/topics), batch 9
+
+- Two more real mistakes caught by verification before commit: (1) the heap-unlink lab's hex-to-decimal
+  conversion (`0x603840`) was wrong in the first draft — recomputed with Node, same mistake class flagged
+  as a standing risk since Binary Analysis batch 4. (2) The GPP cpassword lab's SYSVOL access objective used
+  UNC-path syntax (`smbclient //ip/SYSVOL`) that doesn't match this engine's actual `smbclient`
+  implementation, confirmed by reading `engine.ts` — it only accepts a plain IP argument
+  (`smbclient <ip>`) and lists whatever shares exist on that host's port-445 service. Fixed to the real
+  supported syntax rather than the (more realistic-looking, but non-functional in this simulator) UNC form.
+- The port-defaults-to-80 mistake recurred a fifth time this batch (the HSTS lab's port-443 target) —
+  fixed and reverified. This is now unambiguously the single most common mistake class across this entire
+  expansion; every future lab targeting a non-80/443-without-explicit-port service should treat "did I
+  specify the port explicitly" as a mandatory pre-commit check, not an occasional reminder.

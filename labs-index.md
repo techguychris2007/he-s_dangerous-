@@ -4,7 +4,7 @@ Running count and category breakdown for the offensive-security lab expansion. S
 full narrative detail on every batch (what was added, why, and how each one was verified); this file is
 just the running tally `NOTES.md`'s citations and the "when I'm back" summary can point at.
 
-**Total labs: 254** (204 at the start of this expansion → 254 now, +50 so far toward the "up to 500, quality
+**Total labs: 260** (204 at the start of this expansion → 260 now, +56 so far toward the "up to 500, quality
 first" target). Every count below is the actual `LABS.length` broken out by `category`, not an estimate.
 
 | Category | Count | This expansion added |
@@ -12,16 +12,16 @@ first" target). Every count below is the actual `LABS.length` broken out by `cat
 | Linux | 22 | — |
 | Network | 26 | +1 (SMTP open relay abuse) |
 | Web | 41 | +1 (DNS rebinding SSRF-allowlist bypass) |
-| Active Directory | 20 | +5 (ADCS ESC1, RBCD abuse, Silver Ticket, Shadow Credentials, DCShadow rogue DC) |
+| Active Directory | 21 | +6 (ADCS ESC1, RBCD abuse, Silver Ticket, Shadow Credentials, DCShadow rogue DC, GPP cpassword/MS14-025) |
 | Bug Bounty | 20 | — |
 | SOC | 17 | +1 (Golden SAML detection via missing ADFS/Kerberos events) |
-| Forensics | 13 | +3 (Volume Shadow Copy NTDS.dit dump, NTFS timestomping $SI/$FN mismatch, PowerShell ScriptBlock de-obfuscation) |
+| Forensics | 14 | +4 (Volume Shadow Copy NTDS.dit dump, NTFS timestomping $SI/$FN mismatch, PowerShell ScriptBlock de-obfuscation, Recycle Bin $I metadata) |
 | Cloud | 17 | +5 (IMDSv2 bypass, Docker-socket container escape, Lambda env-var secrets exposure, overly-permissive Azure SAS token, GCP allUsers Cloud Function) |
-| Security+ | 12 | +1 (SPF/DMARC misconfiguration enables spoofing) |
-| Binary Analysis | 13 | +3 (stack canary leak via format string, use-after-free function pointer hijack, ret2libc defeating NX/ASLR) |
+| Security+ | 13 | +2 (SPF/DMARC misconfiguration enables spoofing, missing HSTS enables SSL stripping) |
+| Binary Analysis | 14 | +4 (stack canary leak via format string, use-after-free function pointer hijack, ret2libc defeating NX/ASLR, heap unlink metadata corruption) |
 | Malware | 16 | +3 (process hollowing detection via PEB/VAD mismatch, DLL sideloading via search-order hijacking, LNK whitespace-padding command hiding) |
-| Security Engineering | 13 | +3 (secret still live in git history, forged webhook via missing signature verification, remember-me token survives password reset) |
-| **API** (new category) | 13 | +13 (BFLA, JWT kid injection, legacy-version IDOR, excessive data exposure, rate-limit bypass, WebAuthn downgrade, method-override authz bypass, GraphQL field-level authz bypass, Referer-header API key leak, OAuth audience confusion, GraphQL field-suggestion leak, pagination cursor tampering, upload content-type spoofing) |
+| Security Engineering | 14 | +4 (secret still live in git history, forged webhook via missing signature verification, remember-me token survives password reset, ECB-penguin pattern leak) |
+| **API** (new category) | 14 | +14 (BFLA, JWT kid injection, legacy-version IDOR, excessive data exposure, rate-limit bypass, WebAuthn downgrade, method-override authz bypass, GraphQL field-level authz bypass, Referer-header API key leak, OAuth audience confusion, GraphQL field-suggestion leak, pagination cursor tampering, upload content-type spoofing, exposed OpenAPI spec) |
 | **Cryptography** (new category) | 11 | +11 (ECB block-shuffling, hash length extension, JWT algorithm confusion, predictable PRNG session tokens, AES-CTR nonce reuse, Bleichenbacher RSA padding oracle, UUIDv1 reset-token entropy, ECDSA nonce reuse, Logjam DHE_EXPORT downgrade, batch GCD shared-prime attack, TOTP shared-secret reuse) |
 
 ## Batches shipped so far
@@ -55,6 +55,11 @@ first" target). Every count below is the actual `LABS.length` broken out by `cat
    (Security Engineering), a publicly-invocable GCP Cloud Function via an allUsers IAM binding (Cloud), a
    malicious LNK file hiding a command via whitespace padding (Malware), and Golden SAML attack detection
    via missing ADFS/Kerberos events (SOC).
+9. **`6ac2ef9`** — 6 labs: GPP cpassword decryption / MS14-025 (Active Directory), heap unlink exploitation
+   via forged chunk metadata (Binary Analysis), the real "ECB penguin" pattern leak (Security Engineering),
+   an exposed OpenAPI/Swagger spec leaking an undocumented admin endpoint (API), Recycle Bin $I file
+   metadata revealing a deleted file's origin (Forensics), and a missing HSTS header enabling SSL stripping
+   (Security+).
 
 ## What's explicitly NOT attempted, and why
 
