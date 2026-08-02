@@ -201,6 +201,19 @@ carrying forward as if nothing changed:
   per-lesson `demo` flag that already carries the real answer. Currently correct (verified: exactly 2
   lessons have `demo: true`) but the same fragile shape as the SocPortalPage bug fixed last iteration —
   fixed proactively before it could drift, now computed as `ML_LESSONS.filter(l => l.demo).length`.
-- Next: continue the same pattern — next-thinnest module or page needing a pass, one bounded/verified unit
-  at a time. Not attempting to define a literal "done" for "best in the world" (see reply upthread); this
-  log is the honest record of what actually shipped and how it was checked.
+- **`7158437`** — Surveyed remaining candidates: thinnest modules are forensics/cloud/code-python-* (all
+  already considered and passed over last session for good reason — see `544869f`/`d4d7e1d`), and several
+  pages hadn't been checked yet (MlLessonPage, CodeTaskPage, InstructorDashboardPage, LessonPage,
+  BookReaderPage, ResetPasswordPage). Grepping for the same "hardcoded literal duplicating a derived array"
+  bug class that's now been found three separate times tonight (`TERMINAL_LAB_IDS`, MlPortalPage's "2",
+  cloud-2/rt-4's stale finality claims) turned up two more instances: CodePortalPage's heading hardcoded
+  "Python Curriculum — 3 Modules" and SocPortalPage's hardcoded "SOC Curriculum — 4 Modules", both right
+  next to a `codeModules`/`socModules` array whose `.length` is the real, always-correct answer. Fixed both
+  to interpolate `.length` instead. tsc/lint clean, headless-Chrome boot check (real Chrome, `--headless=new
+  --dump-dom`, since no Playwright/puppeteer is installed here) confirms zero console errors beyond a
+  benign PWA install-banner notice.
+- Next: continue the same pattern — the unchecked-pages list above (MlLessonPage, CodeTaskPage,
+  InstructorDashboardPage, LessonPage, BookReaderPage, ResetPasswordPage) is the next place to look, plus
+  re-running the hardcoded-literal grep periodically since it keeps finding real instances. Not attempting
+  to define a literal "done" for "best in the world" (see reply upthread); this log is the honest record of
+  what actually shipped and how it was checked.
