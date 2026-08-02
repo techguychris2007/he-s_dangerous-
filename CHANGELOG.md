@@ -438,3 +438,30 @@ change what gets built, just confirms the constraint explicitly going forward.
   citations).
 
 **Updated running total**: labs 219 → 225 (+6 this batch, +21 total toward the "up to 500" target).
+
+- **`0d46802`** — 6 more labs (225 → 231): 2 more Cryptography (Bleichenbacher RSA PKCS#1 v1.5 padding
+  oracle — the 1998 attack that resurfaced as the real, widely-affecting 2017 ROBOT vulnerability across 9
+  vendors including Facebook/PayPal; UUIDv1 password-reset token entropy — MAC address + timestamp fields
+  make the token space predictable, distinct from the existing sequential-integer reset-token lab), 2
+  Binary Analysis (a stack-canary leak via a chained format-string bug, distinct from the existing ROP/
+  overflow/format-string/integer-overflow labs; a use-after-free hijacking a function pointer via heap
+  chunk reuse), 2 Forensics (Volume Shadow Copy abuse to dump `NTDS.dit`/`SYSTEM` — real technique, MITRE
+  T1003.003, with a specific publicly-attributed intrusion example found in research; NTFS timestomping
+  detection via the `$STANDARD_INFORMATION`/`$FILE_NAME` mismatch, the most reliable single indicator for
+  this anti-forensics technique). Full citations in `NOTES.md` batch 4, including an honestly-flagged real
+  limitation in the timestomping detection method that the lab doesn't currently model (a same-volume
+  rename after tampering can erase the mismatch).
+
+  Verification caught two real mistakes before commit rather than after, worth naming explicitly: both
+  binary-analysis labs' hex-to-decimal conversions were computed wrong by hand in the first draft (Node
+  recompute caught it), and both forensics labs' suggested `grep "A\|B"` hint commands used backslash-
+  escaped alternation that this engine's JS-`RegExp`-based `grep` doesn't treat as alternation the way real
+  POSIX grep does — fixed to plain `A|B` and reverified the commands actually isolate the described lines,
+  not just that the flag still got captured some other way.
+- **`5d24dcf`** — Updated `labs-index.md` (231 total, Cryptography 5→7, Binary Analysis 10→12, Forensics
+  10→12 — re-verified against the real `LABS.length`/category breakdown) and `NOTES.md` (batch 4 citations
+  + the NEEDS REVIEW note on the timestomping detection limitation).
+
+**Updated running total**: labs 219 → 231 (+12 across the last two batches, +27 total toward the "up to
+500" target). Continuing in the same researched, individually-verified pattern — no volume target treated
+as a quota to hit by any means.
