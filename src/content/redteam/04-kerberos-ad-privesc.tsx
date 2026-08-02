@@ -102,21 +102,46 @@ export default function KerberosAdPrivesc() {
         </p>
       </Callout>
 
-      <Callout variant="danger">
+      <h2>Unconstrained delegation: when logging into the wrong server is the attack</h2>
+      <p>
+        Some computer objects in a domain are flagged "Trusted for Delegation" — an older, unconstrained
+        delegation setting originally meant to let a front-end server (say, a print or application server)
+        act on a user's behalf against a back-end resource. The side effect: whenever ANY account, including
+        a Domain Admin, authenticates to that server for any reason at all — even something as mundane as
+        mapping a network printer — Windows caches a full, reusable copy of that account's Kerberos TGT in
+        memory on the delegation-enabled server itself.
+      </p>
+      <CodeBlock label="why compromising one unremarkable server can mean full domain compromise">{`1. Recon finds PRINTSRV01 has TrustedForDelegation=True
+2. Compromise PRINTSRV01 with nothing more than a low-privilege foothold (no exploit needed)
+3. Wait -- or trigger -- a privileged account authenticating to it (printing, a scheduled task, etc.)
+4. That account's full TGT is now sitting in memory on a server you already control
+5. Extract and reuse it -- you are now that account, domain-wide`}</CodeBlock>
+      <Callout variant="tip">
         <p>
-          Kerberoasting, AS-REP Roasting, and Golden Ticket attacks are real, powerful techniques used in
-          the majority of major ransomware intrusions. They are for authorized red team engagements and
-          dedicated AD lab environments (Hack The Box's Active Directory content, in particular) — never
-          against infrastructure without explicit written authorization.
+          This is exactly why unconstrained delegation has been considered a legacy anti-pattern in AD
+          hardening guidance for years, and why modern AD deployments should use constrained or
+          resource-based constrained delegation instead — both scope exactly which service an account can be
+          impersonated FOR, instead of caching a fully reusable copy of whatever credential happens to pass
+          through.
         </p>
       </Callout>
 
-      <h2>Module complete</h2>
+      <Callout variant="danger">
+        <p>
+          Kerberoasting, AS-REP Roasting, Golden Ticket attacks, and unconstrained delegation abuse are real,
+          powerful techniques used in the majority of major ransomware intrusions. They are for authorized
+          red team engagements and dedicated AD lab environments (Hack The Box's Active Directory content, in
+          particular) — never against infrastructure without explicit written authorization.
+        </p>
+      </Callout>
+
       <p>
-        You now understand the full internal attack chain: foothold → internal recon → lateral movement →
-        AD enumeration → Kerberos-based privilege escalation → domain compromise. This is the exact
-        narrative structure a real red team report follows, and the mental model behind The Hacker
-        Playbook 3's internal network chapters.
+        You now understand the full internal attack chain: foothold → internal recon → lateral movement → AD
+        enumeration → Kerberos-based privilege escalation → domain compromise. This is the exact narrative
+        structure a real red team report follows, and the mental model behind The Hacker Playbook 3's
+        internal network chapters. The final lesson turns to what an operator does <em>during</em> and after
+        this chain: the C2 framework that keeps a compromised host connected, and the persistence mechanisms
+        that survive a reboot.
       </p>
     </div>
   );

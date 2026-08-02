@@ -18,7 +18,7 @@ export const LESSON_LABS: Record<string, string[]> = {
   'rec-1': ['bb-forgotten-staging', 'bb-js-secret-leak'],
   'rec-2': ['network-recon'],
   'rec-3': ['enum-bruteforce', 'cve-2025-32433-erlang-otp-ssh', 'cve-2025-64446-fortiweb-authbypass'],
-  'rec-4': ['net-postgres-weak'],
+  'rec-4': ['net-postgres-weak', 'ad-password-spraying-domain'],
   'rec-5': ['capstone-box'],
 
   // Python & Black Hat Python
@@ -38,7 +38,7 @@ export const LESSON_LABS: Record<string, string[]> = {
   'rt-1': ['ad-credential-reuse-lateral', 'ad-worm-lateral-spread'],
   'rt-2': ['ad-smb-anon-domain-creds', 'eternalblue-smb-rce', 'ad-printnightmare-cve-2021-34527', 'scattered-spider-helpdesk-to-domain-admin'],
   'rt-3': ['ad-kerberoast-crack', 'ad-dcsync-attack'],
-  'rt-4': ['ad-asrep-roast', 'ad-workstation-to-dc', 'ad-zerologon-cve-2020-1472', 'ad-golden-ticket-persistence'],
+  'rt-4': ['ad-asrep-roast', 'ad-workstation-to-dc', 'ad-zerologon-cve-2020-1472', 'ad-golden-ticket-persistence', 'ad-unconstrained-delegation-abuse'],
 
   // Bug Bounty Methodology
   'bb-1': ['bb-forgotten-staging', 'bb-subdomain-takeover'],
