@@ -42,6 +42,7 @@ import { offensiveFreshAttacksLabs4 } from '../labs/scenarios/offensive-fresh-at
 import { offensiveFreshAttacksLabs5 } from '../labs/scenarios/offensive-fresh-attacks-pack-5';
 import { apiCryptoLabs } from '../labs/scenarios/api-crypto-pack';
 import { apiCryptoLabs2 } from '../labs/scenarios/api-crypto-pack-2';
+import { cryptoBinaryForensicsLabs } from '../labs/scenarios/crypto-binary-forensics-pack';
 import { adCloudAdvancedLabs2 } from '../labs/scenarios/ad-cloud-advanced-pack-2';
 import type { LabScenario } from '../labs/types';
 
@@ -96,6 +97,7 @@ export const LABS: LabEntry[] = [
   ...toEntries(offensiveFreshAttacksLabs5),
   ...toEntries(apiCryptoLabs),
   ...toEntries(apiCryptoLabs2),
+  ...toEntries(cryptoBinaryForensicsLabs),
   ...toEntries(adCloudAdvancedLabs2),
 ];
 
