@@ -96,7 +96,7 @@ export default function SocPortalPage() {
         <div className="mb-12">
           <div className="flex items-center gap-2 mb-1">
             <IconCalendar className="w-4 h-4 text-[var(--color-accent)]" />
-            <h2 className="text-lg font-bold text-[var(--color-heading)]">SOC Curriculum — 4 Modules</h2>
+            <h2 className="text-lg font-bold text-[var(--color-heading)]">SOC Curriculum — {socModules.length} Modules</h2>
           </div>
           <p className="text-sm text-[var(--color-text-dim)] mb-4">
             Broken into modules the same way the offensive-security roadmap is: fundamentals, the SIEM

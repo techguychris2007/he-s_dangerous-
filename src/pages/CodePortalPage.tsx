@@ -138,7 +138,7 @@ export default function CodePortalPage() {
         <div className="mb-12">
           <div className="flex items-center gap-2 mb-1">
             <IconCode className="w-4 h-4 text-[var(--color-accent)]" />
-            <h2 className="text-lg font-bold text-[var(--color-heading)]">Python Curriculum — 3 Modules</h2>
+            <h2 className="text-lg font-bold text-[var(--color-heading)]">Python Curriculum — {codeModules.length} Modules</h2>
           </div>
           <p className="text-sm text-[var(--color-text-dim)] mb-4">
             From zero to advanced: fundamentals, full OOP, then decorators/generators/concurrency — each
