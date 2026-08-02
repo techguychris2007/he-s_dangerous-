@@ -22,6 +22,7 @@ import PythonRefresher from '../content/python/01-python-refresher';
 import PortScanner from '../content/python/02-port-scanner';
 import ReconAutomation from '../content/python/03-recon-automation';
 import BruteforcersExploits from '../content/python/04-bruteforcers-exploits';
+import PacketSniffing from '../content/python/05-packet-sniffing';
 
 import OwaspTop10 from '../content/webapp/01-owasp-top-10';
 import SqlInjection from '../content/webapp/02-sql-injection';
@@ -39,6 +40,7 @@ import HowBugBountyWorks from '../content/bugbounty/01-how-bug-bounty-works';
 import ReconAtScale from '../content/bugbounty/02-recon-at-scale';
 import WritingReports from '../content/bugbounty/03-writing-reports';
 import SkillsAndRoadmap from '../content/bugbounty/04-skills-and-roadmap';
+import BusinessLogicChaining from '../content/bugbounty/05-business-logic-chaining';
 
 import SocFundamentals from '../content/soc/01-soc-fundamentals';
 import ThreatHuntingDetection from '../content/soc/02-threat-hunting-detection';
@@ -189,12 +191,13 @@ export const MODULES: ModuleMeta[] = [
       { id: 'py-1', slug: 'python-refresher', title: 'Python Fundamentals for Security Work', summary: 'The subset of Python you need fluent to write tools fast.', minutes: 11, Content: PythonRefresher },
       { id: 'py-2', slug: 'port-scanner', title: 'Building a TCP Port Scanner from Scratch', summary: 'Sockets, connect_ex, and multithreading with ThreadPoolExecutor.', minutes: 14, Content: PortScanner },
       { id: 'py-3', slug: 'recon-automation', title: 'Automating Recon with Requests & Threading', summary: 'Directory brute-forcing and HTML parsing at scale.', minutes: 13, Content: ReconAutomation },
+      { id: 'py-4', slug: 'bruteforcers-exploits', title: 'Writing Brute-Forcers & Simple Exploit PoCs', summary: 'HTTP/SSH brute-forcers and the shape of a real exploit script.', minutes: 13, Content: BruteforcersExploits },
       {
-        id: 'py-4', slug: 'bruteforcers-exploits', title: 'Writing Brute-Forcers & Simple Exploit PoCs', summary: 'HTTP/SSH brute-forcers and the shape of a real exploit script.', minutes: 13, Content: BruteforcersExploits,
+        id: 'py-5', slug: 'packet-sniffing', title: 'Building a Simple Network Sniffer & Packet Parser', summary: 'Raw sockets, struct-based header parsing, and catching cleartext credentials with scapy.', minutes: 13, Content: PacketSniffing,
         quiz: [
-          { id: 'q1', prompt: 'Why use connect_ex() instead of connect() in a port scanner?', choices: ['It is faster over UDP', 'It returns an error code instead of raising an exception, simplifying loops', 'It bypasses firewalls', 'It only works with IPv6'], correctIndex: 1, explanation: 'connect_ex returns an error code (0 = success) rather than throwing, making scan loops much simpler to write.' },
-          { id: 'q2', prompt: 'What does ThreadPoolExecutor primarily solve in a scanner?', choices: ['Memory usage', 'The slowness of sequential, one-port-at-a-time scanning', 'DNS resolution', 'Encryption'], correctIndex: 1, explanation: 'Running many socket checks concurrently turns a minutes-long sequential scan into a few seconds.' },
-          { id: 'q3', prompt: 'In a Python HTTP brute-forcer, how do you typically detect a failed login attempt?', choices: ['By checking if the process crashes', 'By checking for a known failure string/pattern in the response', 'By counting response headers', 'It cannot be automated'], correctIndex: 1, explanation: 'Checking for the presence/absence of a known failure string (e.g. "Invalid credentials") is the standard technique.' },
+          { id: 'q1', prompt: 'Why does opening a raw socket for sniffing require root/administrator privileges?', choices: ['Raw sockets are always encrypted', 'Reading traffic not addressed to your own process is a privileged capability by design', 'It only works on port 80', 'Python requires root for all networking'], correctIndex: 1, explanation: 'The OS restricts raw packet capture because it lets a program see traffic meant for other processes/hosts on the segment.' },
+          { id: 'q2', prompt: 'What does socket.inet_ntoa() do when parsing a raw IP header?', choices: ['Encrypts the address', 'Converts 4 packed bytes into a human-readable dotted-quad string', 'Resolves a hostname to an IP', 'Validates the checksum'], correctIndex: 1, explanation: 'Raw address fields are packed bytes, not strings — inet_ntoa() converts them into the familiar "10.10.10.5" form.' },
+          { id: 'q3', prompt: 'Why is HTTP Basic Auth over plain HTTP considered equivalent to sending a cleartext password?', choices: ['Basic Auth uses strong encryption', 'The credentials are only base64-encoded, which is trivially reversible, not encrypted', 'Basic Auth is only used for testing', 'It requires a VPN'], correctIndex: 1, explanation: 'base64 is an encoding, not encryption — base64.b64decode() reverses it instantly, which is why HTTPS (encrypting the whole connection) is the real fix.' },
         ],
       },
     ],
@@ -263,12 +266,13 @@ export const MODULES: ModuleMeta[] = [
       { id: 'bb-1', slug: 'how-bug-bounty-works', title: 'How Bug Bounty Hunting Actually Works', summary: 'Platforms, public vs. private programs, and researcher economics.', minutes: 10, Content: HowBugBountyWorks },
       { id: 'bb-2', slug: 'recon-at-scale', title: 'Recon at Scale: Subdomains, Assets & Automation', summary: 'Subdomain enumeration, JS analysis, and prioritizing targets.', minutes: 13, Content: ReconAtScale },
       { id: 'bb-3', slug: 'writing-reports', title: 'Reading & Writing High-Quality Reports', summary: 'The report structure that gets fast, well-paid triage.', minutes: 12, Content: WritingReports },
+      { id: 'bb-4', slug: 'skills-and-roadmap', title: 'Prioritization: Where the Real Bounties Are', summary: 'A ranked skill list and a realistic 6-month plan.', minutes: 10, Content: SkillsAndRoadmap },
       {
-        id: 'bb-4', slug: 'skills-and-roadmap', title: 'Prioritization: Where the Real Bounties Are', summary: 'A ranked skill list and a realistic 6-month plan.', minutes: 10, Content: SkillsAndRoadmap,
+        id: 'bb-5', slug: 'business-logic-chaining', title: 'Business Logic Flaws & Chaining Low-Severity Bugs', summary: 'The bugs scanners never catch, and why two "Low" findings can be worth more than one Medium.', minutes: 11, Content: BusinessLogicChaining,
         quiz: [
-          { id: 'q1', prompt: 'Why do forgotten/staging subdomains tend to be more valuable targets?', choices: ['They pay less so there\'s no competition', 'They\'re tested less by other hunters and often less hardened', 'They are always out of scope', 'They never contain vulnerabilities'], correctIndex: 1, explanation: 'High-traffic main domains are tested constantly; forgotten subdomains are under-tested and often misconfigured.' },
-          { id: 'q2', prompt: 'What is the most important section of a bug bounty report?', choices: ['The title', 'Steps to reproduce, written for someone with zero context', 'The researcher\'s bio', 'The submission timestamp'], correctIndex: 1, explanation: 'Clear reproduction steps are what let a triager confirm the issue quickly without back-and-forth questions.' },
-          { id: 'q3', prompt: 'According to the suggested 6-month roadmap, when should you start submitting live reports?', choices: ['Day one', 'Only after building fundamentals — around month 6', 'Never, only practice on labs', 'Immediately after reading the OWASP Top 10'], correctIndex: 1, explanation: 'The roadmap front-loads fundamentals and guided practice, only moving to live submissions once that foundation is solid.' },
+          { id: 'q1', prompt: 'What makes a bug a "business logic flaw" rather than a technical vulnerability?', choices: ['It always involves SQL', 'The code works as written, but the workflow itself is missing a rule it should enforce', 'It only affects mobile apps', 'It is always a false positive'], correctIndex: 1, explanation: 'Business logic flaws have no injection or broken escaping — the workflow simply never checks a rule it was supposed to.' },
+          { id: 'q2', prompt: 'Why can chaining two "Low" severity findings sometimes be worth more than one "Medium"?', choices: ['Triagers always average severity scores', 'Combined, they can enable an impact (e.g. full account takeover) that neither bug achieves alone', 'Bug bounty programs pay per report regardless of severity', 'It is a reporting technicality with no real impact difference'], correctIndex: 1, explanation: 'Real-world impact often comes from combining bugs — an info leak plus a missing ownership check can chain into account takeover.' },
+          { id: 'q3', prompt: 'What is the single highest-leverage question to ask when testing a multi-step workflow?', choices: ['What does the CSS look like?', 'What does the server actually verify, versus what the client just chooses not to show?', 'How many total steps does the flow have?', 'What browser is being used?'], correctIndex: 1, explanation: 'Business logic bugs live almost entirely in the gap between client-side UI restrictions and what the backend actually enforces.' },
         ],
       },
     ],

@@ -16,7 +16,9 @@ export type VulnKind =
   | 'race-condition'
   | 'command-injection'
   | 'path-traversal'
-  | 'cors-misconfig';
+  | 'cors-misconfig'
+  | 'cache-deception'
+  | 'hpp';
 
 export interface VulnRoute {
   kind: VulnKind;
