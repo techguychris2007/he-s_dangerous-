@@ -33,12 +33,23 @@ const BANNERS: Record<string, BannerConfig> = {
   redteam: { from: '#3a0d0d', to: '#7a1f1f', pattern: 'circuit', photo: redteamPhoto, fit: 'cover' },
   bugbounty: { from: '#0d2e1f', to: '#1f8a53', pattern: 'dots', photo: bugbountyPhoto, fit: 'cover' },
   soc: { from: '#062633', to: '#0d7d94', pattern: 'scan', photo: socPhoto, fit: 'cover' },
+  // The SOC track splits into four teaching modules (soc, soc-siem, soc-detection, soc-ir) that
+  // all share the same 'soc' icon — same banner treatment ties them together visually instead of
+  // three of them silently falling through to the unrelated Linux banner.
+  'soc-siem': { from: '#062633', to: '#0d7d94', pattern: 'scan', photo: socPhoto, fit: 'cover' },
+  'soc-detection': { from: '#062633', to: '#0d7d94', pattern: 'scan', photo: socPhoto, fit: 'cover' },
+  'soc-ir': { from: '#062633', to: '#0d7d94', pattern: 'scan', photo: socPhoto, fit: 'cover' },
   forensics: { from: '#1a1220', to: '#4a2d63', pattern: 'grid', photo: forensicsPhoto, fit: 'cover' },
   cloud: { from: '#0a2a4f', to: '#2f6fed', pattern: 'dots', photo: cloudPhoto, fit: 'cover' },
   securityplus: { from: '#1a2a1a', to: '#16305c', pattern: 'grid', photo: securityplusPhoto, fit: 'cover' },
   binaryanalysis: { from: '#1a1a2e', to: '#3a1f5c', pattern: 'circuit', photo: binaryanalysisPhoto, fit: 'cover' },
   malware: { from: '#1a0d0d', to: '#4a1f1f', pattern: 'scan', photo: malwarePhoto, fit: 'cover' },
   secengineering: { from: '#0d1a2a', to: '#2a4a6e', pattern: 'dots', photo: secengineeringPhoto, fit: 'cover' },
+  // Code Portal modules have no banner photo asset yet — a distinct gradient (no photo) still
+  // beats silently reusing Linux's green theme for an unrelated track.
+  'code-python-fundamentals': { from: '#0f172a', to: '#2563eb', pattern: 'grid' },
+  'code-python-oop': { from: '#0f172a', to: '#2563eb', pattern: 'grid' },
+  'code-python-advanced': { from: '#0f172a', to: '#2563eb', pattern: 'grid' },
 };
 
 function PatternDefs({ id, pattern }: { id: string; pattern: BannerConfig['pattern'] }) {
