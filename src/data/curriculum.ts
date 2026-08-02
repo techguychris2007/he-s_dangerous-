@@ -50,6 +50,7 @@ import C2Detection from '../content/soc/04-c2-detection';
 import WhatIsASiem from '../content/soc-siem/01-what-is-a-siem';
 import CorrelationRules from '../content/soc-siem/02-correlation-rules';
 import RealSiemPlatformsCompared from '../content/soc-siem/03-real-siem-platforms-compared';
+import LogOnboardingAndVolume from '../content/soc-siem/04-log-onboarding-and-volume';
 
 import WritingTuningDetectionRules from '../content/soc-detection/01-writing-tuning-detection-rules';
 import Ueba from '../content/soc-detection/02-ueba';
@@ -321,19 +322,21 @@ export const MODULES: ModuleMeta[] = [
     id: 'soc-siem',
     slug: 'soc-siem-platforms',
     title: 'SIEM Platforms & Log Management',
-    subtitle: 'Log collection, normalization, correlation rules, and real SIEM platforms compared',
+    subtitle: 'Log collection, normalization, correlation rules, real SIEM platforms compared, and running one at scale',
     description:
-      'How a SIEM actually works under the hood — collecting and normalizing logs from every source into one schema, writing and tuning the correlation rules that turn raw events into alerts, and how Splunk, Microsoft Sentinel, IBM QRadar, Elastic Security, and Chronicle each implement these same fundamentals.',
+      'How a SIEM actually works under the hood — collecting and normalizing logs from every source into one schema, writing and tuning the correlation rules that turn raw events into alerts, how Splunk, Microsoft Sentinel, IBM QRadar, Elastic Security, and Chronicle each implement these same fundamentals, and the operational reality of onboarding sources, keeping parsers working, and managing data volume once it is all running in production.',
     status: 'available',
     sourceBooks: ['Blue Team Handbook', 'The Practice of Network Security Monitoring'],
     icon: 'soc',
     lessons: [
       { id: 'soc-siem-1', slug: 'what-is-a-siem', title: 'What Is a SIEM? Log Collection, Normalization & Centralization', summary: 'The three foundational SIEM capabilities everything else in this module builds on.', minutes: 11, Content: WhatIsASiem },
       { id: 'soc-siem-2', slug: 'correlation-rules', title: 'Correlation Rules: From Raw Events to Actionable Alerts', summary: 'Writing threshold and multi-stage rules, then tuning them against real false positives.', minutes: 13, Content: CorrelationRules },
+      { id: 'soc-siem-3', slug: 'real-siem-platforms-compared', title: 'Real SIEM Platforms Compared: Splunk, Sentinel, QRadar, Elastic & Chronicle', summary: 'The query languages and interface conventions of five widely-deployed SIEM platforms.', minutes: 14, Content: RealSiemPlatformsCompared },
       {
-        id: 'soc-siem-3', slug: 'real-siem-platforms-compared', title: 'Real SIEM Platforms Compared: Splunk, Sentinel, QRadar, Elastic & Chronicle', summary: 'The query languages and interface conventions of five widely-deployed SIEM platforms.', minutes: 14, Content: RealSiemPlatformsCompared,
+        id: 'soc-siem-4', slug: 'log-onboarding-and-volume', title: 'Log Source Onboarding & Managing Data Volume at Scale', summary: 'Onboarding workflow, silent parser breakage, and the data-volume-vs-cost tradeoff every real SIEM runs into.', minutes: 12, Content: LogOnboardingAndVolume,
         quiz: [
           { id: 'q1', prompt: 'What does IBM QRadar call a correlated finding, scored by a Magnitude value?', choices: ['An Incident', 'An Offense', 'A Case', 'A Ticket'], correctIndex: 1, explanation: 'QRadar organizes correlated findings as Offenses, each carrying a Magnitude score for at-a-glance prioritization.' },
+          { id: 'q2', prompt: 'Why is a silently broken log parser especially dangerous compared to a source that stops sending data entirely?', choices: ['It is not dangerous -- broken parsers are always obvious', 'The log still arrives and looks "collected," but a mismapped field silently stops correlation rules keyed on it from matching -- with no error or alert', 'Broken parsers always crash the SIEM immediately', 'Parsers cannot break once configured'], correctIndex: 1, explanation: 'A source going fully silent is at least detectable via volume monitoring; a parser silently mismapping a field degrades detection coverage with no obvious signal at all.' },
         ],
       },
     ],
