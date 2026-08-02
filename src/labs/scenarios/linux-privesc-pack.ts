@@ -27,7 +27,7 @@ interface PrivescConfig {
 
 const WORDLIST = '123456\npassword\nletmein\nadmin123\nsummer2024\nqwerty\ndragon\ntrustno1\n';
 
-function makePrivescLab(cfg: PrivescConfig): LabScenario {
+export function makePrivescLab(cfg: PrivescConfig): LabScenario {
   const services: HostDef['services'] =
     cfg.footholdKind === 'ftp'
       ? [
