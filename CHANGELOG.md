@@ -411,3 +411,30 @@ aircrack-ng-family support exists) — logged as NEEDS REVIEW in `NOTES.md` rath
 lesson enrichments 0 → 5. All treated as upper bounds to work toward with real verification per item, not
 quotas — continuing in the same verified-batch pattern, logging real counts rather than declaring victory
 early.
+
+### Mid-conversation instruction: keep adding labs, skip anything policy-crossing
+
+A direct follow-up asked to keep going on labs specifically, with an explicit instruction to skip anything
+that would be against usage policy. Every lab already shipped in this session (and every one below) already
+stays within that boundary by construction — simulated `TerminalEngine` target, conceptual/narrative flag
+capture, no real working exploit payload or instructions usable against a real target — so this didn't
+change what gets built, just confirms the constraint explicitly going forward.
+
+- **`a2a3c96`** — 6 labs (219 → 225): API batch 2 (X-HTTP-Method-Override bypassing gateway-level
+  authorization — the real root cause of GCP ESPv2's CVE-2023-30845; a GraphQL nested-resolver field-level
+  authorization bypass, root query protected but a nested field on a different, permitted query path
+  inherits no independent check; an API key leaked via the Referer header because it lived in a URL query
+  string instead of a header) + Cryptography batch 2 (JWT algorithm confusion, RS256 public key reused as
+  an HS256 HMAC secret — confirmed still an active CVE cluster as of Q1 2026, not just historical;
+  predictable session tokens from a time-seeded Mersenne Twister PRNG; AES-CTR nonce reuse enabling a
+  classic two-time-pad plaintext recovery, deliberately built around CTR/stream-cipher semantics rather
+  than CBC since the direct XOR-recovery property specifically needs a reused keystream). Each technique
+  researched via web search first — see `NOTES.md` batch 3 for full citations. Verified by scripting
+  `TerminalEngine` directly for all six: exact solve-path commands capture the intended flag, a benign
+  request captures none. tsc/lint clean, headless-Chrome boot check clean (dev server had gone idle between
+  sessions — restarted and reconfirmed against a live build before calling it done).
+- **`5df8b03`** — Updated `labs-index.md` (225 total, API 6→9, Cryptography 2→5 — re-verified against the
+  real `LABS.length`/category breakdown via a throwaway script, not hand-counted) and `NOTES.md` (batch 3
+  citations).
+
+**Updated running total**: labs 219 → 225 (+6 this batch, +21 total toward the "up to 500" target).
