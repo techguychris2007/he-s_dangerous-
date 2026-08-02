@@ -194,6 +194,13 @@ carrying forward as if nothing changed:
   one page whose entire purpose is grouping them. Fixed by deriving the list from `LABS` instead of a
   hand-maintained array, so it can't drift again as more SOC labs ship. Verified the derived list is
   exactly the expected 16.
+- **`d3008d3`** — Chased the "hardcoded list drifted from real data" bug class further this iteration:
+  checked SiemLabPage's `TOOL_LABEL` map and SocPortalPage's `TOOL_ORDER` array against every tool value
+  actually used in `SIEM_LABS`/`OSINT_LABS` — both came back clean, no gaps. Found one real instance
+  though: MlPortalPage hardcoded "2" for "Live in-browser demos" in its hero stats, right next to a
+  per-lesson `demo` flag that already carries the real answer. Currently correct (verified: exactly 2
+  lessons have `demo: true`) but the same fragile shape as the SocPortalPage bug fixed last iteration —
+  fixed proactively before it could drift, now computed as `ML_LESSONS.filter(l => l.demo).length`.
 - Next: continue the same pattern — next-thinnest module or page needing a pass, one bounded/verified unit
   at a time. Not attempting to define a literal "done" for "best in the world" (see reply upthread); this
   log is the honest record of what actually shipped and how it was checked.
