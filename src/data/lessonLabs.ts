@@ -45,6 +45,23 @@ export const LESSON_LABS: Record<string, string[]> = {
   'bb-2': ['bb-exposed-git', 'bb-graphql-introspection-idor'],
   'bb-3': ['bb-api-idor', 'bb-oauth-redirect-bypass'],
   'bb-4': ['bb-ssrf-webhook-scope', 'bb-race-condition-coupon', 'bb-blind-ssrf-report'],
+  // bb-mass-assignment-privesc existed but had never been embedded anywhere — bb-5's own lesson
+  // content is specifically about chaining unexpected-field/low-severity bugs into real impact,
+  // its most natural home.
+  'bb-5': ['bb-mass-assignment-privesc'],
+
+  // API Security
+  'api-1': ['api-versioning-legacy-v1-idor', 'api-rate-limit-bypass-xff-spoofing'],
+  'api-2': ['bb-api-idor', 'api-bfla-internal-support-endpoint', 'api-excessive-data-exposure-team-list'],
+  // web-jwt-alg-none-bypass and web-jwt-weak-secret-crack existed but had never been embedded
+  // anywhere — this lesson is their natural home.
+  'api-3': ['web-jwt-alg-none-bypass', 'web-jwt-weak-secret-crack', 'api-jwt-kid-injection'],
+  // bb-graphql-alias-batching-otp-bypass existed but had never been embedded anywhere.
+  'api-4': ['bb-graphql-introspection-idor', 'bb-graphql-alias-batching-otp-bypass'],
+
+  // Applied Cryptography Attacks
+  'crypto-2': ['secengineering-padding-oracle'],
+  'crypto-3': ['crypto-ecb-block-shuffle-privesc', 'crypto-hash-length-extension-signed-url'],
 
   // SOC & Threat Hunting
   'soc-1': ['soc-ssh-bruteforce-investigation', 'soc-phishing-header-analysis', 'soc-insider-threat-bulk-access', 'soc-bec-mailbox-rule-fraud', 'soc-credential-stuffing-detection'],
