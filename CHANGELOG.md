@@ -90,6 +90,11 @@ carrying forward as if nothing changed:
   Actions `pull_request_target` title-injection secret leak (Bug Bounty), and a GraphQL alias-batching
   bypass of a per-request OTP rate limit (Bug Bounty). Verified by scripting `TerminalEngine` directly, not
   just written-and-assumed-correct.
+- **`2881b75`** — soc-ir's 4th lesson, "Landmark Incident Case Studies: Target & the Bangladesh Bank SWIFT
+  Heist." Auditing `LESSON_LABS` (the inline lesson<->lab embed map) surfaced a bigger gap than a missing
+  lesson: soc-siem/soc-detection/soc-ir had **zero** embedded labs across any lesson. Also found 2 labs
+  whose exact scenarios soc-2's prose already covers at length (automated spear-phishing, deepfake-voice
+  CEO fraud) but that were never actually embedded there — fixed that alongside adding the new lesson.
 - Next: continue the same pattern — next-thinnest module or page needing a pass, one bounded/verified unit
   at a time. Not attempting to define a literal "done" for "best in the world" (see reply upthread); this
   log is the honest record of what actually shipped and how it was checked.
