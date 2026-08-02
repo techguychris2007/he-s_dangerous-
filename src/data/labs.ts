@@ -38,6 +38,7 @@ import { offensiveBatch3Labs } from '../labs/scenarios/offensive-batch-3-pack';
 import { offensiveFreshAttacksLabs } from '../labs/scenarios/offensive-fresh-attacks-pack';
 import { offensiveFreshAttacksLabs2 } from '../labs/scenarios/offensive-fresh-attacks-pack-2';
 import { offensiveFreshAttacksLabs3 } from '../labs/scenarios/offensive-fresh-attacks-pack-3';
+import { offensiveFreshAttacksLabs4 } from '../labs/scenarios/offensive-fresh-attacks-pack-4';
 import type { LabScenario } from '../labs/types';
 
 export interface LabEntry {
@@ -87,6 +88,7 @@ export const LABS: LabEntry[] = [
   ...toEntries(offensiveFreshAttacksLabs),
   ...toEntries(offensiveFreshAttacksLabs2),
   ...toEntries(offensiveFreshAttacksLabs3),
+  ...toEntries(offensiveFreshAttacksLabs4),
 ];
 
 /** Ordered to match the roadmap's actual teaching sequence (see curriculum.ts's MODULES order). */
