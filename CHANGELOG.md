@@ -113,6 +113,13 @@ carrying forward as if nothing changed:
 - This is now running as a self-paced loop (started via the `loop` skill) rather than a single reply —
   each iteration above this line was one bounded, verified unit, committed and logged individually, the
   same way as everything before it.
+- **`c3ae3d8`** — soc-detection's 4th lesson: "Sigma Rules: Vendor-Neutral Detection-as-Code." soc-detection
+  and soc-siem were tied for thinnest at 3 lessons; confirmed Sigma wasn't mentioned anywhere in existing
+  content before writing it — a genuine gap, and one that directly ties lesson 1's detection-as-code
+  discipline to the previous module's SIEM-platform comparison (same rule, compiled to Splunk SPL/Sentinel
+  KQL/Elastic EQL). Inserted as the new final lesson, moved Threat Intel Integration to slot 3 ahead of it,
+  updated both lessons' transitions, moved the module quiz onto the new last lesson. tsc/lint clean,
+  headless-Chrome boot check clean.
 - Next: continue the same pattern — next-thinnest module or page needing a pass, one bounded/verified unit
   at a time. Not attempting to define a literal "done" for "best in the world" (see reply upthread); this
   log is the honest record of what actually shipped and how it was checked.
