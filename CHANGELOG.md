@@ -771,3 +771,32 @@ why that method exists — two labs in this batch would have been unsolvable as 
 
 **Updated running total**: labs 219 → 296 (+77 across the last twelve batches, +92 total toward the "up to
 500" target).
+
+- **`ffac58b`** — 6 more labs (296 → 302): Kerberos constrained delegation abuse via S4U2Self/S4U2Proxy
+  protocol transition, mechanically distinct from the existing unconstrained-delegation lab (any service, no
+  Protocol Transition flag needed) and RBCD lab (delegation configured on the target computer object, not
+  the source account) (Active Directory); GCP IAM's `iam.serviceAccounts.actAs` permission, the direct GCP
+  equivalent of AWS `iam:PassRole`, enabling privilege escalation to a project-wide Editor role via an
+  over-privileged default Compute Engine service account (Cloud); a type confusion bug in a tagged union —
+  the same real bug class behind CVE-2015-0336 — where a cached-record code path never re-checks a tag
+  validated on a different path, letting attacker-chosen "string" bytes get called as a function pointer
+  (Binary Analysis); NTFS Alternate Data Streams hiding an executable payload inside an ordinary text file,
+  detected via Sysmon Event ID 15 (FileCreateStreamHash) (Forensics); excessive container capabilities
+  (`--cap-add=SYS_ADMIN`) enabling a classic cgroup v1 `release_agent` host escape, distinct from the
+  existing Docker-socket and sudo-GTFOBins Docker findings, with an accurate note on its relationship to
+  CVE-2022-0492 rather than conflating the two (Security Engineering); and a rogue DHCP server winning the
+  race to answer client leases and redirecting the default gateway through the attacker, exploiting DHCP's
+  complete lack of server authentication (Security+). Full citations in `NOTES.md` batch 16.
+
+  Caught and fixed one real mistake during verification: the GCP `actAs` lab's `curl` objective initially
+  used a realistic Cloud Function hostname, which this engine's `curl` can't resolve (numeric IPs only, the
+  same constraint already known from the batch-13 crt.sh lab) — fixed to use the scenario's actual IP
+  directly. Also caught and corrected a git-staging issue after the first commit attempt unexpectedly swept
+  in two unrelated, already-modified files (`src/lib/labWriteup.ts`, `src/lib/pdfGenerator.ts`) that this
+  session never touched — fixed via a non-destructive `git reset --soft` and a clean re-commit scoped to
+  only the intended lab files, with nothing lost. tsc clean, oxlint clean, production `vite build` clean.
+- **`94946ff`** — Updated `labs-index.md` (302 total, Active Directory 22→23, Forensics 17→18, Cloud 20→21,
+  Security+ 15→16, Binary Analysis 17→18, Security Engineering 15→16) and `NOTES.md` (batch 16 citations).
+
+**Updated running total**: labs 219 → 302 (+83 across the last thirteen batches, +98 total toward the "up to
+500" target).
