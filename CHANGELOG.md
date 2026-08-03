@@ -689,3 +689,33 @@ why that method exists — two labs in this batch would have been unsolvable as 
 
 **Updated running total**: labs 219 → 278 (+59 across the last nine batches, +74 total toward the "up to
 500" target).
+
+- **`f36059d`** — 6 more labs (278 → 284): built against an explicit per-lab check — for each technique,
+  would the same commands actually work run against the described real target on a real Kali terminal?
+  Answered directly for all six in `NOTES.md` rather than left implicit. A classic ret2win stack smash
+  overwriting a saved return address to redirect into a hidden `win()` function, working under NX since no
+  shellcode is injected (Binary Analysis — recon chain is 1:1 real Kali tooling; the final "supply a decimal
+  address" exploit step is the same disclosed simplification already used by the GOT-overwrite and
+  tcache-poisoning labs, restated explicitly this batch), an exposed Azure Storage Account primary access
+  key granting full Shared Key read/write/delete (Cloud — distinct from the existing SAS-token lab; real
+  command is `az storage blob list --account-key ...` since Shared Key auth needs an HMAC-signed
+  canonicalized request a bare curl can't produce, modeled as a captured file since this engine has no `az`
+  command), an illicit OAuth consent grant that a full password reset and MFA re-enrollment do nothing to
+  revoke (SOC — an Entra ID audit-log investigation, not a Kali-terminal technique, matching this platform's
+  existing SOC-log-review convention), a forgotten staging subdomain discovered purely through public
+  Certificate Transparency logs (Bug Bounty — real `crt.sh` JSON API; modeled as a captured file since this
+  engine's curl only resolves IPs it's told about, but the pivot to the discovered host is fully
+  live-simulated), a missing Subresource Integrity attribute on a third-party payment script referencing the
+  real June 2024 polyfill.io CDN supply-chain compromise by name (Web — live curl-checkable, no simulation
+  gap at all), and WMI-based lateral movement via `Win32_Process.Create`, MITRE ATT&CK's 9th most common
+  technique overall (Malware — modeled as the defender-side Event ID 4624 + `wmiprvse.exe` correlation a SOC
+  analyst would actually use to detect it). Full citations in `NOTES.md` batch 13.
+
+  All six passed full-solve + negative-control verification against the real `TerminalEngine` class on the
+  first run — no fix-and-reverify needed this batch. tsc clean, oxlint clean, production `vite build` clean.
+- **`56175fb`** — Updated `labs-index.md` (284 total, Web 43→44, Bug Bounty 20→21, SOC 18→19, Cloud 19→20,
+  Binary Analysis 16→17, Malware 18→19) and `NOTES.md` (batch 13 citations, with an explicit per-lab "would
+  this work on a real Kali box" answer for all six).
+
+**Updated running total**: labs 219 → 284 (+65 across the last ten batches, +80 total toward the "up to
+500" target).
