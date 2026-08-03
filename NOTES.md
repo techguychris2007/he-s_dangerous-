@@ -898,3 +898,69 @@ head-on in its own citation below rather than glossed over.
   full fidelity to how `TerminalEngine` actually works, and all six were verified end-to-end with a scripted
   `tsx` run against the real `TerminalEngine` class — full solve path captures exactly one flag per lab
   (after the one fix above), and a plausible-but-wrong request per lab captures none.
+
+## Sources checked, batch 16 (constrained delegation S4U abuse, GCP actAs privesc, type confusion, NTFS ADS, cgroup release_agent escape, rogue DHCP)
+
+- **Kerberos constrained delegation abuse via S4U2Self/S4U2Proxy protocol transition** — [Hacking Articles: Kerberos Constrained Delegation Exploitation](https://www.hackingarticles.in/kerberos-constrained-delegation-exploitation/),
+  [Yunolay: Abusing Kerberos Constrained Delegation — S4U2Self and S4U2Proxy](https://yunolay.com/constrained-delegation/).
+  Confirmed the real, exact mechanism and the real distinguishing precondition: the TRUSTED_TO_AUTH_FOR_
+  DELEGATION `userAccountControl` flag is specifically what enables Protocol Transition, letting S4U2Self
+  impersonate any named user with no proof they ever authenticated at all — confirmed as mechanically
+  distinct from this session's existing unconstrained-delegation lab (any service, no such flag needed) and
+  RBCD lab (delegation configured via `msDS-AllowedToActOnBehalfOfOtherIdentity` on the TARGET computer
+  object, not `msDS-AllowedToDelegateTo` on the source account). Reused the same `exploit <module> <ip>`
+  live mechanic already proven by the existing RBCD lab for the same category of "represents a real
+  multi-tool Impacket chain" step.
+- **GCP IAM `iam.serviceAccounts.actAs` privilege escalation** — [Rhino Security Labs: Privilege Escalation in Google Cloud Platform, Part 1 (IAM)](https://rhinosecuritylabs.com/gcp/privilege-escalation-google-cloud-platform-part-1/),
+  [HackTricks Cloud: GCP IAM Privesc](https://cloud.hacktricks.xyz/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-iam-privesc).
+  Confirmed `iam.serviceAccounts.actAs` is real and is GCP's direct structural equivalent of AWS
+  `iam:PassRole` (confirmed by an independent source describing it in exactly those terms), and confirmed
+  the real, specific historical detail used in this lab: several GCP services (Composer, Dataflow, Dataproc,
+  Dataprep, Data Fusion) originally used the Compute Engine default service account without requiring this
+  permission, until Google changed them to require it after disclosure — the exact real "guard rail, not a
+  bug" framing quoted in this lab's briefing is also drawn directly from the cited research.
+- **Type confusion vulnerabilities** — [Microsoft Security Blog: Understanding type confusion vulnerabilities — CVE-2015-0336](https://www.microsoft.com/en-us/security/blog/2015/06/17/understanding-type-confusion-vulnerabilities-cve-2015-0336/),
+  [Huntress: What Is Type Confusion and How Does It Work?](https://www.huntress.com/cybersecurity-101/topic/type-confusion).
+  Confirmed the real, general mechanism (a program treats a region of memory as one type when it actually
+  holds another, with no memory corruption required at all — the bug is purely in the type-tracking logic)
+  and the real, named historical example (CVE-2015-0336, Flash Player) cited in this lab's briefing.
+  Mechanically distinct from every other Binary Analysis lab on this platform: not a buffer overflow, not a
+  format-string bug, not a heap-metadata attack — the "vulnerable" memory here was always valid and
+  correctly allocated, only misinterpreted.
+- **NTFS Alternate Data Streams (ADS)** — [NinjaOne: Alternate Data Streams — An Overview](https://www.ninjaone.com/blog/alternate-data-streams/),
+  [Hive Security: NTFS Alternate Data Streams — How Attackers Hide in Plain Sight](https://hivesecurity.gitlab.io/blog/ntfs-alternate-data-streams-ads-hiding-payloads/).
+  Confirmed the real mechanism (multiple named data streams per file, originally added for Macintosh
+  compatibility, invisible to Windows Explorer and excluded from the file's reported size) and the real,
+  specific, currently-cited detection signal used in this lab: Sysmon Event ID 15 (FileCreateStreamHash)
+  fires at stream-creation time specifically, independently confirmed by multiple sources as one of the most
+  valuable real detection signals for this technique.
+- **Docker CAP_SYS_ADMIN / cgroup v1 `release_agent` escape** — [HackTricks: Docker release_agent cgroups escape](https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/docker-security/docker-breakout-privilege-escalation/docker-release_agent-cgroups-escape.html),
+  [Unit42: New Linux Vulnerability CVE-2022-0492 Affecting Cgroups](https://unit42.paloaltonetworks.com/cve-2022-0492-cgroups/).
+  Confirmed the real, exact classic exploit chain (mount a cgroup v1 controller, write an attacker-controlled
+  command path into `release_agent`, force the cgroup empty to trigger it) and the real reason it works: the
+  release_agent process runs in the initial (host) namespace with full privileges, not the container's.
+  Confirmed and explicitly stated the real, accurate relationship to CVE-2022-0492 in this lab's briefing:
+  that later CVE showed the same escape reachable WITHOUT `CAP_SYS_ADMIN` at all due to a missing kernel
+  capability check, but this lab's container has the capability explicitly granted regardless, so the
+  classic pre-CVE technique applies directly — not conflated with or presented as being the CVE itself.
+- **Rogue DHCP server / DHCP spoofing MITM** — [Twingate: What is DHCP Spoofing?](https://www.twingate.com/blog/glossary/dhcp%20spoofing),
+  [ManageEngine OpUtils: Rogue DHCP servers and their implications](https://www.manageengine.com/products/oputils/tech-topics/rogue-dhcp-servers.html).
+  Confirmed the real, foundational root cause (DHCP has no server authentication at all; a client accepts
+  whichever DHCPOFFER arrives first) and the real, standard attacker technique of listing itself as the
+  default gateway in the rogue lease rather than tampering with DNS or anything more complex — the simplest,
+  most direct way to establish a MITM position this protocol gap allows.
+
+## NEEDS REVIEW (labs/topics), batch 16
+
+- One real mistake was caught and fixed during this batch's `tsx` verification run: the GCP `actAs` lab's
+  live-impact step initially used a realistic-looking Cloud Function hostname
+  (`us-central1-meridian-prod.cloudfunctions.net`) in its `curl` objective/hint — but this engine's `curl`
+  only ever resolves numeric IPv4 addresses (confirmed by reading the regex in `curl()` in `engine.ts`), the
+  same constraint already documented for the batch-13 crt.sh lab. Fixed by switching the objective, hint,
+  and the host's `http` route key to use the scenario's actual numeric IP (`10.10.258.2:443`) directly,
+  matching how every other network-reachable lab on this platform already addresses its targets — not a new
+  pattern, just a mistake in this one lab's first draft.
+- No other techniques in this batch required skipping or faking; all six were mechanically modeled with
+  full fidelity to how `TerminalEngine` actually works, and all six were verified end-to-end with a scripted
+  `tsx` run against the real `TerminalEngine` class — full solve path captures exactly one flag per lab
+  (after the one fix above), and a plausible-but-wrong request per lab captures none.

@@ -4,7 +4,7 @@ Running count and category breakdown for the offensive-security lab expansion. S
 full narrative detail on every batch (what was added, why, and how each one was verified); this file is
 just the running tally `NOTES.md`'s citations and the "when I'm back" summary can point at.
 
-**Total labs: 296** (204 at the start of this expansion → 296 now, +92 so far toward the "up to 500, quality
+**Total labs: 302** (204 at the start of this expansion → 302 now, +98 so far toward the "up to 500, quality
 first" target). Every count below is the actual `LABS.length` broken out by `category`, not an estimate.
 
 | Category | Count | This expansion added |
@@ -12,15 +12,15 @@ first" target). Every count below is the actual `LABS.length` broken out by `cat
 | Linux | 24 | +2 (Docker sudo NOPASSWD GTFOBins bind-mount privesc, GDB sudo NOPASSWD GTFOBins shell escape) |
 | Network | 29 | +4 (SMTP open relay abuse, CouchDB "Admin Party" unauthenticated access, CVE-2024-1709 ScreenConnect auth bypass, CVE-2024-3400 PAN-OS GlobalProtect command injection) |
 | Web | 45 | +5 (DNS rebinding SSRF-allowlist bypass, client-side prototype pollution via URL fragment to DOM XSS, Host header injection enabling password reset poisoning, missing Subresource Integrity on a third-party payment script, blind boolean-based SQLi extracted live with sqlmap) |
-| Active Directory | 22 | +7 (ADCS ESC1, RBCD abuse, Silver Ticket, Shadow Credentials, DCShadow rogue DC, GPP cpassword/MS14-025, LDAP anonymous bind description-field password disclosure) |
+| Active Directory | 23 | +8 (ADCS ESC1, RBCD abuse, Silver Ticket, Shadow Credentials, DCShadow rogue DC, GPP cpassword/MS14-025, LDAP anonymous bind description-field password disclosure, constrained delegation abuse via S4U2Self/S4U2Proxy protocol transition) |
 | Bug Bounty | 22 | +2 (Certificate Transparency logs exposing a forgotten staging subdomain, exposed .env file leaking full Laravel application secrets) |
 | SOC | 20 | +4 (Golden SAML detection via missing ADFS/Kerberos events, impossible travel / geo-velocity anomaly detection, illicit OAuth consent grant surviving a password reset, Golden Ticket detection via an anomalous 10-year ticket lifetime) |
-| Forensics | 17 | +7 (Volume Shadow Copy NTDS.dit dump, NTFS timestomping $SI/$FN mismatch, PowerShell ScriptBlock de-obfuscation, Recycle Bin $I metadata, USN Change Journal contradicts a timestomped file, Shellbags survive a deleted folder on a removed USB volume, Event ID 1102 audit-log-cleared correlated via Logon ID) |
-| Cloud | 20 | +8 (IMDSv2 bypass, Docker-socket container escape, Lambda env-var secrets exposure, overly-permissive Azure SAS token, GCP allUsers Cloud Function, Kubernetes default automountServiceAccountToken + permissive RBAC, AWS Lambda Function URL public via authType NONE, exposed Azure Storage Account key granting full Shared Key access) |
-| Security+ | 15 | +4 (SPF/DMARC misconfiguration enables spoofing, missing HSTS enables SSL stripping, insufficient log retention violates PCI DSS 10.5.1, VLAN hopping via 802.1Q double tagging) |
-| Binary Analysis | 17 | +7 (stack canary leak via format string, use-after-free function pointer hijack, ret2libc defeating NX/ASLR, heap unlink metadata corruption, GOT overwrite via format-string arbitrary write, tcache poisoning via a UAF-enabled double-free, classic ret2win stack smash redirecting to a hidden function) |
+| Forensics | 18 | +8 (Volume Shadow Copy NTDS.dit dump, NTFS timestomping $SI/$FN mismatch, PowerShell ScriptBlock de-obfuscation, Recycle Bin $I metadata, USN Change Journal contradicts a timestomped file, Shellbags survive a deleted folder on a removed USB volume, Event ID 1102 audit-log-cleared correlated via Logon ID, NTFS Alternate Data Streams hiding a payload) |
+| Cloud | 21 | +9 (IMDSv2 bypass, Docker-socket container escape, Lambda env-var secrets exposure, overly-permissive Azure SAS token, GCP allUsers Cloud Function, Kubernetes default automountServiceAccountToken + permissive RBAC, AWS Lambda Function URL public via authType NONE, exposed Azure Storage Account key granting full Shared Key access, GCP IAM actAs permission enabling privilege escalation) |
+| Security+ | 16 | +5 (SPF/DMARC misconfiguration enables spoofing, missing HSTS enables SSL stripping, insufficient log retention violates PCI DSS 10.5.1, VLAN hopping via 802.1Q double tagging, rogue DHCP server enabling a man-in-the-middle) |
+| Binary Analysis | 18 | +8 (stack canary leak via format string, use-after-free function pointer hijack, ret2libc defeating NX/ASLR, heap unlink metadata corruption, GOT overwrite via format-string arbitrary write, tcache poisoning via a UAF-enabled double-free, classic ret2win stack smash redirecting to a hidden function, type confusion in a tagged union hijacking control flow) |
 | Malware | 20 | +7 (process hollowing detection via PEB/VAD mismatch, DLL sideloading via search-order hijacking, LNK whitespace-padding command hiding, regsvr32 "Squiblydoo" AppLocker bypass, AMSI bypass via reflection-based field patching, WMI-based lateral movement via Win32_Process.Create, malicious PDF /OpenAction JavaScript auto-execution) |
-| Security Engineering | 15 | +5 (secret still live in git history, forged webhook via missing signature verification, remember-me token survives password reset, ECB-penguin pattern leak, TOCTOU race condition enables a symlink attack) |
+| Security Engineering | 16 | +6 (secret still live in git history, forged webhook via missing signature verification, remember-me token survives password reset, ECB-penguin pattern leak, TOCTOU race condition enables a symlink attack, excessive container capabilities enable a cgroup release_agent escape) |
 | **API** (new category) | 16 | +16 (BFLA, JWT kid injection, legacy-version IDOR, excessive data exposure, rate-limit bypass, WebAuthn downgrade, method-override authz bypass, GraphQL field-level authz bypass, Referer-header API key leak, OAuth audience confusion, GraphQL field-suggestion leak, pagination cursor tampering, upload content-type spoofing, exposed OpenAPI spec, exposed source map leaking a hardcoded key, unrestricted resource consumption via a pagination-free bulk export) |
 | **Cryptography** (new category) | 14 | +14 (ECB block-shuffling, hash length extension, JWT algorithm confusion, predictable PRNG session tokens, AES-CTR nonce reuse, Bleichenbacher RSA padding oracle, UUIDv1 reset-token entropy, ECDSA nonce reuse, Logjam DHE_EXPORT downgrade, batch GCD shared-prime attack, TOTP shared-secret reuse, PBKDF2 insufficient iteration count, CBC bit-flipping admin-cookie forgery, AES-GCM nonce reuse "Forbidden Attack") |
 
@@ -121,6 +121,19 @@ first" target). Every count below is the actual `LABS.length` broken out by `cat
     1102 (audit log cleared) correlated via Logon ID back to the responsible account's original network
     logon (Forensics); and a malicious PDF's `/OpenAction` auto-executing embedded JavaScript that calls the
     PDF viewer's own legitimate `app.launchURL()` API with zero user interaction required (Malware).
+16. **`ffac58b`** — 6 labs: Kerberos constrained delegation abuse via S4U2Self/S4U2Proxy protocol
+    transition, distinct from unconstrained delegation ("any service") and RBCD (configured on the target,
+    not the source account) (Active Directory); GCP IAM's `iam.serviceAccounts.actAs` permission — the
+    direct GCP equivalent of AWS `iam:PassRole` — enabling privilege escalation to a project-wide Editor
+    role (Cloud); a type confusion bug in a tagged union, where a cached-record code path never re-checks a
+    tag validated on a different path, letting attacker-chosen "string" bytes get called as a function
+    pointer (Binary Analysis, the same real bug class behind CVE-2015-0336); NTFS Alternate Data Streams
+    hiding an executable payload inside an ordinary text file, detected via Sysmon Event ID 15
+    (FileCreateStreamHash) (Forensics); excessive container capabilities (`--cap-add=SYS_ADMIN`) enabling a
+    classic cgroup v1 `release_agent` host escape, distinct from this session's existing Docker-socket and
+    sudo-GTFOBins Docker findings (Security Engineering); and a rogue DHCP server winning the race to answer
+    client leases and redirecting the default gateway through the attacker, exploiting DHCP's complete lack
+    of server authentication (Security+).
 
 ## What's explicitly NOT attempted, and why
 
