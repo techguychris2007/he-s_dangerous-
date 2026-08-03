@@ -825,3 +825,41 @@ why that method exists — two labs in this batch would have been unsolvable as 
 
 **Updated running total**: labs 219 → 308 (+89 across the last fourteen batches, +104 total toward the "up
 to 500" target).
+
+- **`d054547`** — 30 more labs (308 → 338): a deliberate pace change per explicit instruction (30+ labs per
+  commit instead of six, continuing toward the 500 target, with an equally explicit requirement that
+  accuracy not drop to hit the number). 22 real, GTFOBins-documented sudo/SUID privilege escalations
+  (chroot, nice, setarch, sqlite3, mysql, watch, unshare, taskset, timeout, ionice, stdbuf, flock, nohup,
+  expect, zsh, dash, screen, nano, rsync, ssh/scp ProxyCommand, busybox), every one reusing the existing
+  ssh-foothold-and-privesc factory already proven live across 17 prior labs — GTFOBins documents 100+
+  exploitable binaries and only 19 had been used before this batch, so this covers most of the volume
+  increase from one large, genuinely real, previously-unexhausted technique family rather than padding
+  (Linux). Three more famous, real CVEs via the same `exploit <module> <ip>` mechanic proven across ~16
+  existing CVE-RCE labs: CVE-2024-6387 (regreSSHion, an OpenSSH signal-handler race condition, CVSS 8.1,
+  with the real ~10,000-attempt exploitation difficulty stated honestly rather than implied trivial),
+  CVE-2023-46747 (F5 BIG-IP TMUI AJP request-smuggling authentication bypass, CVSS 9.8), and CVE-2024-4577
+  (PHP-CGI Windows "Best Fit" argument injection, CVSS 9.8, affecting every default XAMPP-for-Windows
+  install by default) (Network). Plus five more single-technique labs: an IDN homograph domain attack with
+  a genuinely valid TLS certificate on the lookalike domain (Security+); an encoded PowerShell command
+  decoding to a hardcoded C2 beacon configuration (SOC); MSBuild.exe's real inline-task feature (MITRE
+  T1127.001) bypassing application whitelisting through a signed Microsoft binary (Malware); SSRF via a
+  PDF-generation service's headless-browser renderer reaching local files and cloud metadata (Web); and an
+  exposed etcd datastore on its real port 2379 leaking every Kubernetes secret, completely bypassing the API
+  server's own RBAC (Cloud). Full citations in `NOTES.md` batch 18.
+
+  All 30 labs verified end-to-end against the real `TerminalEngine` (no duplicate IDs within the batch,
+  every GTFOBins lab's full foothold-to-root chain captures exactly 2 flags matching `totalFlags: 2`, every
+  other lab exactly 1, negative controls capture none). `tsc -b`/`npm run build` are currently blocked by
+  substantial, unrelated, uncommitted work discovered mid-batch from a separate concurrent session
+  (`Terminal.tsx`, `LabPage.tsx`, `SiemLabPage.tsx`, a new `AiChatWindow.tsx`, and several other files this
+  session never touched) — confirmed via `git stash` that the resulting type errors are 100% unrelated to
+  this batch, and via a direct `vite build` (bundling without full type-checking) that this batch's own code
+  is structurally sound. Not this session's work to fix; flagged in `NOTES.md` for visibility. Staged and
+  committed with `git diff --cached --stat` checked before every commit to avoid sweeping in any of that
+  unrelated work, continuing the practice adopted after the batch-16 staging incident.
+- **`2044c65`** — Updated `labs-index.md` (338 total, Linux 24→46, Network 29→32, Web 45→46, SOC 21→22,
+  Cloud 21→22, Security+ 17→18, Malware 20→21) and `NOTES.md` (batch 18 citations, plus a note on the
+  unrelated concurrent uncommitted work discovered in the repo).
+
+**Updated running total**: labs 219 → 338 (+119 across the last fifteen batches, +134 total toward the "up
+to 500" target).
