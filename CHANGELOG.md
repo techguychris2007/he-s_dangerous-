@@ -719,3 +719,30 @@ why that method exists — two labs in this batch would have been unsolvable as 
 
 **Updated running total**: labs 219 → 284 (+65 across the last ten batches, +80 total toward the "up to
 500" target).
+
+- **`a6ae0a3`** — 6 more labs (284 → 290): built against an explicit "everything should be real" request —
+  every lab uses only this engine's genuinely live command handlers (`exploit`, `nmap`, `gobuster`, `curl`,
+  `sqlmap`, `ssh`/`hydra`/`sudo`), with none of the captured-recon-file convention used for a few labs in
+  recent batches (Azure CLI, LDAP, crt.sh). CVE-2024-1709 (ConnectWise ScreenConnect setup-wizard auth
+  bypass, CVSS 10.0) and CVE-2024-3400 (Palo Alto PAN-OS GlobalProtect command injection, CVSS 10.0) — both
+  real, famous, actively-exploited CVEs via the same `exploit <module> <ip>` mechanic already proven across
+  ~13 existing CVE-RCE labs (Network); an exposed `.env` file leaking a Laravel app's full secrets (DB
+  credentials, third-party API keys, APP_KEY), discovered live via `gobuster` against a wordlist that
+  actually contains the path (Bug Bounty); blind boolean-based SQL injection extracted live with
+  `sqlmap --batch --dump` as the primary tool, distinct from the existing curl-crafted UNION-based SQLi lab
+  (Web); a GDB sudo-NOPASSWD GTFOBins shell escape (`sudo gdb -nx -ex '!sh' -ex quit`), reusing the same
+  ssh-foothold-and-privesc factory as the batch-12 Docker lab (Linux); and Golden Ticket detection via a
+  forged TGT's anomalous 10-year lifetime — Mimikatz/Rubeus's own hardcoded forging default — a `cat`-based
+  log review explicitly justified in `NOTES.md` as the genuinely real SOC analyst workflow for this finding,
+  not a simulation shortcut (SOC). Full citations in `NOTES.md` batch 14.
+
+  Caught and fixed one real mistake during verification: both CVE labs' `hints` ended on a narrative-only
+  line instead of the actual `cat /root/root.txt` step needed to capture the flag after `exploit` opens the
+  session — both captured 0 flags on the first verification pass, fixed by adding the missing hint (this
+  also surfaced a matching pre-existing gap in the Ivanti lab from batch 3, flagged in `NOTES.md` for a
+  future fix, not touched here). tsc clean, oxlint clean, production `vite build` clean.
+- **`290628c`** — Updated `labs-index.md` (290 total, Linux 23→24, Network 27→29, Web 44→45, Bug Bounty
+  21→22, SOC 19→20) and `NOTES.md` (batch 14 citations).
+
+**Updated running total**: labs 219 → 290 (+71 across the last eleven batches, +86 total toward the "up to
+500" target).
