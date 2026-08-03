@@ -55,6 +55,16 @@ grep -E "union|select|--|<script" access.log            # quick web-attack signa
         </p>
       </Callout>
 
+      <h2>Where the alert actually lands: the ticketing layer</h2>
+      <p>
+        A SIEM detects; it rarely tracks an investigation end-to-end on its own. Most SOCs route triggered
+        alerts into a dedicated case-management system — ServiceNow Security Incident Response and Jira
+        Service Management are the two most common — which assigns each alert a ticket, an owner, an SLA
+        clock, and an audit trail of every action taken. This is the layer that actually answers "how long
+        did this take to close" and "who touched this case," questions a SIEM's own alert queue alone
+        doesn't track well once dozens of analysts are working hundreds of cases across a shift.
+      </p>
+
       <h2>Indicators of Compromise (IOCs)</h2>
       <CodeBlock label="common IOC categories">{`Network IOCs   — malicious IPs, C2 domains, unusual outbound connections
 Host IOCs        — unexpected processes, new scheduled tasks, modified system files

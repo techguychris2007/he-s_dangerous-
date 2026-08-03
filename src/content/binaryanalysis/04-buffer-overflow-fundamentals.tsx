@@ -68,6 +68,21 @@ offset = cyclic_find(crashed_value)      # pwntools looks up exactly where that 
 If you point that address at your own injected shellcode sitting earlier in the buffer,
 execution jumps there instead of returning normally — arbitrary code now runs.`}</CodeBlock>
 
+      <h2>The heap's version of the same bug</h2>
+      <p>
+        Everything above is the STACK-based overflow. Buffers allocated dynamically (<code>malloc</code>)
+        live on the heap instead, which has no return address sitting conveniently nearby — but heap
+        allocators store their own bookkeeping metadata (chunk size, pointers linking free chunks together)
+        immediately adjacent to the allocated data itself. Overflow a heap buffer and you corrupt that
+        metadata instead of a return address, which a corrupted allocator can be tricked into using as a
+        write-what-where primitive the next time it allocates or frees a chunk — a different mechanism
+        arriving at a similar outcome: attacker-controlled memory corruption. Heap exploitation is
+        substantially more involved than the stack case this lesson covers (allocator internals vary by
+        implementation and change between versions), which is exactly why the stack case is always taught
+        first — the underlying instinct, "unchecked write past a buffer's boundary corrupts something the
+        program trusts," is identical either way.
+      </p>
+
       <h2>Why this doesn't work as easily anymore — modern mitigations</h2>
       <CodeBlock label="the protections every modern system has by default">{`Stack canaries (/GS on Windows, -fstack-protector on Linux)
   — a random value placed right before the return address; checked before returning.

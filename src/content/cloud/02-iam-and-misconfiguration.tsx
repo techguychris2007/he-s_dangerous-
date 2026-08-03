@@ -151,6 +151,25 @@ scout gcp
         cluster.
       </p>
 
+      <h2>Practicing this legally: CloudGoat</h2>
+      <p>
+        Everything in this lesson needs a real AWS account and explicit authorization to practice against
+        safely — <strong>CloudGoat</strong> (Rhino Security Labs) exists specifically to provide that
+        legally, deployed into your own throwaway AWS account via Terraform. It stands up deliberately
+        vulnerable scenarios — an over-permissioned instance role, a privilege-escalation chain through
+        chained IAM policies, an exposed Lambda — that mirror the exact misconfigurations covered above,
+        built and torn down on demand so nothing lingers as a real, forgotten attack surface afterward.
+      </p>
+      <CodeBlock label="the CloudGoat workflow">{`cloudgoat create iam_privesc_by_rollback     # spins up ONE specific vulnerable scenario in your account
+cloudgoat load                                 # lists every available scenario, from S3 exposure to
+                                                # multi-step IAM privesc chains
+cloudgoat destroy iam_privesc_by_rollback        # tears it back down — nothing left running or billing`}</CodeBlock>
+      <p>
+        It's the cloud-security equivalent of this platform's own simulated labs — real cloud API calls
+        against real (if disposable) infrastructure, without needing an actual client engagement or risking
+        an unauthorized target.
+      </p>
+
       <h2>One more IAM leak worth naming explicitly: credentials committed to a public repo</h2>
       <p>
         Every misconfiguration covered so far assumes the credential itself was generated and stored

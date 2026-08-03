@@ -81,6 +81,42 @@ NORMALIZED:        src_ip=203.0.113.5 dest_ip=10.10.5.20 action=denied
         </p>
       </Callout>
 
+      <h2>The economics of a SIEM: why "ingest everything" isn't free</h2>
+      <p>
+        Every log source above sounds like an easy "yes, ingest it" decision until the bill arrives. Most SIEM
+        vendors license by volume — typically priced per gigabyte ingested per day or by sustained{' '}
+        <strong>events per second (EPS)</strong> — which means the "collect from everywhere" instinct this
+        lesson opened with is a real, recurring cost decision, not just an engineering one.
+      </p>
+      <CodeBlock label="rough 2025-era SIEM cost reality">{`Typical per-GB ingestion pricing:  ~$1-$5 per 1,000 events, or roughly $2-4 per GB/day
+At 5 TB/day ingested (a large enterprise):  $3.6M-$7.3M per year on ingestion alone
+
+EPS licensing tiers commonly seen:
+  Small        100-5,000 EPS
+  Medium      5,000-50,000 EPS
+  Large        50,000-200,000 EPS
+  Enterprise   200,000+ EPS`}</CodeBlock>
+      <p>
+        This is precisely why real SIEM deployments tier storage instead of keeping everything on the fastest
+        disk forever: a common pattern keeps the most recent data on expensive hot storage for immediate
+        search, ages it down to cheaper warm storage after a few days, and finally to cold/archive storage —
+        satisfying the retention requirements the previous lesson's compliance module cares about, at a
+        fraction of hot-tier cost.
+      </p>
+      <CodeBlock label="a realistic hot/warm/cold tiering policy">{`HOT   (fast, expensive)   -> most recent ~48 hours, actively searched by analysts
+WARM  (slower, cheaper)   -> next ~5 days, still searchable but not instant
+COLD  (cheapest, archive) -> everything older, kept only to satisfy retention
+                              requirements — rarely queried, must still be producible on request`}</CodeBlock>
+      <Callout variant="tip">
+        <p>
+          This is also why mature SOCs don't actually ingest "everything" — they deliberately filter and route
+          low-value, high-volume noise (verbose debug logging, routine health-check traffic) away from the
+          SIEM entirely, while making sure anything relevant to authentication, privilege changes, or the
+          organization's specific detection rules always lands in it. The goal is complete coverage of what
+          matters, not maximum ingestion volume for its own sake.
+        </p>
+      </Callout>
+
       <p>
         With collection, centralization, and normalization established, the next lesson covers what a SIEM
         actually does with all this unified data: correlation — turning a flood of individually-harmless

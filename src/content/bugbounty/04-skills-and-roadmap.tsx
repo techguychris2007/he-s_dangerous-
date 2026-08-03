@@ -46,6 +46,37 @@ Month 6:  Start submitting on HackerOne and Bugcrowd; read disclosed public repo
         </p>
       </Callout>
 
+      <h2>What the real payouts actually look like (2025 data)</h2>
+      <p>
+        HackerOne's 9th annual Hacker-Powered Security Report — covering July 2024 through June 2025 — paid
+        out $81 million across its programs, up 13% year-over-year. Actual bounty amounts vary enormously by
+        severity and target, but the ranges below are a realistic 2025 baseline to calibrate expectations
+        against.
+      </p>
+      <CodeBlock label="typical 2025 payout bands by severity">{`Informational / low       $50-$200      (acknowledgment, minimal real-world impact)
+Medium                      $200-$500     (real but limited-impact bug)
+High                          $500-$2,500   (meaningful account/data compromise)
+Critical                        $2,500-$25,000+ (full account takeover, major data exposure)
+Critical, top-tier targets        $50,000-$100,000+  (RCE or full compromise at a bank,
+  (finance/healthcare/infra)      hospital system, or critical-infrastructure operator)`}</CodeBlock>
+      <Callout variant="tip">
+        <p>
+          The same report's category trends line up almost exactly with the skill-priority list above:
+          authorization flaws like IDOR and broken access control are climbing year-over-year, while
+          commodity classes like XSS and SQLi — the ones scanners already catch reliably — are declining as a
+          share of paid reports. That's precisely why this roadmap ranks IDOR and business-logic bugs above
+          XSS: the industry's own payout data confirms scanner-proof categories are where the real,
+          increasingly competitive value is moving.
+        </p>
+      </Callout>
+      <p>
+        One more 2025 trend worth knowing even if it's not yet on the numbered list above: AI-related reports
+        are the fastest-growing category by far — valid AI-vulnerability submissions rose 210% year-over-year,
+        and prompt-injection reports specifically rose 540%. It's early and still a small slice of total
+        volume, but a hunter building skills today is building them at exactly the moment this category is
+        opening up.
+      </p>
+
       <h2>Free labs worth mastering (referenced throughout this roadmap)</h2>
       <ul>
         <li><strong>PortSwigger Web Security Academy</strong> — free, extremely thorough, the closest thing

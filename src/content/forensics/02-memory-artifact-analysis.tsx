@@ -97,6 +97,26 @@ vol -f memory.dmp windows.netscan                  # every network connection th
         entire image.
       </p>
 
+      <h2>Memory evidence that survives a shutdown: hiberfil.sys and pagefile.sys</h2>
+      <p>
+        Everything above assumes a live memory dump, captured while the machine is still running — not
+        always possible in a real investigation. Windows quietly writes memory-like data to disk in two
+        places that persist even after the system is powered off: <code>hiberfil.sys</code> (a near-complete
+        snapshot of RAM, written whenever the machine hibernates) and <code>pagefile.sys</code> (the virtual
+        memory swap file, holding whatever RAM pages the OS decided to page out under memory pressure — a
+        partial, less predictable slice of memory, but often enough to recover a fragment of interest).
+      </p>
+      <CodeBlock label="turning a hibernation file into something Volatility can actually analyze">{`vol -f hiberfil.sys windows.info
+# Volatility can parse a hibernation file with largely the same plugins used against a live
+# memory dump above (pslist, pstree, malfind) — meaning a machine imaged HOURS after the
+# incident, with no live-capture opportunity at all, can still yield a genuine memory analysis`}</CodeBlock>
+      <p>
+        This matters most in exactly the scenario this module's persistence lessons keep returning to: a
+        host discovered compromised well after the fact, already shut down or reimaged, where a live RAM
+        capture was never an option — <code>hiberfil.sys</code> is frequently the only surviving window into
+        what was actually running at the moment it mattered.
+      </p>
+
       <h2>Deleted file recovery: why "deleted" rarely means gone</h2>
       <p>
         When a file is deleted on most filesystems, only its directory entry (the pointer to its data) is

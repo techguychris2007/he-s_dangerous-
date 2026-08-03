@@ -94,6 +94,29 @@ GCM (Galois/Counter Mode) — the modern standard: encrypts AND authenticates in
         </p>
       </Callout>
 
+      <h2>Post-quantum cryptography: why RSA/ECC have an expiration date</h2>
+      <p>
+        Everything in the asymmetric row above (RSA, ECC, Diffie-Hellman) relies on math problems — factoring
+        large numbers, discrete logarithms — that are intractable for classical computers but that a
+        sufficiently large, fault-tolerant quantum computer could solve efficiently using Shor's algorithm.
+        No such machine exists at the scale needed today, but the risk is not purely theoretical: encrypted
+        data captured NOW and stored can be decrypted LATER once quantum computing catches up — a real
+        strategy referred to as "harvest now, decrypt later," relevant to anything with a long confidentiality
+        requirement (state secrets, medical records, long-lived credentials).
+      </p>
+      <CodeBlock label="NIST's response — finalized, real standards, not a future proposal">{`ML-KEM (formerly CRYSTALS-Kyber)  — the new standard for KEY ENCAPSULATION (replacing RSA/ECC key exchange)
+ML-DSA (formerly CRYSTALS-Dilithium) — the new standard for DIGITAL SIGNATURES (replacing RSA/ECDSA signing)
+
+Both were formally finalized as NIST standards in 2024 — organizations with long-lived
+confidentiality needs are already beginning migration planning, well ahead of when a
+cryptographically-relevant quantum computer is expected to exist.`}</CodeBlock>
+      <p>
+        The practical Security+ framing: post-quantum readiness is increasingly treated as its own GRC risk
+        category — an organization asking "which of our systems still rely purely on RSA/ECC, and what's our
+        migration timeline" is doing exactly the kind of forward-looking risk assessment the GRC lesson
+        introduced, applied to a threat that hasn't fully materialized yet but is treated as a when, not an if.
+      </p>
+
       <h2>Common cryptographic attacks worth recognizing by name</h2>
       <CodeBlock label="what each one actually targets">{`Brute force        — try every possible key; defeated by key length
 Rainbow table      — precomputed hash lookups; defeated by salting

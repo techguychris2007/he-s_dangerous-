@@ -123,6 +123,27 @@ Microsoft x64 calling convention (Windows):
         argument" without needing symbol names or source code at all.
       </p>
 
+      <h2>ARM, briefly: what changes on a phone or an IoT device</h2>
+      <p>
+        Everything above is x86-64 — what you'll meet on desktop/server Linux and Windows binaries. ARM
+        (nearly every phone, and a large share of embedded/IoT devices, including the native{' '}
+        <code>.so</code> libraries inside an APK from lesson 1) uses a genuinely different instruction set,
+        though the same core concepts — registers, a stack, a return address — still apply underneath:
+      </p>
+      <CodeBlock label="the same ideas, different names and syntax">{`x86-64          ARM (AArch64)     role
+RAX-R15          X0-X30              general-purpose registers (ARM has more of them)
+RSP               SP                   stack pointer
+RIP                PC                    program counter (ARM's name for the instruction pointer)
+(none)              X30 / LR               ARM keeps the return address in a dedicated Link Register
+                                            instead of always pushing it onto the stack like x86 does`}</CodeBlock>
+      <p>
+        That last row is the detail worth remembering even at a glance-only level of ARM fluency: because the
+        return address often lives in a register (LR) rather than always sitting on the stack, classic
+        stack-smashing mechanics don't transfer to ARM completely unchanged — a function has to explicitly
+        push LR onto the stack itself before a nested call can overwrite it, which shapes how ARM-specific
+        exploitation differs from the x86 stack layout this lesson has focused on.
+      </p>
+
       <h2>Reading common instructions</h2>
       <CodeBlock label="instructions you'll see constantly in disassembly">{`mov  %rax, %rbx      # copy value from rax into rbx (AT&T syntax: source, destination... reversed from Intel!)
 push %rbp             # push a value onto the stack (RSP decreases)

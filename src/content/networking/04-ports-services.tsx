@@ -33,6 +33,26 @@ export default function PortsServices() {
 6379  Redis        Often unauthenticated — write to disk for RCE
 8080  HTTP-alt     Common alternate web port, proxies, admin panels`}</CodeBlock>
 
+      <h2>Ports past the "essential list" you'll still see constantly</h2>
+      <CodeBlock label="a second tier worth recognizing on sight">{`1433   MSSQL        Microsoft SQL Server — same "weak creds -> RCE via xp_cmdshell" pattern as MySQL
+1521   Oracle DB     TNS listener — version leaks and default-account brute-forcing
+5900   VNC           Remote desktop, often unauthenticated or with a trivially weak password
+6667   IRC           Legacy chat protocol — still shows up as botnet/C2 channel infrastructure
+8443   HTTPS-alt      Common alternate TLS port for admin panels and management interfaces
+9200   Elasticsearch  Frequently exposed with zero authentication by default — full data dump
+27017  MongoDB        Same story as Elasticsearch/Redis — no-auth-by-default has burned it repeatedly`}</CodeBlock>
+      <p>
+        Notice the pattern across Redis, Elasticsearch, and MongoDB specifically: all three shipped for years
+        with no authentication enabled by default, trusting that "nobody would expose this to the internet."
+        Mass scanning proved that assumption wrong at scale, and unauthenticated instances of exactly these
+        services remain a recurring, entirely preventable source of real breaches.
+      </p>
+      <p>
+        The IANA Service Name and Transport Protocol Port Number Registry is the actual canonical source for
+        every officially-assigned port — worth knowing it exists for the rare case a scan turns up a
+        registered-but-unfamiliar port and a search engine isn't giving a fast enough answer.
+      </p>
+
       <h2>Why "port = protocol" is a dangerous assumption</h2>
       <p>
         Port numbers are a convention, not a law. A service can listen on any port — a web server on 4444,

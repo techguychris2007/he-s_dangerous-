@@ -65,6 +65,23 @@ years of exposure — often far larger in aggregate than what Company X itself p
         stronger security investment.
       </p>
 
+      <h2>Moral hazard: when the fix for one incentive problem creates another</h2>
+      <p>
+        Cyber insurance (covered from the process side in the Security+ module) is the textbook policy
+        response to the externality problem above — but it introduces a classic economics problem of its own:{' '}
+        <strong>moral hazard</strong>, where being insured against a risk reduces the insured party's own
+        incentive to prevent it. An organization that knows a breach's financial fallout is largely covered
+        has measurably less pressure to fund the security control that would have prevented it in the first
+        place — the same shifted-incentive pattern this lesson opened with, just relocated rather than solved.
+      </p>
+      <p>
+        Insurers have responded exactly the way the "lemons market" section predicts a rational market
+        eventually does: requiring evidence of baseline controls (MFA everywhere, tested backups, an incident
+        response retainer) before underwriting a policy at all, and pricing premiums against an
+        organization's actual security posture rather than treating every applicant as equally risky. This is
+        the market slowly re-aligning the incentive the insurance itself had loosened.
+      </p>
+
       <h2>Why this matters for you practically</h2>
       <p>
         Understanding security economics changes how you make a business case for a fix. "This is

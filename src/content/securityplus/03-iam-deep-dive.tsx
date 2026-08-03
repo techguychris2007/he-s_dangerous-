@@ -96,6 +96,30 @@ Kerberos — ticket-based authentication, the protocol behind Windows/Active Dir
         lateral-movement labs earlier in this course — PAM specifically exists to prevent that scenario.
       </p>
 
+      <h2>CIEM: IAM's newest discipline, for cloud specifically</h2>
+      <p>
+        Every access-control model above assumes a relatively contained set of identities. Cloud environments
+        break that assumption at scale — thousands of IAM roles, service accounts, and third-party
+        integrations, most granted broader permissions than they actually use, exactly the pattern the Cloud
+        Security module's IAM lesson covered from the offensive side.{' '}
+        <strong>CIEM (Cloud Infrastructure Entitlement Management)</strong> is the IAM discipline built
+        specifically to manage this: tooling that continuously inventories every identity's actual GRANTED
+        permissions against what it has ACTUALLY USED over time, surfacing the gap as a prioritized
+        least-privilege remediation list rather than a one-time audit.
+      </p>
+      <CodeBlock label="the gap CIEM exists to close">{`Service account "reporting-lambda":
+  GRANTED permissions:  s3:*, dynamodb:*, ec2:*        (broad, "we'll fix it later" access)
+  ACTUALLY USED (90-day observation window): s3:GetObject only
+
+-> CIEM flags this as a right-sizing candidate: scope the role down to exactly
+   s3:GetObject, closing the exact overprivilege gap an attacker who compromises
+   this function would otherwise inherit`}</CodeBlock>
+      <p>
+        This is the same least-privilege principle from earlier in this lesson, just applied continuously
+        and at a scale no manual quarterly access review could realistically keep up with across a large
+        cloud estate.
+      </p>
+
       <h2>Account lifecycle management</h2>
       <CodeBlock>{`Provisioning     — creating an account with correct initial access
 Access review     — periodic audit confirming access still matches job need (catches privilege creep)

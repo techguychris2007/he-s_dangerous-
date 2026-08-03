@@ -110,6 +110,18 @@ import DecoratorsAndClosures from '../content/code-python-advanced/01-decorators
 import GeneratorsAndContextManagers from '../content/code-python-advanced/02-generators-and-context-managers';
 import RegexConcurrencyAndCaching from '../content/code-python-advanced/03-regex-concurrency-and-caching';
 
+import MobileAppArchitectureAndAttackSurface from '../content/mobile/01-mobile-app-architecture-and-attack-surface';
+import StaticAnalysisOfAndroidApps from '../content/mobile/02-static-analysis-of-android-apps';
+import DynamicAnalysisAndInstrumentation from '../content/mobile/03-dynamic-analysis-and-instrumentation';
+import InsecureDataStorageAndCommunication from '../content/mobile/04-insecure-data-storage-and-communication';
+import IosFundamentalsAndMobileApiBackends from '../content/mobile/05-ios-fundamentals-and-mobile-api-backends';
+
+import Fundamentals80211AndAttackSurface from '../content/wireless/01-802-11-fundamentals-and-attack-surface';
+import EncryptionAndHandshakeCapture from '../content/wireless/02-encryption-and-handshake-capture';
+import CrackingHandshakesAndWpa3 from '../content/wireless/03-cracking-handshakes-and-wpa3';
+import RogueApsAndEvilTwinAttacks from '../content/wireless/04-rogue-aps-and-evil-twin-attacks';
+import BluetoothAndBleSecurity from '../content/wireless/05-bluetooth-and-ble-security';
+
 import SecurityEconomics from '../content/secengineering/01-security-economics';
 import SecureDesignPrinciples from '../content/secengineering/02-secure-design-principles';
 import ThreatModeling from '../content/secengineering/03-threat-modeling';

@@ -56,6 +56,24 @@ Authorization: Bearer <your-token>
         it called.
       </p>
 
+      <h2>Automating BOLA discovery across an entire ID range</h2>
+      <p>
+        Confirming BOLA on one guessed id proves the concept; a real engagement needs to know the actual
+        blast radius — how many other users' objects are reachable the same way. The same fuzzing tools from
+        the IDOR lesson apply directly to an API's numeric id space, just aimed at a JSON endpoint instead of
+        an HTML page:
+      </p>
+      <CodeBlock label="sweeping an id range with ffuf, authenticated as one low-privilege account">{`ffuf -u https://target.com/api/v2/invoices/FUZZ \\
+  -H "Authorization: Bearer <your-token>" \\
+  -w <(seq 1 5000) -mc 200 -fs 0
+# -w <(seq 1 5000)   generates ids 1-5000 on the fly, no wordlist file needed
+# -fs 0               filters out empty/zero-length responses, leaving only ids that actually returned data`}</CodeBlock>
+      <p>
+        The output — every id your single token could read — is exactly the number a report needs to convey
+        real impact: "this endpoint is missing an ownership check" is a much weaker finding than "this
+        endpoint let one low-privilege token read 4,812 other customers' invoices."
+      </p>
+
       <h2>Mass assignment: when the API accepts more fields than it should</h2>
       <p>
         Many frameworks let a developer bind an entire incoming JSON object directly onto a database model in

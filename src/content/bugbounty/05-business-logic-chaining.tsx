@@ -56,6 +56,29 @@ Business logic:    Does the WORKFLOW enforce the rules it's supposed to, in ever
         </p>
       </Callout>
 
+      <h2>Authorization matrix testing: a structured way to find these systematically</h2>
+      <p>
+        Hunting for logic flaws ad hoc — poking at whatever workflow catches your eye — works, but misses
+        coverage. A more systematic approach is to build an explicit matrix of every role the application
+        has against every sensitive action it exposes, then actually test each cell rather than assuming:
+      </p>
+      <CodeBlock label="an authorization matrix — one row per role, one column per action">{`ACTION              ANONYMOUS   FREE USER   PAID USER   ADMIN
+view own profile        no          yes         yes        yes
+view OTHER profile       no          no          no         yes
+delete own account        no          yes         yes        yes
+delete OTHER account       no          no          no         yes
+export billing report       no          no          yes        yes
+access admin dashboard       no          no          no         yes
+
+# for every cell marked "no," actually send that exact request as that exact role —
+# a matrix makes the gaps between "what SHOULD be forbidden" and "what's ACTUALLY forbidden" visible at a glance`}</CodeBlock>
+      <p>
+        This is the same underlying idea as the BFLA discovery workflow from the API Security module (diffing
+        what a normal user's session can reach against what an admin's can), generalized into a reusable
+        checklist — building the matrix once per target turns "did I check everything" from a guess into
+        something you can point at and verify.
+      </p>
+
       <h2>Chaining: why two Low findings can be worth more than one Medium</h2>
       <p>
         Triage rubrics score a single finding in isolation, but real impact often comes from combining two

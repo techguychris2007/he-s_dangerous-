@@ -92,6 +92,17 @@ DEPLOY:      live -- the exact rule the "SOC: Detecting Kerberoasting" lab has y
         is precisely what makes the request pattern detectable in the first place.
       </p>
 
+      <h2>Why tuning discipline matters this much: the scale of alert fatigue</h2>
+      <p>
+        The false-positive cost this lesson keeps warning about isn't hypothetical — industry surveys of SOC
+        teams have repeatedly found that a large share of daily alerts (frequently cited around 40-50% in
+        published analyst surveys) go uninvestigated purely due to volume, and a comparable share of analysts
+        report having missed or deliberately ignored an alert that later turned out to matter. This is the
+        concrete, measured version of the exact failure mode behind the 2013 Target breach cited above — not
+        a one-off failure, but a predictable outcome of alert volume outpacing analyst capacity, which is
+        precisely why tuning is treated as core detection-engineering work rather than optional cleanup.
+      </p>
+
       <h2>Detection-as-code</h2>
       <p>
         Mature detection engineering teams store rules as version-controlled files (often YAML or a

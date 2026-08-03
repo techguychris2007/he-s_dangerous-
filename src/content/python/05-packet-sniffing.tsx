@@ -82,6 +82,18 @@ def parse_ip_header(raw_packet):
         print or match against.
       </p>
 
+      <h2>Why a switch mostly defeats this, and what ARP spoofing does about it</h2>
+      <p>
+        On a hub (broadcast to every port), the raw sniffer above would see all traffic on the segment for
+        free. Virtually every real network today uses switches instead, which forward each frame only to the
+        port the destination MAC address actually lives on — so plugging in and sniffing typically shows you
+        only your own traffic and broadcast frames, not your neighbors'. This is precisely why ARP
+        spoofing/poisoning (introduced in the OSI lesson's L2-attacks list back in Module 1) exists as a
+        technique: by sending forged ARP replies, an attacker tricks nearby hosts into routing their traffic{' '}
+        <em>through</em> the attacker's machine first, turning a switched network back into something
+        sniffable — a real man-in-the-middle position, not just passive listening on a shared wire.
+      </p>
+
       <h2>The same capture, in scapy</h2>
       <p>
         Manually unpacking every protocol's header by hand is exactly the tedious, error-prone work{' '}

@@ -35,6 +35,25 @@ export default function CloudSecurityFundamentals() {
 # a misconfigured bucket returns a full XML listing of every object inside —
 # no credentials needed at all`}</CodeBlock>
 
+      <h2>The same mistake, three different provider names</h2>
+      <p>
+        Everything in this module uses AWS terminology since it's the market leader, but every major provider
+        has a direct equivalent — and the exact same misconfiguration pattern shows up on all three, just
+        under a different service name:
+      </p>
+      <CodeBlock label="the same failure mode, mapped across providers">{`Object storage        AWS S3              Azure Blob Storage         GCP Cloud Storage
+IAM                    AWS IAM              Azure Entra ID (RBAC)      GCP IAM
+Metadata service        169.254.169.254      169.254.169.254            169.254.169.254 (same address,
+                                                                          different response format)
+Secrets manager           AWS Secrets Manager   Azure Key Vault            GCP Secret Manager
+Audit logging               AWS CloudTrail        Azure Activity Log         GCP Cloud Audit Logs`}</CodeBlock>
+      <p>
+        Notice the metadata service address is identical across all three — 169.254.169.254 is a
+        link-local address reserved for exactly this purpose, which is why an SSRF-to-credential-theft
+        finding transfers almost mechanically from an AWS engagement to an Azure or GCP one: same address,
+        same underlying attack, just a different JSON shape in the response.
+      </p>
+
       <h2>The instance metadata service: cloud's signature SSRF target</h2>
       <p>
         Every major cloud provider runs a metadata service reachable only from inside a running instance,

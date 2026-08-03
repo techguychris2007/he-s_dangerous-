@@ -113,6 +113,30 @@ def check_with_delay(path):
         </p>
       </Callout>
 
+      <h2>Routing through a proxy — pivoting your own tooling</h2>
+      <p>
+        Once you have a foothold and need to reach a second network segment only visible from that
+        compromised host, your Python tools need to route through it too — not just your browser. Setting up
+        a SOCKS proxy (an SSH dynamic-forward tunnel, or a purpose-built tool like Chisel, tunneling a SOCKS
+        proxy back through the compromised host) turns that host into a pivot point; <code>requests</code>{' '}
+        just needs to know to use it:
+      </p>
+      <CodeBlock label="routing requests through a SOCKS proxy tunneled via a pivot host">{`import requests
+
+proxies = {
+    "http": "socks5h://127.0.0.1:1080",
+    "https": "socks5h://127.0.0.1:1080",
+}
+resp = requests.get("http://172.16.5.10/internal-app", proxies=proxies, timeout=5)
+# socks5h (not socks5) matters: the 'h' means DNS resolution happens on the PROXY side too —
+# critical when the target hostname only resolves from inside the pivoted network at all`}</CodeBlock>
+      <p>
+        That <code>socks5h</code> vs <code>socks5</code> distinction is an easy, silent mistake: get it wrong
+        and your script fails to resolve a hostname that only exists on the internal DNS server behind the
+        pivot, with an error that looks like a connectivity problem rather than the actual DNS-resolution
+        issue it is.
+      </p>
+
       <h2>Beyond threads: when asyncio/aiohttp is the better tool</h2>
       <p>
         <code>ThreadPoolExecutor</code> is simple and works well into the hundreds of concurrent requests,

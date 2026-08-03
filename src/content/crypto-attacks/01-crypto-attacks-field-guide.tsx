@@ -78,6 +78,27 @@ three base64 segments
         encoded string someone mistook for a hash).
       </p>
 
+      <h2>A fifth pattern: non-constant-time comparison</h2>
+      <p>
+        Even a correct algorithm with a correct key can leak through <em>how</em> a comparison is coded.
+        Standard string/byte equality (<code>==</code>, most languages' default <code>equals</code>) returns
+        as soon as it finds the first mismatched byte — which means comparing a submitted token against the
+        real one takes measurably longer the more LEADING bytes happen to match. Given enough requests and
+        precise enough timing, an attacker can recover a secret token one byte at a time by trying every
+        possible next byte and keeping whichever one made the response take fractionally longer.
+      </p>
+      <CodeBlock label="the vulnerable pattern vs. the fix">{`# vulnerable — early-exit comparison leaks timing information
+if submitted_token == real_token: ...
+
+# fixed — constant-time comparison always examines every byte, regardless of where a mismatch is
+import hmac
+if hmac.compare_digest(submitted_token, real_token): ...`}</CodeBlock>
+      <p>
+        This is a genuinely subtle bug class — the timing difference per byte is often microseconds, requiring
+        many samples averaged together to detect over a real network — but it's a standard, real category
+        auditors specifically check for on anything comparing API keys, HMAC signatures, or session tokens.
+      </p>
+
       <Callout variant="tip">
         <p>
           Every technique in this module targets an <em>implementation choice</em>, not the underlying math.

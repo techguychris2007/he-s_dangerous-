@@ -87,6 +87,29 @@ sigma-cli convert -t splunk sigma/rules/windows/process_creation/proc_creation_w
         role STIX/TAXII plays for threat intelligence feeds, covered in the next lesson.
       </p>
 
+      <h2>Correlation rules: Sigma beyond a single log line</h2>
+      <p>
+        Everything above matches one event at a time — one process-creation line, one field value. Newer
+        Sigma tooling adds <strong>correlation rules</strong>, which reference one or more base Sigma rules
+        and add logic across MULTIPLE matching events — exactly the "many failed logins, then one success"
+        shape covered elsewhere in this module, but now expressible in the same vendor-neutral YAML format
+        instead of being locked into one platform's own correlation-rule syntax.
+      </p>
+      <CodeBlock label="a correlation rule referencing a base detection, simplified">{`correlation:
+  type: event_count
+  rules:
+    - failed_logon_rule          # references a separate, already-defined Sigma detection rule
+  group-by:
+    - User
+  timespan: 5m
+  condition:
+    gte: 10                       # 10+ matches of the referenced rule, same user, within 5 minutes`}</CodeBlock>
+      <p>
+        This closes the gap between Sigma and the SIEM-native correlation rules from the previous module —
+        the same volume-and-timing logic, now written once and portable across backends like every other
+        Sigma rule in this lesson.
+      </p>
+
       <Callout variant="warn">
         <p>
           A converted Sigma rule is a starting point, not a finished product — the backtesting and tuning

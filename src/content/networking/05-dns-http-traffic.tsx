@@ -140,6 +140,18 @@ tcp.flags.syn == 1 && tcp.flags.ack == 0   # only the initial SYN of each handsh
         </p>
       </Callout>
 
+      <h2>DNS-over-HTTPS: when even DNS stops being visible on the wire</h2>
+      <p>
+        Everything above assumes DNS queries are plaintext UDP/53 — visible to any packet capture, any
+        network-level monitoring, any DNS-based content filter. <strong>DNS-over-HTTPS (DoH)</strong> and{' '}
+        <strong>DNS-over-TLS (DoT)</strong> break that assumption by wrapping the query inside an encrypted
+        HTTPS/TLS connection, often to a third-party resolver entirely outside the organization's own DNS
+        infrastructure. Defensively, this is exactly why DoH is a genuine headache for network monitoring: a
+        DoH query to a public resolver is, at the packet level, indistinguishable from any other HTTPS
+        request to that same IP — the DNS-based blocklists and monitoring this lesson's zone-transfer and
+        record-enumeration techniques both assume being visible on the wire simply don't see it at all.
+      </p>
+
       <h2>What's next</h2>
       <p>
         You now have the networking foundation the rest of this course builds on. Module 2 moves to the

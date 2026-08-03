@@ -44,6 +44,29 @@ THEN generate a brute-force alert`}</CodeBlock>
         weak individual signals into one strong one.
       </p>
 
+      <h2>Risk-based alerting: scoring instead of a hard threshold</h2>
+      <p>
+        A binary threshold rule (25 failures in 2 minutes, yes/no) treats every account identically — but a
+        service account with a documented retry loop and a domain admin account should never trigger the same
+        response at the same threshold.{' '}
+        <strong>Risk-based alerting (RBA)</strong> replaces the hard cutoff with an accumulating risk score:
+        many individually sub-threshold signals add points to an entity's running score over a rolling window,
+        and an alert fires only once the TOTAL crosses a bar — letting a handful of small anomalies on a
+        high-value account surface just as reliably as one big anomaly on an ordinary one.
+      </p>
+      <CodeBlock label="the same account, scored instead of threshold-checked">{`10 failed logins (below the 25-event threshold, would NOT fire a plain threshold rule)   +15 risk points
+login from a new, never-seen-before country                                                +25 risk points
+account is tagged "privileged" (domain admin)                                                +20 risk points
+                                                                                    running total: 60 points
+-> risk threshold for this account tier is 50 -> ALERT, despite no single signal
+   crossing a hard threshold on its own`}</CodeBlock>
+      <p>
+        This is precisely why RBA and UEBA (the following module's subject) are usually implemented
+        together in modern SIEMs — a risk score is the natural place to fold in a behavioral baseline
+        deviation alongside rule-based signals, rather than keeping "did a rule fire" and "does this look
+        anomalous for this user" as two entirely separate, un-combined outputs.
+      </p>
+
       <h2>Tuning: the skill that actually matters day to day</h2>
       <p>
         A rule that fires correctly in a vacuum still fails in production if it also fires constantly on

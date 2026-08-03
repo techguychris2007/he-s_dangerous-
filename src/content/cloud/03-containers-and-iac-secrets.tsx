@@ -103,6 +103,31 @@ grep -A2 '"password"' terraform.tfstate
         server's local disk after a CI job finishes.
       </p>
 
+      <h2>Catching this before it deploys: Trivy and Checkov</h2>
+      <p>
+        Everything above describes finding these issues after deployment. <strong>Trivy</strong> and{' '}
+        <strong>Checkov</strong> catch the same categories of bug earlier, scanning the source artifacts
+        directly — a Dockerfile, a Terraform plan, a Kubernetes manifest — before anything ever reaches a
+        real cloud account, which is exactly why both show up constantly as a required CI pipeline step
+        rather than just a manual audit tool.
+      </p>
+      <CodeBlock label="Trivy — vulnerabilities AND misconfigurations, across containers and IaC alike">{`trivy image myapp:latest              # scans a built container image for known CVEs in its OS packages
+                                        # and language dependencies — catches an outdated base image before
+                                        # it ships, the container equivalent of checking service versions
+trivy config ./terraform/                # scans Terraform/Kubernetes/Dockerfile source directly for
+                                          # misconfigurations — e.g. flags exactly the plaintext-password
+                                          # pattern shown above before it's ever applied`}</CodeBlock>
+      <CodeBlock label="Checkov — deep policy-as-code checks, especially strong on Terraform">{`checkov -d ./terraform/
+# runs hundreds of built-in policy checks against Terraform/CloudFormation/Kubernetes source,
+# each mapped to a specific compliance framework control (CIS, SOC 2, PCI DSS) — output includes
+# exactly which file and line violates which named check, ready to paste into a PR comment`}</CodeBlock>
+      <p>
+        Both tools are increasingly run as a mandatory pre-merge CI gate rather than an occasional manual
+        pass — catching the plaintext-password-in-Terraform pattern from earlier in this lesson at pull-request
+        time is a fundamentally cheaper fix than catching it after the resource is already live with a real
+        credential inside it.
+      </p>
+
       <h2>Serverless functions: least privilege for code you don't manage the runtime of</h2>
       <p>
         A serverless function (AWS Lambda, Azure Functions, Google Cloud Functions) runs with whatever IAM

@@ -87,6 +87,31 @@ HKLM\\SOFTWARE\\Microsoft\\Windows Portable Devices\\Devices\\
         </p>
       </Callout>
 
+      <h2>Prefetch: proof a program actually EXECUTED, not just existed</h2>
+      <p>
+        Every artifact so far proves something arrived or connected — Prefetch proves something{' '}
+        <em>ran</em>. Windows creates a small <code>.pf</code> file in <code>C:\Windows\Prefetch</code> the
+        first time any executable launches (a performance feature, meant to speed up subsequent loads), and
+        keeps updating it on every run after — recording the full path, a run count, and the last several
+        execution timestamps. This is precisely the artifact that answers "did the malware actually execute,
+        or did it just sit unopened in the Downloads folder" — a distinction "I never downloaded that"-style
+        claims from the browser-history section above can't settle on their own.
+      </p>
+      <CodeBlock label="what a Prefetch file confirms that a mere file-on-disk finding can't">{`# filename encodes the executable name + a hash of its path:
+MALICIOUS.EXE-3F8A1C29.pf
+
+# parsed, it reveals:
+Run count: 4
+Last run:  2026-01-15 09:14:22
+Previous runs: 2026-01-14 22:03:11, 2026-01-14 21:58:47, 2026-01-14 21:41:05
+# four separate executions across two days — not a single accidental double-click`}</CodeBlock>
+      <p>
+        Cross-referencing Prefetch's run timestamps against the browser download timestamp from earlier in
+        this lesson is exactly the kind of multi-source correlation real DFIR reports lean on: the download
+        record proves delivery, Prefetch proves execution, and together they close the gap a single artifact
+        type always leaves open on its own.
+      </p>
+
       <h2>Web shell discovery: finding what an attacker left running</h2>
       <p>
         A web shell is a small script an attacker uploads to a compromised web server that gives them a

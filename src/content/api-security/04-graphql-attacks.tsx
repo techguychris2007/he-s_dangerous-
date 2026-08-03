@@ -77,6 +77,26 @@ POST /graphql
 # Without a query-depth limit, this can be nested dozens of levels deep — a denial-of-service
 # vector distinct from anything traditional REST rate-limiting was built to catch.`}</CodeBlock>
 
+      <h2>The actual fix: query cost analysis, not just a depth limit</h2>
+      <p>
+        A flat depth limit (e.g. "reject anything nested more than 10 levels") is the naive defense, and
+        it's easy to defeat: a wide-but-shallow query requesting thousands of fields at depth 3 can cost the
+        server far more than a narrow query nested 15 levels deep. Production GraphQL servers instead assign
+        a computed <strong>cost</strong> to every field (based on how expensive it is to resolve and how many
+        results it can return) and reject a query if its total cost exceeds a budget — capturing both "too
+        deep" and "too wide" in a single number, before executing a single resolver:
+      </p>
+      <CodeBlock label="cost-based limiting, conceptually">{`query cost = sum of (field cost x expected result count) across every field requested
+# a "posts" field returning up to 100 items, each with a nested "comments" field
+# returning up to 50 items, costs roughly 100 * 50 = 5,000 — rejected before execution
+# if the server's configured budget is, say, 1,000`}</CodeBlock>
+      <p>
+        Knowing this is the real defense (not just depth) is directly useful offensively too: a "wide" query
+        that fans out across many fields at a shallow depth is worth testing specifically against a target
+        that appears to have a depth limit but no cost analysis — it's a distinct bypass, not just a variant
+        of the same attack.
+      </p>
+
       <Callout variant="tip">
         <p>
           A schema-first mindset speeds up every GraphQL engagement: get the introspection result (or the

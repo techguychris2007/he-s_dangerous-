@@ -78,6 +78,22 @@ API10 Unsafe Consumption of APIs                    -> trusting a third-party AP
         </p>
       </Callout>
 
+      <h2>The fastest recon shortcut: the API's own published spec</h2>
+      <p>
+        Before manually reconstructing an API's shape from captured traffic, check whether it's already
+        documented its entire self for you — most REST APIs built with a modern framework auto-generate an
+        OpenAPI (formerly "Swagger") specification, and plenty of teams accidentally leave it reachable in
+        production alongside the API itself.
+      </p>
+      <CodeBlock label="checking the standard spec locations before doing anything else">{`curl https://target.com/api/swagger.json
+curl https://target.com/api/openapi.yaml
+curl https://target.com/api/v1/swagger-ui.html   # sometimes the interactive docs UI itself is exposed`}</CodeBlock>
+      <p>
+        A live spec hands you every endpoint, every parameter, every expected request/response shape — the
+        exact "capture one working request and modify it" workflow above, except for the entire API at once
+        instead of one endpoint at a time.
+      </p>
+
       <h2>API versioning and the inventory problem</h2>
       <p>
         Because breaking an API breaks every client depending on it, teams almost never delete an old version —

@@ -103,6 +103,37 @@ ping("d")                          # raises RuntimeError — 4th call exceeds th
         </p>
       </Callout>
 
+      <h2>Class-based decorators: when a decorator needs to hold real state</h2>
+      <p>
+        The <code>rate_limit</code> decorator above smuggled its counter into a closure using a one-item list
+        (<code>calls = [0]</code>) — a common but slightly awkward workaround, since a plain integer in a
+        closure can't be reassigned from the inner function directly. A class-based decorator, using{' '}
+        <code>__call__</code> to make an instance itself callable, often reads more clearly once a decorator
+        needs to track real state:
+      </p>
+      <CodeBlock label="the same rate limiter, as a class instead of nested closures">{`class RateLimit:
+    def __init__(self, max_calls):
+        self.max_calls = max_calls
+        self.calls = 0
+
+    def __call__(self, func):
+        def wrapper(*args, **kwargs):
+            if self.calls >= self.max_calls:
+                raise RuntimeError("Rate limit exceeded")
+            self.calls += 1
+            return func(*args, **kwargs)
+        return wrapper
+
+@RateLimit(3)
+def ping(host):
+    return f"pong from {host}"`}</CodeBlock>
+      <p>
+        <code>@RateLimit(3)</code> first creates a <code>RateLimit</code> instance, then Python applies it as
+        the decorator by calling that instance — which is exactly what <code>__call__</code> enables. Reach
+        for this style once a decorator's internal state is complex enough that a plain closure variable
+        starts feeling like a workaround rather than a natural fit.
+      </p>
+
       <h2>functools.wraps — preserving the original function's identity</h2>
       <CodeBlock label="a small but important detail">{`from functools import wraps
 

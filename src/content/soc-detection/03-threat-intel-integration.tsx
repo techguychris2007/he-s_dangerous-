@@ -70,6 +70,42 @@ TIER 2 (alert, human review): broader community/open-source feeds — useful sig
         published by a completely different organization without custom integration work for every single
         source.
       </p>
+      <p>
+        Two open-source platforms dominate how organizations actually run this in practice.{' '}
+        <strong>MISP</strong> (Malware Information Sharing Platform) is built for exactly the IOC-sharing use
+        case this lesson has covered — storing, tagging, and correlating indicators, and distributing them to
+        other MISP instances across an ISAC or industry-sharing community. <strong>OpenCTI</strong> takes a
+        different angle: instead of just listing indicators, it builds a STIX 2.1 knowledge graph connecting
+        threat actors, campaigns, TTPs, and IOCs to each other — useful once a SOC wants to answer not just
+        "is this IP bad" but "which known actor uses this infrastructure, and what else do they typically do."
+        Many mature threat-intel programs run both side by side.
+      </p>
+
+      <h2>The Pyramid of Pain: not every IOC is worth the same effort</h2>
+      <p>
+        Not all the indicator types from earlier in this lesson deserve equal attention. Security researcher
+        David Bianco's Pyramid of Pain (2013) ranks indicator types by one question: how much genuine cost does
+        blocking this indicator actually impose on the attacker?
+      </p>
+      <CodeBlock label="the Pyramid of Pain, bottom (trivial) to top (severe)">{`Hash values        -- trivial: one byte changed anywhere regenerates a completely new hash
+IP addresses         -- easy: new infrastructure is minutes away, cheap and disposable
+Domain names           -- mildly annoying: re-registering a domain takes a little more effort
+Network/host artifacts   -- annoying: a distinctive User-Agent or registry key means retooling
+Tools                      -- painful: losing a whole tool (a C2 framework, a packer) costs real
+                               development time to replace
+TTPs (Tactics, Techniques,    -- SEVERE: this is HOW they operate. Forcing a change here means
+  and Procedures)               retraining people and rebuilding tradecraft, not just re-hosting a file`}</CodeBlock>
+      <Callout variant="tip">
+        <p>
+          This is the exact tension this lesson opened with: IOC matching (hashes, IPs, domains — the bottom
+          of the pyramid) is fast and cheap to act on, but an attacker shrugs it off by rotating infrastructure
+          in minutes. Detection built on TTPs — the kind Sigma rules and MITRE ATT&amp;CK mappings target, the
+          subject of the next lesson — sits at the top of the pyramid precisely because it's so much harder
+          for an attacker to simply route around. Neither layer is optional: IOC matching catches the cheap,
+          fast win today; TTP-based detection is what still works after the attacker changes every piece of
+          infrastructure this feed currently knows about.
+        </p>
+      </Callout>
 
       <Callout variant="incident">
         <p>

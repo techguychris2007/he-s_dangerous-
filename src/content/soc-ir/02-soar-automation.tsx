@@ -59,6 +59,19 @@ Typical manual completion time for the same 4 steps:  ~22 minutes`}</CodeBlock>
         automated action here can exceed the cost of the incident it was meant to prevent.</li>
       </ul>
 
+      <h2>The platforms you'll actually see named in job postings and reports</h2>
+      <p>
+        <strong>Splunk SOAR</strong> (formerly Phantom) and <strong>Palo Alto Cortex XSOAR</strong> (formerly
+        Demisto) are the two long-standing dedicated SOAR platforms most enterprise SOCs reference by name —
+        both center on exactly the visual playbook-builder concept this lesson describes, with a large
+        marketplace of pre-built integrations for common tools (firewalls, EDR, ticketing). Microsoft Sentinel
+        takes a different path: rather than a separate product, its <strong>Playbooks</strong> are built
+        directly on Azure Logic Apps, meaning Sentinel's automation is really general-purpose cloud workflow
+        automation repurposed for security — powerful and deeply integrated with the rest of Azure, at the
+        cost of a steeper learning curve than a purpose-built security tool for a team not already fluent in
+        Logic Apps.
+      </p>
+
       <h2>Human-in-the-loop vs. fully automated</h2>
       <p>
         Many real SOAR deployments use a hybrid model: the playbook drafts and stages every action

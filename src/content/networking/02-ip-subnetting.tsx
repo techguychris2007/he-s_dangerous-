@@ -102,6 +102,17 @@ nmap -sn -iL targets.txt                     # or just hand nmap the CIDR direct
       <CodeBlock label="don't forget the -6 flag exists">{`nmap -6 2001:db8::5              # nmap won't touch IPv6 targets unless you explicitly ask
 ping6 fe80::1%eth0                  # link-local addresses require specifying the interface`}</CodeBlock>
 
+      <h2>Supernetting: CIDR aggregation in the other direction</h2>
+      <p>
+        Subnetting splits a block down; <strong>supernetting</strong> (CIDR aggregation) merges adjacent
+        blocks up into one shorter, larger prefix — the same mechanism, run backwards. If a scope hands you{' '}
+        <code>10.10.10.0/24</code> and <code>10.10.11.0/24</code> as two separate lines, they may actually
+        be one contiguous <code>10.10.10.0/23</code> — worth confirming, since one merged discovery scan
+        against a /23 is faster than reasoning about two /24s as if they were unrelated. This is also
+        exactly how internet routers keep their tables manageable: ISPs advertise one aggregated route
+        instead of thousands of individual customer /24s.
+      </p>
+
       <h2>Subnetting mistakes that waste real engagement time</h2>
       <ul>
         <li>Scanning <code>/24</code> when the client's scope document actually says <code>/23</code> — you

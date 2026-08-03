@@ -32,6 +32,28 @@ Exfiltration                        ██░░░░░░░░  (weak: only 
         Exfiltration, before anything in this environment has a real chance of catching them.
       </p>
 
+      <h2>ATT&amp;CK Navigator: the real tool behind the map</h2>
+      <p>
+        The colored-bar visualization above isn't just illustrative — MITRE publishes a free, purpose-built
+        web tool for exactly this called the <strong>ATT&amp;CK Navigator</strong>. It renders the full
+        matrix (every tactic column, every technique underneath it) and lets a team color-code, annotate, and
+        score each cell directly — the same coverage-status shading shown above, produced as a real,
+        shareable, exportable layer file rather than a one-off spreadsheet.
+      </p>
+      <CodeBlock label="a Navigator layer file — the actual JSON format a coverage map is saved as">{`{
+  "name": "Q3 2026 Detection Coverage",
+  "domain": "enterprise-attack",
+  "techniques": [
+    { "techniqueID": "T1021.001", "score": 0, "comment": "No detection — RDP lateral movement" },
+    { "techniqueID": "T1566.001", "score": 100, "comment": "Covered by email gateway + EDR" }
+  ]
+}`}</CodeBlock>
+      <p>
+        Because it's a standard file format, a Navigator layer can be diffed release to release — showing
+        exactly which cells moved from red to green after a quarter's detection-engineering work, and
+        exported directly into a report for the budget conversation the tip below describes.
+      </p>
+
       <h2>Why this exact gap is so common in real environments</h2>
       <p>
         SOCs naturally build the strongest detection coverage around the stages that are easiest to log and

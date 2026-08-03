@@ -123,6 +123,23 @@ done`}</CodeBlock>
 # -e: exit on any error
 # -u: error on undefined variables
 # -o pipefail: a failed command in a pipe fails the whole pipeline`}</CodeBlock>
+
+      <h2>trap: cleaning up no matter how the script exits</h2>
+      <p>
+        <code>set -e</code> stops a script on error, but doesn't clean anything up on the way out — a scan
+        script that creates a temp file or leaves a background listener running will leak it every time the
+        script dies early. <code>trap</code> registers a command to run automatically on exit, whether that
+        exit is normal, an error, or a Ctrl+C:
+      </p>
+      <CodeBlock label="guaranteed cleanup, regardless of how the script ends">{`tmpfile=$(mktemp)
+trap 'rm -f "$tmpfile"' EXIT
+# ... use $tmpfile for scratch work ...
+# it's deleted automatically here, whether the script finished normally, hit 'set -e', or was Ctrl+C'd`}</CodeBlock>
+      <p>
+        This same pattern is exactly how you'd make a scanning script kill its own background listener on
+        exit instead of leaving an orphaned <code>nc -l</code> process behind every time you stop it early.
+      </p>
+
       <p>
         You'll practice writing and reading exactly these patterns as you work through the labs — several
         of the lab hints reference small shell idioms like these.

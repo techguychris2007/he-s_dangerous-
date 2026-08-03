@@ -90,6 +90,32 @@ async def check_hosts_concurrently(hosts_with_delays):
         code built around network I/O.
       </p>
 
+      <h2>When the GIL actually blocks you: multiprocessing</h2>
+      <p>
+        Threading and asyncio both speed up I/O-bound waiting, but neither helps genuinely CPU-bound work
+        (hashing millions of candidate passwords, say) — Python's Global Interpreter Lock means only one
+        thread executes Python bytecode at a time, no matter how many threads you spin up.{' '}
+        <code>multiprocessing</code> sidesteps the GIL entirely by using separate OS processes, each with its
+        own interpreter and memory space, and is the correct tool specifically when the bottleneck is CPU,
+        not network waiting:
+      </p>
+      <CodeBlock label="hashing candidates across real parallel processes">{`from multiprocessing import Pool
+import hashlib
+
+def hash_candidate(word):
+    return word, hashlib.sha256(word.encode()).hexdigest()
+
+if __name__ == "__main__":
+    candidates = ["password1", "letmein", "hunter2"]   # in practice, a large wordlist
+    with Pool(processes=4) as pool:
+        results = pool.map(hash_candidate, candidates)   # genuinely runs on 4 separate CPU cores at once`}</CodeBlock>
+      <p>
+        The rule of thumb this closes out: threading/asyncio for I/O-bound work (network calls, file reads —
+        the vast majority of this course's scanning and recon tooling), multiprocessing for CPU-bound work
+        (hashing, cracking, heavy computation) — picking the wrong one for the bottleneck you actually have is
+        a common reason a "concurrent" rewrite doesn't actually get any faster.
+      </p>
+
       <h2>Caching expensive work with functools.lru_cache</h2>
       <CodeBlock label="memoization in one line">{`from functools import lru_cache
 

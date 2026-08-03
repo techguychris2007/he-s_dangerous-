@@ -44,6 +44,19 @@ Hunt query idea:
         *combinations* of legitimate tool usage is how these get caught.</li>
       </ul>
 
+      <h2>TaHiTI: giving the hunting process itself a repeatable structure</h2>
+      <p>
+        The hypothesis-driven approach above is the core idea, but real hunt teams usually run it inside a
+        named, repeatable methodology rather than reinventing the process every time. <strong>TaHiTI</strong>{' '}
+        (Targeted Hunting integrating Threat Intelligence), developed by a consortium of Dutch financial
+        institutions and widely adopted since, breaks a hunt into three phases: <strong>initiate</strong>{' '}
+        (turn a trigger — new threat intel, an anomaly, a colleague's finding — into a documented, testable
+        hypothesis), <strong>hunt</strong> (the actual data investigation, exactly like the C2-beaconing
+        example above), and <strong>finalize</strong> (document results and, whether or not anything was
+        found, feed the outcome back — a confirmed technique becomes a new detection rule, a hypothesis that
+        found nothing still gets recorded so the same ground isn't re-hunted from scratch next quarter).
+      </p>
+
       <h2>Detection engineering: closing the loop</h2>
       <p>
         Every successful hunt should produce a new detection rule so the SOC catches that technique

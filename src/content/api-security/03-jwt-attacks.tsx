@@ -77,6 +77,30 @@ payload -> {"sub":"42","role":"user"}`}</CodeBlock>
         attacker-chosen "key" (empty string) that the server will then use to verify it right back.
       </p>
 
+      <h2>Attack 5: audience confusion — a valid token, issued for the wrong service</h2>
+      <p>
+        A JWT's <code>aud</code> (audience) claim is supposed to record which specific service the token was
+        issued for — a token minted for "the mobile app's file-upload service" shouldn't also work against
+        "the internal admin API," even though both trust tokens signed by the same identity provider. Plenty
+        of implementations verify the signature correctly but never check <code>aud</code> against their own
+        expected value, which means a completely legitimate, correctly-signed token from ANY service sharing
+        that signing key works everywhere, not just where it was meant to.
+      </p>
+      <CodeBlock label="the same token, replayed against a service it was never issued for">{`# a real token, legitimately issued for the low-stakes "newsletter-signup" service:
+{"sub": "42", "aud": "newsletter-signup", "role": "user"}
+
+# replayed as-is against the admin API, which shares the same signing key/provider
+# but never actually checks that aud == "admin-api":
+curl -H "Authorization: Bearer <token above>" https://target.com/admin-api/users
+# if the admin API only verifies the SIGNATURE and never checks WHO the token was actually for,
+# this succeeds despite the token never having been issued with the admin API in mind at all`}</CodeBlock>
+      <p>
+        This matters most in real organizations using a single identity provider (Auth0, Okta, a shared
+        internal SSO) across many independent backend services — exactly the setup where it's easy for one
+        service's team to forget that "signature valid" and "this token was actually meant for us" are two
+        separate checks.
+      </p>
+
       <Callout variant="tip">
         <p>
           Before trying anything above, always check the token's exposed metadata first: the <code>alg</code>{' '}

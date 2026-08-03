@@ -82,6 +82,28 @@ redacted = re.sub(r"\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}", "[REDACTED]", te
         </p>
       </Callout>
 
+      <h2>Named capture groups — extracting structured fields, not just whole matches</h2>
+      <p>
+        <code>re.findall</code> and <code>re.search</code> above return the whole match as one block. Once a
+        log line has multiple fields you want separately — timestamp, event type, username — named groups let
+        you extract each field by name instead of by fragile positional index:
+      </p>
+      <CodeBlock label="named groups with (?P&lt;name&gt;...)">{`import re
+
+line = "2024-01-01 09:00:01 FAILED_LOGIN user=alice"
+pattern = r"(?P<date>\\S+) (?P<time>\\S+) (?P<event>\\S+) user=(?P<user>\\w+)"
+
+match = re.search(pattern, line)
+if match:
+    print(match.group("event"))    # "FAILED_LOGIN"
+    print(match.group("user"))      # "alice"
+    print(match.groupdict())         # {'date': '2024-01-01', 'time': '09:00:01', 'event': 'FAILED_LOGIN', 'user': 'alice'}`}</CodeBlock>
+      <p>
+        <code>.groupdict()</code> is the payoff: one call turns an entire structured log line directly into a
+        dictionary, ready to append to a list of parsed results or write straight to JSON — no manual
+        splitting or counting field positions required.
+      </p>
+
       <h2>Working with multi-line text</h2>
       <CodeBlock label="splitlines and iterating a log dump">{`log_dump = """2024-01-01 09:00:01 FAILED_LOGIN user=alice
 2024-01-01 09:00:05 SUCCESS user=bob

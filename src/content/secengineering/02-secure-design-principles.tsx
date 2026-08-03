@@ -83,6 +83,29 @@ Firewall:
         the published design and failed, not because the design was hidden from them.
       </p>
 
+      <h2>Least Common Mechanism: the eighth classic principle</h2>
+      <p>
+        The list above covers seven of the eight principles Jerome Saltzer and Michael Schroeder formally
+        codified in their foundational 1975 paper "The Protection of Information in Computer Systems" — the
+        eighth, <strong>Least Common Mechanism</strong>, says to minimize the amount of infrastructure shared
+        between users or processes that don't need to share it. Every shared mechanism (a shared cache, a
+        shared temp directory, a shared library loaded into multiple processes) is a potential channel for
+        one user or process to affect, observe, or interfere with another — even when no individual access
+        control rule was technically violated.
+      </p>
+      <CodeBlock label="where this shows up as a real vulnerability class">{`Shared /tmp directory     -> a predictable temp-file name lets one user's process interfere with
+                             another's (a classic local privilege-escalation and race-condition source)
+Multi-tenant cloud hardware -> side-channel attacks (Spectre/Melttdown-class) exploit shared CPU
+                                caches between tenants who are otherwise fully permission-isolated
+Shared library loaded into
+  multiple unrelated processes -> a compromised or malicious shared library affects every process
+                                   that loads it, regardless of those processes' own individual permissions`}</CodeBlock>
+      <p>
+        This is precisely why container and VM isolation exist as a stronger boundary than process-level
+        permissions alone — they reduce shared mechanism (a shared kernel, shared hardware) as an explicit
+        design goal, not just an access-control afterthought.
+      </p>
+
       <h2>The principle of least astonishment</h2>
       <p>
         A system should behave the way a reasonable user expects it to. When a security control behaves

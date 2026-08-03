@@ -57,6 +57,26 @@ bcrypt / scrypt / argon2 (purpose-built for passwords, DELIBERATELY SLOW):
         have identical hashes, immediately revealing the reuse even before either is cracked.
       </p>
 
+      <h2>Pepper: salt's lesser-known sibling</h2>
+      <p>
+        A salt is stored right alongside the hash — public, by design, defeating rainbow tables but adding
+        nothing once an attacker has the full database dump. A <strong>pepper</strong> is a second value
+        mixed in the same way, except it's a single, application-wide secret stored SEPARATELY from the
+        database entirely (in application config, a secrets manager, an HSM) — meaning a database dump alone
+        is no longer sufficient to crack anything, even with unlimited compute, unless the attacker also
+        compromises the separate system holding the pepper.
+      </p>
+      <CodeBlock label="the practical difference this makes to your workflow">{`hash = Hash(password + salt)            # salt leaks with the dump — doesn't slow YOUR cracking down at all
+hash = Hash(password + salt + pepper)     # pepper does NOT leak with the dump — if you only have the
+                                             # database, this hash is uncrackable no matter the wordlist,
+                                             # because you're missing a required input entirely`}</CodeBlock>
+      <p>
+        Practically: if a triage pass shows hashes resisting even known-correct test passwords from a
+        previous breach of the same user, a pepper (not a stronger algorithm) is a reasonable hypothesis —
+        worth checking application source or config for rather than continuing to burn compute against an
+        unwinnable wordlist attack.
+      </p>
+
       <h2>Putting it together: a realistic triage workflow</h2>
       <CodeBlock label="from a dumped hash file to a cracking decision">{`1. Identify the hash type from its format (length, prefix, salt presence) — see the Field Guide lesson
 2. Fast hash + no visible rate limiting anywhere it's used?
