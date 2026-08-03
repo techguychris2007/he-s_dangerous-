@@ -746,3 +746,28 @@ why that method exists — two labs in this batch would have been unsolvable as 
 
 **Updated running total**: labs 219 → 290 (+71 across the last eleven batches, +86 total toward the "up to
 500" target).
+
+- **`b24635d`** — 6 more labs (290 → 296): VLAN hopping via 802.1Q double tagging, requiring the trunk's
+  native VLAN to be left at its unchanged factory default (Security+ — stated honestly as a narrow,
+  one-directional attack, not a general "any VLAN is reachable" claim), AES-GCM nonce reuse enabling Joux's
+  real "Forbidden Attack" — GHASH subkey recovery via polynomial GCD over GF(2^128), forging a valid
+  authentication tag with no encryption key at all (Cryptography — honestly scoped in `NOTES.md`: the deep
+  field-arithmetic math is described and cited accurately, but the forged value is presented as a given
+  tooling output rather than independently hand-rederived, since it's a materially deeper computation than
+  this session's simpler XOR-based crypto labs), a TOCTOU race condition (CWE-367) in a root-owned batch job
+  enabling a symlink attack that redirects a privileged write into `/etc/passwd` (Security Engineering),
+  unrestricted resource consumption via a pagination-free bulk-export endpoint, OWASP API4:2023, distinct
+  from the existing API9 legacy-version lab (API), Windows Event ID 1102 (audit log cleared) correlated via
+  Logon ID back to the responsible account's original network logon (Forensics), and a malicious PDF's
+  `/OpenAction` auto-executing embedded JavaScript that calls the PDF viewer's own legitimate
+  `app.launchURL()` API with zero user interaction required (Malware). Full citations in `NOTES.md` batch 15.
+
+  Caught and fixed one real mistake during verification: the AES-GCM lab's analysis file originally embedded
+  the literal flag text inline in its narrative, which got captured during the earlier `cat` step instead of
+  the intended final `curl` exploit step — fixed by removing the redundant flag line, reverified clean. tsc
+  clean, oxlint clean, production `vite build` clean.
+- **`a3b7b84`** — Updated `labs-index.md` (296 total, Forensics 16→17, Security+ 14→15, Malware 19→20,
+  Security Engineering 14→15, API 15→16, Cryptography 13→14) and `NOTES.md` (batch 15 citations).
+
+**Updated running total**: labs 219 → 296 (+77 across the last twelve batches, +92 total toward the "up to
+500" target).
