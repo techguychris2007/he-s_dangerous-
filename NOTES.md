@@ -651,3 +651,101 @@ in isolation; it hasn't changed, this batch just leaned harder on it.
   string in the `http` object, which `curl()`'s path-only route lookup (query strings are parsed separately
   and never part of the path match — confirmed by reading `curl()` in `engine.ts`) could never match,
   making the lab's own solve path fail 404 until fixed.
+
+## Sources checked, batch 13 (ret2win, Azure Storage key, illicit OAuth consent, Certificate Transparency, missing SRI, WMI lateral movement)
+
+This batch was built against an explicit request: for every lab, answer directly — if you ran the same
+commands on a real Kali terminal against the described real target, would it actually work? That's a
+narrower, more literal question than this file's general "technique accuracy" framing above, so it gets its
+own explicit answer per lab here rather than folding into the general citation.
+
+- **Classic ret2win stack smash** — [PentesterLab-style CTF pattern via ian.nl: Basic ret2win Buffer Overflow](https://ian.nl/blog/basic-ret2win-buffer-overflow),
+  [ired.team: 64-bit Stack-based Buffer Overflow](https://www.ired.team/offensive-security/code-injection-process-injection/binary-exploitation/64-bit-stack-based-buffer-overflow).
+  Confirmed the real mechanism (overflowing a fixed buffer to overwrite the saved return address with a
+  hidden `win()` function's address, which works under NX specifically because no new code is injected —
+  only existing, already-executable code is jumped to) and the real workflow (`checksec`, `gdb` +
+  cyclic-pattern offset-finding, `objdump -d`). **Would this work on a real Kali box?** The recon chain
+  (`file`/`checksec`/`objdump`/`gdb`) — yes, verbatim, these are real Kali tools reading a real binary. The
+  final exploit step is a deliberate, disclosed simplification shared by every crackme-style binary lab on
+  this platform (see the GOT-overwrite and tcache-poisoning labs in batches 10–11): a real ret2win payload
+  is a raw byte string (junk padding + a packed little-endian address) piped to the process's stdin, not a
+  address typed as a CLI argument — this engine's `./winvault3 <decimal>` is a simulated stand-in for
+  "you've correctly computed the exploit," not a literal transcript of the real payload bytes. This was true
+  of the platform's exploit-address labs before this batch too; restated here because it's the most exact
+  answer to the "would this work on Kali" question for this specific lab.
+- **Azure Storage Account key exposure via Shared Key auth** — [Microsoft Learn: Authorize access to blob data with Azure CLI](https://learn.microsoft.com/en-us/azure/storage/blobs/authorize-data-operations-cli),
+  [Orca Security: From listKeys to Glory — Abusing Azure Storage Account Keys](https://orca.security/resources/blog/azure-shared-key-authorization-exploitation/).
+  Confirmed the real distinction from this session's existing SAS-token lab: the account access key is the
+  master credential for Shared Key auth (enabled by default on every new storage account unless explicitly
+  disabled), while a SAS token is a scoped, time-limited delegation — genuinely different blast radius.
+  **Would this work on a real Kali box?** The real command is `az storage blob list --account-name ...
+  --account-key ... --container-name ...` (Azure CLI, installable on Kali via `pip`/apt) — yes, that
+  command works verbatim with a real leaked key. It would NOT work as a bare `curl` with the key stuffed in
+  a header, because Shared Key auth requires an HMAC-SHA256 signature over a canonicalized request string
+  that the `az` CLI computes for you — this engine has no `az` command (confirmed against `KNOWN_COMMANDS`
+  in `engine.ts`), so the real command's output is modeled via a `cat`-able captured-recon file, with the
+  exact real command spelled out in the objective/hint text rather than faking a live protocol this engine
+  doesn't have.
+- **Illicit OAuth consent grant surviving password reset** — [Microsoft Learn: Detect and remediate illicit consent grants](https://learn.microsoft.com/en-us/defender-office-365/detect-and-remediate-illicit-consent-grants),
+  [Datadog Security Labs: Malicious OAuth application consent](https://securitylabs.datadoghq.com/cloud-security-atlas/attacks/malicious-oauth-application-consent/).
+  Confirmed the real, current attack class and its most important, real property: consent grants a token
+  independent of the user's password, so standard credential remediation (password reset, MFA
+  re-enrollment) does not revoke it — Microsoft's own remediation guidance explicitly says the fix is
+  revoking the OAuth grant itself, not resetting the password. **Would this work on a real Kali box?** This
+  isn't a Kali-terminal technique at all, on a real engagement or here — it's an Entra ID admin/audit-log
+  investigation (Microsoft Graph / Entra portal / PowerShell `Get-MgOAuth2PermissionGrant`), matching this
+  platform's existing SOC-category convention (e.g. Golden SAML detection, Kerberoasting detection) of
+  analyst log review rather than live exploitation from an attacker terminal.
+- **Certificate Transparency logs (crt.sh) exposing a forgotten subdomain** — [OWASP Testing Guide: reconnaissance via CT logs](https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/03-Review_Webserver_Metafiles_for_Information_Leakage) (methodology reference),
+  general crt.sh documentation confirming its real, public JSON API (`crt.sh/?q=<query>&output=json`).
+  Confirmed CT log publication is a real, currently-enforced CA/Browser Forum requirement (not optional),
+  making every issued certificate's hostnames a matter of public record regardless of whether the host was
+  ever linked or announced. **Would this work on a real Kali box?** The `curl
+  "https://crt.sh/?q=%.meridiancorp.example&output=json"` command shown in this lab's briefing/objective is
+  the real, exact command and would work verbatim against the real crt.sh service for a real domain — this
+  engine's own `curl` only resolves numeric IPs it's told about (confirmed by reading `curl()`'s regex in
+  `engine.ts`), so it cannot reach the real external crt.sh host inside the simulator; the query's result is
+  modeled as a captured-output file for that reason, while the *pivot* to the newly-discovered subdomain
+  (`dig`, `nmap`, `curl` against it) is fully live-simulated within this platform's fictional network, which
+  is the actually-interactive part of the lab.
+- **Missing Subresource Integrity / polyfill.io 2024 precedent** — [The Hacker News: Over 110,000 Websites Affected by Hijacked Polyfill Supply Chain Attack](https://thehackernews.com/2024/06/over-110000-websites-affected-by.html),
+  [Sonatype: Polyfill.io Supply Chain Attack Explained](https://www.sonatype.com/blog/polyfill.io-supply-chain-attack-hits-100000-websites-all-you-need-to-know).
+  Confirmed this is a real, named, dated (June 2024) incident, not a hypothetical: cdn.polyfill.io was
+  acquired by a new owner and began serving malicious code to 100,000+ sites, and confirmed the specific,
+  accurate nuance stated in the briefing — SRI would have protected against this exact entry-point
+  compromise, though the search results also noted attackers adapted by loading secondary payloads from a
+  separate, unpinned domain, which this lab's briefing does not overclaim SRI as a complete fix for.
+  **Would this work on a real Kali box?** Yes, directly — `curl <url>` to fetch and inspect a page's raw
+  HTML for a missing `integrity=` attribute on a `<script>` tag is exactly how a real analyst would check
+  this, no simulation gap at all.
+- **WMI-based lateral movement (`wmic ... process call create`)** — [MITRE ATT&CK T1047](https://attack.mitre.org/techniques/T1047/) (via search aggregation),
+  [ired.team: WMI for Lateral Movement](https://www.ired.team/offensive-security/lateral-movement/t1047-wmi-for-lateral-movement).
+  Confirmed the real command syntax, the real prevalence figures (34% of interactive intrusions per
+  CrowdStrike's 2026 Global Threat Report, MITRE's 9th most common technique), and the real, specific
+  detection correlation (Event ID 4624 Logon Type 3 landing immediately before `wmiprvse.exe` spawns an
+  unexpected child process). **Would this work on a real Kali box?** The attacker-side command (`wmic
+  /node:<target> /user:... /password:... process call create "..."`) is real and would work verbatim from
+  a real Kali box (or any Windows/Linux host with `wmic`/`impacket-wmiexec` installed) against a real
+  Windows target with valid credentials and WMI reachable — this lab itself is modeled as a SOC-side
+  detection/investigation exercise (matching this platform's established SOC-log-review convention) rather
+  than a live offensive objective, since the point being taught is the DEFENDER'S correlation, not the
+  attacker's syntax.
+
+## NEEDS REVIEW (labs/topics), batch 13
+
+- Two labs in this batch (Azure Storage key, illicit OAuth consent) and one recon step (crt.sh) reference
+  real commands/services this engine cannot live-simulate (no `az` CLI command, no Entra ID/Graph API
+  simulation, no real external HTTP client reaching a real third-party domain) — all three are modeled as
+  captured-output file review with the real command spelled out explicitly, the same established convention
+  used for the LDAP anonymous-bind lab in batch 12 and AWS/GCP recon-output labs in earlier batches, not a
+  new pattern.
+- The ret2win lab's final exploit step reuses the same "supply a computed decimal address to `./binary`"
+  interaction model already established by the GOT-overwrite (batch 10) and tcache-poisoning (batch 11)
+  labs — flagged again explicitly here because it's the most direct answer to this batch's "would this work
+  on a real Kali box" framing: the recon chain is 1:1 real, the final payload-delivery mechanism is a
+  simulated stand-in for a real raw-bytes-via-stdin exploit, not a literal transcript of it.
+- No other techniques in this batch required skipping or faking; all six were mechanically modeled with
+  full fidelity to how `TerminalEngine` actually works, and all six were verified end-to-end with a scripted
+  `tsx` run against the real `TerminalEngine` class — full solve path captures exactly one flag per lab
+  (first try, no fix-and-reverify needed this batch), and a plausible-but-wrong request per lab captures
+  none.

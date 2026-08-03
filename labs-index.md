@@ -4,22 +4,22 @@ Running count and category breakdown for the offensive-security lab expansion. S
 full narrative detail on every batch (what was added, why, and how each one was verified); this file is
 just the running tally `NOTES.md`'s citations and the "when I'm back" summary can point at.
 
-**Total labs: 278** (204 at the start of this expansion → 278 now, +74 so far toward the "up to 500, quality
+**Total labs: 284** (204 at the start of this expansion → 284 now, +80 so far toward the "up to 500, quality
 first" target). Every count below is the actual `LABS.length` broken out by `category`, not an estimate.
 
 | Category | Count | This expansion added |
 |---|---|---|
 | Linux | 23 | +1 (Docker sudo NOPASSWD GTFOBins bind-mount privesc) |
 | Network | 27 | +2 (SMTP open relay abuse, CouchDB "Admin Party" unauthenticated access) |
-| Web | 43 | +3 (DNS rebinding SSRF-allowlist bypass, client-side prototype pollution via URL fragment to DOM XSS, Host header injection enabling password reset poisoning) |
+| Web | 44 | +4 (DNS rebinding SSRF-allowlist bypass, client-side prototype pollution via URL fragment to DOM XSS, Host header injection enabling password reset poisoning, missing Subresource Integrity on a third-party payment script) |
 | Active Directory | 22 | +7 (ADCS ESC1, RBCD abuse, Silver Ticket, Shadow Credentials, DCShadow rogue DC, GPP cpassword/MS14-025, LDAP anonymous bind description-field password disclosure) |
-| Bug Bounty | 20 | — |
-| SOC | 18 | +2 (Golden SAML detection via missing ADFS/Kerberos events, impossible travel / geo-velocity anomaly detection) |
+| Bug Bounty | 21 | +1 (Certificate Transparency logs exposing a forgotten staging subdomain) |
+| SOC | 19 | +3 (Golden SAML detection via missing ADFS/Kerberos events, impossible travel / geo-velocity anomaly detection, illicit OAuth consent grant surviving a password reset) |
 | Forensics | 16 | +6 (Volume Shadow Copy NTDS.dit dump, NTFS timestomping $SI/$FN mismatch, PowerShell ScriptBlock de-obfuscation, Recycle Bin $I metadata, USN Change Journal contradicts a timestomped file, Shellbags survive a deleted folder on a removed USB volume) |
-| Cloud | 19 | +7 (IMDSv2 bypass, Docker-socket container escape, Lambda env-var secrets exposure, overly-permissive Azure SAS token, GCP allUsers Cloud Function, Kubernetes default automountServiceAccountToken + permissive RBAC, AWS Lambda Function URL public via authType NONE) |
+| Cloud | 20 | +8 (IMDSv2 bypass, Docker-socket container escape, Lambda env-var secrets exposure, overly-permissive Azure SAS token, GCP allUsers Cloud Function, Kubernetes default automountServiceAccountToken + permissive RBAC, AWS Lambda Function URL public via authType NONE, exposed Azure Storage Account key granting full Shared Key access) |
 | Security+ | 14 | +3 (SPF/DMARC misconfiguration enables spoofing, missing HSTS enables SSL stripping, insufficient log retention violates PCI DSS 10.5.1) |
-| Binary Analysis | 16 | +6 (stack canary leak via format string, use-after-free function pointer hijack, ret2libc defeating NX/ASLR, heap unlink metadata corruption, GOT overwrite via format-string arbitrary write, tcache poisoning via a UAF-enabled double-free) |
-| Malware | 18 | +5 (process hollowing detection via PEB/VAD mismatch, DLL sideloading via search-order hijacking, LNK whitespace-padding command hiding, regsvr32 "Squiblydoo" AppLocker bypass, AMSI bypass via reflection-based field patching) |
+| Binary Analysis | 17 | +7 (stack canary leak via format string, use-after-free function pointer hijack, ret2libc defeating NX/ASLR, heap unlink metadata corruption, GOT overwrite via format-string arbitrary write, tcache poisoning via a UAF-enabled double-free, classic ret2win stack smash redirecting to a hidden function) |
+| Malware | 19 | +6 (process hollowing detection via PEB/VAD mismatch, DLL sideloading via search-order hijacking, LNK whitespace-padding command hiding, regsvr32 "Squiblydoo" AppLocker bypass, AMSI bypass via reflection-based field patching, WMI-based lateral movement via Win32_Process.Create) |
 | Security Engineering | 14 | +4 (secret still live in git history, forged webhook via missing signature verification, remember-me token survives password reset, ECB-penguin pattern leak) |
 | **API** (new category) | 15 | +15 (BFLA, JWT kid injection, legacy-version IDOR, excessive data exposure, rate-limit bypass, WebAuthn downgrade, method-override authz bypass, GraphQL field-level authz bypass, Referer-header API key leak, OAuth audience confusion, GraphQL field-suggestion leak, pagination cursor tampering, upload content-type spoofing, exposed OpenAPI spec, exposed source map leaking a hardcoded key) |
 | **Cryptography** (new category) | 13 | +13 (ECB block-shuffling, hash length extension, JWT algorithm confusion, predictable PRNG session tokens, AES-CTR nonce reuse, Bleichenbacher RSA padding oracle, UUIDv1 reset-token entropy, ECDSA nonce reuse, Logjam DHE_EXPORT downgrade, batch GCD shared-prime attack, TOTP shared-secret reuse, PBKDF2 insufficient iteration count, CBC bit-flipping admin-cookie forgery) |
@@ -86,6 +86,17 @@ first" target). Every count below is the actual `LABS.length` broken out by `cat
     with real Node `crypto` before committing the hex values), and a reflection-based AMSI bypass
     (`amsiInitFailed`) confirmed by the absence of expected scan telemetry (Malware, MITRE-documented,
     2016-disclosed technique still seen in obfuscated form today).
+13. **`f36059d`** — 6 labs, each with an explicit, individually-answered "would this work on a real
+    Kali box" check (see `NOTES.md` batch 13): a textbook ret2win stack smash overwriting a saved return
+    address to redirect into a hidden `win()` function, working even with NX enabled since no shellcode is
+    injected (Binary Analysis); an exposed Azure Storage Account primary access key granting full Shared
+    Key read/write/delete, distinct from this session's existing SAS-token lab (Cloud); an illicit OAuth
+    consent grant that a full password reset and MFA re-enrollment do nothing to revoke, since it isn't
+    tied to the user's credentials at all (SOC); a forgotten staging subdomain discovered purely through
+    public Certificate Transparency logs (Bug Bounty, real `crt.sh` JSON API); a missing Subresource
+    Integrity attribute on a third-party payment script, referencing the real June 2024 polyfill.io CDN
+    supply-chain compromise by name (Web); and WMI-based lateral movement via `Win32_Process.Create`,
+    MITRE ATT&CK's ninth most common technique overall (Malware).
 
 ## What's explicitly NOT attempted, and why
 
