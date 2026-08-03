@@ -29,7 +29,6 @@ export default function SiemLabPage() {
   const { labId } = useParams();
   const progress = useProgress();
   const [hintIndex, setHintIndex] = useState(0);
-  const [queryCount, setQueryCount] = useState(0);
   const siemScenario = SIEM_LABS.find((s) => s.id === labId);
   const osintScenario = OSINT_LABS.find((s) => s.id === labId);
   const scenario = siemScenario ?? osintScenario;
@@ -38,7 +37,6 @@ export default function SiemLabPage() {
 
   useEffect(() => {
     setHintIndex(0);
-    setQueryCount(0);
     transcriptRef.current = '';
   }, [labId]);
 
@@ -46,8 +44,12 @@ export default function SiemLabPage() {
 
   const captured = progress.flagCount(scenario.id);
   const onFlagCaptured = (flag: string) => progress.captureFlag(scenario.id, flag);
-  const autoCheckedCount =
-    captured >= scenario.totalFlags ? scenario.objectives.length : Math.min(queryCount, scenario.objectives.length);
+  const done = captured >= scenario.totalFlags;
+  // Same fix as the offensive-lab LabPage: ties off to flags actually captured, not queries run,
+  // so a stream of wrong/unrelated queries can never tick a guided step off.
+  const autoCheckedCount = done
+    ? scenario.objectives.length
+    : Math.floor((scenario.objectives.length * captured) / Math.max(scenario.totalFlags, 1));
 
   return (
     <div className="h-full flex flex-col lg:flex-row">
@@ -78,7 +80,7 @@ export default function SiemLabPage() {
         )}
 
         <div className="mb-6">
-          <StepChecklist steps={scenario.objectives} autoCheckedCount={autoCheckedCount} />
+          <StepChecklist steps={scenario.objectives} autoCheckedCount={autoCheckedCount} title="Lab Guide" variant="prominent" />
         </div>
 
         {captured < scenario.totalFlags && (
@@ -113,7 +115,6 @@ export default function SiemLabPage() {
           <OsintTerminal
             scenario={osintScenario}
             onFlagCaptured={onFlagCaptured}
-            onCommandRun={() => setQueryCount((c) => c + 1)}
             onTranscriptChange={(t) => {
               transcriptRef.current = t;
             }}
@@ -123,7 +124,6 @@ export default function SiemLabPage() {
             <SiemConsole
               scenario={siemScenario}
               onFlagCaptured={onFlagCaptured}
-              onQueryRun={() => setQueryCount((c) => c + 1)}
               onTranscriptChange={(t) => {
                 transcriptRef.current = t;
               }}

@@ -86,8 +86,8 @@ NEXT ACTION:        write and backtest a detection rule for T1021 (Remote Servic
 
       <p>
         With alert triage, threat hunting, and now systematic ATT&amp;CK coverage mapping established, the
-        next module goes deep on the platforms every one of these practices actually runs on — real SIEM
-        products, their query languages, and how they differ in practice.
+        next lesson puts this vocabulary to work against a specific, high-frequency category of finding:
+        recognizing command-and-control activity — beaconing, DNS tunneling, and LOLBin abuse — in raw logs.
       </p>
     </div>
   );

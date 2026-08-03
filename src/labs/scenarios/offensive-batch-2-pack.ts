@@ -267,7 +267,7 @@ export const offensiveBatch2Labs: LabScenario[] = [
     attacker: attacker({
       'ntlm_dump.txt': file(
         '#HASHCAT_HASH:dbackup:1001:aad3b435b51404eeaad3b435b51404ee:8846f7eaee8fb117ad06bdd830b7586c:::\n' +
-        '#HASHCAT_PLAINTEXT:Summer2024!\n' +
+        '#HASHCAT_PLAINTEXT:summer2024\n' +
         '(raw hash dump — no readable content without cracking)\n',
       ),
     }),
@@ -280,7 +280,7 @@ export const offensiveBatch2Labs: LabScenario[] = [
           { port: 21, name: 'ftp', version: 'vsftpd 3.0.3', banner: 'vsftpd 3.0.3 ready', ftpAnonymous: true },
           { port: 22, name: 'ssh', version: 'OpenSSH 7.6p1 Ubuntu-4ubuntu0.7' },
         ],
-        users: [{ username: 'dbackup', password: 'Summer2024!' }],
+        users: [{ username: 'dbackup', password: 'summer2024' }],
         root: dir({
           srv: dir({
             ftp: dir({

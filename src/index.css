@@ -5,6 +5,18 @@
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-display: "Georgia", "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
 
+  /* Type scale extensions: fills gaps below Tailwind's default `xs` (12px) step and standardizes
+     code-panel sizing. Before this, the codebase had drifted into arbitrary `text-[10px]`,
+     `text-[11px]`, and `text-[13px]`/`text-[0.85rem]` values scattered across ~30 files with no
+     shared token — same value used for the same kind of text (nav section labels, badges,
+     progress captions) but picked inconsistently file to file. `2xs` replaces every 10/11px
+     micro-label instance; `code` replaces every code-panel font-size instance (CodeEditor,
+     CodeBlock, terminal-demo snippets). See CHANGELOG.md for the full before/after audit. */
+  --text-2xs: 0.6875rem; /* 11px */
+  --text-2xs--line-height: 1.45;
+  --text-code: 0.8125rem; /* 13px */
+  --text-code--line-height: 1.6;
+
   /* Classic platform theme: electric blue + violet, with a gold secondary accent used sparingly
      for premium framing (dividers, badges, hover accents). */
   --color-bg: #f4f6fb;
@@ -32,6 +44,21 @@
   /* AI companion response text — dark and readable in light mode, switches to a terminal-green in
      dark mode (see below) so AI-generated answers stay visually distinct from the surrounding UI. */
   --color-ai-text: #12161f;
+
+  /* Retro hacker-terminal palette: the same amber/cream-on-near-black scheme was independently
+     hardcoded as raw hex in 11 different files (Terminal, OsintTerminal, SiemConsole, CodeEditor,
+     the ML demos' code inputs, IntroPage's terminal animation, and the Login/ResetPassword success
+     and error banners borrowing the terminal's green/red) — same values everywhere, just never
+     given a shared name. Deliberately theme-invariant (a real terminal doesn't relight for the
+     site's light/dark toggle), so these live outside the light/dark theme blocks below. */
+  --term-bg: #0c0d10;
+  --term-output: #d8d0c0;
+  --term-input: #f2c46d;
+  --term-system: #e8a33d;
+  --term-muted: #7a7264;
+  --term-error: #ff6b5e;
+  --term-error-text: #ff8a7a;
+  --term-success: #7ee081;
 
   /* Elevation scale: colored/soft rather than flat black, since a default black box-shadow is nearly
      invisible on the dark theme's near-black surfaces. `--shadow-*` tokens auto-generate matching

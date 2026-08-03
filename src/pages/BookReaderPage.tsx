@@ -251,7 +251,7 @@ export default function BookReaderPage() {
             clearest signal to any visitor (including the rights holder) that this is a licensed
             copy, not a claim of ownership. */}
         <div className="max-w-6xl mx-auto mt-3 pt-3 border-t border-[var(--color-border)]">
-          <p className="text-[11px] text-[var(--color-text-dim)] leading-relaxed">
+          <p className="text-2xs text-[var(--color-text-dim)] leading-relaxed">
             This book was written by <span dangerouslySetInnerHTML={{ __html: book.author }} />. Copyright remains with
             the original author{book.track === 'security' ? '/publisher' : ''}; this site does not claim ownership of
             this work. Distributed under the{' '}
@@ -332,7 +332,7 @@ export default function BookReaderPage() {
               </button>
             </>
           )}
-          <span className="text-[11px] text-[var(--color-text-dim)] basis-full">
+          <span className="text-2xs text-[var(--color-text-dim)] basis-full">
             Reads page by page and follows along automatically, skipping repeated headers/footers and bare
             page numbers so you hear the actual text. Pick a page above (defaults to wherever you're
             scrolled to), or click the page number in the viewer below to jump anywhere directly. Voices

@@ -18,7 +18,7 @@ export const LESSON_LABS: Record<string, string[]> = {
   'rec-1': ['bb-forgotten-staging', 'bb-js-secret-leak'],
   'rec-2': ['network-recon'],
   'rec-3': ['enum-bruteforce', 'cve-2025-32433-erlang-otp-ssh', 'cve-2025-64446-fortiweb-authbypass'],
-  'rec-4': ['net-postgres-weak'],
+  'rec-4': ['net-postgres-weak', 'ad-password-spraying-domain'],
   'rec-5': ['capstone-box'],
 
   // Python & Black Hat Python
@@ -32,23 +32,44 @@ export const LESSON_LABS: Record<string, string[]> = {
   'web-2': ['web-sqli-product', 'web-sqli-login-bypass', 'web-sqli-search-filter'],
   'web-3': ['web-xss-search', 'web-xss-feedback'],
   'web-4': ['web-idor-profile-api', 'web-idor-coupon', 'web-auth-bypass-admin'],
-  'web-5': ['web-ssrf-fetch', 'web-ssrf-metadata', 'web-ssrf-image-proxy', 'log4shell-jndi-rce', 'shellshock-cgi-rce', 'cve-2025-53770-sharepoint-toolshell', 'cve-2025-3248-langflow-rce'],
+  'web-5': ['web-ssrf-fetch', 'web-ssrf-metadata', 'web-ssrf-image-proxy', 'log4shell-jndi-rce', 'shellshock-cgi-rce', 'cve-2025-53770-sharepoint-toolshell', 'cve-2025-3248-langflow-rce', 'web-dns-rebinding-ssrf-allowlist-bypass'],
 
   // Red Teaming & Active Directory
   'rt-1': ['ad-credential-reuse-lateral', 'ad-worm-lateral-spread'],
   'rt-2': ['ad-smb-anon-domain-creds', 'eternalblue-smb-rce', 'ad-printnightmare-cve-2021-34527', 'scattered-spider-helpdesk-to-domain-admin'],
   'rt-3': ['ad-kerberoast-crack', 'ad-dcsync-attack'],
-  'rt-4': ['ad-asrep-roast', 'ad-workstation-to-dc', 'ad-zerologon-cve-2020-1472', 'ad-golden-ticket-persistence'],
+  'rt-4': ['ad-asrep-roast', 'ad-workstation-to-dc', 'ad-zerologon-cve-2020-1472', 'ad-golden-ticket-persistence', 'ad-unconstrained-delegation-abuse', 'ad-adcs-esc1-misconfigured-template', 'ad-rbcd-abuse-domain-admin'],
+  // rt-5 had no embedded labs at all until now.
+  'rt-5': ['ad-silver-ticket-service-persistence', 'ad-shadow-credentials-passwordless-takeover'],
 
   // Bug Bounty Methodology
   'bb-1': ['bb-forgotten-staging', 'bb-subdomain-takeover'],
   'bb-2': ['bb-exposed-git', 'bb-graphql-introspection-idor'],
   'bb-3': ['bb-api-idor', 'bb-oauth-redirect-bypass'],
   'bb-4': ['bb-ssrf-webhook-scope', 'bb-race-condition-coupon', 'bb-blind-ssrf-report'],
+  // bb-mass-assignment-privesc existed but had never been embedded anywhere — bb-5's own lesson
+  // content is specifically about chaining unexpected-field/low-severity bugs into real impact,
+  // its most natural home.
+  'bb-5': ['bb-mass-assignment-privesc'],
+
+  // API Security
+  'api-1': ['api-versioning-legacy-v1-idor', 'api-rate-limit-bypass-xff-spoofing'],
+  'api-2': ['bb-api-idor', 'api-bfla-internal-support-endpoint', 'api-excessive-data-exposure-team-list'],
+  // web-jwt-alg-none-bypass and web-jwt-weak-secret-crack existed but had never been embedded
+  // anywhere — this lesson is their natural home.
+  'api-3': ['web-jwt-alg-none-bypass', 'web-jwt-weak-secret-crack', 'api-jwt-kid-injection', 'api-webauthn-downgrade-sms-otp-fallback'],
+  // bb-graphql-alias-batching-otp-bypass existed but had never been embedded anywhere.
+  'api-4': ['bb-graphql-introspection-idor', 'bb-graphql-alias-batching-otp-bypass'],
+
+  // Applied Cryptography Attacks
+  'crypto-2': ['secengineering-padding-oracle'],
+  'crypto-3': ['crypto-ecb-block-shuffle-privesc', 'crypto-hash-length-extension-signed-url'],
 
   // SOC & Threat Hunting
   'soc-1': ['soc-ssh-bruteforce-investigation', 'soc-phishing-header-analysis', 'soc-insider-threat-bulk-access', 'soc-bec-mailbox-rule-fraud', 'soc-credential-stuffing-detection'],
-  'soc-2': ['soc-web-log-sqli-detection', 'soc-cobalt-strike-beacon', 'soc-dns-tunneling-exfil', 'soc-lolbin-certutil-abuse', 'soc-supply-chain-compromise-indicator', 'ai-orchestrated-ransomware-investigation'],
+  'soc-2': ['soc-web-log-sqli-detection', 'soc-cobalt-strike-beacon', 'soc-dns-tunneling-exfil', 'soc-lolbin-certutil-abuse', 'soc-supply-chain-compromise-indicator', 'ai-orchestrated-ransomware-investigation', 'soc-automated-spearphishing-campaign-analysis', 'soc-deepfake-vishing-ceo-fraud'],
+  'soc-ir-4': ['soc-target-2013-alert-fatigue', 'soc-bangladesh-bank-swift-heist'],
+  'soc-detection-1': ['soc-kerberoasting-detection'],
 
   // Digital Forensics
   'for-1': ['forensics-timeline-analysis', 'forensics-deleted-file-recovery', 'forensics-ransomware-note-analysis', 'forensics-usb-exfiltration-history', 'forensics-browser-history-insider', 'forensics-webshell-discovery'],
@@ -56,7 +77,9 @@ export const LESSON_LABS: Record<string, string[]> = {
 
   // Cloud Security
   'cloud-1': ['cloud-public-s3-bucket', 'cloud-metadata-ssrf', 'cloud-exposed-kubernetes-dashboard', 'cloud-exposed-docker-api', 'cloud-public-write-bucket'],
-  'cloud-2': ['cloud-exposed-terraform-state', 'cloud-waf-ssrf-breach-chain', 'cloud-lambda-overpermissioned-role', 'cloud-iam-passrole-privesc', 'cloud-disabled-logging-coverup', 'saas-oauth-token-theft-chain'],
+  'cloud-2': ['cloud-exposed-terraform-state', 'cloud-waf-ssrf-breach-chain', 'cloud-lambda-overpermissioned-role', 'cloud-iam-passrole-privesc', 'cloud-disabled-logging-coverup', 'saas-oauth-token-theft-chain', 'cloud-github-leaked-iam-keys', 'cloud-imdsv2-bypass-method-controllable-ssrf'],
+  // cloud-3 had no embedded labs at all until now.
+  'cloud-3': ['cloud-docker-socket-container-escape'],
 
   // Security+ Deep Dive
   'secplus-1': ['secplus-breach-notification-timeline', 'secplus-firewall-rule-audit', 'secplus-cvss-triage'],

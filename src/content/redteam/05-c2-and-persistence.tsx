@@ -72,6 +72,27 @@ WMI event subscription — payload fires on a WMI event (e.g. "on logon"), leave
         tracks it as its own technique (T1546.003) rather than folding it into "scheduled task."
       </p>
 
+      <h2>Credential-based persistence: when the persistence IS a forged credential</h2>
+      <p>
+        Everything above assumes persistence means "make the OS run my payload again." A second, entirely
+        different persistence category doesn't touch the filesystem or the Task Scheduler at all: a forged
+        or planted <em>credential</em> that keeps working indefinitely. The previous lesson's Silver Ticket
+        (forged from a service account's own hash, valid until that service account's password is rotated)
+        and Shadow Credentials (an attacker-planted certificate in a target's{' '}
+        <code>msDS-KeyCredentialLink</code>, valid until someone specifically audits and removes it) are both
+        this kind of persistence — no scheduled task for Autoruns to enumerate, no service for a defender to
+        spot, because there's no auto-start artifact on disk anywhere. The "artifact" is a piece of AD state
+        that looks like ordinary account configuration unless you're specifically auditing for it.
+      </p>
+      <Callout variant="warn">
+        <p>
+          This is exactly why real AD incident response, after any suspected compromise, treats a KRBTGT
+          reset and a Shadow-Credentials/<code>msDS-KeyCredentialLink</code> audit as standard checklist
+          items alongside the usual host-based persistence sweep — a fully remediated, malware-free host can
+          still hand an attacker their access straight back if either of these is left unaudited.
+        </p>
+      </Callout>
+
       <h2>Detecting persistence and beaconing from the blue-team side</h2>
       <p>
         None of these techniques are invisible. Beaconing traffic, however well-jittered, still produces a

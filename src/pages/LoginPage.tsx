@@ -148,11 +148,11 @@ export default function LoginPage() {
           <div className="flex items-center gap-8">
             <div>
               <div className="text-2xl font-extrabold text-white">142+</div>
-              <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-[#7c93ae] mt-1">Hands-on labs</div>
+              <div className="text-2xs font-mono uppercase tracking-[0.2em] text-[#7c93ae] mt-1">Hands-on labs</div>
             </div>
             <div>
               <div className="text-2xl font-extrabold text-white">18</div>
-              <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-[#7c93ae] mt-1">Real-execution labs</div>
+              <div className="text-2xs font-mono uppercase tracking-[0.2em] text-[#7c93ae] mt-1">Real-execution labs</div>
             </div>
           </div>
         </div>
@@ -175,7 +175,7 @@ export default function LoginPage() {
       >
         <Link
           to="/welcome"
-          className="absolute top-6 left-7 text-[11px] font-semibold text-[#7c93ae] hover:text-[#c9e0ff] transition-colors lg:hidden"
+          className="absolute top-6 left-7 text-2xs font-semibold text-[#7c93ae] hover:text-[#c9e0ff] transition-colors lg:hidden"
         >
           &larr; Back
         </Link>
@@ -311,19 +311,19 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => switchMode('reset')}
-              className="self-end text-[11px] font-semibold text-[#7c93ae] hover:text-[#c9e0ff] transition-colors -mt-1"
+              className="self-end text-2xs font-semibold text-[#7c93ae] hover:text-[#c9e0ff] transition-colors -mt-1"
             >
               Forgot password?
             </button>
           )}
 
           {error && (
-            <div className="text-xs text-[#ff8a7a] bg-[#ff6b5e14] border border-[#ff6b5e4d] rounded-lg px-3 py-2 leading-relaxed">
+            <div className="text-xs text-[var(--term-error-text)] bg-[var(--term-error)]/8 border border-[var(--term-error)]/30 rounded-lg px-3 py-2 leading-relaxed">
               {error}
             </div>
           )}
           {info && (
-            <div className="text-xs text-[#7ee081] bg-[#7ee08114] border border-[#7ee0814d] rounded-lg px-3 py-2 leading-relaxed">
+            <div className="text-xs text-[var(--term-success)] bg-[var(--term-success)]/8 border border-[var(--term-success)]/30 rounded-lg px-3 py-2 leading-relaxed">
               {info}
             </div>
           )}
@@ -343,14 +343,14 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => switchMode('signin')}
-              className="self-center text-[11px] font-semibold text-[#7c93ae] hover:text-[#c9e0ff] transition-colors"
+              className="self-center text-2xs font-semibold text-[#7c93ae] hover:text-[#c9e0ff] transition-colors"
             >
               Back to sign in
             </button>
           )}
         </form>
 
-        <p className="text-center text-[10px] font-mono text-[#4d5e70] mt-6 tracking-wide">
+        <p className="text-center text-2xs font-mono text-[#4d5e70] mt-6 tracking-wide">
           Secured by Supabase Auth &middot; your password is never stored or seen by this app
         </p>
       </div>

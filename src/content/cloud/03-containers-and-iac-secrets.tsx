@@ -38,6 +38,28 @@ curl -X POST http://target:2375/containers/create -d '{
         </p>
       </Callout>
 
+      <h2>The same socket, reached from inside instead of over the network</h2>
+      <p>
+        The exposed-API scenario above assumes an attacker reaches the Docker daemon remotely, over the
+        network. There's a second, more common way to end up talking to that same daemon: from{' '}
+        <em>inside</em> a container that had <code>/var/run/docker.sock</code> bind-mounted into it on
+        purpose — a pattern teams reach for constantly so a CI pipeline stage can "build and push its own
+        Docker images" without nested virtualization overhead.
+      </p>
+      <CodeBlock label="why a mounted socket is just as dangerous as an exposed port">{`# Inside a build container with docker.sock mounted in — no network exposure needed at all:
+docker -H unix:///var/run/docker.sock run -v /:/host --privileged alpine chroot /host sh
+# The socket IS the host's real Docker daemon, not a sandboxed copy scoped to this container —
+# anything that can write to it can ask the HOST to start a new, privileged container with the
+# HOST's filesystem mounted in. "I can build containers" quietly became "I have host root."`}</CodeBlock>
+      <Callout variant="warn">
+        <p>
+          This is, in practice, a far more common real-world container-escape path than a kernel-level
+          breakout exploit — it requires no vulnerability at all, just a convenience mount nobody revisited.
+          If a socket-proxy (restricting which API calls are allowed) isn't in front of a mounted socket,
+          treat that container as equivalent to full host root.
+        </p>
+      </Callout>
+
       <h2>The Kubernetes dashboard: the same problem, at cluster scale</h2>
       <p>
         A Kubernetes dashboard exposed without authentication (or with a token bound to an

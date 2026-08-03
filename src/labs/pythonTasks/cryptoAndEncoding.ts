@@ -485,4 +485,247 @@ export const PYTHON_CRYPTO_TASKS: CodeTask[] = [
       '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
       'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
   },
+  {
+    id: 'py-crypto-13',
+    title: 'Implement PKCS#7 Padding and Unpadding',
+    difficulty: 'Medium',
+    language: 'python',
+    category: 'Cryptography & Encoding',
+    prompt:
+      'Write pkcs7_pad(data, block_size) that pads bytes data out to a multiple of block_size using PKCS#7 ' +
+      'padding: append N bytes, each with value N, where N = block_size - (len(data) % block_size). If data ' +
+      'is already an exact multiple of block_size, add one FULL extra block of padding (N = block_size). Then ' +
+      'write pkcs7_unpad(padded) that removes and validates that padding, raising ValueError if the last byte ' +
+      'is 0, greater than len(padded), or the trailing bytes don\'t all match its value.',
+    starterCode:
+      'def pkcs7_pad(data, block_size):\n' +
+      '    # TODO: return data with PKCS#7 padding appended\n' +
+      '    pass\n\n' +
+      'def pkcs7_unpad(padded):\n' +
+      '    # TODO: remove and validate PKCS#7 padding, raising ValueError if it is malformed\n' +
+      '    pass\n',
+    hints: [
+      'pad_len = block_size - (len(data) % block_size) — this is always between 1 and block_size, never 0.',
+      'The padding bytes themselves are bytes([pad_len]) * pad_len, appended directly to data.',
+      'To unpad: read pad_len from padded[-1], then check padded[-pad_len:] == bytes([pad_len]) * pad_len before slicing it off.',
+    ],
+    solution:
+      'def pkcs7_pad(data, block_size):\n' +
+      '    pad_len = block_size - (len(data) % block_size)\n' +
+      '    return data + bytes([pad_len]) * pad_len\n\n' +
+      'def pkcs7_unpad(padded):\n' +
+      '    if not padded:\n' +
+      '        raise ValueError("empty input")\n' +
+      '    pad_len = padded[-1]\n' +
+      '    if pad_len == 0 or pad_len > len(padded):\n' +
+      '        raise ValueError("invalid padding")\n' +
+      '    if padded[-pad_len:] != bytes([pad_len]) * pad_len:\n' +
+      '        raise ValueError("invalid padding")\n' +
+      '    return padded[:-pad_len]\n',
+    testCode:
+      '__results__ = []\n' +
+      'def __check__(name, actual, expected):\n' +
+      '    __results__.append((name, actual == expected, actual, expected))\n\n' +
+      'padded = pkcs7_pad(b"HELLO", 8)\n' +
+      '__check__("pads to block boundary", len(padded), 8)\n' +
+      '__check__("padding bytes correct", padded[-3:], b"\\x03\\x03\\x03")\n' +
+      '__check__("unpad recovers original", pkcs7_unpad(padded), b"HELLO")\n\n' +
+      'full_block_padded = pkcs7_pad(b"12345678", 8)\n' +
+      '__check__("exact multiple gets a full extra block", len(full_block_padded), 16)\n' +
+      '__check__("unpad recovers exact-multiple original", pkcs7_unpad(full_block_padded), b"12345678")\n\n' +
+      'try:\n' +
+      '    pkcs7_unpad(b"HELLO\\x00\\x00\\x00")\n' +
+      '    __results__.append(("rejects malformed padding", False, "no exception", "ValueError"))\n' +
+      'except ValueError:\n' +
+      '    __results__.append(("rejects malformed padding", True, "ValueError", "ValueError"))\n\n' +
+      'for name, ok, actual, expected in __results__:\n' +
+      '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
+      'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
+  },
+  {
+    id: 'py-crypto-14',
+    title: 'Detect Repeated Ciphertext Blocks (ECB Fingerprint)',
+    difficulty: 'Medium',
+    language: 'python',
+    category: 'Cryptography & Encoding',
+    prompt:
+      'Write has_repeated_blocks(ciphertext, block_size=16) that splits ciphertext into block_size-byte ' +
+      'chunks and returns True if any two full-length chunks are byte-for-byte identical — the classic tell ' +
+      'that a cipher is running in ECB mode instead of a chained mode like CBC/CTR/GCM, since ECB encrypts ' +
+      'every block completely independently. A shorter final chunk (if ciphertext isn\'t an exact multiple of ' +
+      'block_size) should be ignored, not compared.',
+    starterCode:
+      'def has_repeated_blocks(ciphertext, block_size=16):\n' +
+      '    # TODO: return True if any two full-length blocks are identical\n' +
+      '    pass\n',
+    hints: [
+      'Slice ciphertext into block_size-byte pieces: [ciphertext[i:i+block_size] for i in range(0, len(ciphertext), block_size)].',
+      'Skip any slice shorter than block_size — that\'s a partial final block, not a real block to compare.',
+      'Walk the blocks with a set: if a block is already in the set, you\'ve found a repeat; otherwise add it and keep going.',
+    ],
+    solution:
+      'def has_repeated_blocks(ciphertext, block_size=16):\n' +
+      '    blocks = [ciphertext[i:i + block_size] for i in range(0, len(ciphertext), block_size)]\n' +
+      '    seen = set()\n' +
+      '    for b in blocks:\n' +
+      '        if len(b) < block_size:\n' +
+      '            continue\n' +
+      '        if b in seen:\n' +
+      '            return True\n' +
+      '        seen.add(b)\n' +
+      '    return False\n',
+    testCode:
+      '__results__ = []\n' +
+      'def __check__(name, actual, expected):\n' +
+      '    __results__.append((name, actual == expected, actual, expected))\n\n' +
+      'block_a = bytes(range(16))\n' +
+      'block_b = bytes(range(16, 32))\n' +
+      '__check__("two identical blocks detected", has_repeated_blocks(block_a + block_b + block_a, 16), True)\n' +
+      '__check__("all distinct blocks", has_repeated_blocks(block_a + block_b, 16), False)\n' +
+      '__check__("short partial final block ignored", has_repeated_blocks(block_a + block_a[:4], 16), False)\n\n' +
+      'for name, ok, actual, expected in __results__:\n' +
+      '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
+      'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
+  },
+  {
+    id: 'py-crypto-15',
+    title: 'Crack a Single-Byte XOR Key by Frequency Scoring',
+    difficulty: 'Hard',
+    language: 'python',
+    category: 'Cryptography & Encoding',
+    prompt:
+      'Write crack_single_byte_xor(ciphertext) that recovers the single-byte XOR key (an integer 0-255) most ' +
+      'likely used to encrypt English plaintext. Try every possible key, XOR-decrypt the ciphertext with it, ' +
+      'and score the result by counting how many of the decoded bytes are one of the most common English ' +
+      'characters: the letters (either case) or a space, i.e. any byte whose chr() is in ' +
+      '" etaoinshrdlucmfwypvbgkjqxzETAOINSHRDLUCMFWYPVBGKJQXZ". Return the key with the highest score.',
+    starterCode:
+      'def crack_single_byte_xor(ciphertext):\n' +
+      '    # TODO: try every key 0-255, score the decoded result, return the best-scoring key\n' +
+      '    pass\n',
+    hints: [
+      'For each candidate key from 0 to 255: decoded = bytes(b ^ key for b in ciphertext).',
+      'Score a decoded attempt by counting bytes whose chr() falls in the common-English-character set — skip any byte >= 128 that would crash chr() comparisons awkwardly (bytes are always 0-255, so chr() is always safe here, just compare against the set directly).',
+      'Track the best (key, score) pair seen so far as you loop, and return the best key at the end.',
+    ],
+    solution:
+      'def crack_single_byte_xor(ciphertext):\n' +
+      '    common = set(" etaoinshrdlucmfwypvbgkjqxzETAOINSHRDLUCMFWYPVBGKJQXZ")\n' +
+      '    best_key = 0\n' +
+      '    best_score = -1\n' +
+      '    for key in range(256):\n' +
+      '        decoded = bytes(b ^ key for b in ciphertext)\n' +
+      '        score = sum(1 for b in decoded if chr(b) in common)\n' +
+      '        if score > best_score:\n' +
+      '            best_score = score\n' +
+      '            best_key = key\n' +
+      '    return best_key\n',
+    testCode:
+      '__results__ = []\n' +
+      'def __check__(name, actual, expected):\n' +
+      '    __results__.append((name, actual == expected, actual, expected))\n\n' +
+      'plaintext = b"the quick brown fox jumps over the lazy dog near the riverbank"\n' +
+      'key = 0x42\n' +
+      'ciphertext = bytes(b ^ key for b in plaintext)\n' +
+      '__check__("recovers the exact key used", crack_single_byte_xor(ciphertext), key)\n\n' +
+      'plaintext2 = b"security researchers often test tools against known plaintext samples"\n' +
+      'key2 = 0x99\n' +
+      'ciphertext2 = bytes(b ^ key2 for b in plaintext2)\n' +
+      '__check__("recovers a different key", crack_single_byte_xor(ciphertext2), key2)\n\n' +
+      'for name, ok, actual, expected in __results__:\n' +
+      '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
+      'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
+  },
+  {
+    id: 'py-crypto-16',
+    title: 'Compute a Streaming SHA-256 Digest in Chunks',
+    difficulty: 'Easy',
+    language: 'python',
+    category: 'Cryptography & Encoding',
+    prompt:
+      'Write sha256_of_chunks(chunks) that computes the SHA-256 hex digest of the concatenation of a list of ' +
+      'byte chunks — WITHOUT concatenating them into one big bytes object first. Feed each chunk into the ' +
+      'hash object incrementally with .update(), exactly the way you\'d hash a large file read block by block ' +
+      'without ever loading the whole thing into memory at once.',
+    starterCode:
+      'import hashlib\n\n' +
+      'def sha256_of_chunks(chunks):\n' +
+      '    # TODO: return the hex digest of the concatenation of chunks, using incremental .update() calls\n' +
+      '    pass\n',
+    hints: [
+      'Create one hash object with hashlib.sha256(), then loop over chunks calling h.update(chunk) on each.',
+      'Never do b"".join(chunks) first — the whole point is never holding the full concatenation in memory.',
+      'After the loop, h.hexdigest() returns the final digest as a hex string.',
+    ],
+    solution:
+      'import hashlib\n\n' +
+      'def sha256_of_chunks(chunks):\n' +
+      '    h = hashlib.sha256()\n' +
+      '    for c in chunks:\n' +
+      '        h.update(c)\n' +
+      '    return h.hexdigest()\n',
+    testCode:
+      '__results__ = []\n' +
+      'import hashlib\n\n' +
+      'def __check__(name, actual, expected):\n' +
+      '    __results__.append((name, actual == expected, actual, expected))\n\n' +
+      'chunks_a = [b"hello ", b"world"]\n' +
+      'expected_a = hashlib.sha256(b"hello world").hexdigest()\n' +
+      '__check__("two chunks match single-shot hash", sha256_of_chunks(chunks_a), expected_a)\n\n' +
+      'chunks_b = [b"he", b"llo ", b"wor", b"ld"]\n' +
+      '__check__("different chunk split, same message, same digest", sha256_of_chunks(chunks_b), expected_a)\n\n' +
+      '__check__("empty chunk list", sha256_of_chunks([]), hashlib.sha256(b"").hexdigest())\n\n' +
+      'for name, ok, actual, expected in __results__:\n' +
+      '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
+      'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
+  },
+  {
+    id: 'py-crypto-17',
+    title: 'Implement a One-Time Pad Cipher',
+    difficulty: 'Medium',
+    language: 'python',
+    category: 'Cryptography & Encoding',
+    prompt:
+      'Write otp_encrypt(plaintext, key) and otp_decrypt(ciphertext, key) implementing a one-time pad: XOR ' +
+      'each byte of the message with the corresponding byte of key. Both functions should raise ValueError if ' +
+      'key is shorter than the message — a one-time pad\'s entire security guarantee depends on the key being ' +
+      'at least as long as the message and never reused, so silently truncating or wrapping the key would ' +
+      'defeat the whole point.',
+    starterCode:
+      'def otp_encrypt(plaintext, key):\n' +
+      '    # TODO: XOR plaintext with key byte-by-byte; raise ValueError if key is too short\n' +
+      '    pass\n\n' +
+      'def otp_decrypt(ciphertext, key):\n' +
+      '    # TODO: XOR is its own inverse -- this can reuse the same logic as otp_encrypt\n' +
+      '    pass\n',
+    hints: [
+      'Check len(key) < len(plaintext) first and raise ValueError if so — do this before touching any bytes.',
+      'zip(plaintext, key) pairs up bytes positionally and stops at the shorter of the two, but since you already checked lengths, it\'s safe to zip and XOR.',
+      'XOR is symmetric — encrypt and decrypt can literally be the same operation, so otp_decrypt can just call otp_encrypt(ciphertext, key).',
+    ],
+    solution:
+      'def otp_encrypt(plaintext, key):\n' +
+      '    if len(key) < len(plaintext):\n' +
+      '        raise ValueError("key must be at least as long as the message")\n' +
+      '    return bytes(p ^ k for p, k in zip(plaintext, key))\n\n' +
+      'def otp_decrypt(ciphertext, key):\n' +
+      '    return otp_encrypt(ciphertext, key)\n',
+    testCode:
+      '__results__ = []\n' +
+      'def __check__(name, actual, expected):\n' +
+      '    __results__.append((name, actual == expected, actual, expected))\n\n' +
+      'plaintext = b"attack at dawn"\n' +
+      'key = bytes([0x1a, 0x2b, 0x3c, 0x4d, 0x5e, 0x6f, 0x70, 0x81, 0x92, 0xa3, 0xb4, 0xc5, 0xd6, 0xe7])\n' +
+      'ciphertext = otp_encrypt(plaintext, key)\n' +
+      '__check__("ciphertext differs from plaintext", ciphertext != plaintext, True)\n' +
+      '__check__("decrypt recovers original", otp_decrypt(ciphertext, key), plaintext)\n\n' +
+      'try:\n' +
+      '    otp_encrypt(b"too long for this key", b"short")\n' +
+      '    __results__.append(("raises when key too short", False, "no exception", "ValueError"))\n' +
+      'except ValueError:\n' +
+      '    __results__.append(("raises when key too short", True, "ValueError", "ValueError"))\n\n' +
+      'for name, ok, actual, expected in __results__:\n' +
+      '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
+      'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
+  },
 ];

@@ -196,4 +196,71 @@ export const JS_OOP_TASKS: CodeTask[] = [
       'check("alice revoked", acl.canAccess("alice"), false);\n' +
       'console.log("__RESULT__ " + __passed + "/" + __total);\n',
   },
+  {
+    id: 'js-oop-04',
+    title: 'A Minimal EventEmitter Class',
+    difficulty: 'Medium',
+    language: 'javascript',
+    category: 'OOP & Classes',
+    prompt:
+      'Implement a class EventEmitter with on(eventName, listener) (registers listener for eventName) and ' +
+      'emit(eventName, ...args) (calls every listener registered for eventName, in registration order, with ' +
+      'args; if no listener is registered for eventName, emit does nothing — it must not throw).',
+    starterCode:
+      'class EventEmitter {\n' +
+      '  constructor() {\n' +
+      '    // TODO: set up storage for listeners per event name\n' +
+      '  }\n\n' +
+      '  on(eventName, listener) {\n' +
+      '    // TODO: register listener for eventName\n' +
+      '  }\n\n' +
+      '  emit(eventName, ...args) {\n' +
+      '    // TODO: call every listener registered for eventName, with args, in registration order\n' +
+      '  }\n' +
+      '}\n',
+    hints: [
+      'Store listeners in a plain object keyed by event name, each value an array of listener functions.',
+      'on() should initialize this.listeners[eventName] to an empty array the first time that event name is used, then push the new listener.',
+      'emit() should look up the array for eventName (defaulting to an empty array if none exists, e.g. with || []) and call each one with (...args), in order.',
+    ],
+    solution:
+      'class EventEmitter {\n' +
+      '  constructor() {\n' +
+      '    this.listeners = {};\n' +
+      '  }\n\n' +
+      '  on(eventName, listener) {\n' +
+      '    if (!this.listeners[eventName]) this.listeners[eventName] = [];\n' +
+      '    this.listeners[eventName].push(listener);\n' +
+      '  }\n\n' +
+      '  emit(eventName, ...args) {\n' +
+      '    const handlers = this.listeners[eventName] || [];\n' +
+      '    for (const handler of handlers) {\n' +
+      '      handler(...args);\n' +
+      '    }\n' +
+      '  }\n' +
+      '}\n',
+    testCode:
+      'let __passed = 0;\n' +
+      'let __total = 0;\n' +
+      'function check(name, actual, expected) {\n' +
+      '  __total++;\n' +
+      '  const ok = JSON.stringify(actual) === JSON.stringify(expected);\n' +
+      '  if (ok) __passed++;\n' +
+      '  console.log((ok ? "[PASS] " : "[FAIL] ") + name + ": got " + JSON.stringify(actual) + ", expected " + JSON.stringify(expected));\n' +
+      '}\n' +
+      'const bus = new EventEmitter();\n' +
+      'const received = [];\n' +
+      'bus.on("alert", (msg) => received.push("first:" + msg));\n' +
+      'bus.on("alert", (msg) => received.push("second:" + msg));\n' +
+      'bus.emit("alert", "port scan detected");\n' +
+      'check("both listeners called in order", received, ["first:port scan detected", "second:port scan detected"]);\n' +
+      'let noThrow = true;\n' +
+      'try {\n' +
+      '  bus.emit("nonexistent-event");\n' +
+      '} catch (e) {\n' +
+      '  noThrow = false;\n' +
+      '}\n' +
+      'check("emitting an unregistered event does not throw", noThrow, true);\n' +
+      'console.log("__RESULT__ " + __passed + "/" + __total);\n',
+  },
 ];

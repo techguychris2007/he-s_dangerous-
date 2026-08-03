@@ -96,18 +96,18 @@ export default function CodePortalPage() {
               <div className="h-1 rounded-full bg-white/15 overflow-hidden mb-1.5">
                 <div className="h-full rounded-full bg-[var(--color-accent)]" style={{ width: `${totalLessons ? (100 * lessonsDone) / totalLessons : 0}%` }} />
               </div>
-              <div className="text-[11px] text-white/60 uppercase tracking-wide">Lessons complete</div>
+              <div className="text-2xs text-white/60 uppercase tracking-wide">Lessons complete</div>
             </div>
             <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3 min-w-[160px]">
               <div className="text-lg font-bold text-white mb-1.5">{tasksDone}/{ALL_TASKS.length}</div>
               <div className="h-1 rounded-full bg-white/15 overflow-hidden mb-1.5">
                 <div className="h-full rounded-full bg-[var(--color-success)]" style={{ width: `${ALL_TASKS.length ? (100 * tasksDone) / ALL_TASKS.length : 0}%` }} />
               </div>
-              <div className="text-[11px] text-white/60 uppercase tracking-wide">Tasks solved</div>
+              <div className="text-2xs text-white/60 uppercase tracking-wide">Tasks solved</div>
             </div>
             <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
               <div className="text-lg font-bold text-white">Python · C++ · JS</div>
-              <div className="text-[11px] text-white/60 uppercase tracking-wide">All live in-browser</div>
+              <div className="text-2xs text-white/60 uppercase tracking-wide">All live in-browser</div>
             </div>
           </div>
         </div>
@@ -138,7 +138,7 @@ export default function CodePortalPage() {
         <div className="mb-12">
           <div className="flex items-center gap-2 mb-1">
             <IconCode className="w-4 h-4 text-[var(--color-accent)]" />
-            <h2 className="text-lg font-bold text-[var(--color-heading)]">Python Curriculum — 3 Modules</h2>
+            <h2 className="text-lg font-bold text-[var(--color-heading)]">Python Curriculum — {codeModules.length} Modules</h2>
           </div>
           <p className="text-sm text-[var(--color-text-dim)] mb-4">
             From zero to advanced: fundamentals, full OOP, then decorators/generators/concurrency — each

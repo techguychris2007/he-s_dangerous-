@@ -42,21 +42,35 @@ import WritingReports from '../content/bugbounty/03-writing-reports';
 import SkillsAndRoadmap from '../content/bugbounty/04-skills-and-roadmap';
 import BusinessLogicChaining from '../content/bugbounty/05-business-logic-chaining';
 
+import ApiSecurityFundamentals from '../content/api-security/01-api-security-fundamentals';
+import BolaBflaMassAssignment from '../content/api-security/02-bola-bfla-mass-assignment';
+import JwtAttacks from '../content/api-security/03-jwt-attacks';
+import GraphqlAttacks from '../content/api-security/04-graphql-attacks';
+
+import CryptoAttacksFieldGuide from '../content/crypto-attacks/01-crypto-attacks-field-guide';
+import PaddingOracleAttacks from '../content/crypto-attacks/02-padding-oracle-attacks';
+import EcbAndHashLengthExtension from '../content/crypto-attacks/03-ecb-and-hash-length-extension';
+import HashCrackingStrategy from '../content/crypto-attacks/04-hash-cracking-strategy';
+
 import SocFundamentals from '../content/soc/01-soc-fundamentals';
 import ThreatHuntingDetection from '../content/soc/02-threat-hunting-detection';
 import AttackCoverageMapping from '../content/soc/03-attack-coverage-mapping';
+import C2Detection from '../content/soc/04-c2-detection';
 
 import WhatIsASiem from '../content/soc-siem/01-what-is-a-siem';
 import CorrelationRules from '../content/soc-siem/02-correlation-rules';
 import RealSiemPlatformsCompared from '../content/soc-siem/03-real-siem-platforms-compared';
+import LogOnboardingAndVolume from '../content/soc-siem/04-log-onboarding-and-volume';
 
 import WritingTuningDetectionRules from '../content/soc-detection/01-writing-tuning-detection-rules';
 import Ueba from '../content/soc-detection/02-ueba';
 import ThreatIntelIntegration from '../content/soc-detection/03-threat-intel-integration';
+import SigmaRules from '../content/soc-detection/04-sigma-rules';
 
 import IncidentInvestigationMethodology from '../content/soc-ir/01-incident-investigation-methodology';
 import SoarAutomation from '../content/soc-ir/02-soar-automation';
 import ComplianceReporting from '../content/soc-ir/03-compliance-reporting';
+import LandmarkIncidentCaseStudies from '../content/soc-ir/04-landmark-incident-case-studies';
 
 import ForensicsFundamentals from '../content/forensics/01-forensics-fundamentals';
 import MemoryArtifactAnalysis from '../content/forensics/02-memory-artifact-analysis';
@@ -280,6 +294,54 @@ export const MODULES: ModuleMeta[] = [
     ],
   },
   {
+    id: 'api-security',
+    slug: 'api-security',
+    title: 'API Security',
+    subtitle: 'REST & GraphQL: BOLA, BFLA, JWT attacks & introspection abuse',
+    description:
+      'Modern apps are mostly APIs underneath their UI. This module covers the distinct attack surface that creates — REST vs. GraphQL, the OWASP API Security Top 10, BOLA/BFLA and mass assignment, JSON Web Token forgery, and GraphQL-specific introspection/batching/depth abuse.',
+    status: 'available',
+    sourceBooks: ['OWASP API Security Top 10', 'Real-World Bug Hunting'],
+    icon: 'key',
+    lessons: [
+      { id: 'api-1', slug: 'api-security-fundamentals', title: 'API Security Fundamentals: REST, GraphQL & Where the Vulnerabilities Live', summary: 'Why APIs are a distinct testing surface, and the OWASP API Security Top 10 mapped to what you already know.', minutes: 12, Content: ApiSecurityFundamentals },
+      { id: 'api-2', slug: 'bola-bfla-mass-assignment', title: 'Broken Object & Function Level Authorization at Scale', summary: 'API-native IDOR and its cousins: BOLA, BFLA, mass assignment, and excessive data exposure.', minutes: 13, Content: BolaBflaMassAssignment },
+      { id: 'api-3', slug: 'jwt-attacks', title: 'Attacking JSON Web Tokens: alg=none, Weak Secrets & kid Injection', summary: 'Forging tokens by exploiting how JWT libraries verify — or fail to verify — their own signatures.', minutes: 13, Content: JwtAttacks },
+      {
+        id: 'api-4', slug: 'graphql-attacks', title: 'GraphQL-Specific Attacks: Introspection, Batching & Depth Limits', summary: 'Schema-leaking introspection, batching past rate limits, and resource-exhaustion queries.', minutes: 12, Content: GraphqlAttacks,
+        quiz: [
+          { id: 'q1', prompt: 'What does a successful GraphQL introspection query hand an attacker?', choices: ['The database\'s root password', 'A complete map of the schema — every type, query, mutation, and field name', 'Direct filesystem access to the server', 'The server\'s TLS private key'], correctIndex: 1, explanation: 'Introspection is meant for internal developer tooling — left enabled in production, it hands over the entire schema to anyone who asks.' },
+          { id: 'q2', prompt: 'How does batching a GraphQL request defeat a per-request rate limiter?', choices: ['It doesn\'t — GraphQL has no batching feature', 'Many queries execute inside ONE HTTP request, so a limiter counting requests massively undercounts the real number of operations', 'It encrypts the request body so the limiter can\'t inspect it', 'It requires a privileged API key the limiter always exempts'], correctIndex: 1, explanation: 'A limiter capped at "5 requests per minute" only sees one request if thousands of queries are batched into it — the exact technique behind the OTP-bypass lab.' },
+          { id: 'q3', prompt: 'What is BOLA, and how do you test for it directly?', choices: ['Broken Object Level Authorization — request another user\'s object id with your own valid token and see if it\'s still returned', 'A GraphQL-only bug that never appears in REST APIs', 'A denial-of-service technique unrelated to authorization', 'A type of SQL injection specific to APIs'], correctIndex: 0, explanation: 'BOLA is IDOR at the API layer — the server checks that you\'re authenticated but not that the object actually belongs to you.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'crypto-attacks',
+    slug: 'crypto-attacks',
+    title: 'Applied Cryptography Attacks',
+    subtitle: 'Padding oracles, ECB leakage, hash length extension & cracking strategy',
+    description:
+      'Real crypto findings almost never break the math — they break the implementation. This module covers the four implementation-failure patterns behind nearly every real-world crypto bug: padding oracle attacks, ECB mode detection, hash length extension, and a genuine cracking-strategy workflow.',
+    status: 'available',
+    sourceBooks: ['Serious Cryptography', 'The Web Application Hacker\'s Handbook'],
+    icon: 'lock',
+    lessons: [
+      { id: 'crypto-1', slug: 'crypto-attacks-field-guide', title: 'Applied Cryptography Attacks: A Pentester\'s Field Guide', summary: 'The four implementation-failure patterns behind almost every real crypto finding, and identifying what you\'re looking at.', minutes: 11, Content: CryptoAttacksFieldGuide },
+      { id: 'crypto-2', slug: 'padding-oracle-attacks', title: 'Padding Oracle Attacks Against CBC-Mode Encryption', summary: 'Recovering plaintext byte by byte using nothing but a server\'s valid/invalid padding responses.', minutes: 13, Content: PaddingOracleAttacks },
+      { id: 'crypto-3', slug: 'ecb-and-hash-length-extension', title: 'ECB Mode Detection & Exploitation, Hash Length Extension Attacks', summary: 'Spotting ECB\'s block-repetition tell, and forging signatures on naive hash(secret+message) schemes.', minutes: 13, Content: EcbAndHashLengthExtension },
+      {
+        id: 'crypto-4', slug: 'hash-cracking-strategy', title: 'Cracking Strategy: Identifying Hash Types & Choosing the Right Attack', summary: 'Fast vs. slow hashes, salting, and a realistic triage workflow instead of brute-forcing everything by default.', minutes: 12, Content: HashCrackingStrategy,
+        quiz: [
+          { id: 'q1', prompt: 'Why does a padding oracle attack succeed without ever learning the encryption key?', choices: ['It exploits a math flaw in AES itself', 'It uses the server\'s valid/invalid padding responses as a yes/no oracle, recovering plaintext one byte at a time via CBC\'s block-XOR chaining', 'It brute-forces the full AES-256 keyspace directly', 'It only works against RSA, never AES'], correctIndex: 1, explanation: 'The cipher is never broken — the server\'s own distinguishable error responses leak one bit of information per guess, enough to reconstruct the plaintext.' },
+          { id: 'q2', prompt: 'What is the unmistakable tell that a cipher is running in ECB mode?', choices: ['The ciphertext is always shorter than the plaintext', 'Identical plaintext blocks always produce identical ciphertext blocks, visible as repeated ciphertext chunks', 'The server returns a 500 error on every request', 'The encryption key is stored in a cookie'], correctIndex: 1, explanation: 'ECB encrypts each block independently with no chaining, so identical input blocks always map to identical output blocks — the classic "encrypted penguin" demonstration.' },
+          { id: 'q3', prompt: 'Why does switching a signature scheme from a bare hash (e.g. SHA256(key+message)) to real HMAC defeat length-extension attacks?', choices: ['HMAC is simply a longer hash output', 'HMAC\'s construction specifically prevents computing a valid continuation of the internal hash state without knowing the key', 'HMAC doesn\'t use SHA-256 internally', 'It doesn\'t — HMAC is equally vulnerable to length extension'], correctIndex: 1, explanation: 'Length extension exploits the Merkle-Damgard internal-state-resumption property directly — HMAC\'s nested construction specifically breaks that resumption.' },
+        ],
+      },
+    ],
+  },
+  {
     id: 'soc',
     slug: 'soc',
     title: 'SOC Fundamentals & Threat Hunting',
@@ -304,25 +366,35 @@ export const MODULES: ModuleMeta[] = [
           { id: 'q1', prompt: 'What is the main purpose of an ATT&CK coverage map?', choices: ['To label individual alerts with a technique ID', 'To identify which attack stages currently have no working detection at all', 'To replace correlation rules entirely', 'To score individual employees on security awareness'], correctIndex: 1, explanation: 'A coverage map surfaces systemic detection gaps across the full attack lifecycle, not just labels for single alerts.' },
         ],
       },
+      {
+        id: 'soc-4', slug: 'c2-detection', title: 'Detecting C2: Beaconing, DNS Tunneling & LOLBin Abuse', summary: 'Recognizing beacon jitter patterns, DNS-tunneled exfiltration, and living-off-the-land binary abuse.', minutes: 13, Content: C2Detection,
+        quiz: [
+          { id: 'q1', prompt: 'Why is a single C2 beacon request nearly impossible to flag on its own?', choices: ['Beacon traffic is always unencrypted', 'It looks like ordinary HTTPS traffic — the giveaway is the regular timing across many requests, not any one request', 'Firewalls cannot see HTTPS traffic at all', 'Beacons never use HTTPS'], correctIndex: 1, explanation: 'A single check-in is indistinguishable from normal traffic; the near-exact repeating interval across many requests is what exposes it.' },
+          { id: 'q2', prompt: 'What makes a flood of DNS TXT queries to one domain a tunneling indicator?', choices: ['TXT records are always malicious', 'Normal traffic uses a handful of TXT lookups (SPF/DKIM); dozens of long, high-entropy-looking labels is abnormal volume and shape', 'DNS cannot carry TXT records at all', 'TXT queries are automatically blocked by every firewall'], correctIndex: 1, explanation: 'The tell is volume plus shape — many long, encoded-looking subdomain labels, far beyond the handful of legitimate TXT lookups normal traffic generates.' },
+          { id: 'q3', prompt: 'Why is certutil.exe -urlcache -split -f considered a LOLBin abuse indicator?', choices: ['certutil.exe is malware and should never run', 'It repurposes a legitimate, signed certificate tool\'s undocumented file-download mode, blending in with normal admin activity', 'The flags are required for all certificate operations', 'This command only exists on Linux'], correctIndex: 1, explanation: 'certutil.exe is legitimate and runs constantly for real certificate work — the specific flag combination invoking its file-download capability is what turns routine activity into a detection.' },
+        ],
+      },
     ],
   },
   {
     id: 'soc-siem',
     slug: 'soc-siem-platforms',
     title: 'SIEM Platforms & Log Management',
-    subtitle: 'Log collection, normalization, correlation rules, and real SIEM platforms compared',
+    subtitle: 'Log collection, normalization, correlation rules, real SIEM platforms compared, and running one at scale',
     description:
-      'How a SIEM actually works under the hood — collecting and normalizing logs from every source into one schema, writing and tuning the correlation rules that turn raw events into alerts, and how Splunk, Microsoft Sentinel, IBM QRadar, Elastic Security, and Chronicle each implement these same fundamentals.',
+      'How a SIEM actually works under the hood — collecting and normalizing logs from every source into one schema, writing and tuning the correlation rules that turn raw events into alerts, how Splunk, Microsoft Sentinel, IBM QRadar, Elastic Security, and Chronicle each implement these same fundamentals, and the operational reality of onboarding sources, keeping parsers working, and managing data volume once it is all running in production.',
     status: 'available',
     sourceBooks: ['Blue Team Handbook', 'The Practice of Network Security Monitoring'],
     icon: 'soc',
     lessons: [
       { id: 'soc-siem-1', slug: 'what-is-a-siem', title: 'What Is a SIEM? Log Collection, Normalization & Centralization', summary: 'The three foundational SIEM capabilities everything else in this module builds on.', minutes: 11, Content: WhatIsASiem },
       { id: 'soc-siem-2', slug: 'correlation-rules', title: 'Correlation Rules: From Raw Events to Actionable Alerts', summary: 'Writing threshold and multi-stage rules, then tuning them against real false positives.', minutes: 13, Content: CorrelationRules },
+      { id: 'soc-siem-3', slug: 'real-siem-platforms-compared', title: 'Real SIEM Platforms Compared: Splunk, Sentinel, QRadar, Elastic & Chronicle', summary: 'The query languages and interface conventions of five widely-deployed SIEM platforms.', minutes: 14, Content: RealSiemPlatformsCompared },
       {
-        id: 'soc-siem-3', slug: 'real-siem-platforms-compared', title: 'Real SIEM Platforms Compared: Splunk, Sentinel, QRadar, Elastic & Chronicle', summary: 'The query languages and interface conventions of five widely-deployed SIEM platforms.', minutes: 14, Content: RealSiemPlatformsCompared,
+        id: 'soc-siem-4', slug: 'log-onboarding-and-volume', title: 'Log Source Onboarding & Managing Data Volume at Scale', summary: 'Onboarding workflow, silent parser breakage, and the data-volume-vs-cost tradeoff every real SIEM runs into.', minutes: 12, Content: LogOnboardingAndVolume,
         quiz: [
           { id: 'q1', prompt: 'What does IBM QRadar call a correlated finding, scored by a Magnitude value?', choices: ['An Incident', 'An Offense', 'A Case', 'A Ticket'], correctIndex: 1, explanation: 'QRadar organizes correlated findings as Offenses, each carrying a Magnitude score for at-a-glance prioritization.' },
+          { id: 'q2', prompt: 'Why is a silently broken log parser especially dangerous compared to a source that stops sending data entirely?', choices: ['It is not dangerous -- broken parsers are always obvious', 'The log still arrives and looks "collected," but a mismapped field silently stops correlation rules keyed on it from matching -- with no error or alert', 'Broken parsers always crash the SIEM immediately', 'Parsers cannot break once configured'], correctIndex: 1, explanation: 'A source going fully silent is at least detectable via volume monitoring; a parser silently mismapping a field degrades detection coverage with no obvious signal at all.' },
         ],
       },
     ],
@@ -331,19 +403,21 @@ export const MODULES: ModuleMeta[] = [
     id: 'soc-detection',
     slug: 'soc-detection-engineering',
     title: 'Detection Engineering & UEBA',
-    subtitle: 'Writing and tuning detection rules, behavioral baselining, and threat intelligence integration',
+    subtitle: 'Writing and tuning detection rules, behavioral baselining, threat intelligence, and vendor-neutral detection-as-code',
     description:
-      'Three complementary approaches to generating real findings: hand-written rules mapped to specific ATT&CK techniques, User & Entity Behavior Analytics that catches deviation from a learned baseline with no rule required, and external threat intelligence feeds that flag infrastructure someone else already confirmed is malicious.',
+      'Four complementary approaches to generating real findings: hand-written rules mapped to specific ATT&CK techniques, User & Entity Behavior Analytics that catches deviation from a learned baseline with no rule required, external threat intelligence feeds that flag infrastructure someone else already confirmed is malicious, and Sigma, the open format that lets a detection be written once and compiled to any SIEM.',
     status: 'available',
     sourceBooks: ['Blue Team Handbook', 'The Practice of Network Security Monitoring'],
     icon: 'soc',
     lessons: [
       { id: 'soc-detection-1', slug: 'writing-tuning-detection-rules', title: 'Writing and Tuning Detection Rules', summary: 'The detection lifecycle from hypothesis through backtesting to production tuning.', minutes: 13, Content: WritingTuningDetectionRules },
       { id: 'soc-detection-2', slug: 'ueba', title: 'User & Entity Behavior Analytics (UEBA)', summary: 'Baselining normal behavior to catch novel attacker activity no rule was ever written for.', minutes: 12, Content: Ueba },
+      { id: 'soc-detection-3', slug: 'threat-intel-integration', title: 'Threat Intelligence Integration & IOC Matching', summary: 'Consuming external IOC feeds (IPs, domains, hashes) and matching them against your own environment.', minutes: 12, Content: ThreatIntelIntegration },
       {
-        id: 'soc-detection-3', slug: 'threat-intel-integration', title: 'Threat Intelligence Integration & IOC Matching', summary: 'Consuming external IOC feeds (IPs, domains, hashes) and matching them against your own environment.', minutes: 12, Content: ThreatIntelIntegration,
+        id: 'soc-detection-4', slug: 'sigma-rules', title: 'Sigma Rules: Vendor-Neutral Detection-as-Code', summary: 'Writing one detection rule and compiling it to Splunk SPL, Sentinel KQL, and Elastic EQL alike.', minutes: 13, Content: SigmaRules,
         quiz: [
           { id: 'q1', prompt: 'Why can UEBA catch attacker behavior that a written detection rule misses?', choices: ['UEBA only works on cloud platforms', 'UEBA flags deviation from a learned baseline, requiring no pre-written rule for a specific technique', 'UEBA replaces the need for any log collection', 'UEBA only analyzes network traffic'], correctIndex: 1, explanation: 'UEBA learns what normal looks like for a specific user/entity and flags deviation directly, catching genuinely novel behavior no rule was written for.' },
+          { id: 'q2', prompt: 'What problem does Sigma actually solve?', choices: ['It replaces the need for a SIEM entirely', 'It lets one detection be written in a vendor-neutral format and compiled to whichever platform runs it', 'It is a replacement for STIX/TAXII threat intel feeds', 'It only works with Splunk'], correctIndex: 1, explanation: 'Sigma describes detection logic independently of any query language, then a backend compiles it into platform-specific syntax (SPL, KQL, EQL, etc.).' },
         ],
       },
     ],
@@ -361,10 +435,12 @@ export const MODULES: ModuleMeta[] = [
     lessons: [
       { id: 'soc-ir-1', slug: 'incident-investigation-methodology', title: 'Incident Investigation Methodology', summary: 'Building a timeline, scoping the full blast radius, and root-cause analysis.', minutes: 13, Content: IncidentInvestigationMethodology },
       { id: 'soc-ir-2', slug: 'soar-automation', title: 'SOAR: Security Orchestration, Automation & Response', summary: 'Automated playbooks that respond in seconds instead of the ~22-minute manual average.', minutes: 12, Content: SoarAutomation },
+      { id: 'soc-ir-3', slug: 'compliance-reporting', title: 'Compliance Reporting (PCI-DSS, HIPAA, SOC 2, ISO 27001)', summary: 'Generating audit-ready evidence that log review is actually happening, not just theoretically enabled.', minutes: 11, Content: ComplianceReporting },
       {
-        id: 'soc-ir-3', slug: 'compliance-reporting', title: 'Compliance Reporting (PCI-DSS, HIPAA, SOC 2, ISO 27001)', summary: 'Generating audit-ready evidence that log review is actually happening, not just theoretically enabled.', minutes: 11, Content: ComplianceReporting,
+        id: 'soc-ir-4', slug: 'landmark-incident-case-studies', title: 'Landmark Incident Case Studies: Target & the Bangladesh Bank SWIFT Heist', summary: 'Two real breaches showing what happens when a detection is correct but the response around it still fails.', minutes: 13, Content: LandmarkIncidentCaseStudies,
         quiz: [
-          { id: 'q1', prompt: 'What does PCI-DSS Requirement 10.6 specifically mandate?', choices: ['Annual password changes', 'Daily log review for systems in the cardholder data environment', 'Encryption of all data at rest', 'A minimum SOC team size'], correctIndex: 1, explanation: 'Requirement 10.6 mandates daily review of logs for systems handling cardholder data, with evidence retained for audit.' },
+          { id: 'q1', prompt: 'What actually failed in the 2013 Target breach, given that FireEye correctly flagged the malware twice?', choices: ['The detection technology itself was faulty', 'The correct alerts were never escalated in time, buried in a high-volume queue', 'No detection system was in place at all', 'The malware was undetectable by design'], correctIndex: 1, explanation: 'The alerts were correct and timely — the failure was downstream: triage/escalation and a reportedly disabled auto-quarantine feature.' },
+          { id: 'q2', prompt: 'What specifically caused one fraudulent SWIFT transfer to be frozen in the 2016 Bangladesh Bank heist?', choices: ['An intrusion detection system alert', 'A misspelled beneficiary name ("Fandation" instead of "Foundation") triggered manual review', 'A firewall rule blocked the transfer', 'The transfer amount exceeded a hard limit'], correctIndex: 1, explanation: 'A routing bank compliance officer noticed the misspelling and froze the transfer for manual review — a human catching an anomaly, not a technical control.' },
         ],
       },
     ],
@@ -579,6 +655,8 @@ export const ROADMAP: RoadmapStage[] = [
   { title: 'Web Application Hacking', status: 'available', moduleSlug: 'webapp', sourceBooks: ['The Web Application Hacker\'s Handbook', 'PortSwigger Web Security Academy'], track: 'security' },
   { title: 'Red Teaming & Active Directory', status: 'available', moduleSlug: 'redteam', sourceBooks: ['The Hacker Playbook 3'], track: 'security' },
   { title: 'Bug Bounty Methodology', status: 'available', moduleSlug: 'bugbounty', sourceBooks: ['Real-World Bug Hunting', 'Bug Bounty Bootcamp'], track: 'security' },
+  { title: 'API Security', status: 'available', moduleSlug: 'api-security', sourceBooks: ['OWASP API Security Top 10', 'Real-World Bug Hunting'], track: 'security' },
+  { title: 'Applied Cryptography Attacks', status: 'available', moduleSlug: 'crypto-attacks', sourceBooks: ['Serious Cryptography', 'The Web Application Hacker\'s Handbook'], track: 'security' },
   { title: 'SOC Fundamentals & Threat Hunting', status: 'available', moduleSlug: 'soc', sourceBooks: ['Blue Team Handbook', 'The Practice of Network Security Monitoring'], track: 'security' },
   { title: 'SIEM Platforms & Log Management', status: 'available', moduleSlug: 'soc-siem-platforms', sourceBooks: ['Blue Team Handbook', 'The Practice of Network Security Monitoring'], track: 'security' },
   { title: 'Detection Engineering & UEBA', status: 'available', moduleSlug: 'soc-detection-engineering', sourceBooks: ['Blue Team Handbook', 'The Practice of Network Security Monitoring'], track: 'security' },

@@ -82,9 +82,10 @@ TIER 2 (alert, human review): broader community/open-source feeds — useful sig
       </Callout>
 
       <p>
-        With rules, behavioral baselining, and external threat intelligence all covered, the next module
-        turns to what happens once a detection is confirmed real: investigating it properly, automating the
-        response, and reporting on all of it for compliance.
+        With rules, behavioral baselining, and external threat intelligence all covered, the final lesson in
+        this module steps back to a practical problem underneath all three: a rule written in one SIEM's query
+        language only runs on that SIEM. Sigma — a vendor-neutral, YAML-based detection format — is how
+        detection content gets written once and shared across platforms instead of reinvented per vendor.
       </p>
     </div>
   );

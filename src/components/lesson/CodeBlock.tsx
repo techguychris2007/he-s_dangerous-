@@ -23,12 +23,12 @@ export default function CodeBlock({ children, label }: CodeBlockProps) {
         </div>
       )}
       <div className="relative group">
-        <pre className="bg-[#080b10] text-[#8be9b8] font-mono text-[0.85rem] p-4 pr-16 overflow-x-auto leading-relaxed">
+        <pre className="bg-[#080b10] text-[#8be9b8] font-mono text-code p-4 pr-16 overflow-x-auto leading-relaxed">
           {children}
         </pre>
         <button
           onClick={copy}
-          className="absolute top-2 right-2 flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-white/10 text-white/70 hover:bg-white/20 hover:text-white transition-colors"
+          className="absolute top-2 right-2 flex items-center gap-1 px-2.5 py-1 rounded-md text-2xs font-semibold bg-white/10 text-white/70 hover:bg-white/20 hover:text-white transition-colors"
         >
           {copied ? (
             <>

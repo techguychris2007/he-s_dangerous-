@@ -134,6 +134,7 @@ const TOOLS: ResourceGroup[] = [
       { name: 'Prowler (AWS)', note: 'AWS security best-practice auditing' },
       { name: 'ScoutSuite, CloudSploit', note: 'Multi-cloud config auditing' },
       { name: 'Pacu', note: 'AWS exploitation framework (authorized use only)' },
+      { name: 'kube-hunter, kube-bench', note: 'Kubernetes-specific misconfiguration probing & CIS benchmark audit' },
     ],
   },
   {
@@ -142,6 +143,15 @@ const TOOLS: ResourceGroup[] = [
       { name: 'BloodHound', note: 'AD attack-path graphing' },
       { name: 'PingCastle', note: 'AD security posture scoring' },
       { name: 'CrackMapExec / NetExec', note: 'Post-exploitation swiss-army knife' },
+      { name: 'Rubeus', note: 'Kerberos ticket abuse (Kerberoasting, AS-REP roasting, ticket manipulation)' },
+      { name: 'Impacket', note: 'GetUserSPNs.py, secretsdump.py, and the rest of the Python AD attack suite' },
+    ],
+  },
+  {
+    title: 'SIEM & Detection Engineering',
+    items: [
+      { name: 'SigmaHQ / sigma-cli', note: 'Vendor-neutral detection rules, compiled to any SIEM backend' },
+      { name: 'Cribl Stream, Logstash, Fluentd', note: 'Log routing/shaping between raw sources and a SIEM' },
     ],
   },
   {

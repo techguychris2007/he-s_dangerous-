@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
@@ -6,6 +6,15 @@ import Companion from '../companion/Companion';
 
 export default function AppLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileOpen(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [mobileOpen]);
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[var(--color-bg)]">
@@ -27,7 +36,7 @@ export default function AppLayout() {
         <Sidebar />
       </div>
       {mobileOpen && (
-        <div className="fixed inset-0 bg-black/30 z-20 lg:hidden" onClick={() => setMobileOpen(false)} />
+        <div aria-hidden className="fixed inset-0 bg-black/30 z-20 lg:hidden" onClick={() => setMobileOpen(false)} />
       )}
       <div className="flex-1 flex flex-col min-w-0">
         <TopBar onMenuClick={() => setMobileOpen((o) => !o)} />

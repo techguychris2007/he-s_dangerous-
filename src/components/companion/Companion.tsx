@@ -115,9 +115,9 @@ export default function Companion() {
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 mb-0.5">
             <span className="font-bold text-[var(--color-heading)] text-sm">ECHO</span>
-            <span className="text-[10px] font-mono uppercase tracking-wide text-[var(--color-text-dim)]">mentor</span>
+            <span className="text-2xs font-mono uppercase tracking-wide text-[var(--color-text-dim)]">mentor</span>
             {toast.isMilestone && (
-              <span className="pill bg-[var(--color-accent)]/15 text-[var(--color-accent-dim)] text-[10px]">Milestone</span>
+              <span className="pill bg-[var(--color-accent)]/15 text-[var(--color-accent-dim)] text-2xs">Milestone</span>
             )}
           </div>
           <div className="flex items-center gap-1.5 text-xs text-[var(--color-text-dim)] mb-1.5">

@@ -598,4 +598,281 @@ export const PYTHON_FUNDAMENTALS_TASKS: CodeTask[] = [
       '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
       'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
   },
+  {
+    id: 'py-fund-16',
+    title: 'Compute Shannon Entropy of a String',
+    difficulty: 'Medium',
+    language: 'python',
+    category: 'Fundamentals',
+    prompt:
+      'Write shannon_entropy(s) that returns the Shannon entropy of the string s, in bits, based on each ' +
+      'character\'s frequency. Malware analysts use exactly this measurement to flag packed or encrypted ' +
+      'sections of a binary (entropy close to 8 bits/byte) versus plain text or code (much lower entropy). ' +
+      'Return 0.0 for an empty string.',
+    starterCode:
+      'def shannon_entropy(s):\n' +
+      '    # TODO: return the Shannon entropy of s, in bits\n' +
+      '    pass\n',
+    hints: [
+      'Count how many times each character appears first — a dict works well.',
+      'For each character, its probability p is count / len(s); entropy is the sum of -p * log2(p) over every character.',
+      'import math and use math.log2(p) — remember to negate the sum, since log2 of a probability under 1 is negative.',
+    ],
+    solution:
+      'import math\n\n' +
+      'def shannon_entropy(s):\n' +
+      '    if not s:\n' +
+      '        return 0.0\n' +
+      '    freq = {}\n' +
+      '    for ch in s:\n' +
+      '        freq[ch] = freq.get(ch, 0) + 1\n' +
+      '    length = len(s)\n' +
+      '    entropy = 0.0\n' +
+      '    for count in freq.values():\n' +
+      '        p = count / length\n' +
+      '        entropy -= p * math.log2(p)\n' +
+      '    return entropy\n',
+    testCode:
+      '__results__ = []\n' +
+      'def __check__(name, actual, expected):\n' +
+      '    __results__.append((name, round(actual, 4) == round(expected, 4), actual, expected))\n\n' +
+      '__check__("empty string", shannon_entropy(""), 0.0)\n' +
+      '__check__("all same character", shannon_entropy("aaaa"), 0.0)\n' +
+      '__check__("4 unique chars, equal freq", shannon_entropy("abcd"), 2.0)\n' +
+      '__check__("8 unique chars, equal freq", shannon_entropy("abcdefgh"), 3.0)\n\n' +
+      'for name, ok, actual, expected in __results__:\n' +
+      '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
+      'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
+  },
+  {
+    id: 'py-fund-17',
+    title: 'Detect a Private (RFC 1918) IPv4 Address',
+    difficulty: 'Easy',
+    language: 'python',
+    category: 'Fundamentals',
+    prompt:
+      'Write is_private_ipv4(addr) that returns True if a syntactically valid dotted-decimal IPv4 address ' +
+      'falls inside one of the three RFC 1918 private ranges: 10.0.0.0/8, 172.16.0.0/12 (172.16.x.x through ' +
+      '172.31.x.x), or 192.168.0.0/16. Return False for any address outside all three ranges. You may assume ' +
+      'the input is always a well-formed IPv4 address.',
+    starterCode:
+      'def is_private_ipv4(addr):\n' +
+      '    # TODO: return True only if addr falls in an RFC 1918 private range\n' +
+      '    pass\n',
+    hints: [
+      'Split on "." and convert each octet to int — you only need the first two octets to decide.',
+      '10.x.x.x is private whenever the first octet is exactly 10.',
+      '172.16.x.x through 172.31.x.x is private — check the second octet falls in the inclusive range 16 to 31.',
+    ],
+    solution:
+      'def is_private_ipv4(addr):\n' +
+      '    parts = [int(p) for p in addr.split(".")]\n' +
+      '    a, b = parts[0], parts[1]\n' +
+      '    if a == 10:\n' +
+      '        return True\n' +
+      '    if a == 172 and 16 <= b <= 31:\n' +
+      '        return True\n' +
+      '    if a == 192 and b == 168:\n' +
+      '        return True\n' +
+      '    return False\n',
+    testCode:
+      '__results__ = []\n' +
+      'def __check__(name, actual, expected):\n' +
+      '    __results__.append((name, actual == expected, actual, expected))\n\n' +
+      '__check__("10.x is private", is_private_ipv4("10.1.2.3"), True)\n' +
+      '__check__("172.20 is private", is_private_ipv4("172.20.5.5"), True)\n' +
+      '__check__("172.32 is NOT private (just outside range)", is_private_ipv4("172.32.0.1"), False)\n' +
+      '__check__("192.168 is private", is_private_ipv4("192.168.1.1"), True)\n' +
+      '__check__("192.169 is NOT private", is_private_ipv4("192.169.1.1"), False)\n' +
+      '__check__("public IP", is_private_ipv4("8.8.8.8"), False)\n\n' +
+      'for name, ok, actual, expected in __results__:\n' +
+      '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
+      'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
+  },
+  {
+    id: 'py-fund-18',
+    title: 'Validate a MAC Address Format',
+    difficulty: 'Easy',
+    language: 'python',
+    category: 'Fundamentals',
+    prompt:
+      'Write is_valid_mac(addr) that returns True only if addr is a syntactically valid MAC address in ' +
+      'colon-separated hex form: exactly 6 groups of exactly 2 hexadecimal digits each, separated by colons ' +
+      '(e.g. "00:1A:2B:3C:4D:5E"). Hex digits may be upper or lower case. Any other separator, wrong group ' +
+      'count, or non-hex character should return False.',
+    starterCode:
+      'import re\n\n' +
+      'def is_valid_mac(addr):\n' +
+      '    # TODO: return True only for a valid colon-separated MAC address\n' +
+      '    pass\n',
+    hints: [
+      'A regular expression makes this a one-liner — re.fullmatch requires the ENTIRE string to match, not just part of it.',
+      'Each group is [0-9A-Fa-f]{2}; you need exactly 6 of them separated by colons.',
+      'Pattern: r"([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}" — five "group:" pairs, then one final group with no trailing colon.',
+    ],
+    solution:
+      'import re\n\n' +
+      'def is_valid_mac(addr):\n' +
+      '    return bool(re.fullmatch(r"([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}", addr))\n',
+    testCode:
+      '__results__ = []\n' +
+      'def __check__(name, actual, expected):\n' +
+      '    __results__.append((name, actual == expected, actual, expected))\n\n' +
+      '__check__("valid uppercase", is_valid_mac("00:1A:2B:3C:4D:5E"), True)\n' +
+      '__check__("valid lowercase", is_valid_mac("aa:bb:cc:dd:ee:ff"), True)\n' +
+      '__check__("too few groups", is_valid_mac("00:1A:2B"), False)\n' +
+      '__check__("invalid hex digit", is_valid_mac("00:1A:2B:3C:4D:GG"), False)\n' +
+      '__check__("wrong separator", is_valid_mac("00-1A-2B-3C-4D-5E"), False)\n\n' +
+      'for name, ok, actual, expected in __results__:\n' +
+      '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
+      'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
+  },
+  {
+    id: 'py-fund-19',
+    title: 'Parse a User-Agent String Into Browser & OS',
+    difficulty: 'Medium',
+    language: 'python',
+    category: 'Fundamentals',
+    prompt:
+      'Write parse_user_agent(ua) that returns a dict {"browser": ..., "os": ...} by checking for a small, ' +
+      'fixed set of substrings. Browser, checked IN THIS ORDER (since a Chrome-based Edge UA also contains ' +
+      '"Chrome", and every Chrome UA also contains "Safari" — order matters): "Edg" -> "Edge", "Chrome" -> ' +
+      '"Chrome", "Firefox" -> "Firefox", "Safari" -> "Safari", else "Unknown". OS: "Windows" -> "Windows", ' +
+      '"Mac OS X" -> "macOS", "iPhone" or "iPad" -> "iOS", "Android" -> "Android", "Linux" -> "Linux", else ' +
+      '"Unknown".',
+    starterCode:
+      'def parse_user_agent(ua):\n' +
+      '    # TODO: return {"browser": ..., "os": ...} based on substrings, checked in the documented order\n' +
+      '    pass\n',
+    hints: [
+      'Check for "Edg" before "Chrome" — a Chromium-based Edge user agent contains BOTH substrings.',
+      'Check for "iPhone"/"iPad" before "Mac OS X" and before "Linux" — a mobile Safari UA can contain "like Mac OS X", and Android UAs contain "Linux".',
+      'A simple if/elif chain in exactly the documented priority order handles every case correctly.',
+    ],
+    solution:
+      'def parse_user_agent(ua):\n' +
+      '    if "Edg" in ua:\n' +
+      '        browser = "Edge"\n' +
+      '    elif "Chrome" in ua:\n' +
+      '        browser = "Chrome"\n' +
+      '    elif "Firefox" in ua:\n' +
+      '        browser = "Firefox"\n' +
+      '    elif "Safari" in ua:\n' +
+      '        browser = "Safari"\n' +
+      '    else:\n' +
+      '        browser = "Unknown"\n\n' +
+      '    if "iPhone" in ua or "iPad" in ua:\n' +
+      '        os_name = "iOS"\n' +
+      '    elif "Android" in ua:\n' +
+      '        os_name = "Android"\n' +
+      '    elif "Windows" in ua:\n' +
+      '        os_name = "Windows"\n' +
+      '    elif "Mac OS X" in ua:\n' +
+      '        os_name = "macOS"\n' +
+      '    elif "Linux" in ua:\n' +
+      '        os_name = "Linux"\n' +
+      '    else:\n' +
+      '        os_name = "Unknown"\n\n' +
+      '    return {"browser": browser, "os": os_name}\n',
+    testCode:
+      '__results__ = []\n' +
+      'def __check__(name, actual, expected):\n' +
+      '    __results__.append((name, actual == expected, actual, expected))\n\n' +
+      'chrome_windows = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36"\n' +
+      'firefox_linux = "Mozilla/5.0 (X11; Linux x86_64; rv:121.0) Gecko/20100101 Firefox/121.0"\n' +
+      'safari_iphone = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Safari/604.1"\n' +
+      'edge_windows = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36 Edg/120.0"\n\n' +
+      '__check__("chrome on windows", parse_user_agent(chrome_windows), {"browser": "Chrome", "os": "Windows"})\n' +
+      '__check__("firefox on linux", parse_user_agent(firefox_linux), {"browser": "Firefox", "os": "Linux"})\n' +
+      '__check__("safari on iphone", parse_user_agent(safari_iphone), {"browser": "Safari", "os": "iOS"})\n' +
+      '__check__("edge on windows (contains Chrome too)", parse_user_agent(edge_windows), {"browser": "Edge", "os": "Windows"})\n' +
+      '__check__("unrecognized", parse_user_agent(""), {"browser": "Unknown", "os": "Unknown"})\n\n' +
+      'for name, ok, actual, expected in __results__:\n' +
+      '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
+      'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
+  },
+  {
+    id: 'py-fund-20',
+    title: 'Flatten a Nested Configuration Dictionary',
+    difficulty: 'Medium',
+    language: 'python',
+    category: 'Fundamentals',
+    prompt:
+      'Write flatten_config(d, parent_key="", sep=".") that flattens an arbitrarily nested dictionary into a ' +
+      'single-level dict whose keys are dotted paths — e.g. {"a": {"b": 1, "c": {"d": 2}}} becomes ' +
+      '{"a.b": 1, "a.c.d": 2}. This is exactly the transformation needed to turn a nested YAML/JSON config ' +
+      'file into flat, env-var-style keys.',
+    starterCode:
+      'def flatten_config(d, parent_key="", sep="."):\n' +
+      '    # TODO: return a flat dict with dotted-path keys\n' +
+      '    pass\n',
+    hints: [
+      'Recursion is the natural fit: for each key/value pair, if the value is itself a dict, recurse into it with an updated parent_key.',
+      'The new key at each level is parent_key + sep + key (or just key, if parent_key is empty).',
+      'If the value is NOT a dict, it\'s a leaf — add it directly to the result under the fully-built key.',
+    ],
+    solution:
+      'def flatten_config(d, parent_key="", sep="."):\n' +
+      '    result = {}\n' +
+      '    for key, value in d.items():\n' +
+      '        new_key = f"{parent_key}{sep}{key}" if parent_key else key\n' +
+      '        if isinstance(value, dict):\n' +
+      '            result.update(flatten_config(value, new_key, sep))\n' +
+      '        else:\n' +
+      '            result[new_key] = value\n' +
+      '    return result\n',
+    testCode:
+      '__results__ = []\n' +
+      'def __check__(name, actual, expected):\n' +
+      '    __results__.append((name, actual == expected, actual, expected))\n\n' +
+      '__check__("two levels", flatten_config({"a": {"b": 1, "c": {"d": 2}}}), {"a.b": 1, "a.c.d": 2})\n' +
+      '__check__("empty dict", flatten_config({}), {})\n' +
+      '__check__("already flat", flatten_config({"x": 1, "y": 2}), {"x": 1, "y": 2})\n' +
+      '__check__("three levels deep", flatten_config({"p": {"q": {"r": {"s": 5}}}}), {"p.q.r.s": 5})\n\n' +
+      'for name, ok, actual, expected in __results__:\n' +
+      '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
+      'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
+  },
+  {
+    id: 'py-fund-21',
+    title: 'Chunk a List Into Fixed-Size Batches',
+    difficulty: 'Easy',
+    language: 'python',
+    category: 'Fundamentals',
+    prompt:
+      'Write chunk_list(items, size) that splits items into a list of lists, each of length size except ' +
+      'possibly the last one, which holds whatever remainder is left over. Raise ValueError if size is 0 or ' +
+      'negative. Useful for batching API calls or scan targets into fixed-size groups instead of firing them ' +
+      'all at once.',
+    starterCode:
+      'def chunk_list(items, size):\n' +
+      '    # TODO: return items split into chunks of length `size` (last chunk may be shorter)\n' +
+      '    pass\n',
+    hints: [
+      'Validate size first — raise ValueError("size must be positive") if size <= 0.',
+      'A list comprehension stepping through range(0, len(items), size) gives you the start index of each chunk.',
+      'items[i:i+size] naturally returns a shorter final slice if there aren\'t size items left — no special-casing needed.',
+    ],
+    solution:
+      'def chunk_list(items, size):\n' +
+      '    if size <= 0:\n' +
+      '        raise ValueError("size must be positive")\n' +
+      '    return [items[i:i + size] for i in range(0, len(items), size)]\n',
+    testCode:
+      '__results__ = []\n' +
+      'def __check__(name, actual, expected):\n' +
+      '    __results__.append((name, actual == expected, actual, expected))\n\n' +
+      '__check__("even split", chunk_list([1, 2, 3, 4], 2), [[1, 2], [3, 4]])\n' +
+      '__check__("remainder in last chunk", chunk_list([1, 2, 3, 4, 5], 2), [[1, 2], [3, 4], [5]])\n' +
+      '__check__("empty list", chunk_list([], 3), [])\n' +
+      '__check__("chunk size larger than list", chunk_list([1, 2, 3], 5), [[1, 2, 3]])\n\n' +
+      'try:\n' +
+      '    chunk_list([1, 2], 0)\n' +
+      '    __results__.append(("raises on size=0", False, "no exception", "ValueError"))\n' +
+      'except ValueError:\n' +
+      '    __results__.append(("raises on size=0", True, "ValueError", "ValueError"))\n\n' +
+      'for name, ok, actual, expected in __results__:\n' +
+      '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
+      'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
+  },
 ];

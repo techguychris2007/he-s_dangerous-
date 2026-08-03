@@ -96,9 +96,10 @@ Chronicle -> UDM search over a single unified schema across all ingested sources
       </Callout>
 
       <p>
-        With the platform landscape covered, the next module goes deeper on the actual craft of detection:
-        writing and tuning your own rules, building behavioral baselines with UEBA, and integrating external
-        threat intelligence feeds directly into your search workflow.
+        With the platform landscape covered, the final lesson turns from choosing a platform to actually
+        running one day to day: onboarding new log sources, keeping parsers working as vendors change their
+        formats, and managing the data-volume-vs-cost tradeoff every real SIEM deployment eventually runs
+        into.
       </p>
     </div>
   );

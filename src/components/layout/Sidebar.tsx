@@ -33,7 +33,7 @@ const navItemClass = ({ isActive }: { isActive: boolean }) =>
 
 function NavSectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="px-3 mt-4 mb-1 text-[10px] font-mono font-bold uppercase tracking-widest text-[var(--color-text-dim)] first:mt-0">
+    <div className="px-3 mt-4 mb-1 text-2xs font-mono font-bold uppercase tracking-widest text-[var(--color-text-dim)] first:mt-0">
       {children}
     </div>
   );
@@ -83,7 +83,7 @@ export default function Sidebar() {
         <NavLink to="/tasks" className={navItemClass}>
           <IconCheck className="w-4 h-4" /> My tasks
           {tasksRemaining > 0 && (
-            <span className="ml-auto text-[10px] font-bold bg-[var(--color-accent)] text-white rounded-full min-w-[1.25rem] h-5 flex items-center justify-center px-1">
+            <span className="ml-auto text-2xs font-bold bg-[var(--color-accent)] text-white rounded-full min-w-[1.25rem] h-5 flex items-center justify-center px-1">
               {tasksRemaining}
             </span>
           )}
@@ -137,13 +137,13 @@ export default function Sidebar() {
         {currentModule ? (
           <>
             <div className="px-2 mb-3">
-              <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[var(--color-text-dim)] mb-0.5">
+              <div className="text-2xs font-mono font-bold uppercase tracking-widest text-[var(--color-text-dim)] mb-0.5">
                 {currentModule.title}
               </div>
-              <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[var(--color-accent)]">
+              <div className="text-2xs font-mono font-bold uppercase tracking-widest text-[var(--color-accent)]">
                 {Math.max(1, Math.ceil(currentModule.lessons.length / 3))} week{Math.max(1, Math.ceil(currentModule.lessons.length / 3)) > 1 ? 's' : ''}
               </div>
-              <div className="flex items-center justify-between text-[11px] text-[var(--color-text-dim)] mt-2 mb-1">
+              <div className="flex items-center justify-between text-2xs text-[var(--color-text-dim)] mt-2 mb-1">
                 <span>Your progress</span>
                 <span className="font-mono font-bold text-[var(--color-heading)]">
                   {Math.round((currentModule.lessons.filter((l) => progress.isLessonComplete(l.id)).length / currentModule.lessons.length) * 100)}%
@@ -165,7 +165,7 @@ export default function Sidebar() {
                 return (
                   <NavLink key={lesson.id} to={`/module/${currentModule.slug}/lesson/${lesson.slug}`} className={navItemClass}>
                     <span
-                      className={`w-5 h-5 shrink-0 rounded-full text-[10px] font-bold flex items-center justify-center ${
+                      className={`w-5 h-5 shrink-0 rounded-full text-2xs font-bold flex items-center justify-center ${
                         complete ? 'bg-[var(--color-success)] text-white' : 'bg-[var(--color-surface-2)] text-[var(--color-text-dim)]'
                       }`}
                     >
@@ -173,7 +173,7 @@ export default function Sidebar() {
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block truncate">{lesson.title}</span>
-                      <span className="block text-[10px] text-[var(--color-text-dim)] font-mono">
+                      <span className="block text-2xs text-[var(--color-text-dim)] font-mono">
                         {lesson.minutes} min &middot; Day {day}
                       </span>
                     </span>
@@ -187,14 +187,14 @@ export default function Sidebar() {
                   progress.resetModuleProgress(currentModule.lessons.map((l) => l.id));
                 }
               }}
-              className="mt-3 w-full text-center text-[11px] font-semibold text-[var(--color-text-dim)] hover:text-[var(--color-danger)] transition-colors py-1.5"
+              className="mt-3 w-full text-center text-2xs font-semibold text-[var(--color-text-dim)] hover:text-[var(--color-danger)] transition-colors py-1.5"
             >
               Reset this module's progress
             </button>
           </>
         ) : (
           <>
-            <div className="px-2 mb-2 text-[10px] font-mono font-bold uppercase tracking-widest text-[var(--color-text-dim)]">
+            <div className="px-2 mb-2 text-2xs font-mono font-bold uppercase tracking-widest text-[var(--color-text-dim)]">
               Modules
             </div>
             <div className="flex flex-col gap-0.5">
@@ -216,7 +216,7 @@ export default function Sidebar() {
           </span>
           <div className="min-w-0 flex-1">
             <div className="text-sm font-semibold text-[var(--color-heading)] truncate">{progress.learnerName}</div>
-            <div className="text-[11px] text-[var(--color-text-dim)] group-hover:text-[var(--color-accent)] transition-colors">View profile</div>
+            <div className="text-2xs text-[var(--color-text-dim)] group-hover:text-[var(--color-accent)] transition-colors">View profile</div>
           </div>
         </NavLink>
         <button

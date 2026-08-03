@@ -81,11 +81,11 @@ export default function RoadmapPage() {
       <div className="flex flex-wrap gap-3 mb-12">
         <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3">
           <div className="text-lg font-bold text-[var(--color-heading)]">{stagesComplete}/{availableCount}</div>
-          <div className="text-[11px] text-[var(--color-text-dim)] uppercase tracking-wide">Stops complete</div>
+          <div className="text-2xs text-[var(--color-text-dim)] uppercase tracking-wide">Stops complete</div>
         </div>
         <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3">
           <div className="text-lg font-bold text-[var(--color-heading)]">{lessonsDone}/{lessonsTotal}</div>
-          <div className="text-[11px] text-[var(--color-text-dim)] uppercase tracking-wide">Lessons complete</div>
+          <div className="text-2xs text-[var(--color-text-dim)] uppercase tracking-wide">Lessons complete</div>
         </div>
       </div>
 

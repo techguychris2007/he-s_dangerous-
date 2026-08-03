@@ -201,7 +201,7 @@ const BRANDING: Record<SiemTool, Branding> = {
     buttonText: 'text-black',
     inputBorder: 'border-slate-400/25',
     inputFocus: 'focus:border-slate-400/60',
-    bodyBg: 'bg-[#0c0d10]',
+    bodyBg: 'bg-[var(--term-bg)]',
     queryLabel: '$ sherlock',
     placeholder: 'username to search, e.g. shadowbroker_88',
     searchLabel: 'Run',
@@ -282,14 +282,10 @@ const SEVERITY_STYLE: Record<string, string> = {
 export default function SiemConsole({
   scenario,
   onFlagCaptured,
-  onQueryRun,
   onTranscriptChange,
 }: {
   scenario: SiemLabScenario;
   onFlagCaptured: (flag: string) => void;
-  /** Fires once per query actually run (not every keystroke) — used to drive the guided-steps
-   *  checklist's automatic tick-off, since each objective is designed to correspond to roughly one query. */
-  onQueryRun?: () => void;
   /** Fires with the accumulated query/result log (plain text) after every query actually run — same
    *  role as Terminal's onTranscriptChange, for the AI lab tutor to see real session activity. */
   onTranscriptChange?: (transcript: string) => void;
@@ -311,7 +307,6 @@ export default function SiemConsole({
         const flag = extractFlag(e.line);
         if (flag) onFlagCaptured(flag);
       });
-      onQueryRun?.();
       const sample = visible.slice(0, 3).map((e) => `    ${e.line}`).join('\n');
       const entry =
         `${b.queryLabel} ${q}\n  ${visible.length} matching ${b.resultsNoun} (of ${scenario.entries.length} total)` +
@@ -339,7 +334,7 @@ export default function SiemConsole({
         <span className={`w-2.5 h-2.5 rounded-full ${b.dot} shrink-0`} />
         <span className={`font-bold text-sm tracking-wide ${b.labelText}`}>{b.name}</span>
         <span className="text-xs text-slate-500">{b.tagline}</span>
-        <span className="ml-auto text-[11px] font-mono text-slate-500">{scenario.datasetLabel}</span>
+        <span className="ml-auto text-2xs font-mono text-slate-500">{scenario.datasetLabel}</span>
       </div>
 
       {/* query bar */}
@@ -377,7 +372,7 @@ export default function SiemConsole({
           </div>
         ) : (
           <table className="w-full text-xs font-mono">
-            <thead className={`sticky top-0 ${b.headerBg} text-slate-400 uppercase text-[10px] tracking-wider`}>
+            <thead className={`sticky top-0 ${b.headerBg} text-slate-400 uppercase text-2xs tracking-wider`}>
               <tr>
                 {b.columns === 'severity' && <th className="text-left px-3 py-2">Severity</th>}
                 <th className="text-left px-3 py-2">Timestamp</th>
@@ -390,7 +385,7 @@ export default function SiemConsole({
                 <tr key={i} className="border-b border-white/5 hover:bg-white/[0.03]">
                   {b.columns === 'severity' && (
                     <td className="px-3 py-2 align-top">
-                      <span className={`inline-block px-1.5 py-0.5 rounded border text-[10px] font-bold ${SEVERITY_STYLE[e.severity ?? 'Low']}`}>
+                      <span className={`inline-block px-1.5 py-0.5 rounded border text-2xs font-bold ${SEVERITY_STYLE[e.severity ?? 'Low']}`}>
                         {e.severity ?? 'Low'}
                       </span>
                     </td>
@@ -398,7 +393,7 @@ export default function SiemConsole({
                   <td className="px-3 py-2 align-top text-slate-500 whitespace-nowrap">{e.timestamp ?? '—'}</td>
                   {b.columns === 'event-type' && (
                     <td className="px-3 py-2 align-top">
-                      <span className={`inline-block px-1.5 py-0.5 rounded border text-[10px] font-bold bg-white/5 ${b.labelText} ${b.border}`}>
+                      <span className={`inline-block px-1.5 py-0.5 rounded border text-2xs font-bold bg-white/5 ${b.labelText} ${b.border}`}>
                         {e.eventType ?? 'EVENT'}
                       </span>
                     </td>
@@ -416,7 +411,7 @@ export default function SiemConsole({
         )}
       </div>
 
-      <div className={`px-4 py-1.5 border-t ${b.border} ${b.barBg} text-[11px] font-mono text-slate-500`}>
+      <div className={`px-4 py-1.5 border-t ${b.border} ${b.barBg} text-2xs font-mono text-slate-500`}>
         {results.length} of {scenario.entries.length} {b.resultsNoun} shown
       </div>
     </div>

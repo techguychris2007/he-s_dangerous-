@@ -37,6 +37,28 @@ import { offensiveBatch2Labs } from '../labs/scenarios/offensive-batch-2-pack';
 import { offensiveBatch3Labs } from '../labs/scenarios/offensive-batch-3-pack';
 import { offensiveFreshAttacksLabs } from '../labs/scenarios/offensive-fresh-attacks-pack';
 import { offensiveFreshAttacksLabs2 } from '../labs/scenarios/offensive-fresh-attacks-pack-2';
+import { offensiveFreshAttacksLabs3 } from '../labs/scenarios/offensive-fresh-attacks-pack-3';
+import { offensiveFreshAttacksLabs4 } from '../labs/scenarios/offensive-fresh-attacks-pack-4';
+import { offensiveFreshAttacksLabs5 } from '../labs/scenarios/offensive-fresh-attacks-pack-5';
+import { apiCryptoLabs } from '../labs/scenarios/api-crypto-pack';
+import { apiCryptoLabs2 } from '../labs/scenarios/api-crypto-pack-2';
+import { cryptoBinaryForensicsLabs } from '../labs/scenarios/crypto-binary-forensics-pack';
+import { apiCryptoCloudLabs } from '../labs/scenarios/api-crypto-cloud-pack';
+import { realismBatchLabs } from '../labs/scenarios/realism-batch-pack';
+import { cryptoApiAdForensicsLabs } from '../labs/scenarios/crypto-api-ad-forensics-pack';
+import { batch8MixedLabs } from '../labs/scenarios/batch8-mixed-pack';
+import { batch9MixedLabs } from '../labs/scenarios/batch9-mixed-pack';
+import { batch10MixedLabs } from '../labs/scenarios/batch10-mixed-pack';
+import { adCloudAdvancedLabs2 } from '../labs/scenarios/ad-cloud-advanced-pack-2';
+import { batch11MixedLabs } from '../labs/scenarios/batch11-mixed-pack';
+import { batch12MixedLabs } from '../labs/scenarios/batch12-mixed-pack';
+import { batch13MixedLabs } from '../labs/scenarios/batch13-mixed-pack';
+import { batch14MixedLabs } from '../labs/scenarios/batch14-mixed-pack';
+import { batch15MixedLabs } from '../labs/scenarios/batch15-mixed-pack';
+import { batch16MixedLabs } from '../labs/scenarios/batch16-mixed-pack';
+import { batch17MixedLabs } from '../labs/scenarios/batch17-mixed-pack';
+import { batch18GtfobinsLabs } from '../labs/scenarios/batch18-gtfobins-pack';
+import { batch18MixedLabs } from '../labs/scenarios/batch18-mixed-pack';
 import type { LabScenario } from '../labs/types';
 
 export interface LabEntry {
@@ -85,6 +107,28 @@ export const LABS: LabEntry[] = [
   ...toEntries(offensiveBatch3Labs),
   ...toEntries(offensiveFreshAttacksLabs),
   ...toEntries(offensiveFreshAttacksLabs2),
+  ...toEntries(offensiveFreshAttacksLabs3),
+  ...toEntries(offensiveFreshAttacksLabs4),
+  ...toEntries(offensiveFreshAttacksLabs5),
+  ...toEntries(apiCryptoLabs),
+  ...toEntries(apiCryptoLabs2),
+  ...toEntries(cryptoBinaryForensicsLabs),
+  ...toEntries(apiCryptoCloudLabs),
+  ...toEntries(realismBatchLabs),
+  ...toEntries(cryptoApiAdForensicsLabs),
+  ...toEntries(batch8MixedLabs),
+  ...toEntries(batch9MixedLabs),
+  ...toEntries(batch10MixedLabs),
+  ...toEntries(adCloudAdvancedLabs2),
+  ...toEntries(batch11MixedLabs),
+  ...toEntries(batch12MixedLabs),
+  ...toEntries(batch13MixedLabs),
+  ...toEntries(batch14MixedLabs),
+  ...toEntries(batch15MixedLabs),
+  ...toEntries(batch16MixedLabs),
+  ...toEntries(batch17MixedLabs),
+  ...toEntries(batch18GtfobinsLabs),
+  ...toEntries(batch18MixedLabs),
 ];
 
 /** Ordered to match the roadmap's actual teaching sequence (see curriculum.ts's MODULES order). */
@@ -101,6 +145,8 @@ export const LAB_CATEGORIES = [
   'Binary Analysis',
   'Malware',
   'Security Engineering',
+  'API',
+  'Cryptography',
 ] as const;
 
 /** Maps a teaching module slug to the lab category whose labs should appear on that module's page. */
@@ -120,6 +166,8 @@ export const MODULE_TO_LAB_CATEGORY: Record<string, (typeof LAB_CATEGORIES)[numb
   binaryanalysis: 'Binary Analysis',
   malware: 'Malware',
   secengineering: 'Security Engineering',
+  'api-security': 'API',
+  'crypto-attacks': 'Cryptography',
 };
 
 export function findLab(slug?: string): LabEntry | undefined {

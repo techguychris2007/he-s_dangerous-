@@ -38,6 +38,26 @@ export default function IamAndMisconfiguration() {
         user permissions.
       </p>
 
+      <h2>IMDSv2: the metadata service's own hardening, and its limit</h2>
+      <p>
+        Because SSRF-to-metadata-theft became such a common, high-impact finding, AWS shipped IMDSv2 —
+        a hardened version of the metadata service that requires a session token before any credential can
+        be read. The token itself is fetched with a <code>PUT</code> request; every metadata <code>GET</code>{' '}
+        afterward must carry that token in a header. A simple SSRF that can only force a <code>GET</code>{' '}
+        request (the classic case) is correctly blocked outright — it can never complete the{' '}
+        <code>PUT</code> step to obtain a token in the first place.
+      </p>
+      <Callout variant="warn">
+        <p>
+          IMDSv2 blocking <em>simple</em> GET-based SSRF is not the same as blocking SSRF entirely. If the
+          vulnerable feature gives an attacker any control over the outgoing request beyond just the URL —
+          a selectable HTTP method, custom headers, or a redirect the app blindly follows — that's often
+          enough to complete IMDSv2's PUT-then-GET handshake server-side, fully defeating the hardening.
+          Never treat "IMDSv2 is enforced" as license to skip metadata testing on an SSRF finding — check
+          exactly how much control the vulnerable feature actually gives you over the request first.
+        </p>
+      </Callout>
+
       <h2>Common misconfiguration checklist</h2>
       <CodeBlock label="what a cloud security review checks for, in priority order">{`1. Public storage buckets/containers with sensitive data
 2. Overly permissive IAM policies (wildcard actions/resources)
@@ -131,11 +151,29 @@ scout gcp
         cluster.
       </p>
 
-      <h2>Module complete</h2>
+      <h2>One more IAM leak worth naming explicitly: credentials committed to a public repo</h2>
       <p>
-        The three labs in this module let you exploit exactly the misconfigurations covered here: a public
-        storage bucket, an SSRF-to-metadata credential theft, and a leaked infrastructure-as-code secret —
-        the three patterns responsible for the overwhelming majority of real-world cloud security incidents.
+        Every misconfiguration covered so far assumes the credential itself was generated and stored
+        correctly, then reached by an attacker through some other flaw (SSRF, an open bucket, a state file).
+        The single most common real way IAM credentials actually leak skips all of that: a developer commits
+        an AWS access key directly into source code — often in a config file meant to be gitignored but
+        pushed once by mistake — and pushes it to a public GitHub repository. Automated scanners (both
+        GitHub's own secret-scanning and attacker-run tools scraping public commits in real time) find keys
+        like this within minutes of the push, frequently faster than the developer who committed it notices.
+      </p>
+      <Callout variant="warn">
+        <p>
+          This is why AWS automatically flags and often auto-quarantines access keys it detects in public
+          GitHub repos — the window between an accidental commit and automated discovery is measured in
+          minutes, not the days a manual security review would take to catch the same mistake.
+        </p>
+      </Callout>
+      <p>
+        The labs in this module let you exploit exactly the misconfigurations covered here: a public storage
+        bucket, an SSRF-to-metadata credential theft, a credential leaked straight into a public repo, and a
+        leaked infrastructure-as-code secret — together responsible for the overwhelming majority of
+        real-world cloud security incidents. The next lesson moves from storage and identity to the layer
+        most modern cloud workloads actually run on: containers, Kubernetes, and infrastructure-as-code.
       </p>
     </div>
   );

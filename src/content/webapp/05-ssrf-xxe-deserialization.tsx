@@ -30,6 +30,32 @@ curl "http://10.10.60.9/fetch?url=http://169.254.169.254/latest/meta-data/"   # 
         exactly why SSRF earned its own OWASP Top 10 category in 2021.
       </p>
 
+      <h2>DNS rebinding: defeating an SSRF allowlist without ever touching a private IP directly</h2>
+      <p>
+        A common SSRF defense validates the target URL by resolving its hostname and rejecting anything that
+        resolves to a private or internal IP — reasonable, until the validation and the actual request happen
+        at two different moments. An attacker who controls their own DNS record can make it resolve to a
+        harmless public IP the instant it's validated, then change what it resolves to (the metadata IP,{' '}
+        <code>127.0.0.1</code>, an internal host) by the time the real request fires seconds later. The
+        hostname itself never violated the allowlist at either individual moment the server checked it — the
+        server just checked at the wrong time relative to when it acted.
+      </p>
+      <CodeBlock label="why re-validating right before the request still isn't automatically safe">{`# A validation step done ONCE, then a request made separately later, is the classic gap:
+1. App resolves attacker-rebind.example -> 93.184.216.34 (public) -- passes the allowlist check
+2. App queues the request, or does other work
+3. Attacker's DNS TTL expires; the SAME hostname now resolves to 169.254.169.254
+4. App's actual HTTP request re-resolves the hostname (independently of step 1) -> hits the metadata IP
+
+The only fully reliable fix: resolve ONCE, connect to that literal resolved IP for the real request
+too (not the hostname again) -- so there's no second resolution left for an attacker to rebind.`}</CodeBlock>
+      <Callout variant="tip">
+        <p>
+          This is exactly why "just check the resolved IP isn't private" is a necessary but not sufficient
+          SSRF defense — pair it with pinning the connection to the specific IP that passed validation,
+          rather than letting the HTTP client re-resolve the hostname independently at request time.
+        </p>
+      </Callout>
+
       <h2>XXE: XML External Entity injection</h2>
       <p>
         Applications that parse XML with external entity processing enabled can be tricked into reading

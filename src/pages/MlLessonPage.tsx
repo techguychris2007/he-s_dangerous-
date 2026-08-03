@@ -42,7 +42,7 @@ export default function MlLessonPage() {
               dangerouslySetInnerHTML={{ __html: section.heading }}
             />
             <div
-              className="prose-ml text-sm text-[var(--color-text)] leading-relaxed [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mb-2 [&_li]:mb-1 [&_pre]:bg-[#0c0d10] [&_pre]:border [&_pre]:border-[var(--color-border)] [&_pre]:rounded-lg [&_pre]:p-3 [&_pre]:overflow-x-auto [&_pre]:font-mono [&_pre]:text-xs [&_strong]:text-[var(--color-heading)]"
+              className="prose-ml text-sm text-[var(--color-text)] leading-relaxed [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mb-2 [&_li]:mb-1 [&_pre]:bg-[var(--term-bg)] [&_pre]:border [&_pre]:border-[var(--color-border)] [&_pre]:rounded-lg [&_pre]:p-3 [&_pre]:overflow-x-auto [&_pre]:font-mono [&_pre]:text-xs [&_strong]:text-[var(--color-heading)]"
               dangerouslySetInnerHTML={{ __html: section.body }}
             />
           </div>
@@ -69,10 +69,10 @@ export default function MlLessonPage() {
                     <span className="font-semibold text-[var(--color-heading)] text-xs">{r.title}</span>
                     <IconExternal className="w-3 h-3 text-[var(--color-text-dim)] shrink-0" />
                   </div>
-                  <span className="pill bg-[var(--color-accent)]/10 text-[var(--color-accent)] text-[10px] mb-1.5 inline-block capitalize">
+                  <span className="pill bg-[var(--color-accent)]/10 text-[var(--color-accent)] text-2xs mb-1.5 inline-block capitalize">
                     {r.kind}
                   </span>
-                  <p className="text-[11px] text-[var(--color-text-dim)] leading-relaxed">{r.note}</p>
+                  <p className="text-2xs text-[var(--color-text-dim)] leading-relaxed">{r.note}</p>
                 </a>
               ))}
             </div>

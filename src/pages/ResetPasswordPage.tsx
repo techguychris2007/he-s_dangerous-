@@ -78,19 +78,19 @@ export default function ResetPasswordPage() {
             </p>
             <Link
               to="/login"
-              className="text-[11px] font-semibold text-[#7c93ae] hover:text-[#c9e0ff] transition-colors"
+              className="text-2xs font-semibold text-[#7c93ae] hover:text-[#c9e0ff] transition-colors"
             >
               &larr; Back to sign in
             </Link>
           </div>
         ) : done ? (
           <div className="flex flex-col items-center text-center gap-4">
-            <p className="text-sm text-[#7ee081] leading-relaxed">
+            <p className="text-sm text-[var(--term-success)] leading-relaxed">
               Password updated. You're signed in with your new password.
             </p>
             <button
               onClick={() => navigate('/', { replace: true })}
-              className="text-[11px] font-semibold text-[#7c93ae] hover:text-[#c9e0ff] transition-colors"
+              className="text-2xs font-semibold text-[#7c93ae] hover:text-[#c9e0ff] transition-colors"
             >
               Continue to dashboard &rarr;
             </button>
@@ -129,7 +129,7 @@ export default function ResetPasswordPage() {
             </label>
 
             {error && (
-              <div className="text-xs text-[#ff8a7a] bg-[#ff6b5e14] border border-[#ff6b5e4d] rounded-lg px-3 py-2 leading-relaxed">
+              <div className="text-xs text-[var(--term-error-text)] bg-[var(--term-error)]/8 border border-[var(--term-error)]/30 rounded-lg px-3 py-2 leading-relaxed">
                 {error}
               </div>
             )}

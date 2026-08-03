@@ -1,15 +1,8 @@
 import { useRef, useState } from 'react';
-import { askAiTutor, type AiTutorMode, type Citation } from '../../lib/aiTutor';
+import { askAiTutor, type AiTutorMode } from '../../lib/aiTutor';
+import AiChatWindow, { type ChatMessage } from '../common/AiChatWindow';
 import type { PdfViewerHandle } from './PdfViewer';
-import MarkdownText from '../common/MarkdownText';
-import { IconLightning, IconExternal } from '../layout/icons';
-
-interface ChatMessage {
-  role: 'user' | 'assistant' | 'error';
-  text: string;
-  model?: string;
-  citations?: Citation[];
-}
+import { IconLightning } from '../layout/icons';
 
 interface AiReadingCompanionProps {
   bookTitle: string;
@@ -25,6 +18,11 @@ const QUICK_ACTIONS: { mode: AiTutorMode; label: string; question: string }[] = 
   { mode: 'takeaways', label: 'Key Takeaways', question: 'What are the key takeaways from this page?' },
 ];
 
+interface PendingRequest {
+  question: string;
+  mode: AiTutorMode;
+}
+
 /** A floating chat bubble that reads whatever page the visitor currently has open and answers
  *  questions about it via a fast hosted model (Groq primary, or Gemini with real Google Search
  *  grounding when the question needs current information) — never a claim of running its own AI,
@@ -34,20 +32,14 @@ export default function AiReadingCompanion({ bookTitle, currentPage, viewerRef }
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    requestAnimationFrame(() => {
-      scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
-    });
-  };
+  const lastRequest = useRef<PendingRequest | null>(null);
 
   const send = async (question: string, mode: AiTutorMode) => {
     if (!question.trim() || loading) return;
+    lastRequest.current = { question, mode };
     setMessages((m) => [...m, { role: 'user', text: question }]);
     setInput('');
     setLoading(true);
-    scrollToBottom();
     try {
       const pageText = (await viewerRef.current?.getPageText(currentPage)) ?? '';
       const result = await askAiTutor({ question, bookTitle, pageNum: currentPage, pageText, mode });
@@ -59,8 +51,12 @@ export default function AiReadingCompanion({ bookTitle, currentPage, viewerRef }
       ]);
     } finally {
       setLoading(false);
-      scrollToBottom();
     }
+  };
+
+  const retry = () => {
+    const r = lastRequest.current;
+    if (r) send(r.question, r.mode);
   };
 
   if (!open) {
@@ -77,108 +73,24 @@ export default function AiReadingCompanion({ bookTitle, currentPage, viewerRef }
 
   return (
     <div className="fixed bottom-5 right-5 z-40 w-[380px] max-w-[calc(100vw-2.5rem)] h-[560px] max-h-[calc(100vh-4rem)] rounded-2xl shadow-2xl border border-[var(--color-border)] bg-[var(--color-surface)] flex flex-col overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)] bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-2)] text-white shrink-0">
-        <div className="min-w-0">
-          <div className="text-sm font-bold flex items-center gap-1.5">
-            <IconLightning className="w-4 h-4" /> Reading Companion
-          </div>
-          <div className="text-[11px] text-white/80 truncate">
-            {bookTitle} — page {currentPage}
-          </div>
-        </div>
-        <button onClick={() => setOpen(false)} className="text-white/80 hover:text-white text-lg leading-none px-1 shrink-0" aria-label="Close">
-          &times;
-        </button>
-      </div>
-
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-3 space-y-3 min-h-0">
-        {messages.length === 0 && (
-          <p className="text-xs text-[var(--color-text-dim)] leading-relaxed px-1">
-            Ask me anything about this page, or use a quick action below. I only read the page you're
-            currently on — not the whole book — and I'm not part of this book's original text, just a
-            reading aid.
-          </p>
-        )}
-        {messages.map((m, i) => (
-          <div key={i} className={m.role === 'user' ? 'text-right' : 'text-left'}>
-            <div
-              className={`inline-block max-w-[95%] text-left rounded-xl px-3 py-2.5 ${
-                m.role === 'user'
-                  ? 'bg-[var(--color-accent)] text-white text-xs leading-relaxed whitespace-pre-wrap'
-                  : m.role === 'error'
-                    ? 'bg-[var(--color-danger)]/15 text-[var(--color-danger)] text-xs leading-relaxed whitespace-pre-wrap'
-                    : 'ai-response bg-[var(--color-surface-2)]'
-              }`}
-            >
-              {m.role === 'assistant' ? <MarkdownText text={m.text} /> : m.text}
-              {m.citations && m.citations.length > 0 && (
-                <div className="mt-2 pt-2 border-t border-[var(--color-border)]/50 flex flex-wrap gap-1.5">
-                  {m.citations.map((c, ci) => (
-                    <a
-                      key={ci}
-                      href={c.uri}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      title={c.title}
-                      className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[var(--color-accent)]/10 text-[var(--color-accent)] text-[10px] font-semibold hover:bg-[var(--color-accent)]/20"
-                    >
-                      {ci + 1} <IconExternal className="w-2.5 h-2.5" />
-                    </a>
-                  ))}
-                </div>
-              )}
-            </div>
-            {m.model && <div className="text-[10px] text-[var(--color-text-dim)] mt-0.5">via {m.model}</div>}
-          </div>
-        ))}
-        {loading && (
-          <div className="flex items-center gap-1.5 text-xs text-[var(--color-text-dim)] px-1">
-            <span className="flex gap-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)] animate-bounce [animation-delay:-0.3s]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)] animate-bounce [animation-delay:-0.15s]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)] animate-bounce" />
-            </span>
-            Thinking&hellip;
-          </div>
-        )}
-      </div>
-
-      <div className="px-3 py-2 border-t border-[var(--color-border)] flex flex-wrap gap-1.5 shrink-0">
-        {QUICK_ACTIONS.map((qa) => (
-          <button
-            key={qa.mode}
-            disabled={loading}
-            onClick={() => send(qa.question, qa.mode)}
-            className="px-2 py-1 rounded-md text-[10px] font-semibold bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-heading)] hover:border-[var(--color-accent)]/50 disabled:opacity-50"
-          >
-            {qa.label}
-          </button>
-        ))}
-      </div>
-
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          send(input, 'ask');
-        }}
-        className="flex items-center gap-2 px-3 py-3 border-t border-[var(--color-border)] shrink-0"
-      >
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask about this page…"
-          disabled={loading}
-          className="flex-1 text-sm bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-[var(--color-text)] disabled:opacity-50"
-        />
-        <button
-          type="submit"
-          disabled={loading || !input.trim()}
-          className="px-3 py-2 rounded-lg bg-[var(--color-accent)] text-white text-sm font-semibold hover:brightness-110 disabled:opacity-50"
-        >
-          Send
-        </button>
-      </form>
+      <AiChatWindow
+        title="Reading Companion"
+        subtitle={`${bookTitle} — page ${currentPage}`}
+        emptyState="Ask me anything about this page, or use a quick action below. I only read the page you're currently on — not the whole book — and I'm not part of this book's original text, just a reading aid."
+        messages={messages}
+        loading={loading}
+        quickActions={QUICK_ACTIONS.map((qa) => ({
+          key: qa.mode,
+          label: qa.label,
+          onClick: () => send(qa.question, qa.mode),
+        }))}
+        input={input}
+        onInputChange={setInput}
+        onSubmit={(question) => send(question, 'ask')}
+        onRetry={retry}
+        onClose={() => setOpen(false)}
+        placeholder="Ask about this page…"
+      />
     </div>
   );
 }

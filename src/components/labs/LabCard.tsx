@@ -94,7 +94,7 @@ export default function LabCard({ lab, variant = 'catalog' }: { lab: LabEntry; v
                 style={{ width: `${pct}%` }}
               />
             </div>
-            <div className="text-[11px] text-[var(--color-text-dim)] mt-1 text-right font-mono">{pct}%</div>
+            <div className="text-2xs text-[var(--color-text-dim)] mt-1 text-right font-mono">{pct}%</div>
           </div>
         )}
 

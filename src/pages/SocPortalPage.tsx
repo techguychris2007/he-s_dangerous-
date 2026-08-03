@@ -19,24 +19,17 @@ const TOOL_META: Record<string, { title: string; blurb: string }> = {
   tcpdump: { title: 'tcpdump — Packet Capture', blurb: 'Raw packet-level investigation — no log aggregation layer between you and the wire.' },
 };
 
-/** A small, deliberately-limited set of terminal-based investigations — cat/grep-style log reading,
- *  the way an analyst works before ever touching a SIEM console. Everything else on this portal runs
- *  inside a real platform-style tool, not a hacking terminal. */
-const TERMINAL_LAB_IDS = [
-  'soc-deepfake-vishing-ceo-fraud',
-  'soc-automated-spearphishing-campaign-analysis',
-  'soc-bec-mailbox-rule-fraud',
-  'soc-lolbin-certutil-abuse',
-  'soc-kerberoasting-detection',
-];
-
 const SOC_MODULE_SLUGS = ['soc', 'soc-siem-platforms', 'soc-detection-engineering', 'soc-incident-response'];
 
 export default function SocPortalPage() {
   const progress = useProgress();
   const socModules = SOC_MODULE_SLUGS.map((slug) => findModule(slug)).filter((m): m is NonNullable<typeof m> => Boolean(m));
   const totalLessons = socModules.reduce((sum, m) => sum + m.lessons.length, 0);
-  const terminalLabs = TERMINAL_LAB_IDS.map((id) => LABS.find((l) => l.scenario.id === id)).filter((l): l is NonNullable<typeof l> => Boolean(l));
+  // Every SOC-category lab turns out to be cat/grep-style terminal investigation (none of them run
+  // against a simulated network host) — derived here instead of a hand-maintained id list, which had
+  // drifted to miss 11 of 16 labs after several rounds of new SOC labs shipping without this list
+  // being updated alongside them.
+  const terminalLabs = LABS.filter((l) => l.scenario.category === 'SOC' && l.scenario.network.length === 0);
 
   const allLabsDone = [...SIEM_LABS.map((l) => ({ id: l.id, total: l.totalFlags })), ...terminalLabs.map((l) => ({ id: l.scenario.id, total: l.scenario.totalFlags }))];
   const lessonsDone = socModules.reduce((sum, m) => sum + m.lessons.filter((l) => progress.isLessonComplete(l.id)).length, 0);
@@ -84,15 +77,15 @@ export default function SocPortalPage() {
           <div className="flex flex-wrap gap-4">
             <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
               <div className="text-lg font-bold text-white">{lessonsDone}/{totalLessons}</div>
-              <div className="text-[11px] text-white/60 uppercase tracking-wide">Lessons complete</div>
+              <div className="text-2xs text-white/60 uppercase tracking-wide">Lessons complete</div>
             </div>
             <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
               <div className="text-lg font-bold text-white">{labsDone}/{allLabsDone.length}</div>
-              <div className="text-[11px] text-white/60 uppercase tracking-wide">Labs solved</div>
+              <div className="text-2xs text-white/60 uppercase tracking-wide">Labs solved</div>
             </div>
             <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
               <div className="text-lg font-bold text-white">{flagsCaptured}/{totalFlags}</div>
-              <div className="text-[11px] text-white/60 uppercase tracking-wide">Flags captured</div>
+              <div className="text-2xs text-white/60 uppercase tracking-wide">Flags captured</div>
             </div>
           </div>
         </div>
@@ -103,7 +96,7 @@ export default function SocPortalPage() {
         <div className="mb-12">
           <div className="flex items-center gap-2 mb-1">
             <IconCalendar className="w-4 h-4 text-[var(--color-accent)]" />
-            <h2 className="text-lg font-bold text-[var(--color-heading)]">SOC Curriculum — 4 Modules</h2>
+            <h2 className="text-lg font-bold text-[var(--color-heading)]">SOC Curriculum — {socModules.length} Modules</h2>
           </div>
           <p className="text-sm text-[var(--color-text-dim)] mb-4">
             Broken into modules the same way the offensive-security roadmap is: fundamentals, the SIEM

@@ -38,7 +38,7 @@ export default function LinearRegressionDemo() {
             value={csv}
             onChange={(e) => setCsv(e.target.value)}
             spellCheck={false}
-            className="w-full h-40 resize-none bg-[#0c0d10] text-[#d8d0c0] font-mono text-xs p-3 rounded-lg border border-[var(--color-border)] outline-none focus:border-[var(--color-accent)]/60"
+            className="w-full h-40 resize-none bg-[var(--term-bg)] text-[var(--term-output)] font-mono text-xs p-3 rounded-lg border border-[var(--color-border)] outline-none focus:border-[var(--color-accent)]/60"
           />
           <div className="flex gap-2 mt-2">
             <button
