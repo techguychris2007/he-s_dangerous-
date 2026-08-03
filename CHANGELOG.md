@@ -800,3 +800,28 @@ why that method exists — two labs in this batch would have been unsolvable as 
 
 **Updated running total**: labs 219 → 302 (+83 across the last thirteen batches, +98 total toward the "up to
 500" target).
+
+- **`1bc7623`** — 6 more labs (302 → 308): an RSA e=3 cube-root attack recovering an unpadded 9-digit PIN
+  with no private key at all — every number in this lab was independently verified with real Node BigInt
+  arithmetic, including a from-scratch integer cube-root function, before being hardcoded (Cryptography); an
+  API key passed in a URL query string leaking through plaintext access logs, distinct from the existing
+  Referer-header-leak lab, with a real named incident (407 RubyGems keys leaked the same way) cited in
+  `NOTES.md` (API); a negative-quantity checkout business logic flaw — a well-formed integer no syntax
+  filter would ever flag — that turns the server's own price × quantity multiplication into free account
+  credit (Security Engineering); 125kHz RFID proximity badge cloning, broadcasting site code and card number
+  in plaintext with zero encryption at the protocol level (Security+); WinRM lateral movement (MITRE
+  T1021.006) detected via correlating an out-of-baseline Event ID 4624 logon with `wsmprovhost.exe` spawning
+  an unexpected child process, since neither signal alone would justify an alert (SOC); and NTFS `$LogFile`
+  transaction records providing a second, lower-level, independent confirmation of timestomping, explicitly
+  framed as complementary to the existing USN-journal lab rather than a reskin of it (Forensics). Full
+  citations in `NOTES.md` batch 17.
+
+  All six labs verified end-to-end against the real `TerminalEngine` on the first run — no fix-and-reverify
+  needed this batch. Also caught and corrected a git-staging issue from the previous batch's commit (see
+  batch 16 above) by double-checking `git diff --cached --stat` before every commit this round. tsc clean,
+  oxlint clean, production `vite build` clean.
+- **`63626c4`** — Updated `labs-index.md` (308 total, SOC 20→21, Forensics 18→19, Security+ 16→17, Security
+  Engineering 16→17, API 16→17, Cryptography 14→15) and `NOTES.md` (batch 17 citations).
+
+**Updated running total**: labs 219 → 308 (+89 across the last fourteen batches, +104 total toward the "up
+to 500" target).
