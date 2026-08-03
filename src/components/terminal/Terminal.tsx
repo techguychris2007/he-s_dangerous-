@@ -9,9 +9,6 @@ interface DisplayLine extends OutLine {
 interface TerminalProps {
   scenario: LabScenario;
   onFlagCaptured: (flag: string) => void;
-  /** Fires once per real command submitted (not password entries) — used to drive the guided-steps
-   *  checklist's automatic tick-off, since each step is designed to correspond to roughly one command. */
-  onCommandRun?: () => void;
   /** Fires with the full session transcript (input + output, plain text) on every change — lets a
    *  parent (the AI lab tutor) see the learner's real terminal activity without owning any of the
    *  terminal's own rendering/state. */
@@ -31,7 +28,7 @@ const KIND_CLASS: Record<OutLine['kind'], string> = {
   muted: 'text-[var(--term-muted)]',
 };
 
-export default function Terminal({ scenario, onFlagCaptured, onCommandRun, onTranscriptChange }: TerminalProps) {
+export default function Terminal({ scenario, onFlagCaptured, onTranscriptChange }: TerminalProps) {
   const engineRef = useRef<TerminalEngine>(new TerminalEngine(scenario));
   const [lines, setLines] = useState<DisplayLine[]>([
     { id: idCounter++, kind: 'system', text: `Connected to lab environment: ${scenario.title}` },
@@ -109,7 +106,6 @@ export default function Terminal({ scenario, onFlagCaptured, onCommandRun, onTra
     } else {
       reveal();
     }
-    if (!isPassword && raw.trim()) onCommandRun?.();
   };
 
   const applyCompletion = (candidates: string[]) => {

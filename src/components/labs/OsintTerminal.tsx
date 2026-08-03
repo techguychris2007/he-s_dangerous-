@@ -28,13 +28,10 @@ const KIND_CLASS: Record<DisplayLine['kind'], string> = {
 export default function OsintTerminal({
   scenario,
   onFlagCaptured,
-  onCommandRun,
   onTranscriptChange,
 }: {
   scenario: OsintLabScenario;
   onFlagCaptured: (flag: string) => void;
-  /** fires once per real, recognized command submitted — drives the guided-steps checklist */
-  onCommandRun?: () => void;
   onTranscriptChange?: (transcript: string) => void;
 }) {
   const [lines, setLines] = useState<DisplayLine[]>([
@@ -125,7 +122,6 @@ export default function OsintTerminal({
       return;
     }
 
-    onCommandRun?.();
     setBusy(true);
     let elapsed = 0;
     step.chunks.forEach((chunk) => {

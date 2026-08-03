@@ -13,23 +13,25 @@ export default function LabPage() {
   const { labSlug } = useParams();
   const progress = useProgress();
   const [sharing, setSharing] = useState(false);
-  const [commandCount, setCommandCount] = useState(0);
   const entry = findLab(labSlug);
   const scenarioId = entry?.scenario.id;
   const transcriptRef = useRef('');
 
   useEffect(() => {
-    setCommandCount(0);
     transcriptRef.current = '';
   }, [scenarioId]);
 
   if (!entry) return <Navigate to="/" replace />;
   const { scenario } = entry;
   const captured = progress.flagCount(scenario.id);
-  const autoCheckedCount =
-    captured >= scenario.totalFlags ? scenario.objectives.length : Math.min(commandCount, scenario.objectives.length);
-
   const done = captured >= scenario.totalFlags;
+  // Ties off to real, verified progress (flags actually captured), not commands typed — typing
+  // wrong or unrelated commands must never tick a guided step off. Steps and flags aren't 1:1 in
+  // every lab, so this checks off a proportional share of the list per flag captured, and only
+  // guarantees the full list once every flag is in.
+  const autoCheckedCount = done
+    ? scenario.objectives.length
+    : Math.floor((scenario.objectives.length * captured) / Math.max(scenario.totalFlags, 1));
 
   return (
     <div className="h-full flex flex-col lg:flex-row">
@@ -70,7 +72,7 @@ export default function LabPage() {
         )}
 
         <div className="mb-6">
-          <StepChecklist steps={scenario.objectives} autoCheckedCount={autoCheckedCount} />
+          <StepChecklist steps={scenario.objectives} autoCheckedCount={autoCheckedCount} title="Lab Guide" variant="prominent" />
         </div>
 
         {!done && (
@@ -87,7 +89,6 @@ export default function LabPage() {
         <Terminal
           scenario={scenario}
           onFlagCaptured={(flag) => progress.captureFlag(scenario.id, flag)}
-          onCommandRun={() => setCommandCount((c) => c + 1)}
           onTranscriptChange={(transcript) => {
             transcriptRef.current = transcript;
           }}
