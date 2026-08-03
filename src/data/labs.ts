@@ -59,6 +59,8 @@ import { batch16MixedLabs } from '../labs/scenarios/batch16-mixed-pack';
 import { batch17MixedLabs } from '../labs/scenarios/batch17-mixed-pack';
 import { batch18GtfobinsLabs } from '../labs/scenarios/batch18-gtfobins-pack';
 import { batch18MixedLabs } from '../labs/scenarios/batch18-mixed-pack';
+import { batch19NetworkLabs } from '../labs/scenarios/batch19-network-pack';
+import { batch19MixedLabs } from '../labs/scenarios/batch19-mixed-pack';
 import type { LabScenario } from '../labs/types';
 
 export interface LabEntry {
@@ -129,6 +131,8 @@ export const LABS: LabEntry[] = [
   ...toEntries(batch17MixedLabs),
   ...toEntries(batch18GtfobinsLabs),
   ...toEntries(batch18MixedLabs),
+  ...toEntries(batch19NetworkLabs),
+  ...toEntries(batch19MixedLabs),
 ];
 
 /** Ordered to match the roadmap's actual teaching sequence (see curriculum.ts's MODULES order). */
