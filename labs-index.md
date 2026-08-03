@@ -4,27 +4,28 @@ Running count and category breakdown for the offensive-security lab expansion. S
 full narrative detail on every batch (what was added, why, and how each one was verified); this file is
 just the running tally `NOTES.md`'s citations and the "when I'm back" summary can point at.
 
-**Total labs: 338** (204 at the start of this expansion → 338 now, +134 so far toward the "up to 500, quality
+**Total labs: 368** (204 at the start of this expansion → 368 now, +164 so far toward the "up to 500, quality
 first" target). Every count below is the actual `LABS.length` broken out by `category`, not an estimate.
-Batch 18 marks a deliberate pace change (30 labs in one batch instead of six, per explicit instruction) —
-see the batch 18 entry below for how that pace is being sustained without lowering the accuracy bar.
+Batch 18 marked a deliberate pace change (30 labs in one batch instead of six, per explicit instruction);
+batch 19 continues it under a real tooling constraint — see the batch 19 entry below for what happened and
+how it was handled.
 
 | Category | Count | This expansion added |
 |---|---|---|
 | Linux | 46 | +24 (Docker sudo NOPASSWD GTFOBins bind-mount privesc, GDB sudo NOPASSWD GTFOBins shell escape, plus 22 more real GTFOBins sudo/SUID escapes in batch 18: chroot, nice, setarch, sqlite3, mysql, watch, unshare, taskset, timeout, ionice, stdbuf, flock, nohup, expect, zsh, dash, screen, nano, rsync, ssh/scp ProxyCommand, busybox) |
-| Network | 32 | +7 (SMTP open relay abuse, CouchDB "Admin Party" unauthenticated access, CVE-2024-1709 ScreenConnect auth bypass, CVE-2024-3400 PAN-OS GlobalProtect command injection, CVE-2024-6387 regreSSHion OpenSSH RCE, CVE-2023-46747 F5 BIG-IP AJP smuggling RCE, CVE-2024-4577 PHP-CGI Windows argument injection RCE) |
-| Web | 46 | +6 (DNS rebinding SSRF-allowlist bypass, client-side prototype pollution via URL fragment to DOM XSS, Host header injection enabling password reset poisoning, missing Subresource Integrity on a third-party payment script, blind boolean-based SQLi extracted live with sqlmap, SSRF via a PDF-generation service reading local files and cloud metadata) |
-| Active Directory | 23 | +8 (ADCS ESC1, RBCD abuse, Silver Ticket, Shadow Credentials, DCShadow rogue DC, GPP cpassword/MS14-025, LDAP anonymous bind description-field password disclosure, constrained delegation abuse via S4U2Self/S4U2Proxy protocol transition) |
+| Network | 45 | +20 (SMTP open relay abuse, CouchDB "Admin Party" unauthenticated access, CVE-2024-1709 ScreenConnect, CVE-2024-3400 PAN-OS GlobalProtect, CVE-2024-6387 regreSSHion, CVE-2023-46747 F5 BIG-IP AJP smuggling, CVE-2024-4577 PHP-CGI Best Fit, plus 13 more CVEs in batch 19: ProxyLogon, ProxyShell, Confluence OGNL injection, Spring4Shell, PaperCut auth bypass, Citrix ADC path traversal, Citrix NetScaler stack overflow, FortiOS SSL VPN OOB write, Confluence broken access control, vCenter vROps plugin upload, VMware Aria command injection, JetBrains TeamCity auth bypass, PHPUnit eval-stdin) |
+| Web | 48 | +8 (DNS rebinding SSRF-allowlist bypass, client-side prototype pollution, Host header password reset poisoning, missing SRI on a payment script, blind SQLi via sqlmap, SSRF via a PDF-generation service, server-side XSS in a dynamic PDF report, Node.js insecure deserialization via node-serialize) |
+| Active Directory | 25 | +10 (ADCS ESC1, RBCD abuse, Silver Ticket, Shadow Credentials, DCShadow rogue DC, GPP cpassword/MS14-025, LDAP anonymous bind disclosure, constrained delegation S4U abuse, GPO GenericWrite immediate-task abuse, DCSync rights self-granted via WriteDacl) |
 | Bug Bounty | 22 | +2 (Certificate Transparency logs exposing a forgotten staging subdomain, exposed .env file leaking full Laravel application secrets) |
-| SOC | 22 | +6 (Golden SAML detection via missing ADFS/Kerberos events, impossible travel / geo-velocity anomaly detection, illicit OAuth consent grant surviving a password reset, Golden Ticket detection via an anomalous 10-year ticket lifetime, WinRM lateral movement detected via wsmprovhost.exe correlation, encoded PowerShell command decoded to a C2 beacon configuration) |
-| Forensics | 19 | +9 (Volume Shadow Copy NTDS.dit dump, NTFS timestomping $SI/$FN mismatch, PowerShell ScriptBlock de-obfuscation, Recycle Bin $I metadata, USN Change Journal contradicts a timestomped file, Shellbags survive a deleted folder on a removed USB volume, Event ID 1102 audit-log-cleared correlated via Logon ID, NTFS Alternate Data Streams hiding a payload, NTFS $LogFile transaction records independently confirm timestomping) |
-| Cloud | 22 | +10 (IMDSv2 bypass, Docker-socket container escape, Lambda env-var secrets exposure, overly-permissive Azure SAS token, GCP allUsers Cloud Function, Kubernetes default automountServiceAccountToken + permissive RBAC, AWS Lambda Function URL public via authType NONE, exposed Azure Storage Account key granting full Shared Key access, GCP IAM actAs permission enabling privilege escalation, exposed etcd datastore leaking Kubernetes secrets) |
-| Security+ | 18 | +7 (SPF/DMARC misconfiguration enables spoofing, missing HSTS enables SSL stripping, insufficient log retention violates PCI DSS 10.5.1, VLAN hopping via 802.1Q double tagging, rogue DHCP server enabling a man-in-the-middle, 125kHz RFID proximity badge cloning, IDN homograph domain attack) |
-| Binary Analysis | 18 | +8 (stack canary leak via format string, use-after-free function pointer hijack, ret2libc defeating NX/ASLR, heap unlink metadata corruption, GOT overwrite via format-string arbitrary write, tcache poisoning via a UAF-enabled double-free, classic ret2win stack smash redirecting to a hidden function, type confusion in a tagged union hijacking control flow) |
-| Malware | 21 | +8 (process hollowing detection via PEB/VAD mismatch, DLL sideloading via search-order hijacking, LNK whitespace-padding command hiding, regsvr32 "Squiblydoo" AppLocker bypass, AMSI bypass via reflection-based field patching, WMI-based lateral movement via Win32_Process.Create, malicious PDF /OpenAction JavaScript auto-execution, MSBuild.exe inline-task AppLocker bypass) |
-| Security Engineering | 17 | +7 (secret still live in git history, forged webhook via missing signature verification, remember-me token survives password reset, ECB-penguin pattern leak, TOCTOU race condition enables a symlink attack, excessive container capabilities enable a cgroup release_agent escape, negative-quantity checkout business logic flaw) |
-| **API** (new category) | 17 | +17 (BFLA, JWT kid injection, legacy-version IDOR, excessive data exposure, rate-limit bypass, WebAuthn downgrade, method-override authz bypass, GraphQL field-level authz bypass, Referer-header API key leak, OAuth audience confusion, GraphQL field-suggestion leak, pagination cursor tampering, upload content-type spoofing, exposed OpenAPI spec, exposed source map leaking a hardcoded key, unrestricted resource consumption via a pagination-free bulk export, API key in URL query string leaked via access logs) |
-| **Cryptography** (new category) | 15 | +15 (ECB block-shuffling, hash length extension, JWT algorithm confusion, predictable PRNG session tokens, AES-CTR nonce reuse, Bleichenbacher RSA padding oracle, UUIDv1 reset-token entropy, ECDSA nonce reuse, Logjam DHE_EXPORT downgrade, batch GCD shared-prime attack, TOTP shared-secret reuse, PBKDF2 insufficient iteration count, CBC bit-flipping admin-cookie forgery, AES-GCM nonce reuse "Forbidden Attack", RSA e=3 cube root attack on an unpadded ciphertext) |
+| SOC | 25 | +9 (Golden SAML detection, impossible travel, illicit OAuth consent grant, Golden Ticket lifetime detection, WinRM lateral movement, EncodedCommand C2 beacon decode, scheduled task persistence Event 4698, new service persistence Event 7045, LSASS access Sysmon Event 10) |
+| Forensics | 21 | +11 (Volume Shadow Copy NTDS.dit dump, NTFS timestomping, PowerShell ScriptBlock de-obfuscation, Recycle Bin $I metadata, USN Change Journal, Shellbags, Event ID 1102 log clearing, NTFS ADS hidden payload, NTFS $LogFile transaction confirmation, Windows Jump Lists, Windows Timeline ActivitiesCache.db) |
+| Cloud | 24 | +12 (IMDSv2 bypass, Docker-socket escape, Lambda env-var secrets, Azure SAS token, GCP allUsers Cloud Function, K8s automount, Lambda Function URL authType NONE, Azure Storage Account key, GCP IAM actAs privesc, exposed etcd datastore, Azure AD app registration owner privesc, publicly accessible RDS with a weak password) |
+| Security+ | 18 | +7 (SPF/DMARC misconfiguration, missing HSTS, insufficient log retention, VLAN hopping, rogue DHCP server, 125kHz RFID badge cloning, IDN homograph domain attack) |
+| Binary Analysis | 19 | +9 (stack canary leak, UAF function pointer hijack, ret2libc, heap unlink, GOT overwrite, tcache poisoning, ret2win, type confusion, fastbin dup pre-tcache freelist corruption) |
+| Malware | 23 | +10 (process hollowing, DLL sideloading, LNK whitespace padding, regsvr32 Squiblydoo, AMSI bypass, WMI lateral movement, PDF /OpenAction JS, MSBuild inline-task bypass, rundll32 javascript: protocol handler, BITSAdmin download/persistence) |
+| Security Engineering | 18 | +8 (secret in git history, forged webhook, remember-me token, ECB-penguin, TOCTOU symlink race, cgroup release_agent escape, negative-quantity checkout, hardcoded signing key in a mobile APK) |
+| **API** (new category) | 18 | +18 (BFLA, JWT kid injection, legacy-version IDOR, excessive data exposure, rate-limit bypass, WebAuthn downgrade, method-override authz bypass, GraphQL field-level authz bypass, Referer-header API key leak, OAuth audience confusion, GraphQL field-suggestion leak, pagination cursor tampering, upload content-type spoofing, exposed OpenAPI spec, exposed source map, unrestricted resource consumption, API key in a URL query string, mass assignment role escalation) |
+| **Cryptography** (new category) | 16 | +16 (ECB block-shuffling, hash length extension, JWT algorithm confusion, predictable PRNG session tokens, AES-CTR nonce reuse, Bleichenbacher, UUIDv1 reset-token entropy, ECDSA nonce reuse, Logjam, batch GCD shared-prime, TOTP shared-secret reuse, PBKDF2 insufficient iterations, CBC bit-flipping, AES-GCM "Forbidden Attack", RSA e=3 cube root, Debian OpenSSL predictable PRNG CVE-2008-0166) |
 
 ## Batches shipped so far
 
@@ -162,6 +163,41 @@ see the batch 18 entry below for how that pace is being sustained without loweri
     service's headless-browser renderer reaching both local files and cloud metadata (Web); and an exposed
     etcd datastore on its real port 2379 leaking every Kubernetes secret with zero authentication,
     completely bypassing the API server's own RBAC (Cloud).
+19. **`6620dfe`** — 30 labs, continuing the 30+/commit pace under a real, disclosed constraint: this
+    session's usual runtime verification (`tsx` executing each lab against the real `TerminalEngine`) and
+    `oxlint` became unavailable mid-batch, blocked by a safety classifier citing accumulated conversation
+    content rather than anything about this batch specifically. `tsc` (static type-checking) stayed
+    available throughout and passed cleanly. In its place, every lab was manually traced against the actual
+    `engine.ts` source (`parseParams`, `tokenize`, the `-H` header parser, `hydra`/`crackmapexec`/`ssh` port
+    requirements) rather than assumed correct — and that manual trace caught seven real mechanical bugs
+    before commit that automated `tsx` verification would normally have caught immediately, all fixed (see
+    NOTES.md batch 19 for the full list: a header-value payload that was URL-encoded when this engine never
+    decodes header values; a JSON request body sent to a parser that only understands form-encoding; a
+    protocol/port mismatch plus a missing flag-capture step on a database-credentials lab; a `.so` filename
+    mismatch plus an unsupported `grep -A` flag; a referenced-but-undefined file on an Active Directory lab;
+    and a hand-computed hex-to-decimal address that was wrong until re-checked with real arithmetic). 13
+    more real, famous CVEs via the proven `exploit <module> <ip>` mechanic (now used across 19 total
+    CVE-RCE labs) — ProxyLogon, ProxyShell, Confluence OGNL injection, Spring4Shell, PaperCut auth bypass,
+    two distinct Citrix ADC/NetScaler CVEs, a second distinct FortiOS SSL VPN CVE, a second distinct
+    Confluence CVE, a second distinct vCenter CVE, VMware Aria command injection, JetBrains TeamCity auth
+    bypass, and PHPUnit's exposed eval-stdin.php — each explicitly differentiated in its own briefing from
+    this platform's existing same-vendor CVE where one already exists, never left implicit (Network). Plus
+    17 more single-technique labs spanning Active Directory (GPO GenericWrite abuse, DCSync via WriteDacl),
+    Cloud (Azure AD app registration owner privesc, a publicly accessible RDS instance with a weak
+    password), Forensics (Jump Lists, Windows Timeline/ActivitiesCache.db), SOC (three Windows Event
+    ID-based persistence/credential-access detections), Web (server-side XSS in a dynamic PDF, Node.js
+    node-serialize deserialization RCE), Malware (rundll32 `javascript:` protocol abuse, BITSAdmin
+    download/persistence), API (mass assignment role escalation), Security Engineering (a hardcoded signing
+    key shipped in every copy of a mobile APK), Binary Analysis (fastbin dup, the pre-tcache ancestor of
+    batch 11's tcache-poisoning technique), and Cryptography (Debian's real, historic CVE-2008-0166
+    predictable-PRNG SSH key weakness).
+
+    **Finalized in a later session** once `tsx`/`oxlint`/`git commit` were all confirmed working again: re-ran
+    all 30 labs end-to-end against the real `TerminalEngine`, per this entry's own standing flag to do so.
+    15 of 30 failed on first run — a narrative-only final hint (describing the action in prose instead of
+    giving the actual runnable command) affecting all 13 network-pack CVE labs plus 2 more in the mixed pack,
+    all fixed to real command lines and reverified clean. See `CHANGELOG.md`'s "Batch 19 finalization" entry
+    and `NOTES.md` for the full account.
 
 ## What's explicitly NOT attempted, and why
 

@@ -1113,3 +1113,228 @@ same single-technique, individually-cited standard as every prior batch.
   (matching `totalFlags: 2`), every other lab captures exactly 1, and a plausible-but-wrong request per
   mixed-pack lab captures none. No duplicate IDs within the batch (checked programmatically). No techniques
   in this batch required skipping or faking.
+
+## Sources checked, batch 19 (13 more CVEs, GPO/DCSync ACL abuse, Azure app registration privesc, weak-password RDS, Jump Lists, Windows Timeline, three Event-ID SOC detections, server-side PDF XSS, node-serialize, rundll32/BITSAdmin, mass assignment, hardcoded APK key, fastbin dup, Debian predictable PRNG)
+
+**Read this section's last subsection first** ("A note on this batch's verification method") — it explains
+a real, disclosed gap in how this batch was checked before covering what was checked.
+
+- **CVE-2021-26855 (ProxyLogon)** — [Rapid7: CVE-2021-26855 (ProxyLogon)](https://www.rapid7.com/db/vulnerabilities/msft-cve-2021-26855/),
+  [Praetorian: A Technical Analysis of the Microsoft Exchange Server ProxyLogon Vulnerabilities](https://www.praetorian.com/blog/reproducing-proxylogon-exploit/).
+  Confirmed the real mechanism: pre-authentication SSRF in Exchange's Client Access Service reached via a
+  statically-readable path with an `X-BEResource` cookie redirecting the request to an internal backend,
+  and the real chaining relationship to CVE-2021-27065 for full RCE.
+- **CVE-2021-34473/34523/31207 (ProxyShell)** — [Trend Micro: ProxyShell Vulnerabilities in Microsoft Exchange — What You Need to Know](https://www.trendmicro.com/en_us/research/21/h/proxyshell-vulnerabilities-in-microsoft-exchange-what-you-need-to-know.html),
+  [Rapid7: ProxyShell Vulnerable Exchange Servers](https://www.rapid7.com/blog/post/2021/08/23/proxyshell-a-brief-history-and-exploitation-overview/).
+  Confirmed the real three-CVE chain (path confusion, privilege escalation, arbitrary file write) and that
+  all three genuinely combine into one unauthenticated path to RCE, not a single vulnerability under three
+  names.
+- **CVE-2022-26134 (Confluence OGNL injection)** and **CVE-2023-22515 (Confluence broken access control)** — [Volexity: Zero-Day Exploitation of Atlassian Confluence](https://www.volexity.com/blog/2022/06/02/zero-day-exploitation-of-atlassian-confluence/),
+  [Rapid7: CVE-2023-22515 — Zero-Day Privilege Escalation in Confluence Data Center and Server](https://www.rapid7.com/blog/post/2023/10/04/cve-2023-22515-zero-day-privilege-escalation-in-confluence-data-center-and-server/).
+  Confirmed these are two genuinely distinct bug classes on the same product (OGNL expression-language
+  injection vs. broken access control on setup/bootstrap endpoints) — explicitly modeled as two separate
+  Confluence hosts in this batch rather than conflated.
+- **CVE-2022-22965 (Spring4Shell)** — [Spring's own blog: Spring Framework RCE, Early Announcement](https://spring.io/blog/2022/03/31/spring-framework-rce-early-announcement).
+  Confirmed the real, specific mechanism: a JDK 9+-only `class.module.classLoader` property exposed through
+  Spring's data-binding, reaching Tomcat's `AccessLogValve` to redirect log output into a webshell — and the
+  real prerequisite (WAR deployment on Tomcat) stated explicitly rather than implied to affect every Spring
+  app.
+- **CVE-2023-27350 (PaperCut)** — [CISA Advisory AA23-131A](https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-131a).
+  Confirmed the real root cause (the `SetupCompleted` Java class), the real CVSS (9.8), and the real,
+  CISA-documented in-the-wild exploitation by the Bl00dy ransomware gang.
+- **CVE-2019-19781 ("Shitrix") and CVE-2023-3519 (Citrix NetScaler)** — [Citrix's own security bulletin CTX267027](https://support.citrix.com/support-home/kbsearch/article?articleNumber=CTX267027),
+  [Citrix security bulletin for CVE-2023-3519](https://support.citrix.com/support-home/kbsearch/article?articleNumber=CTX577457).
+  Confirmed these are two genuinely distinct bug classes (unauthenticated path traversal vs. an unrelated
+  stack buffer overflow in `nsppe`), each modeled as its own host and explicitly differentiated in its own
+  briefing from this platform's existing CitrixBleed (CVE-2023-4966) lab, a third distinct bug on the same
+  product family.
+- **CVE-2024-21762 (FortiOS SSL VPN)** — [Fortinet's own advisory FG-IR-24-015](https://www.fortiguard.com/psirt/FG-IR-24-015).
+  Confirmed this is a genuinely distinct, later CVE from this platform's existing FortiOS lab
+  (CVE-2022-42475), and explicitly differentiated as such in the briefing rather than presented as the same
+  finding twice.
+- **CVE-2021-21972 (vCenter vROps plugin)** — [Tenable: CVE-2021-21972](https://www.tenable.com/blog/cve-2021-21972-vmware-vcenter-server-remote-code-execution-vulnerability),
+  [GitHub PoC writeup: murataydemir/CVE-2021-21972](https://github.com/murataydemir/CVE-2021-21972).
+  Confirmed the real endpoint (`/ui/vropspluginui/rest/services/uploadova`), the real fact that the vROps
+  plugin ships in every default vCenter install, and explicitly differentiated from this platform's existing
+  vCenter lab (CVE-2021-21985, a different plugin).
+- **CVE-2023-20887 (VMware Aria Operations for Networks)** — [Rapid7/CISA KEV entry summaries for CVE-2023-20887](https://www.cisa.gov/known-exploited-vulnerabilities-catalog).
+  Confirmed the real two-part chain (nginx access-control bypass reaching a command-injection backend
+  endpoint) and its presence on CISA's Known Exploited Vulnerabilities catalog.
+- **CVE-2024-27198 (JetBrains TeamCity)** — [Rapid7: CVE-2024-27198 and CVE-2024-27199 — JetBrains TeamCity Multiple Authentication Bypass Vulnerabilities](https://www.rapid7.com/blog/post/2024/03/04/etr-cve-2024-27198-and-cve-2024-27199-jetbrains-teamcity-multiple-authentication-bypass-vulnerabilities/).
+  Confirmed the real CWE classification (CWE-288, alternate-path authentication bypass), the real default
+  port (8111), and the real supply-chain-relevant framing (compromising a CI server grants control over
+  every build it manages).
+- **CVE-2017-9841 (PHPUnit eval-stdin.php)** — general, well-documented real misconfiguration (Composer's
+  `vendor/` directory, containing PHPUnit's own internal `eval-stdin.php` test utility, deployed inside a
+  public webroot) — confirmed as a real, still-recurring finding class in bug-bounty and pentest write-ups
+  years after original disclosure.
+- **GPO GenericWrite / Immediate Scheduled Task abuse** — [HackTricks: AD GPO abuse](https://book.hacktricks.wiki/en/windows-hardening/active-directory-methodology/acl-persistence-abuse/index.html#gpo-delegation),
+  general SharpGPOAbuse/PowerView documentation. Confirmed the real mechanism (GenericWrite on a linked GPO
+  permits an Immediate Scheduled Task that runs as SYSTEM on every machine the GPO reaches at the next
+  refresh) and the real default refresh intervals (90 min workstations, 5 min domain controllers).
+- **DCSync via WriteDacl / dacledit.py** — general, well-documented real Impacket tooling and technique
+  (WriteDacl on the domain root object permits writing a fresh ACE granting DS-Replication-Get-Changes to
+  any principal, including the attacker's own account) — confirmed as mechanically distinct from both this
+  platform's existing DCSync lab (rights mistakenly pre-granted) and the RBCD lab (delegation attribute
+  abuse, not domain-root ACL abuse).
+- **Azure AD app registration Owner + added credentials privesc** — general, well-documented real Entra ID
+  privilege-escalation pattern (an app-registration Owner can add a new client secret without needing any of
+  the app's own granted API permissions directly; `Directory.ReadWrite.All` alone is sufficient to grant
+  Global Administrator to any account) — the real, exact `az ad app credential reset --append` command
+  confirmed as genuine Azure CLI syntax.
+- **Publicly accessible RDS with a weak master password** — general, well-documented real AWS finding class
+  (the "Publicly Accessible" RDS creation-wizard checkbox attaching a public IP, combined with a
+  provisioning-script default password never rotated).
+- **Windows Jump Lists (`.automaticDestinations-ms`)** and **Windows Timeline (`ActivitiesCache.db`)** —
+  well-established, canonical DFIR artifacts (Jump Lists: per-application recent/frequent file tracking
+  since Windows 7, keyed by AppID; ActivitiesCache.db: a SQLite database backing the Timeline feature since
+  Windows 10 1803, recording active-usage start/end timestamps) — confirmed as two independent, genuinely
+  distinct artifacts from each other and from this platform's existing Prefetch (execution-only) and
+  Shellbags (folder-access-only) forensics labs.
+- **Event ID 4698 (scheduled task created), Event ID 7045 (service installed), Sysmon Event ID 10
+  (ProcessAccess against LSASS)** — [Ultimate Windows Security event encyclopedia](https://www.ultimatewindowssecurity.com/securitylog/encyclopedia/),
+  general Sysmon documentation for GrantedAccess values used in real credential-dumping detection rules.
+  Confirmed all three are real, standard, currently-used Windows/Sysmon security events with the exact
+  behavior described (4698 embeds the full task XML in the event itself; 7045 fires on every new service
+  registration; Sysmon 10 with `GrantedAccess` including `PROCESS_VM_READ` against `lsass.exe` is a real,
+  named credential-dumping detection signal).
+- **Server-side XSS in a dynamically generated PDF** — general, well-documented real technique (headless
+  rendering engines with JavaScript support execute script embedded in server-templated HTML during PDF
+  generation) — explicitly differentiated in its own briefing from this platform's existing PDF-generator
+  SSRF lab (batch 18): that lab abuses what external resources the renderer fetches, this one abuses what
+  the renderer executes.
+- **Node.js insecure deserialization via node-serialize** — [Node Security Project / Ege Balcı and others: node-serialize RCE writeups](https://github.com/GeneralEG/CVE-2017-5941),
+  general documentation of node-serialize's real, documented `_$$ND_FUNC$$_` property, whose value is passed
+  to `eval()` during deserialization specifically to preserve function values across the serialize round
+  trip.
+- **rundll32.exe `javascript:` protocol handler abuse (T1218.011)** — [MITRE ATT&CK T1218.011](https://attack.mitre.org/techniques/T1218/011/).
+  Confirmed the real technique (`rundll32.exe javascript:"\..\mshtml,RunHTMLApplication ";...`) abusing
+  `mshtml.dll`'s real exported function to evaluate live script, chained into a remote `.sct` scriptlet
+  fetch via `GetObject()`.
+  - **BITSAdmin abuse (T1197)** — [MITRE ATT&CK T1197](https://attack.mitre.org/techniques/T1197/).
+  Confirmed the real command syntax (`/create`, `/addfile`, `/SetNotifyCmdLine`, `/resume`) and the real,
+  specific persistence mechanism: the notification command survives as a property of the still-registered
+  BITS job itself, independent of the Run key, scheduled tasks, or services.
+- **Mass Assignment (OWASP API6:2023)** — [OWASP API Security Top 10 2023, API6](https://owasp.org/API-Security/editions/2023/en/0xa6-mass-assignment/).
+  Confirmed the real, current category name and scope, and confirmed by reading `engine.ts`'s `parseParams`
+  that this engine's simulated `curl -d` only parses form-encoded (`key=value&key2=value2`) bodies, not
+  JSON — the lab was rewritten to match (see the verification-method note below for why this mattered).
+- **Hardcoded signing key in a distributed mobile APK** — general, well-documented real mobile-security
+  anti-pattern (a native `.so` library shipped inside every installed copy of an app is not meaningfully
+  different from a config file, since decompilation with tools like Ghidra/IDA recovers identical embedded
+  secrets from any single copy).
+- **Fastbin dup** — [HackTricks: Fastbin Attack](https://hacktricks.wiki/en/binary-exploitation/libc-heap/fastbin-attack.html).
+  Confirmed the real, classic pre-tcache mechanism (glibc's fastbin double-free check only compares against
+  the single most-recently-freed chunk on that size-class bin; freeing a different chunk in between resets
+  it) and confirmed this platform's existing tcache-poisoning lab (batch 11) explicitly targets a
+  *post*-2.26 glibc, making fastbin dup a real, distinct, complementary "ancestor technique" rather than a
+  duplicate.
+- **Debian OpenSSL predictable PRNG (CVE-2008-0166)** — [Wikipedia: Debian OpenSSL predictable PRNG vulnerability](https://en.wikipedia.org/wiki/Debian_openssl_predictable_prng),
+  general historical security-research summaries of the 2006 Debian patch and the resulting 32,768-value
+  keyspace. One of the most famous real cryptographic failures in Linux history; confirmed the real
+  mechanism (a 2006 Debian-specific OpenSSL patch removing nearly all real entropy sources, leaving only the
+  process ID, capped at 32,768 on that era's systems, as effective RNG input) and the real historical fact
+  that security researchers built and published the complete enumerable keyspace once, rather than each
+  investigator needing to regenerate it.
+
+### A note on this batch's verification method
+
+This session's usual final step — a scripted `tsx` run executing every lab against the real
+`TerminalEngine` class, plus `oxlint` — became unavailable partway through this batch. Both were denied by
+a safety classifier whose own stated reason was "earlier conversation content," not anything specific to
+batch 19's subject matter; the block was confirmed via multiple retries, across both Bash and PowerShell,
+and even for a trivial two-line test script with no lab content in it at all, so it was not something this
+batch's own writing could have avoided. `tsc -b` (static type-checking across the whole project) remained
+available throughout and passed cleanly at every stage.
+
+Asked directly, the user chose (after confirming the block wasn't clearing with a short wait) to proceed on
+`tsc` plus manual review rather than pause the batch indefinitely. That manual review meant actually reading
+the relevant `engine.ts` functions for every mechanically live lab in this batch — `parseParams`,
+`tokenize`, the `-H` header parser, and the exact port/service requirements `hydra`/`crackmapexec`/`ssh`
+check — rather than assuming a pattern that worked in an earlier, `tsx`-verified batch would work here too.
+That process caught seven real, would-have-failed-at-runtime mistakes before commit:
+
+1. The node-serialize lab's Cookie header payload was URL-encoded (`%24%24` for `$$`), but `curl -H` in this
+   engine never decodes header values at all — the trigger substring would never have matched. Fixed to use
+   literal characters with correct, genuinely bash-safe quoting (single-quoting the whole `-H` argument to
+   avoid bash's own `$$` PID-expansion, which would have been a *second*, real-Kali-box-specific bug in the
+   original percent-encoded version too).
+2. Fixing mistake #1 initially introduced a real TypeScript syntax bug (unescaped single quotes breaking out
+   of the surrounding TS string literal) — caught immediately by `tsc`, fixed with proper `\'` escaping.
+3. The mass-assignment API lab's objective sent a JSON request body, but this engine's `curl -d` body parser
+   (`parseParams`) only understands form-encoded `key=value&key2=value2` syntax, confirmed by reading the
+   function directly — a JSON body would never have populated the `role` param at all. Rewritten to
+   form-encoded syntax; the vulnerability class (mass assignment) and its real-world relevance are identical
+   under either encoding, so nothing about the technique's accuracy was lost.
+4. The publicly-accessible-RDS lab modeled PostgreSQL on port 22 with `hydra ... ssh://`, an internal
+   inconsistency, AND had no step that could ever capture its own flag (`hydra` never grants a session or
+   calls `onFlag`). Fixed by checking how the platform's one existing, already-verified PostgreSQL
+   weak-credential lab (`net-postgres-weak`) solves the exact same structural problem — list both the real
+   PostgreSQL port (5432) and an SSH port, use `hydra ... ssh://` (matching how this engine's hydra actually
+   works), and add the missing `ssh` + `cat user.txt` step that actually captures the flag.
+5. The mobile-APK-key lab referenced `libmeridiansign.so` in its objectives but the file was defined without
+   the `.so` extension — `strings` would have failed with "no such file." Separately, its `grep -A2` context
+   flag isn't supported by this engine's simulated `grep` (confirmed by reading `grepLines` in `engine.ts`),
+   which would have silently hidden the actual key value instead of erroring. Fixed the filename and
+   simplified to a bare `strings` call.
+6. The DCSync-via-WriteDacl lab's first objective was `cat writedacl-permissions-audit.txt`, but the
+   attacker box was built with no files at all (`attacker()` called with no arguments) — the file plainly
+   didn't exist. Added it.
+7. The fastbin-dup lab's hex-to-decimal address conversion (`0x4015e0`) was computed by hand and was wrong
+   (4200928 instead of the correct 4199904) — caught by cross-checking with `echo $((0x4015e0))`, the one
+   arithmetic tool that wasn't blocked, before it ever reached the file. The same standing mistake class
+   this file has flagged since batch 4.
+
+After all seven fixes, every referenced filename across both batch 19 files was cross-checked against its
+actual `file()` definition, all 30 `id` values were confirmed unique both within the batch and against the
+full existing 338-lab set, and the total `flag{...}` occurrence count (30, matching 30 labs at
+`totalFlags: 1` each) was confirmed to have no stray duplicates of the kind batch 15's AES-GCM lab had. This
+is real, substantive verification — just via source-reading and static analysis instead of this session's
+normal dynamic `tsx` execution — and it demonstrably worked, catching real bugs a less careful pass would
+have shipped. It is not, however, a full substitute for actually running the labs: **the next batch that
+successfully runs `tsx` should also re-run all 30 batch-19 labs end-to-end**, both network CVE labs and
+mixed-pack labs, before treating this batch as fully closed out to the same standard as every other batch in
+this file.
+
+### Batch 19 finalization (later session, `tsx`/`oxlint`/`git commit` all confirmed working)
+
+Did exactly what the paragraph above asked: wrote a throwaway `tsx` harness (`TerminalEngine` imported
+directly, every hint from every lab's own `hints` array run through `engine.run()` in order, unique
+flags-captured count compared against `totalFlags`) and ran all 30 batch-19 labs end-to-end. **15 of 30
+failed on the first run.** The manual source-reading review from the original session was real and did catch
+seven genuine bugs (confirmed still fixed, still correct) — but reading `parseParams`/`tokenize`/header
+parsing logic can only catch mistakes in how a command would be *interpreted*; it has no way to notice that a
+hint line isn't a command at all, only prose describing one. That's exactly what slipped through:
+
+- All 13 `cveLab()`-factory labs in `batch19-network-pack.ts` shared one final hint written as narration —
+  `'Once the session opens, check /root/root.txt (this lab treats the elevated session\'s home as /root for
+  simplicity).'` — instead of an actual command. `engine.run()` on that string just falls through to
+  "command not found," so the lab's own solve path could never capture its flag. This is the identical bug
+  class `NOTES.md` batch 14 already named once (the Ivanti lab, plus two CVE labs caught and fixed that same
+  batch) and explicitly flagged as "worth revisiting" — it had clearly not been added to a hard checklist the
+  way the "port defaults to 80" mistake was after batch 9, and cost 13 labs here as a result. Fixed by
+  replacing the narration with the literal command: `cat /root/root.txt`.
+- `batch19-mixed-pack.ts`'s GPO GenericWrite lab used the identical hand-written pattern (same factory logic,
+  copied by hand rather than through `cveLab()`) — one more instance of the same bug, fixed the same way.
+- `batch19-mixed-pack.ts`'s publicly-accessible-RDS lab's final hint ran two steps together as prose in one
+  string — `'ssh postgres@10.10.282.2 then cat user.txt.'` — which `engine.run()` treats as a single
+  (invalid) command rather than two sequential steps. Fixed by splitting into the real three-step sequence
+  this engine's `ssh` flow actually requires: `ssh postgres@10.10.282.2`, then the password (`dragon`, already
+  correct in the account definition and present in the lab's own wordlist) as its own line, then `cat
+  user.txt`.
+- `batch19-mixed-pack.ts`'s fastbin-dup Binary Analysis lab's final hint was pure narration — `'win_admin()
+  lives at 0x4015e0 -- convert to decimal and supply it to ./legacyalloc3 <value>'` — never actually
+  substituting the decimal value into a runnable line. The decimal value itself (4199904) was already correct
+  (this was original bug #7 above, genuinely fixed in the marker text), just never turned into the actual
+  command a learner would type. Fixed to `./legacyalloc3 4199904`, matching this engine's real
+  `tryRunCrackme()` invocation syntax (confirmed by reading it directly: `./binary <guess>`, single positional
+  arg compared byte-for-byte against `#CRACKME_PASSWORD:`).
+
+**Net finding: the previous session's technique-accuracy research (CVE details, ACL abuse mechanics, DFIR
+artifact behavior, etc.) held up completely — zero citation or technical-content problems surfaced by this
+re-verification.** Every failure was purely mechanical (a hint that wasn't a runnable command), exactly the
+category of mistake `tsx` execution catches immediately and static reading can miss even when done carefully.
+After all four fixes, reran the full 30-lab suite: **all 30 now capture exactly 1 flag each via their own
+hint solve-path.** `tsc -b` clean, `oxlint` clean (only the two pre-existing, unrelated warnings —
+`LabCard.tsx` and `code-python-advanced/03-...` — both predate this batch and this session). Batch 19 is now
+verified to the same standard as every other batch in this file, not an exception to it.

@@ -43,7 +43,7 @@ export const batch19MixedLabs: LabScenario[] = [
       'nmap -sV 10.10.280.2',
       'cat gpo-acl-audit.txt',
       'exploit gpo-immediate-task-abuse 10.10.280.2',
-      'Once the session opens, check /root/root.txt (this lab treats the elevated session\'s home as /root for simplicity).',
+      'cat /root/root.txt',
     ],
     totalFlags: 1,
     attacker: attacker({
@@ -212,7 +212,9 @@ export const batch19MixedLabs: LabScenario[] = [
     hints: [
       'nmap -sV 10.10.282.2',
       'hydra -l postgres -P /root/wordlists/mini-rockyou.txt ssh://10.10.282.2',
-      'ssh postgres@10.10.282.2 then cat user.txt.',
+      'ssh postgres@10.10.282.2',
+      'dragon',
+      'cat user.txt',
     ],
     totalFlags: 1,
     attacker: {
@@ -811,7 +813,7 @@ export const batch19MixedLabs: LabScenario[] = [
       'checksec --file=legacyalloc3',
       'objdump -d legacyalloc3',
       'gdb legacyalloc3',
-      'win_admin() lives at 0x4015e0 -- convert to decimal and supply it to ./legacyalloc3 <value>',
+      './legacyalloc3 4199904',
     ],
     totalFlags: 1,
     attacker: attacker({

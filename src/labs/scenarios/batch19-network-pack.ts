@@ -34,7 +34,7 @@ function cveLab(cfg: {
     hints: [
       `nmap -sV ${cfg.ip}`,
       `exploit ${cfg.moduleName} ${cfg.ip}`,
-      'Once the session opens, check /root/root.txt (this lab treats the elevated session\'s home as /root for simplicity).',
+      'cat /root/root.txt',
     ],
     totalFlags: 1,
     attacker: attacker(),
