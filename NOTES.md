@@ -1480,3 +1480,153 @@ subtly wrong) and two more technically-specific general claims.
   during the `tsx` verification pass but not independently re-searched this batch, for the reasons stated
   next to each in the citations above — none of them rest on a specific disclosed CVE, exact CVSS score, or
   other single fact that a general-knowledge pass would be likely to misremember, unlike the CVE labs.
+
+## Sources checked, batch 21 (Wiener's attack, AES-CBC static IV, bcrypt cost factor, GraphQL query-depth DoS,
+sequential API keys, SSRF via open-redirect chaining, ARP poisoning, typosquatting, rogue root CA, pre-signed
+URL with no expiry, verbose error stack traces, a debug feature flag in production, off-by-one stack overflow,
+signed/unsigned integer comparison bypass, uninitialized stack variable leak, leaked Postman collection,
+broken link hijacking, exposed Firebase Realtime Database)
+
+New batch, new content (not a previous session's unfinished work) — picked the six thinnest categories after
+batch 20 (`labs-index.md`'s own counts: Cryptography 16, Security+/Security Engineering/API 18 each, Binary
+Analysis 19, Bug Bounty 22) and added 3 labs to each, 18 total. Every technique below was researched via
+`WebSearch` before writing, not after — continuing this file's standing practice — and every duplicate-title
+risk was checked against all 393 existing lab titles first via targeted `grep` before any lab was drafted.
+
+- **Wiener's attack (RSA small private exponent recovery)** — [Wikipedia: Wiener's attack](https://en.wikipedia.org/wiki/Wiener's_attack),
+  [CryptoBook: Wiener's Attack](https://cryptohack.gitbook.io/cryptobook/untitled/low-private-component-attacks/wieners-attack).
+  Confirmed the real mechanism (continued-fraction expansion of e/N is guaranteed to include k/d as an early
+  convergent whenever d < N^(1/4)/3) and independently implemented and ran the full algorithm — real prime
+  generation, key derivation, encryption, and a from-scratch continued-fraction/convergent Wiener recovery —
+  in Node before writing the lab, confirming the chosen N/e/d/ciphertext genuinely round-trip (d=997 recovered
+  from (N, e) exactly, C decrypts to the intended plaintext M=918273645 exactly). Not toy-sized in the sense
+  of being fabricated — a real, if illustratively small (49-bit N), example that actually demonstrates the
+  attack rather than merely asserting numbers that happen to work.
+- **AES-CBC with a static/zero IV (CWE-329)** — [CWE-329: Generation of Predictable IV with CBC Mode](https://cwe.mitre.org/data/definitions/329.html),
+  [Ubiq Security: Exploring CWE-329](https://www.ubiqsecurity.com/exploring-cwe-329-generation-of-predictable-iv-with-cbc-mode/).
+  Confirmed real and currently disclosed, not merely theoretical: CVE-2020-5408 (Spring Security, a null IV in
+  its CBC mode handler), CVE-2023-48056 (PyPinkSign, static IV in AES-CBC), and CVE-2024-53845 (ESPTouchV2,
+  zero IV with no way to change it) all name this exact root cause. Confirmed the specific mechanism the lab
+  depends on: a static/zero IV collapses CBC's chaining property for the first block only, making identical
+  plaintext always produce identical ciphertext there — the exact ciphertext block value used in the lab
+  (`dfa76048c0cb84eefe43d73f347c59dd`) was computed and round-trip-verified with real Node `crypto`
+  (`aes-128-cbc`, `setAutoPadding(false)`) before being hardcoded, per this file's standing rule on computed
+  cryptographic values.
+- **bcrypt cost factor tuned too low** — [OWASP Password Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html)
+  (already cited in this file for the PBKDF2 lab, batch 10), [Clio Labs: Perils of the default bcrypt cost factor](https://labs.clio.com/bcrypt-cost-factor-4ca0a9b03966).
+  Confirmed OWASP's current documented baseline minimum of 10 for bcrypt, and confirmed the real,
+  independently-benchmarked figure the briefing cites (cost-5 hashes crackable at ~56/sec on ordinary capable
+  hardware) — the lab uses cost 4, one below that benchmark, making the "practical, not theoretical" framing
+  accurate. Confirmed this is a genuinely distinct defect from the existing PBKDF2 lab (different algorithm
+  family, bcrypt vs. PBKDF2-HMAC-SHA256) despite the shared "stale tuning parameter" root cause shape.
+- **GraphQL query depth/complexity resource exhaustion (OWASP API4:2023)** — [Checkmarx: Exploiting GraphQL Query Depth](https://checkmarx.com/blog/exploiting-graphql-query-depth/),
+  [Sourcery: GraphQL Query Depth and Complexity Attacks Causing Resource Exhaustion](https://www.sourcery.ai/vulnerabilities/graphql-query-depth-attack).
+  Confirmed the real mechanism (recursive schema relationships like `user{friends{friends{...}}}` letting one
+  syntactically-valid request traverse dozens of levels, multiplying resolver fan-out exponentially per level)
+  and that this is a real, OWASP-catalogued, CVE-documented abuse pattern distinct from generic rate-limiting
+  gaps. Confirmed as mechanically distinct from this platform's existing pagination-free bulk-export API4 lab
+  (that one abuses a missing record cap on one flat query; this one abuses GraphQL's own recursive structure).
+- **Sequential/predictable API keys (OWASP API2:2023, Broken Authentication)** — general, well-established
+  API security anti-pattern; cross-referenced against real incident patterns (a 64-million-record exposure via
+  sequential identifiers, and general documented guidance that "sequential token identifiers... indicate weak
+  generation that attackers can exploit") confirming the underlying mechanism — a legitimately-issued key
+  revealing the entire keyspace's shape — is a real, current, named category (API2:2023) rather than a
+  fabricated scenario.
+- **SSRF via open-redirect chaining bypassing a URL allowlist** — [Leviathan Security Group: Bypassing SSRF Filters Using r3dir](https://www.leviathansecurity.com/blog/bypassing-ssrf-filters-using-r3dir),
+  general SSRF/webhook security research confirming the exact pattern (an allowlist-approved hostname's own
+  legitimate open redirect chaining an SSRF-protected fetcher into an internal destination the allowlist was
+  built to block). Confirmed real and distinct from this platform's existing DNS-rebinding SSRF-allowlist
+  bypass lab: DNS rebinding exploits a TOCTOU gap between DNS resolution and connection; this exploits an
+  allowlist that's never re-applied after the first hop, a different root cause even though both defeat a
+  hostname allowlist.
+- **ARP cache poisoning / ARP spoofing** — [Imperva: What is ARP Spoofing?](https://www.imperva.com/learn/application-security/arp-spoofing/),
+  [Cyberhaven: What Is ARP Poisoning?](https://www.cyberhaven.com/infosec-essentials/arp-poisoning). Confirmed
+  the real, standard mechanism (ARP has no authentication at all, so unsolicited replies claiming ownership of
+  the gateway's IP are accepted by every receiving host with no verification) — foundational, exam-aligned
+  Security+ content, modeled via the same `cat`-based captured-analysis convention already established for
+  this platform's other network-layer labs (Rogue DHCP, batch 16) that this engine has no raw packet
+  simulation for.
+- **Typosquatting domain phishing** — [SentinelOne: What Is Typosquatting?](https://www.sentinelone.com/cybersecurity-101/cybersecurity/what-is-typosquatting/),
+  [Breachsense: Typosquatting — How Fake Domains Steal Your Credentials](https://www.breachsense.com/blog/typosquatting/).
+  Confirmed as a real, standard, Security+-aligned social-engineering/domain-based attack, and confirmed as
+  mechanically distinct from this platform's existing IDN homograph lab (batch 18): homograph attacks swap in
+  a visually-identical Unicode lookalike CHARACTER; typosquatting relies on ordinary ASCII typing/reading
+  errors, needing no special rendering trick at all. Confirmed Certificate Transparency's real role in
+  catching exactly this pattern (mandatory CA/Browser Forum logging makes every issued cert, including a
+  typosquatter's, a matter of public record).
+- **Rogue trusted root CA enabling TLS interception** — [MITRE ATT&CK T1553.004: Install Root Certificate](https://www.startupdefense.io/mitre-attack-techniques/t1553-004-install-root-certificate),
+  [Veil Framework: Root CA Abuse — The New Stealth Evasion Technique of 2025-26](https://www.veil-framework.com/root-ca-abuse-the-new-stealth-evasion-technique-of-2025-26/).
+  Confirmed the real, current (2025-26) technique and its mechanism: a rogue CA in the trusted root store can
+  sign a valid-looking certificate for any domain, accepted with zero browser warning, enabling full TLS
+  interception. Confirmed distinct from every other MITM lab already on this platform (ARP poisoning, this
+  same batch, is Layer 2/3; DHCP spoofing, batch 16, hijacks routing; this one operates entirely at the
+  certificate-trust layer, needing no network position manipulation at all).
+- **Pre-signed URL with no/excessive expiry** — [ivision Research: Signed, Sealed, Delivered... Secure? (Pre-)Signed AWS URL Hacks](https://research.ivision.com/signed-sealed-delivered-secure.html),
+  general AWS S3 pre-signed URL security guidance confirming "a common security mistake... is using a long
+  expiration time, which turns them into capability URLs" and the real risk of archived pre-signed links
+  remaining fetchable indefinitely. Confirmed as an implementation/configuration mistake rather than a flaw in
+  pre-signed URLs as a mechanism, matching this lab's own framing.
+- **Verbose error messages / stack trace disclosure** and **a debug feature flag left enabled in production**
+  — not independently re-searched this batch; both are extremely well-established, textbook secure-coding
+  anti-patterns (a development error handler or debug route shipped unchanged to production) rather than
+  claims resting on a single disclosed CVE or exact figure that a general-knowledge pass would be likely to
+  misremember.
+- **Off-by-one stack buffer overflow (CWE-193)** — [CWE-193: Off-by-one Error](https://cwe.mitre.org/data/definitions/193.html),
+  [ImmuniWeb: Off-by-one Error Vulnerability](https://www.immuniweb.com/vulnerability/off-by-one-error.html).
+  Confirmed the real mechanism (an incorrect `<=` vs `<` comparison writes exactly one byte past a buffer
+  boundary) and the real exploitation consequence on a stack buffer specifically (that single stray byte can
+  land on and corrupt the saved return address, redirecting execution) — confirmed mechanically distinct from
+  every other Binary Analysis lab on this platform (a full-overwrite classic stack smash, a format-string
+  write, heap-metadata corruption, etc.), since only ONE byte is ever attacker-controlled here, not an
+  arbitrary-length write. The address conversion (0x401932 → 4200754) was independently recomputed with Node
+  before being hardcoded.
+- **Signed/unsigned integer comparison bypass (CWE-195)** — [CWE-195: Signed to Unsigned Conversion Error](https://cwe.mitre.org/data/definitions/195),
+  general vulnerability-research confirmation that integer signedness conversion errors are a common, high-
+  prevalence weakness class. Confirmed the exact mechanism the lab depends on: a negative signed length passes
+  a signed bounds check (`len < MAX_LEN`) trivially, then converts to a very large unsigned value once read as
+  `size_t` by a function like `memcpy` — confirmed as a genuinely distinct bug class from this platform's
+  existing generic "Integer Overflow Authentication Bypass" lab (that one is arithmetic wraparound; this one
+  is a type-conversion bug needing no arithmetic overflow to occur at all).
+- **Uninitialized stack variable leak (CWE-457)** — [CWE-457: Use of Uninitialized Variable](https://cwe.mitre.org/data/definitions/457.html).
+  Confirmed the real mechanism (C stack variables are never zero-initialized by default; an uninitialized
+  buffer contains whatever bytes a previous function call left at that stack address) and real historical CVE
+  examples of exactly this bug class causing information disclosure. Confirmed as mechanically distinct from
+  every corruption-based Binary Analysis lab on this platform, since no memory is ever written or corrupted
+  here — only read — a genuinely different bug shape (a read of stale data, not a write past a boundary).
+- **Leaked public Postman collection exposing live API keys** — [CloudSEK: Hackers Scour Exposed Postman Instances for Credentials and API Secrets](https://www.cloudsek.com/threatintelligence/hackers-scour-exposed-postman-instances-for-credentials-and-api-secrets),
+  [RedHunt Labs: Leaky Postman Collections Reveal Thousands of Secrets](https://redhuntlabs.com/blog/leaky-postman-collections-reveal-thousands-of-secrets-wave14-project-resonance/).
+  Confirmed the real, large-scale, currently-documented 2023-2024 exposure class (30,000+ publicly accessible
+  Postman workspaces found by researchers, 4,000+ live leaked credentials) and the exact real mechanism the
+  lab depends on: API keys saved directly as collection "environment" variables for one-click convenience,
+  then the whole workspace accidentally shared publicly rather than kept private.
+- **Broken Link Hijacking via a dangling social-media handle** — [Invicti: Broken Link Hijacking (BLH)](https://www.invicti.com/learn/broken-link-hijacking-blh),
+  a real public HackerOne report matching this exact pattern ([Omise: Facebook Username Takeover via Broken Link in Footer](https://hackerone.com/reports/3119034)).
+  Confirmed the real, named vulnerability class and its social-media-handle variant specifically (a deleted,
+  not merely inactive, account's handle becomes available for anyone to register, inheriting whatever trust a
+  company's own website link still lends it) — confirmed mechanically distinct from this platform's existing
+  subdomain-takeover labs (a dangling DNS record vs. a dangling social-platform link, different systems
+  entirely even though the "abandoned-but-still-trusted reference" root cause shape rhymes).
+- **Exposed Firebase Realtime Database with public read/write rules** — [Medium (Mustafa Mohamed): Firebase Misconfigurations — From Discovery to Exploitation](https://medium.com/@mustafamohammed789mm/firebase-misconfigurations-from-discovery-to-exploitation-0a282b81ad4f),
+  a real documented incident affecting ~152,000 users across multiple mobile apps cited in the search results.
+  Confirmed the real, exact, currently-documented mechanism: `.read`/`.write` rules left at `true` (a
+  development "test mode" default never tightened), and the real REST convention (appending `.json` to the
+  database root returns the full contents with zero authentication) — the first non-AWS/GCP/Azure cloud-
+  platform misconfiguration lab this session has added, a genuinely distinct provider from every existing
+  Cloud-category lab.
+
+## NEEDS REVIEW (labs/topics), batch 21
+
+- One mechanical bug caught and fixed during `tsx` verification: the verbose-error-stack-trace Security
+  Engineering lab initially modeled the malformed invoice ID as a REST-style path segment
+  (`/api/invoices/not-a-number`), but this engine's `curl` only matches a `vulnRoute`'s tested parameter
+  against query-string/POST-body params, never against arbitrary path segments (confirmed by reading `curl()`
+  in `engine.ts` — the same convention already established by this platform's existing IDOR labs, which all
+  use `?id=...` query parameters, not REST path segments). Fixed to `?id=not-a-number`, reverified clean —
+  same underlying lesson as this file's standing "read the actual engine before assuming a URL shape works"
+  practice.
+- No techniques in this batch required skipping or faking; all 18 mapped cleanly onto existing engine
+  commands/conventions (`curl`-simulated HTTP `vulnRoutes` with explicit ports throughout, `cat`-based
+  analysis for the three network-layer-only Security+ labs this engine has no raw-packet simulation for, and
+  the established `#CRACKME_*`-marker crackme convention for the three Binary Analysis labs), and all 18 were
+  verified end-to-end with a scripted `tsx` run against the real `TerminalEngine` class — full solve path
+  captures exactly one flag per lab, first try after the one fix above. `tsc -b` and `oxlint` both clean.

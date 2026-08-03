@@ -67,6 +67,9 @@ import { batch20MixedLabsA } from '../labs/scenarios/batch20-mixed-pack-a';
 import { batch20NetworkLabs } from '../labs/scenarios/batch20-network-pack';
 import { batch20SocLabs } from '../labs/scenarios/batch20-soc-pack';
 import { batch20WebMalwareLabs } from '../labs/scenarios/batch20-web-malware-pack';
+import { batch21CryptoApiLabs } from '../labs/scenarios/batch21-crypto-api-pack';
+import { batch21SecplusSecengineeringLabs } from '../labs/scenarios/batch21-secplus-secengineering-pack';
+import { batch21BinaryBugbountyLabs } from '../labs/scenarios/batch21-binary-bugbounty-pack';
 import type { LabScenario } from '../labs/types';
 
 export interface LabEntry {
@@ -145,6 +148,9 @@ export const LABS: LabEntry[] = [
   ...toEntries(batch20NetworkLabs),
   ...toEntries(batch20SocLabs),
   ...toEntries(batch20WebMalwareLabs),
+  ...toEntries(batch21CryptoApiLabs),
+  ...toEntries(batch21SecplusSecengineeringLabs),
+  ...toEntries(batch21BinaryBugbountyLabs),
 ];
 
 /** Ordered to match the roadmap's actual teaching sequence (see curriculum.ts's MODULES order). */

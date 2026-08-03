@@ -968,3 +968,63 @@ in `NOTES.md` batch 20.
 `tsc -b` clean, `oxlint` clean (same two pre-existing, unrelated warnings as above, neither touched by this
 batch). `393` total labs confirmed via the actual `LABS.length`/category breakdown, not estimated; no
 duplicate `id` values anywhere in the full lab set.
+
+### Batch 21: 18 new labs across the six thinnest categories (393 → 411)
+
+A genuinely new batch (not previously-drafted work) — picked the six thinnest lab categories per
+`labs-index.md`'s own counts after batch 20 (Cryptography 16; Security+, Security Engineering, and API 18
+each; Binary Analysis 19; Bug Bounty 22) and added 3 labs to each in three new files
+(`batch21-crypto-api-pack.ts`, `batch21-secplus-secengineering-pack.ts`, `batch21-binary-bugbounty-pack.ts`).
+Every technique researched via `WebSearch` before writing, every title checked against all 393 existing lab
+titles first via targeted `grep` to avoid duplicating ground already covered.
+
+**Cryptography**: Wiener's attack recovering an RSA private key from a small private exponent via continued
+fractions (real primes/keys generated and the full attack algorithm independently implemented and run in
+Node before writing, confirming genuine round-trip recovery, not asserted numbers); AES-CBC with a static/
+zero IV (CWE-329, with real current CVEs — Spring Security CVE-2020-5408, PyPinkSign CVE-2023-48056 — cited)
+letting an attacker splice a leaked ciphertext block wholesale, mechanically distinct from the existing CBC
+bit-flipping and ECB-penguin labs; a bcrypt cost factor of 4 (OWASP's documented minimum is 10) enabling
+practical offline cracking, a distinct algorithm family from the existing PBKDF2 iteration-count lab.
+
+**API**: a GraphQL query with 5+ nested `friends{friends{...}}` levels causing exponential resolver fan-out
+(OWASP API4:2023, distinct from the existing pagination-free bulk-export API4 lab); sequential, predictable
+API keys (`mk_live_00000001`) revealing the entire keyspace from one legitimately-issued key (OWASP API2:2023);
+SSRF via open-redirect chaining, where an allowlisted hostname's own legitimate open redirect leads straight
+to the cloud metadata service, an allowlist bypass mechanically distinct from the existing DNS-rebinding one.
+
+**Security+**: ARP cache poisoning enabling an on-path credential-capture MITM (`cat`-based, this engine has
+no raw packet simulation, same convention as the existing rogue-DHCP lab); a typosquatting domain
+(`corp-portall.example`) impersonating a login portal, distinct from the existing IDN-homograph lab (ordinary
+ASCII typo vs. a Unicode lookalike character); a rogue trusted root CA installed by a browser extension
+enabling full TLS interception with zero browser warning (MITRE ATT&CK T1553.004).
+
+**Security Engineering**: a pre-signed download URL with a 20-year expiry, effectively a permanent capability
+URL; a verbose, still-active development error handler leaking a full stack trace, internal file paths, and a
+database connection-string fragment on a single malformed request; a QA-only debug feature flag
+(`X-Debug-Mode: true`) shipped unchanged to production, exposing an internal admin panel with no authentication
+logic behind it at all.
+
+**Binary Analysis**: an off-by-one loop bound (`<=` instead of `<`, CWE-193) writing exactly one byte past a
+stack buffer, landing on and corrupting only the saved return address's low byte — mechanically distinct from
+every full-overwrite stack-smash lab already on this platform, since only one byte is ever attacker-controlled;
+a signed/unsigned integer comparison bug (CWE-195) where a negative length passes a signed bounds check, then
+becomes a huge unsigned value once read by `memcpy`, distinct from the existing generic integer-overflow lab
+(a type-conversion bug, not arithmetic wraparound); an uninitialized stack variable (CWE-457) leaking a
+previous request's real session token, the platform's first pure information-disclosure-via-read Binary
+Analysis lab (every other one requires a write past a boundary).
+
+**Bug Bounty**: a public Postman workspace leaking a live production API key as a saved "environment"
+variable (grounded in real 2023-2024 research finding 30,000+ exposed workspaces); broken link hijacking via
+a deleted-not-merely-inactive social media handle a company's own footer still links to, distinct from the
+existing DNS-based subdomain-takeover labs; an exposed Firebase Realtime Database with `.read`/`.write` rules
+left at `true`, the platform's first non-AWS/GCP/Azure cloud-platform misconfiguration lab.
+
+One mechanical bug caught and fixed during verification: the verbose-error-stack-trace lab initially modeled
+its malformed ID as a REST-style path segment (`/api/invoices/not-a-number`), but this engine's `curl` only
+matches a `vulnRoute`'s param against query-string/POST-body values, never path segments (confirmed by reading
+`curl()` — the same convention this platform's existing IDOR labs already use). Fixed to a query parameter,
+reverified clean. All 18 labs verified end-to-end via the same `tsx`-against-`TerminalEngine` harness used for
+batches 19 and 20: exactly 1 flag captured per lab via its own hint solve-path. `tsc -b` clean, `oxlint` clean
+(same two pre-existing, unrelated warnings, neither touched by this batch). `411` total labs confirmed via
+the actual `LABS.length`/category breakdown; no duplicate `id` values or IP-address collisions anywhere in the
+full lab set. Full citations in `NOTES.md` batch 21.
