@@ -827,3 +827,74 @@ head-on in its own citation below rather than glossed over.
   scripted `tsx` run against the real `TerminalEngine` class: full solve path captures exactly the expected
   flag count per lab (2 for the multi-stage GDB privesc lab, matching its `totalFlags: 2`), and a
   plausible-but-wrong request per lab captures none.
+
+## Sources checked, batch 15 (VLAN double tagging, AES-GCM nonce reuse, TOCTOU symlink race, API4 unrestricted resource consumption, Event 1102, PDF /OpenAction)
+
+- **VLAN hopping via 802.1Q double tagging** — [JumpCloud: What Is a Double-Tagging Attack?](https://jumpcloud.com/it-index/what-is-a-double-tagging-attack),
+  [networklessons.com: VLAN Hopping](https://networklessons.com/switching/vlan-hopping).
+  Confirmed the real, exact mechanism (outer tag stripped by the first switch because it matches that
+  switch's native VLAN, inner tag delivered at face value by the next switch) and the real, important
+  limitation stated explicitly in this lab's briefing rather than omitted: the attack is one-directional
+  only, and only works when the attacker's own VLAN happens to match the trunk's native VLAN — not a
+  general "any VLAN is reachable" claim.
+- **AES-GCM nonce reuse / the "Forbidden Attack"** — [elttam: Attacks on GCM with Repeated Nonces](https://www.elttam.com/blog/key-recovery-attacks-on-gcm/),
+  [USENIX WOOT16: Nonce-Disrespecting Adversaries — Practical Forgery Attacks on GCM in TLS](https://www.usenix.org/sites/default/files/conference/protected-files/woot16_slides_bock.pdf).
+  Confirmed this is Joux's real, named 2006 disclosure during NIST's GCM standardization process, and the
+  real mechanism: two ciphertext/tag pairs sharing one nonce yield two polynomial equations evaluated at
+  the same unknown GHASH subkey H, and taking their GCD over GF(2^128) recovers H via the real,
+  published Cantor-Zassenhaus method — without ever revealing the AES encryption key itself, only granting
+  forgery capability. Confirmed the real, common root cause modeled in this lab's briefing (a counter reset
+  to zero after a device reboot without rekeying) is one of the specific causes independent sources name.
+  **Honesty note, addressed directly rather than glossed over**: this batch's own "verify hand-computed
+  values" standard (established after the batch-4/batch-9 heap/hex mistakes) cannot be fully applied to this
+  lab the way it was to the AES-CBC bit-flip lab in batch 12 — that lab's arithmetic was simple byte-XOR,
+  independently reproducible with Node's `crypto` module in seconds; genuine GF(2^128) polynomial GCD
+  recovery is a substantially deeper computation this session did not implement and run. The lab is written
+  so the forged nonce/tag pair is explicitly presented as a given output from "the security team's own
+  tooling" (real, published, and cited above) rather than framed as independently re-derived by this
+  session — an accurate representation of what was and wasn't verified, not an overclaim.
+- **TOCTOU race condition / symlink attack (CWE-367)** — [CWE-367 official definition](https://www.cvedetails.com/cwe-details/367/Time-of-check-Time-of-use-TOCTOU-Race-Condition.html),
+  [OWASP: Race Conditions](https://owasp.org/www-community/pages/vulnerabilities/race_conditions).
+  Confirmed the real, standard mechanism (a security check and the subsequent use of that checked resource
+  happen as two separate, non-atomic steps, and an attacker plants a symlink at the predictable path during
+  the gap between them) and the real, standard mitigation named accurately in this lab's vulnerable-code
+  comment (`O_NOFOLLOW`, or `mkstemp()`-style atomic unique-name creation) rather than invented.
+- **OWASP API4:2023 — Unrestricted Resource Consumption** — [OWASP's own API Security Top 10 2023 page for API4](https://owasp.org/API-Security/editions/2023/en/0xa4-unrestricted-resource-consumption/),
+  [Salt Security: API4:2023 Unrestricted Resource Consumption](https://salt.security/blog/api4-2023-unrestricted-resource-consumption).
+  Confirmed this is the real, current 2023 name and scope for this category (broadened from the 2019
+  edition's narrower "Lack of Resources and Rate Limiting"), and confirmed the exact real pattern this lab
+  models — bulk-export/report-generation endpoints with no pagination or record cap — is explicitly named by
+  multiple independent sources as a textbook example of this category, not a stretch to fit the label.
+- **Windows Event ID 1102 (audit log cleared)** — [Ultimate Windows Security: Event ID 1102](https://www.ultimatewindowssecurity.com/securitylog/encyclopedia/event.aspx?eventid=1102),
+  [ManageEngine: Event ID 1102 — The Audit Log Was Cleared](https://www.manageengine.com/products/active-directory-audit/kb/event-log-events/event-id-1102.html).
+  Confirmed the real, specific fact this lab depends on: Windows logs this event completely unconditionally
+  whenever the Security log is cleared, regardless of audit-policy configuration, specifically because the
+  clear action itself is always treated as security-relevant — and confirmed the real corroborating detail
+  used in this lab's second file: the event's own Logon ID field allows direct correlation back to the
+  responsible account's original Event ID 4624 network logon, tying the action to one traceable session.
+- **Malicious PDF `/OpenAction` auto-executing embedded JavaScript** — [Ironscales: The PDF Passed Every Scanner. Then It Opened a Browser Tab.](https://ironscales.com/threat-intelligence/pdf-openaction-phishing-sparkpost-investfidelity),
+  [Varonis: MatrixPDF Puts Gmail Users at Risk with Malicious PDF Attachments](https://www.varonis.com/blog/matrixpdf).
+  Confirmed `/OpenAction` is a real, legitimate PDF specification feature (meant for things like auto-running
+  a form-initialization script) that attackers genuinely abuse to run JavaScript the instant a document
+  opens with zero click required, and confirmed the real, current trend cited in this lab's briefing: PDF-
+  based phishing has notably increased as detection improved against macro-laden Office documents. The
+  specific API call modeled (`app.launchURL()`) is a real, documented PDF JavaScript API method, used here
+  exactly as real samples use it — to redirect to a phishing page without exploiting any PDF-reader memory
+  vulnerability at all.
+
+## NEEDS REVIEW (labs/topics), batch 15
+
+- One real mistake was caught and fixed during this batch's `tsx` verification run: the AES-GCM lab's
+  `forbidden-attack-forensic-analysis.txt` file originally included the literal flag text inline in its
+  narrative (meant only as an explanation), which the engine's flag-detection regex matched and captured
+  during the earlier `cat` step — awarding the flag before the lab's actual final `curl` exploit step ran at
+  all. Fixed by removing the standalone flag line from that file, leaving only the forged nonce/tag data the
+  final `curl` command actually needs, re-verified clean afterward.
+- The AES-GCM lab's scope limitation is addressed explicitly in its own citation above rather than repeated
+  here — worth a second look if this platform ever wants a fully independently-reproduced GF(2^128)
+  polynomial recovery (would require implementing real finite-field polynomial arithmetic, not a quick
+  Node one-liner like this session's simpler XOR-based crypto labs).
+- No other techniques in this batch required skipping or faking; all six were mechanically modeled with
+  full fidelity to how `TerminalEngine` actually works, and all six were verified end-to-end with a scripted
+  `tsx` run against the real `TerminalEngine` class — full solve path captures exactly one flag per lab
+  (after the one fix above), and a plausible-but-wrong request per lab captures none.

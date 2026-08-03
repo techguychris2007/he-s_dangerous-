@@ -4,7 +4,7 @@ Running count and category breakdown for the offensive-security lab expansion. S
 full narrative detail on every batch (what was added, why, and how each one was verified); this file is
 just the running tally `NOTES.md`'s citations and the "when I'm back" summary can point at.
 
-**Total labs: 290** (204 at the start of this expansion → 290 now, +86 so far toward the "up to 500, quality
+**Total labs: 296** (204 at the start of this expansion → 296 now, +92 so far toward the "up to 500, quality
 first" target). Every count below is the actual `LABS.length` broken out by `category`, not an estimate.
 
 | Category | Count | This expansion added |
@@ -15,14 +15,14 @@ first" target). Every count below is the actual `LABS.length` broken out by `cat
 | Active Directory | 22 | +7 (ADCS ESC1, RBCD abuse, Silver Ticket, Shadow Credentials, DCShadow rogue DC, GPP cpassword/MS14-025, LDAP anonymous bind description-field password disclosure) |
 | Bug Bounty | 22 | +2 (Certificate Transparency logs exposing a forgotten staging subdomain, exposed .env file leaking full Laravel application secrets) |
 | SOC | 20 | +4 (Golden SAML detection via missing ADFS/Kerberos events, impossible travel / geo-velocity anomaly detection, illicit OAuth consent grant surviving a password reset, Golden Ticket detection via an anomalous 10-year ticket lifetime) |
-| Forensics | 16 | +6 (Volume Shadow Copy NTDS.dit dump, NTFS timestomping $SI/$FN mismatch, PowerShell ScriptBlock de-obfuscation, Recycle Bin $I metadata, USN Change Journal contradicts a timestomped file, Shellbags survive a deleted folder on a removed USB volume) |
+| Forensics | 17 | +7 (Volume Shadow Copy NTDS.dit dump, NTFS timestomping $SI/$FN mismatch, PowerShell ScriptBlock de-obfuscation, Recycle Bin $I metadata, USN Change Journal contradicts a timestomped file, Shellbags survive a deleted folder on a removed USB volume, Event ID 1102 audit-log-cleared correlated via Logon ID) |
 | Cloud | 20 | +8 (IMDSv2 bypass, Docker-socket container escape, Lambda env-var secrets exposure, overly-permissive Azure SAS token, GCP allUsers Cloud Function, Kubernetes default automountServiceAccountToken + permissive RBAC, AWS Lambda Function URL public via authType NONE, exposed Azure Storage Account key granting full Shared Key access) |
-| Security+ | 14 | +3 (SPF/DMARC misconfiguration enables spoofing, missing HSTS enables SSL stripping, insufficient log retention violates PCI DSS 10.5.1) |
+| Security+ | 15 | +4 (SPF/DMARC misconfiguration enables spoofing, missing HSTS enables SSL stripping, insufficient log retention violates PCI DSS 10.5.1, VLAN hopping via 802.1Q double tagging) |
 | Binary Analysis | 17 | +7 (stack canary leak via format string, use-after-free function pointer hijack, ret2libc defeating NX/ASLR, heap unlink metadata corruption, GOT overwrite via format-string arbitrary write, tcache poisoning via a UAF-enabled double-free, classic ret2win stack smash redirecting to a hidden function) |
-| Malware | 19 | +6 (process hollowing detection via PEB/VAD mismatch, DLL sideloading via search-order hijacking, LNK whitespace-padding command hiding, regsvr32 "Squiblydoo" AppLocker bypass, AMSI bypass via reflection-based field patching, WMI-based lateral movement via Win32_Process.Create) |
-| Security Engineering | 14 | +4 (secret still live in git history, forged webhook via missing signature verification, remember-me token survives password reset, ECB-penguin pattern leak) |
-| **API** (new category) | 15 | +15 (BFLA, JWT kid injection, legacy-version IDOR, excessive data exposure, rate-limit bypass, WebAuthn downgrade, method-override authz bypass, GraphQL field-level authz bypass, Referer-header API key leak, OAuth audience confusion, GraphQL field-suggestion leak, pagination cursor tampering, upload content-type spoofing, exposed OpenAPI spec, exposed source map leaking a hardcoded key) |
-| **Cryptography** (new category) | 13 | +13 (ECB block-shuffling, hash length extension, JWT algorithm confusion, predictable PRNG session tokens, AES-CTR nonce reuse, Bleichenbacher RSA padding oracle, UUIDv1 reset-token entropy, ECDSA nonce reuse, Logjam DHE_EXPORT downgrade, batch GCD shared-prime attack, TOTP shared-secret reuse, PBKDF2 insufficient iteration count, CBC bit-flipping admin-cookie forgery) |
+| Malware | 20 | +7 (process hollowing detection via PEB/VAD mismatch, DLL sideloading via search-order hijacking, LNK whitespace-padding command hiding, regsvr32 "Squiblydoo" AppLocker bypass, AMSI bypass via reflection-based field patching, WMI-based lateral movement via Win32_Process.Create, malicious PDF /OpenAction JavaScript auto-execution) |
+| Security Engineering | 15 | +5 (secret still live in git history, forged webhook via missing signature verification, remember-me token survives password reset, ECB-penguin pattern leak, TOCTOU race condition enables a symlink attack) |
+| **API** (new category) | 16 | +16 (BFLA, JWT kid injection, legacy-version IDOR, excessive data exposure, rate-limit bypass, WebAuthn downgrade, method-override authz bypass, GraphQL field-level authz bypass, Referer-header API key leak, OAuth audience confusion, GraphQL field-suggestion leak, pagination cursor tampering, upload content-type spoofing, exposed OpenAPI spec, exposed source map leaking a hardcoded key, unrestricted resource consumption via a pagination-free bulk export) |
+| **Cryptography** (new category) | 14 | +14 (ECB block-shuffling, hash length extension, JWT algorithm confusion, predictable PRNG session tokens, AES-CTR nonce reuse, Bleichenbacher RSA padding oracle, UUIDv1 reset-token entropy, ECDSA nonce reuse, Logjam DHE_EXPORT downgrade, batch GCD shared-prime attack, TOTP shared-secret reuse, PBKDF2 insufficient iteration count, CBC bit-flipping admin-cookie forgery, AES-GCM nonce reuse "Forbidden Attack") |
 
 ## Batches shipped so far
 
@@ -110,6 +110,17 @@ first" target). Every count below is the actual `LABS.length` broken out by `cat
     detection via a forged TGT's anomalous 10-year lifetime — Mimikatz/Rubeus's own hardcoded forging
     default — genuinely real as a `cat`-based SOC log review, since that IS the actual analyst workflow for
     this job function, not a simulation shortcut (SOC).
+15. **`b24635d`** — 6 labs: VLAN hopping via 802.1Q double tagging, requiring the trunk's native
+    VLAN to be left at its unchanged factory default (Security+); AES-GCM nonce reuse enabling Joux's real
+    "Forbidden Attack" — GHASH subkey recovery via polynomial GCD over GF(2^128), forging a valid
+    authentication tag with no encryption key at all (Cryptography, honestly scoped in `NOTES.md`: the deep
+    field-arithmetic math is described and cited accurately but the forged value is presented as a given
+    tooling output, not hand-rederived); a TOCTOU race condition in a root-owned batch job enabling a
+    symlink attack that redirects a privileged write into `/etc/passwd` (Security Engineering); unrestricted
+    resource consumption via a pagination-free bulk-export endpoint, OWASP API4:2023 (API); Windows Event ID
+    1102 (audit log cleared) correlated via Logon ID back to the responsible account's original network
+    logon (Forensics); and a malicious PDF's `/OpenAction` auto-executing embedded JavaScript that calls the
+    PDF viewer's own legitimate `app.launchURL()` API with zero user interaction required (Malware).
 
 ## What's explicitly NOT attempted, and why
 
