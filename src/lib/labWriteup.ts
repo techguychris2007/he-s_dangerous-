@@ -1,7 +1,7 @@
 import type { LabEntry } from '../data/labs';
 import type { ObjectiveStep } from '../labs/types';
 
-const CATEGORY_HASHTAGS: Record<string, string[]> = {
+export const CATEGORY_HASHTAGS: Record<string, string[]> = {
   Linux: ['LinuxSecurity', 'PrivilegeEscalation'],
   Network: ['NetworkSecurity', 'Nmap'],
   Web: ['WebSecurity', 'AppSec', 'BugBounty'],
@@ -72,11 +72,11 @@ export function buildLabWriteup(entry: LabEntry, opts: LabWriteupOptions = {}): 
   // ---------- LinkedIn ----------
   const linkedinSteps = objectives.slice(0, 4).map((t) => `• ${t}`).join('\n');
   const linkedin = [
-    `\u{1F6A9} Lab completed: ${scenario.title}${cveLine}`,
+    `Completed: ${scenario.title}${cveLine}`,
     '',
     hookLine(scenario.briefing, 240),
     '',
-    'What I practiced:',
+    'Approach:',
     linkedinSteps,
     ...(objectives.length > 4 ? [`• …and ${objectives.length - 4} more step(s)`] : []),
     ...(keyTakeaway ? ['', `Key takeaway: "${truncate(keyTakeaway, 260)}"`] : []),
@@ -84,10 +84,10 @@ export function buildLabWriteup(entry: LabEntry, opts: LabWriteupOptions = {}): 
     `${scenario.difficulty} difficulty · ${scenario.category} · ${scenario.totalFlags} flag${scenario.totalFlags > 1 ? 's' : ''} captured`,
     '',
     opts.labsCompletedTotal
-      ? `Working through DarkWorld's hands-on labs — ${opts.labsCompletedTotal} labs completed so far${
+      ? `Continuing to build hands-on offensive-security experience through DarkWorld — ${opts.labsCompletedTotal} labs completed so far${
           opts.moduleTitle ? ` in the ${opts.moduleTitle} track` : ''
         }.`
-      : `Working through DarkWorld's hands-on, in-browser labs — real recon-to-impact chains, not multiple-choice quizzes.`,
+      : `Continuing to build hands-on, in-browser offensive-security experience through DarkWorld — real recon-to-impact chains, not multiple-choice quizzes.`,
     '',
     hashtagLine,
   ].join('\n');
