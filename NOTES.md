@@ -964,3 +964,64 @@ head-on in its own citation below rather than glossed over.
   full fidelity to how `TerminalEngine` actually works, and all six were verified end-to-end with a scripted
   `tsx` run against the real `TerminalEngine` class — full solve path captures exactly one flag per lab
   (after the one fix above), and a plausible-but-wrong request per lab captures none.
+
+## Sources checked, batch 17 (RSA e=3 cube root, API key in URL, negative-quantity business logic, RFID badge cloning, WinRM lateral movement, NTFS $LogFile)
+
+- **RSA e=3 cube root attack on an unpadded message** — [John D. Cook: An attack on RSA with exponent 3](https://www.johndcook.com/blog/2019/03/06/rsa-exponent-3/),
+  [Crypton: Håstad's Broadcast Attack](https://github.com/ashutosh1206/Crypton/blob/master/RSA-encryption/Attack-Hastad-Broadcast/README.md).
+  Confirmed the real mechanism this lab uses (the simpler single-ciphertext case: when M^e < N, the "mod N"
+  reduction never actually triggers, so C = M^e holds as a literal integer equation, and recovering M is
+  ordinary integer cube-root extraction — no private key, no factoring) as distinct from, but the same root
+  cause underlying, Håstad's broadcast attack (which uses CRT across multiple recipients/moduli). **Every
+  number in this lab was independently verified with real Node BigInt arithmetic before being hardcoded**:
+  generated a 352-bit demo modulus N, confirmed M^3 < N for a 9-digit PIN, confirmed the ciphertext equals
+  M^3 exactly with no modular reduction, and confirmed a from-scratch integer cube-root function (binary
+  search, not a library shortcut) recovers the original M exactly — the same standing rule this file has
+  applied to every hand-typed cryptographic/hex value since the batch-4 and batch-9 mistakes it exists
+  because of.
+- **API key in URL query string, leaked via access logs** — [OWASP: Information exposure through query strings in URL](https://owasp.org/www-community/vulnerabilities/Information_exposure_through_query_strings_in_url),
+  [FullContact: Never Put Secrets in URLs and Query Parameters](https://www.fullcontact.com/blog/2016/04/29/never-put-secrets-urls-query-parameters/).
+  Confirmed the real, specific mechanism (servers and proxies routinely log full request URLs including
+  query strings, while headers are logged far less often by default) and a real, named historical incident
+  matching this exact pattern cited independently: 407 RubyGems user API keys were sent to a third-party
+  service via HTTP logs between October 2018 and July 2020, all via query-string-embedded keys.
+- **Negative-quantity / negative-price checkout business logic flaw** — general, well-documented real
+  bug-bounty finding class (multiple independent write-ups describe the identical pattern: a negative
+  quantity or price value is a perfectly well-formed integer that no syntax-level input filter would ever
+  flag, and a server that multiplies price × quantity without a sign check produces a negative order total
+  that downstream logic then credits back to the customer). Confirmed this is explicitly named in OWASP's
+  own API Security Top 10 and HackerOne's top-reported vulnerability classes as a real, recurring category,
+  not an edge case.
+- **125kHz RFID proximity card cloning** — [Black Hills Information Security: RFID Proximity Cloning Attacks](https://www.blackhillsinfosec.com/rfid-proximity-cloning-attacks/),
+  [ICT: The 125kHz Proximity Card Dilemma](https://www.ict.co/blog/the-125khz-proximity-card-dilemma/).
+  Confirmed the real, current prevalence figure (an estimated 70% of physical access control deployments
+  still use 125kHz cards), the real fact this lab depends on (these cards broadcast their site code and
+  card number completely unencrypted, by original design, with no challenge-response of any kind), and the
+  real tooling (Proxmark3, and the cheaper consumer-available Flipper Zero) independently confirmed across
+  multiple sources as capable of a read-and-clone in seconds from several centimeters away.
+- **WinRM lateral movement / MITRE ATT&CK T1021.006** — [MITRE ATT&CK: T1021.006](https://attack.mitre.org/techniques/T1021/006/),
+  [ManageEngine Log360: Detecting remote services abuse for lateral movement](https://www.manageengine.com/log-management/mitre-attack/lateral-movement/remote-services-abuse.html).
+  Confirmed the real, specific, currently-documented detection pattern this lab models: `wsmprovhost.exe`
+  (the real WinRM provider host process) legitimately spawns child processes during every normal PowerShell
+  remoting session, so no single event is sufficient — the standard real approach correlates that process
+  behavior against an Event ID 4624 Logon Type 3 landing on the destination host from an out-of-baseline
+  source, exactly the multi-signal correlation this lab's briefing describes rather than presenting either
+  signal alone as sufficient.
+- **NTFS `$LogFile` transaction-log forensics** — [deaddisk: Correlating NTFS $LogFile and $UsnJrnl — A DFIR Practitioner's Guide](https://www.deaddisk.com/posts/logfile_and_usnjrnl/),
+  [Andrea Fortuna: Going beneath NTFS — USN Journal, dfir_ntfs, and artefact-driven investigations](https://andreafortuna.org/2026/07/06/ntfs-forensics-deep-dive/).
+  Confirmed `$LogFile` is a real, distinct NTFS structure from `$UsnJrnl` (a write-ahead transaction log
+  recording redo/undo operations against Log Sequence Numbers, rather than the USN journal's reason-code
+  history), and confirmed the real, specific forensic technique this lab models: when a suspicious
+  $STANDARD_INFORMATION timestamp needs independent confirmation, the corresponding `$LogFile` entry for the
+  `UpdateStandardInformation`/`SetStandardInformation` transaction gives an out-of-band, authentically-timed
+  record of the write operation itself — explicitly framed in this lab's briefing as a complementary, deeper
+  artifact alongside the existing USN-journal lab (batch 10), not a replacement or reskin of it.
+
+## NEEDS REVIEW (labs/topics), batch 17
+
+- No techniques in this batch required skipping or faking; all six were mechanically modeled with full
+  fidelity to how `TerminalEngine` actually works, and all six were verified end-to-end with a scripted
+  `tsx` run against the real `TerminalEngine` class on the first attempt — full solve path captures exactly
+  one flag per lab, and a plausible-but-wrong request per lab captures none. The RSA e=3 lab's numeric
+  values are the only ones in this batch requiring independent re-derivation before being trusted (see its
+  citation above for the exact verification performed).

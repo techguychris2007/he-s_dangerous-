@@ -4,7 +4,7 @@ Running count and category breakdown for the offensive-security lab expansion. S
 full narrative detail on every batch (what was added, why, and how each one was verified); this file is
 just the running tally `NOTES.md`'s citations and the "when I'm back" summary can point at.
 
-**Total labs: 302** (204 at the start of this expansion → 302 now, +98 so far toward the "up to 500, quality
+**Total labs: 308** (204 at the start of this expansion → 308 now, +104 so far toward the "up to 500, quality
 first" target). Every count below is the actual `LABS.length` broken out by `category`, not an estimate.
 
 | Category | Count | This expansion added |
@@ -14,15 +14,15 @@ first" target). Every count below is the actual `LABS.length` broken out by `cat
 | Web | 45 | +5 (DNS rebinding SSRF-allowlist bypass, client-side prototype pollution via URL fragment to DOM XSS, Host header injection enabling password reset poisoning, missing Subresource Integrity on a third-party payment script, blind boolean-based SQLi extracted live with sqlmap) |
 | Active Directory | 23 | +8 (ADCS ESC1, RBCD abuse, Silver Ticket, Shadow Credentials, DCShadow rogue DC, GPP cpassword/MS14-025, LDAP anonymous bind description-field password disclosure, constrained delegation abuse via S4U2Self/S4U2Proxy protocol transition) |
 | Bug Bounty | 22 | +2 (Certificate Transparency logs exposing a forgotten staging subdomain, exposed .env file leaking full Laravel application secrets) |
-| SOC | 20 | +4 (Golden SAML detection via missing ADFS/Kerberos events, impossible travel / geo-velocity anomaly detection, illicit OAuth consent grant surviving a password reset, Golden Ticket detection via an anomalous 10-year ticket lifetime) |
-| Forensics | 18 | +8 (Volume Shadow Copy NTDS.dit dump, NTFS timestomping $SI/$FN mismatch, PowerShell ScriptBlock de-obfuscation, Recycle Bin $I metadata, USN Change Journal contradicts a timestomped file, Shellbags survive a deleted folder on a removed USB volume, Event ID 1102 audit-log-cleared correlated via Logon ID, NTFS Alternate Data Streams hiding a payload) |
+| SOC | 21 | +5 (Golden SAML detection via missing ADFS/Kerberos events, impossible travel / geo-velocity anomaly detection, illicit OAuth consent grant surviving a password reset, Golden Ticket detection via an anomalous 10-year ticket lifetime, WinRM lateral movement detected via wsmprovhost.exe correlation) |
+| Forensics | 19 | +9 (Volume Shadow Copy NTDS.dit dump, NTFS timestomping $SI/$FN mismatch, PowerShell ScriptBlock de-obfuscation, Recycle Bin $I metadata, USN Change Journal contradicts a timestomped file, Shellbags survive a deleted folder on a removed USB volume, Event ID 1102 audit-log-cleared correlated via Logon ID, NTFS Alternate Data Streams hiding a payload, NTFS $LogFile transaction records independently confirm timestomping) |
 | Cloud | 21 | +9 (IMDSv2 bypass, Docker-socket container escape, Lambda env-var secrets exposure, overly-permissive Azure SAS token, GCP allUsers Cloud Function, Kubernetes default automountServiceAccountToken + permissive RBAC, AWS Lambda Function URL public via authType NONE, exposed Azure Storage Account key granting full Shared Key access, GCP IAM actAs permission enabling privilege escalation) |
-| Security+ | 16 | +5 (SPF/DMARC misconfiguration enables spoofing, missing HSTS enables SSL stripping, insufficient log retention violates PCI DSS 10.5.1, VLAN hopping via 802.1Q double tagging, rogue DHCP server enabling a man-in-the-middle) |
+| Security+ | 17 | +6 (SPF/DMARC misconfiguration enables spoofing, missing HSTS enables SSL stripping, insufficient log retention violates PCI DSS 10.5.1, VLAN hopping via 802.1Q double tagging, rogue DHCP server enabling a man-in-the-middle, 125kHz RFID proximity badge cloning) |
 | Binary Analysis | 18 | +8 (stack canary leak via format string, use-after-free function pointer hijack, ret2libc defeating NX/ASLR, heap unlink metadata corruption, GOT overwrite via format-string arbitrary write, tcache poisoning via a UAF-enabled double-free, classic ret2win stack smash redirecting to a hidden function, type confusion in a tagged union hijacking control flow) |
 | Malware | 20 | +7 (process hollowing detection via PEB/VAD mismatch, DLL sideloading via search-order hijacking, LNK whitespace-padding command hiding, regsvr32 "Squiblydoo" AppLocker bypass, AMSI bypass via reflection-based field patching, WMI-based lateral movement via Win32_Process.Create, malicious PDF /OpenAction JavaScript auto-execution) |
-| Security Engineering | 16 | +6 (secret still live in git history, forged webhook via missing signature verification, remember-me token survives password reset, ECB-penguin pattern leak, TOCTOU race condition enables a symlink attack, excessive container capabilities enable a cgroup release_agent escape) |
-| **API** (new category) | 16 | +16 (BFLA, JWT kid injection, legacy-version IDOR, excessive data exposure, rate-limit bypass, WebAuthn downgrade, method-override authz bypass, GraphQL field-level authz bypass, Referer-header API key leak, OAuth audience confusion, GraphQL field-suggestion leak, pagination cursor tampering, upload content-type spoofing, exposed OpenAPI spec, exposed source map leaking a hardcoded key, unrestricted resource consumption via a pagination-free bulk export) |
-| **Cryptography** (new category) | 14 | +14 (ECB block-shuffling, hash length extension, JWT algorithm confusion, predictable PRNG session tokens, AES-CTR nonce reuse, Bleichenbacher RSA padding oracle, UUIDv1 reset-token entropy, ECDSA nonce reuse, Logjam DHE_EXPORT downgrade, batch GCD shared-prime attack, TOTP shared-secret reuse, PBKDF2 insufficient iteration count, CBC bit-flipping admin-cookie forgery, AES-GCM nonce reuse "Forbidden Attack") |
+| Security Engineering | 17 | +7 (secret still live in git history, forged webhook via missing signature verification, remember-me token survives password reset, ECB-penguin pattern leak, TOCTOU race condition enables a symlink attack, excessive container capabilities enable a cgroup release_agent escape, negative-quantity checkout business logic flaw) |
+| **API** (new category) | 17 | +17 (BFLA, JWT kid injection, legacy-version IDOR, excessive data exposure, rate-limit bypass, WebAuthn downgrade, method-override authz bypass, GraphQL field-level authz bypass, Referer-header API key leak, OAuth audience confusion, GraphQL field-suggestion leak, pagination cursor tampering, upload content-type spoofing, exposed OpenAPI spec, exposed source map leaking a hardcoded key, unrestricted resource consumption via a pagination-free bulk export, API key in URL query string leaked via access logs) |
+| **Cryptography** (new category) | 15 | +15 (ECB block-shuffling, hash length extension, JWT algorithm confusion, predictable PRNG session tokens, AES-CTR nonce reuse, Bleichenbacher RSA padding oracle, UUIDv1 reset-token entropy, ECDSA nonce reuse, Logjam DHE_EXPORT downgrade, batch GCD shared-prime attack, TOTP shared-secret reuse, PBKDF2 insufficient iteration count, CBC bit-flipping admin-cookie forgery, AES-GCM nonce reuse "Forbidden Attack", RSA e=3 cube root attack on an unpadded ciphertext) |
 
 ## Batches shipped so far
 
@@ -134,6 +134,16 @@ first" target). Every count below is the actual `LABS.length` broken out by `cat
     sudo-GTFOBins Docker findings (Security Engineering); and a rogue DHCP server winning the race to answer
     client leases and redirecting the default gateway through the attacker, exploiting DHCP's complete lack
     of server authentication (Security+).
+17. **`1bc7623`** — 6 labs: an RSA e=3 cube-root attack recovering an unpadded PIN with no private
+    key at all — verified end-to-end with real Node BigInt arithmetic before being hardcoded (Cryptography);
+    an API key passed in a URL query string leaking through plaintext access logs, distinct from the
+    existing Referer-header-leak lab (API); a negative-quantity checkout business logic flaw, a well-formed
+    integer no input filter would ever flag, that turns the server's own price × quantity multiplication
+    into free account credit (Security Engineering); 125kHz RFID proximity badge cloning, plaintext with
+    zero encryption at the protocol level (Security+); WinRM lateral movement (MITRE T1021.006) detected via
+    correlating an out-of-baseline Event ID 4624 logon with `wsmprovhost.exe` spawning an unexpected child
+    process (SOC); and NTFS `$LogFile` transaction records providing a second, lower-level, independent
+    confirmation of timestomping beyond this session's existing USN-journal lab (Forensics).
 
 ## What's explicitly NOT attempted, and why
 
