@@ -1338,3 +1338,145 @@ After all four fixes, reran the full 30-lab suite: **all 30 now capture exactly 
 hint solve-path.** `tsc -b` clean, `oxlint` clean (only the two pre-existing, unrelated warnings —
 `LabCard.tsx` and `code-python-advanced/03-...` — both predate this batch and this session). Batch 19 is now
 verified to the same standard as every other batch in this file, not an exception to it.
+
+## Sources checked, batch 20 (10 more CVEs, ADCS ESC8/ESC4, Lambda Layers backdoor, GCP SA key exposure, Azure
+Key Vault overpermissioning, Registry Run key / Amcache forensics, four Event-ID SOC detections, XXE via SVG
+upload, second-order SQLi, classic/reflective DLL injection)
+
+The six `batch20-*.ts` files were drafted by the previous session with `WebSearch` unavailable (blocked by the
+same classifier that had already taken out `tsx`/`oxlint`/`git commit`), and each file says so explicitly in
+its own header comment rather than silently presenting unverified content as researched. This session
+confirmed `WebSearch` is working again and used it to close that gap — prioritizing the two techniques
+explicitly flagged for a recheck (ESC8, ESC4) plus the ten specific CVEs (highest-risk category for a
+misremembered detail, since each carries a specific number/CVSS/mechanism a static-knowledge pass could get
+subtly wrong) and two more technically-specific general claims.
+
+- **ADCS ESC8 (NTLM relay to AD CS HTTP web enrollment)** — [Hacking Articles: ADCS ESC8 — NTLM Relay to AD CS HTTP Endpoints](https://www.hackingarticles.in/adcs-esc8-ntlm-relay-to-ad-cs-http-endpoints/),
+  [SpecterOps BloodHound: CoerceAndRelayNTLMToADCS](https://bloodhound.specterops.io/resources/edges/coerce-and-relay-ntlm-to-adcs),
+  [SecureLayer7: What is ESC8?](https://securelayer7.net/learn/active-directory/what-is-esc8).
+  Confirmed real and exactly as modeled: this is SpecterOps' own "Certified Pre-Owned" research (ESC8 =
+  "NTLM Relay to AD CS HTTP Endpoints"), the real two-tool chain is PetitPotam (abusing MS-EFSRPC to coerce a
+  DC into authenticating) plus Certipy's relay module targeting the web enrollment endpoint, and the real
+  precondition is exactly what the lab's audit file states — web enrollment reachable with NTLM accepted and
+  no Extended Protection for Authentication / channel binding enforced. A DC certificate leads straight to
+  DCSync, confirming the lab's framed impact.
+- **ADCS ESC4 (certificate template ACL abuse)** — [RedFox Security: ESC4 Attack — Exploiting Weak ACLs on AD Cert Templates](https://www.redfoxsec.com/blog/exploiting-weak-acls-on-active-directory-certificate-templates-esc4-explained),
+  [ly4k/Certipy Wiki: Privilege Escalation](https://github.com/ly4k/Certipy/wiki/06-%E2%80%90-Privilege-Escalation),
+  [SpecterOps BloodHound: ADCSESC4](https://bloodhound.specterops.io/resources/edges/adcs-esc4).
+  Confirmed real and exactly as modeled: ESC4 is write access (WriteProperty/WriteOwner/GenericWrite/etc.)
+  over a certificate template OBJECT itself, abused by rewriting the template's own configuration to make it
+  vulnerable to ESC1 (SAN-supplying enrollment), then requesting a certificate naming a privileged principal
+  — Certipy's real `template` command does exactly this in one step, matching the lab's own framing of "ESC4
+  reached by first weakening a template rather than finding one already ESC1-vulnerable."
+- **CVE-2019-0708 (BlueKeep)** — [Wikipedia: BlueKeep](https://en.wikipedia.org/wiki/BlueKeep), multiple
+  vendor vulnerability-database entries (Rapid7, Tenable) confirmed via search. Confirmed: pre-auth
+  use-after-free in the RDP `termdd.sys` driver's handling of the internal `MS_T120` virtual channel, CVSS
+  10.0, and the real detail the lab's briefing leads with — Microsoft patched Windows XP and Server 2003
+  (both years past end-of-life) given how wormable they judged it.
+- **CVE-2020-0796 (SMBGhost)** — [SentinelOne vulnerability database: CVE-2020-0796](https://www.sentinelone.com/vulnerability-database/cve-2020-0796/),
+  [SANS: Microsoft SMBv3.11 Vulnerability and Patch Explained](https://www.sans.org/blog/microsoft-smbv3-11-vulnerability-and-patch-cve-2020-0796-explained).
+  Confirmed: integer overflow in SMBv3.1.1's handling of a compressed packet (compression being a genuinely
+  new feature in that protocol version), pre-auth, CVSS 10.0, wormable — matches the lab exactly, including
+  its explicit differentiation from the platform's existing EternalBlue (SMBv1) lab.
+- **CVE-2024-3094 (XZ Utils / liblzma backdoor)** — [Wikipedia: XZ Utils backdoor](https://en.wikipedia.org/wiki/XZ_Utils_backdoor),
+  [Sonatype: CVE-2024-3094 — Backdoor Attack Against xz and liblzma](https://www.sonatype.com/blog/cve-2024-3094-the-targeted-backdoor-supply-chain-attack-against-xz-and-liblzma).
+  Confirmed: the "Jia Tan" multi-year social-engineering operation, the backdoor present only in release
+  tarballs (not the public git repo), the IFUNC-resolver hijack intercepting `RSA_public_decrypt` during SSH
+  certificate auth, and Andres Freund's discovery via a ~500ms SSH login slowdown — every specific detail the
+  lab's briefing states checks out against the primary incident writeups.
+- **CVE-2023-23397 (Outlook zero-click NTLM leak)** — [SentinelOne: CVE-2023-23397](https://www.sentinelone.com/blog/cve-2023-23397/),
+  [Trend Micro: Patch CVE-2023-23397 Immediately](https://www.trendmicro.com/en_us/research/23/c/patch-cve-2023-23397-immediately-what-you-need-to-know-and-do.html).
+  Confirmed: the `PidLidReminderFileParameter` MAPI property set to a UNC path, triggered automatically when
+  Outlook processes the reminder (genuinely zero-click, no open/preview needed), leaking NTLMv2 to the
+  attacker-controlled SMB server. CVSS 9.8 confirmed (the lab states 9.8, matching).
+- **CVE-2019-11510 (Pulse Secure pre-auth arbitrary file read)** — [Acunetix: Pulse Secure SSL VPN Arbitrary File Reading](https://www.acunetix.com/vulnerabilities/web/pulse-secure-ssl-vpn-arbitrary-file-reading-cve-2019-11510/),
+  [KELA: Ransomware Victims & Leaked Pulse Secure VPN Credentials](https://www.kelacyber.com/blog/easy-way-in-5-ransomware-victims-had-their-pulse-secure-vpn-credentials-leaked/).
+  Confirmed: CVSS 10.0, the real `/dana-na/...` traversal path pattern, the real target file (the session
+  database containing plaintext credentials), and the real, specifically-named Travelex ransomware incident.
+- **CVE-2022-41040/CVE-2022-41082 (ProxyNotShell)** — [Picus Security: ProxyNotShell Exploits Explained](https://www.picussecurity.com/resource/blog/proxynotshellcve-2022-41040-and-cve-2022-41082-exploits-explained),
+  [Unit42: ProxyNotShell Threat Brief](https://unit42.paloaltonetworks.com/proxynotshell-cve-2022-41040-cve-2022-41082/).
+  Confirmed: CVE-2022-41040 is an SSRF exploitable by an authenticated user (any mailbox, not just admin),
+  chained into CVE-2022-41082 for PowerShell-remoting RCE, and GTSC's real discovery (already-current-patched
+  servers, already under active exploitation) — matches the lab's framing exactly, including the explicit
+  differentiation from the platform's existing ProxyLogon/ProxyShell labs.
+- **CVE-2021-41773 / CVE-2021-42013 (Apache HTTP Server path traversal + incomplete-fix RCE)** — [Rapid7: CVE-2021-41773 Exploited in the Wild](https://www.rapid7.com/blog/post/2021/10/06/apache-http-server-cve-2021-41773-exploited-in-the-wild/),
+  [Qualys: Path Traversal & RCE in Apache HTTP Server](https://blog.qualys.com/vulnerabilities-threat-research/2021/10/27/apache-http-server-path-traversal-remote-code-execution-cve-2021-41773-cve-2021-42013).
+  Confirmed: the regression is specific to 2.4.49, `mod_cgi`-enabled paths escalate file-read to RCE, and
+  Apache's own first patch (2.4.50) was confirmed incomplete against double-URL-encoding, tracked as
+  CVE-2021-42013 and fully fixed only in 2.4.51 — matches the lab's briefing precisely.
+- **CVE-2023-38831 (WinRAR spoofed-extension RCE)** — [Group-IB: CVE-2023-38831 zero-day exploited by cybercriminals to target traders](https://www.group-ib.com/blog/cve-2023-38831-winrar-zero-day/),
+  [SentinelOne: CVE-2023-38831 WinRAR ZIP Archive RCE Vulnerability](https://www.sentinelone.com/vulnerability-database/cve-2023-38831/).
+  Confirmed: the decoy-file-plus-same-named-folder mechanism, real-world exploitation via trading-forum
+  archive attachments delivering DarkMe/GuLoader/Remcos, and the real fixed version (6.23) — matches exactly.
+- **CVE-2018-13379 (FortiOS SSL VPN path traversal, plaintext credential disclosure)** — [Rapid7: CVE-2018-13379 Path Traversal in Fortinet FortiOS](https://www.rapid7.com/blog/post/ra-cve-2018-13379-path-traversal-in-fortinet-fortios-analysis/),
+  [CPO Magazine: Threat Actor Leaks Login Credentials of About 500,000 Fortinet VPN Accounts](https://www.cpomagazine.com/cyber-security/threat-actor-leaks-login-credentials-of-about-500000-fortinet-vpn-accounts/).
+  Confirmed: reads `sslvpn_websession`, containing plaintext credentials, via a pre-auth path-traversal URI.
+  The lab's specific "~500,000 credentials leaked in 2021" claim checks out precisely — a distinct, later,
+  larger incident (September 2021, via the RAMP forum) from an earlier, smaller November 2020 leak (~50,000
+  vulnerable devices) that a less careful search could have conflated with it; confirmed the lab cites the
+  right one.
+- **Amcache.hve execution evidence** — [Securelist: AmCache artifact — forensic value and a tool for data extraction](https://securelist.com/amcache-forensic-artifact/117622/),
+  [amcacheparser.com: Understanding Amcache for Windows forensics](https://www.amcacheparser.com/en/blog/understanding-amcache).
+  Confirmed the specific, checkable technical detail the lab depends on: Amcache computes its SHA-1 over only
+  the first ~31MB (31,457,280 bytes) of each executable — exactly the figure the lab's briefing states — and
+  is populated independently of Prefetch by the Application Compatibility subsystem, supporting the lab's
+  distinction from this platform's existing Prefetch execution-evidence lab.
+- **Malicious AWS Lambda Layer backdoor** — [Zest Security: How Malicious AWS Lambda Layers Can Compromise Your Serverless Environment](https://www.zestsecurity.io/resources/content/how-malicious-aws-lambda-layers-can-compromise-your-serverless-environment).
+  Confirmed the real, current attack shape: a layer's own initialization code runs automatically inside every
+  attached function's execution environment before that function's handler code runs, a compromised/malicious
+  layer can exfiltrate the full environment-variable set (including the function's STS credentials) on cold
+  start, and — the specific detail the lab's "blast radius" framing depends on — one shared layer attached to
+  many functions backdoors all of them simultaneously, not just one.
+- **GCP service account JSON key exposed via a public GCS bucket (`allUsers` Storage Object Viewer)** — not
+  independently re-searched this batch; this is the same real GCP `allUsers` public-access mechanism already
+  confirmed via search in batch 8 (for the GCP Cloud Function lab), applied here to Cloud Storage instead of
+  Cloud Run/Functions — a service account JSON key being a real, long-lived, directly-usable credential
+  format is well-established GCP documentation, not a claim needing a fresh citation.
+- **Azure Key Vault legacy Access Policies model applying vault-wide with no per-secret scoping** — not
+  independently re-searched this batch; this is Microsoft's own long-documented distinction between the
+  legacy Access Policies permission model and the newer Azure RBAC integration (which can scope to individual
+  secrets), consistent with established Azure security guidance rather than a claim needing a fresh citation.
+- **Registry Run key persistence, Event ID 4720 (user created), Event ID 4732 (added to a local group),
+  Sysmon Event ID 13 (RegistryEvent Value Set), Sysmon Event ID 22 (DNSEvent)** — not independently
+  re-searched this batch; all five are extremely well-established, standard Windows/Sysmon telemetry sources
+  already used correctly elsewhere on this platform (Run-key persistence, Sysmon 13, and DNS-based C2
+  detection all appear in this platform's existing lesson content and other labs), and none of these labs
+  depend on a specific disclosed CVE or a number that could be subtly wrong.
+- **XXE via a malicious SVG upload, second-order SQL injection, classic DLL injection (`CreateRemoteThread`),
+  reflective DLL injection** — not independently re-searched this batch; all four are long-established,
+  textbook vulnerability/technique classes (SVG-as-XML XXE, stored-value-reaches-a-second-unparameterized-sink
+  SQLi, the classic `OpenProcess`/`VirtualAllocEx`/`WriteProcessMemory`/`CreateRemoteThread` injection
+  primitive, and manual in-memory PE loading for reflective injection) that are consistent with established,
+  widely-taught security knowledge rather than claims resting on a single disclosed incident or a number that
+  could be subtly wrong.
+
+## NEEDS REVIEW (labs/topics), batch 20
+
+- **Mechanical bugs found and fixed during `tsx` verification** (five total, across four files): (1) all 10
+  `cveLab()`-factory labs in `batch20-network-pack.ts` and both ESC8/ESC4 labs in `batch20-mixed-pack-a.ts`
+  shared the identical narrative-only final hint bug already fixed at scale in batch 19's finalization above
+  (`'Once the session opens, check /root/root.txt (this lab treats...)'` instead of the runnable `cat
+  /root/root.txt`) — the previous session had clearly copied the `cveLab()` factory (and its bug) forward from
+  `batch19-network-pack.ts` before this session's batch-19 fix existed. Fixed the same way, both files. (2)
+  `batch20-cloud-pack.ts`'s GCP service-account-key lab used `curl https://10.10.302.2/...` with no explicit
+  port against a service defined on port 443 — the single most recurring mistake class in this platform's
+  entire history (first flagged batch 6, recurred at least six times since) — fixed to `:443` explicitly. (3)
+  `batch20-mixed-pack-a.ts`'s ESC4 lab's `exploit`/hint targeted `10.10.300.2` (the ESC8 lab's host) while its
+  own `network` array defines the host at `10.10.300.3` — a copy-paste IP mismatch, not a port issue — fixed
+  to the correct IP. (4) `batch20-web-malware-pack.ts`'s second-order-SQLi lab's final step (a bare GET with
+  no parameters at all) could never trigger its own `vulnRoute`, because this engine's `curl` has no
+  cross-request state — a value "stored" by one request is never visible to a later, unrelated request; there
+  is no way to honestly model true second-order SQLi (payload persists server-side, fires later with no
+  attacker involvement in the second request) against a stateless simulator. Fixed the same way this file has
+  handled comparable engine-limitation cases before (Host-header-poisoning's combined request in batch 11,
+  the AES-GCM lab's given-not-rederived value in batch 15): the final request now carries the same
+  already-stored payload explicitly as a query parameter, so the vulnerable, unparameterized SINK is still
+  what's being tested — flagged here rather than left implicit, since a learner reading the raw solve command
+  could otherwise reasonably assume real second-order SQLi requires resending the payload, which it doesn't.
+- **Citation gap now closed for the two AD CS labs and all ten CVE labs**, per an explicit instruction to
+  recheck them once `WebSearch` was confirmed working again — all twelve check out with no factual corrections
+  needed, see citations above. The remaining labs in this batch (Cloud's two general-mechanism labs, all four
+  Forensics/SOC labs, and Web/Malware's four technique-class labs) were spot-reviewed for internal consistency
+  during the `tsx` verification pass but not independently re-searched this batch, for the reasons stated
+  next to each in the citations above — none of them rest on a specific disclosed CVE, exact CVSS score, or
+  other single fact that a general-knowledge pass would be likely to misremember, unlike the CVE labs.

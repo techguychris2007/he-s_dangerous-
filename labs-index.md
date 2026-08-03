@@ -4,25 +4,26 @@ Running count and category breakdown for the offensive-security lab expansion. S
 full narrative detail on every batch (what was added, why, and how each one was verified); this file is
 just the running tally `NOTES.md`'s citations and the "when I'm back" summary can point at.
 
-**Total labs: 368** (204 at the start of this expansion → 368 now, +164 so far toward the "up to 500, quality
+**Total labs: 393** (204 at the start of this expansion → 393 now, +189 so far toward the "up to 500, quality
 first" target). Every count below is the actual `LABS.length` broken out by `category`, not an estimate.
 Batch 18 marked a deliberate pace change (30 labs in one batch instead of six, per explicit instruction);
-batch 19 continues it under a real tooling constraint — see the batch 19 entry below for what happened and
-how it was handled.
+batch 19 continued it under a real tooling constraint (finalized in a later session, see its entry below);
+batch 20 registered, verified, fixed, and documented 25 labs a previous session had drafted but never
+finished.
 
 | Category | Count | This expansion added |
 |---|---|---|
 | Linux | 46 | +24 (Docker sudo NOPASSWD GTFOBins bind-mount privesc, GDB sudo NOPASSWD GTFOBins shell escape, plus 22 more real GTFOBins sudo/SUID escapes in batch 18: chroot, nice, setarch, sqlite3, mysql, watch, unshare, taskset, timeout, ionice, stdbuf, flock, nohup, expect, zsh, dash, screen, nano, rsync, ssh/scp ProxyCommand, busybox) |
-| Network | 45 | +20 (SMTP open relay abuse, CouchDB "Admin Party" unauthenticated access, CVE-2024-1709 ScreenConnect, CVE-2024-3400 PAN-OS GlobalProtect, CVE-2024-6387 regreSSHion, CVE-2023-46747 F5 BIG-IP AJP smuggling, CVE-2024-4577 PHP-CGI Best Fit, plus 13 more CVEs in batch 19: ProxyLogon, ProxyShell, Confluence OGNL injection, Spring4Shell, PaperCut auth bypass, Citrix ADC path traversal, Citrix NetScaler stack overflow, FortiOS SSL VPN OOB write, Confluence broken access control, vCenter vROps plugin upload, VMware Aria command injection, JetBrains TeamCity auth bypass, PHPUnit eval-stdin) |
-| Web | 48 | +8 (DNS rebinding SSRF-allowlist bypass, client-side prototype pollution, Host header password reset poisoning, missing SRI on a payment script, blind SQLi via sqlmap, SSRF via a PDF-generation service, server-side XSS in a dynamic PDF report, Node.js insecure deserialization via node-serialize) |
-| Active Directory | 25 | +10 (ADCS ESC1, RBCD abuse, Silver Ticket, Shadow Credentials, DCShadow rogue DC, GPP cpassword/MS14-025, LDAP anonymous bind disclosure, constrained delegation S4U abuse, GPO GenericWrite immediate-task abuse, DCSync rights self-granted via WriteDacl) |
+| Network | 55 | +30 (SMTP open relay abuse, CouchDB "Admin Party" unauthenticated access, CVE-2024-1709 ScreenConnect, CVE-2024-3400 PAN-OS GlobalProtect, CVE-2024-6387 regreSSHion, CVE-2023-46747 F5 BIG-IP AJP smuggling, CVE-2024-4577 PHP-CGI Best Fit, 13 CVEs in batch 19 (ProxyLogon, ProxyShell, Confluence OGNL injection, Spring4Shell, PaperCut auth bypass, Citrix ADC path traversal, Citrix NetScaler stack overflow, FortiOS SSL VPN OOB write, Confluence broken access control, vCenter vROps plugin upload, VMware Aria command injection, JetBrains TeamCity auth bypass, PHPUnit eval-stdin), plus 10 more CVEs in batch 20: BlueKeep, SMBGhost, Follina, the XZ Utils/liblzma supply-chain backdoor, Outlook zero-click NTLM leak, Pulse Secure arbitrary file read, ProxyNotShell, Apache path traversal, WinRAR spoofed extension, FortiOS path traversal) |
+| Web | 50 | +10 (DNS rebinding SSRF-allowlist bypass, client-side prototype pollution, Host header password reset poisoning, missing SRI on a payment script, blind SQLi via sqlmap, SSRF via a PDF-generation service, server-side XSS in a dynamic PDF report, Node.js insecure deserialization via node-serialize, plus batch 20's XXE via a malicious SVG upload and second-order SQL injection via a stored display name) |
+| Active Directory | 27 | +12 (ADCS ESC1, RBCD abuse, Silver Ticket, Shadow Credentials, DCShadow rogue DC, GPP cpassword/MS14-025, LDAP anonymous bind disclosure, constrained delegation S4U abuse, GPO GenericWrite immediate-task abuse, DCSync rights self-granted via WriteDacl, plus batch 20's ADCS ESC8 (NTLM relay to web enrollment) and ESC4 (certificate template ACL abuse)) |
 | Bug Bounty | 22 | +2 (Certificate Transparency logs exposing a forgotten staging subdomain, exposed .env file leaking full Laravel application secrets) |
-| SOC | 25 | +9 (Golden SAML detection, impossible travel, illicit OAuth consent grant, Golden Ticket lifetime detection, WinRM lateral movement, EncodedCommand C2 beacon decode, scheduled task persistence Event 4698, new service persistence Event 7045, LSASS access Sysmon Event 10) |
-| Forensics | 21 | +11 (Volume Shadow Copy NTDS.dit dump, NTFS timestomping, PowerShell ScriptBlock de-obfuscation, Recycle Bin $I metadata, USN Change Journal, Shellbags, Event ID 1102 log clearing, NTFS ADS hidden payload, NTFS $LogFile transaction confirmation, Windows Jump Lists, Windows Timeline ActivitiesCache.db) |
-| Cloud | 24 | +12 (IMDSv2 bypass, Docker-socket escape, Lambda env-var secrets, Azure SAS token, GCP allUsers Cloud Function, K8s automount, Lambda Function URL authType NONE, Azure Storage Account key, GCP IAM actAs privesc, exposed etcd datastore, Azure AD app registration owner privesc, publicly accessible RDS with a weak password) |
+| SOC | 29 | +13 (Golden SAML detection, impossible travel, illicit OAuth consent grant, Golden Ticket lifetime detection, WinRM lateral movement, EncodedCommand C2 beacon decode, scheduled task persistence Event 4698, new service persistence Event 7045, LSASS access Sysmon Event 10, plus batch 20's Event ID 4720 (account created), Event ID 4732 (added to a privileged group), Sysmon Event ID 13 (Run key write), Sysmon Event ID 22 (DNS beacon)) |
+| Forensics | 23 | +13 (Volume Shadow Copy NTDS.dit dump, NTFS timestomping, PowerShell ScriptBlock de-obfuscation, Recycle Bin $I metadata, USN Change Journal, Shellbags, Event ID 1102 log clearing, NTFS ADS hidden payload, NTFS $LogFile transaction confirmation, Windows Jump Lists, Windows Timeline ActivitiesCache.db, plus batch 20's Registry Run key persistence and Amcache.hve execution evidence) |
+| Cloud | 27 | +15 (IMDSv2 bypass, Docker-socket escape, Lambda env-var secrets, Azure SAS token, GCP allUsers Cloud Function, K8s automount, Lambda Function URL authType NONE, Azure Storage Account key, GCP IAM actAs privesc, exposed etcd datastore, Azure AD app registration owner privesc, publicly accessible RDS with a weak password, plus batch 20's AWS Lambda Layer backdoor, GCP service account key in a public GCS bucket, and an overly permissive Azure Key Vault access policy) |
 | Security+ | 18 | +7 (SPF/DMARC misconfiguration, missing HSTS, insufficient log retention, VLAN hopping, rogue DHCP server, 125kHz RFID badge cloning, IDN homograph domain attack) |
 | Binary Analysis | 19 | +9 (stack canary leak, UAF function pointer hijack, ret2libc, heap unlink, GOT overwrite, tcache poisoning, ret2win, type confusion, fastbin dup pre-tcache freelist corruption) |
-| Malware | 23 | +10 (process hollowing, DLL sideloading, LNK whitespace padding, regsvr32 Squiblydoo, AMSI bypass, WMI lateral movement, PDF /OpenAction JS, MSBuild inline-task bypass, rundll32 javascript: protocol handler, BITSAdmin download/persistence) |
+| Malware | 25 | +12 (process hollowing, DLL sideloading, LNK whitespace padding, regsvr32 Squiblydoo, AMSI bypass, WMI lateral movement, PDF /OpenAction JS, MSBuild inline-task bypass, rundll32 javascript: protocol handler, BITSAdmin download/persistence, plus batch 20's classic DLL injection (CreateRemoteThread) and reflective DLL injection) |
 | Security Engineering | 18 | +8 (secret in git history, forged webhook, remember-me token, ECB-penguin, TOCTOU symlink race, cgroup release_agent escape, negative-quantity checkout, hardcoded signing key in a mobile APK) |
 | **API** (new category) | 18 | +18 (BFLA, JWT kid injection, legacy-version IDOR, excessive data exposure, rate-limit bypass, WebAuthn downgrade, method-override authz bypass, GraphQL field-level authz bypass, Referer-header API key leak, OAuth audience confusion, GraphQL field-suggestion leak, pagination cursor tampering, upload content-type spoofing, exposed OpenAPI spec, exposed source map, unrestricted resource consumption, API key in a URL query string, mass assignment role escalation) |
 | **Cryptography** (new category) | 16 | +16 (ECB block-shuffling, hash length extension, JWT algorithm confusion, predictable PRNG session tokens, AES-CTR nonce reuse, Bleichenbacher, UUIDv1 reset-token entropy, ECDSA nonce reuse, Logjam, batch GCD shared-prime, TOTP shared-secret reuse, PBKDF2 insufficient iterations, CBC bit-flipping, AES-GCM "Forbidden Attack", RSA e=3 cube root, Debian OpenSSL predictable PRNG CVE-2008-0166) |
@@ -198,6 +199,25 @@ how it was handled.
     giving the actual runnable command) affecting all 13 network-pack CVE labs plus 2 more in the mixed pack,
     all fixed to real command lines and reverified clean. See `CHANGELOG.md`'s "Batch 19 finalization" entry
     and `NOTES.md` for the full account.
+20. **25 labs (368 → 393)**: a previous session drafted six scenario files (`batch20-cloud-pack.ts`,
+    `batch20-forensics-pack.ts`, `batch20-mixed-pack-a.ts`, `batch20-network-pack.ts`, `batch20-soc-pack.ts`,
+    `batch20-web-malware-pack.ts`) with `WebSearch` unavailable, but never registered, verified, or committed
+    them. This session registered all six in `src/data/labs.ts`, verified end-to-end against the real
+    `TerminalEngine`, found and fixed 5 mechanical bugs (a narrative-only-hint bug recurring in 12 more labs
+    beyond the batch-19 instances already fixed, a missing explicit port on an HTTPS target, a copy-paste IP
+    mismatch between two AD CS labs, and a second-order-SQLi lab whose final request could never trigger its
+    own stateless `vulnRoute`), then used `WebSearch` (confirmed working again) to close the citation gap for
+    the two AD CS techniques (ESC8, ESC4) and all 10 CVEs — the highest-risk content for a misremembered
+    detail. 10 more real CVEs (BlueKeep, SMBGhost, Follina, the XZ Utils/liblzma supply-chain backdoor,
+    Outlook's zero-click NTLM leak, Pulse Secure's arbitrary file read, ProxyNotShell, Apache's path-traversal
+    pair, WinRAR's spoofed-extension RCE, FortiOS's older path-traversal credential leak) via the proven
+    `exploit <module> <ip>` mechanic (Network); AD CS ESC8 and ESC4 (Active Directory); an AWS Lambda Layer
+    supply-chain backdoor, a GCP service account key exposed via a public GCS bucket, and an overly
+    permissive Azure Key Vault access policy (Cloud); Registry Run key persistence and Amcache.hve execution
+    evidence (Forensics); Event ID 4720, Event ID 4732, Sysmon Event ID 13, and Sysmon Event ID 22 (SOC); XXE
+    via a malicious SVG upload and second-order SQL injection (Web); classic `CreateRemoteThread` DLL
+    injection and reflective DLL injection (Malware). Full citations and the mechanical-bug list in
+    `NOTES.md` batch 20 and `CHANGELOG.md`'s batch 20 entry.
 
 ## What's explicitly NOT attempted, and why
 

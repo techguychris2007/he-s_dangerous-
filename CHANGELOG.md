@@ -926,3 +926,45 @@ via their own hint solve-path, first try after the fixes, zero remaining mismatc
 both clean (`oxlint`'s only output is the two pre-existing, unrelated warnings — `LabCard.tsx`'s Fast Refresh
 export-shape notice and one `code-python-advanced/03-...` escape-character notice — neither touched by this
 batch, both predate it).
+
+### Batch 20: 25 labs registered, verified, fixed, and documented (368 → 393)
+
+The previous session had drafted six `batch20-*.ts` files (25 labs total) but left them entirely unregistered,
+unverified, and uncommitted, with `WebSearch` unavailable for the whole batch (each file's own header comment
+says so). This session registered all six in `src/data/labs.ts` (six new imports, six new `toEntries(...)`
+lines, same pattern as every prior batch), ran the same `tsx`-against-`TerminalEngine` verification harness
+used to finalize batch 19 above, and used `WebSearch` (now confirmed working) to close the citation gap the
+previous session had flagged.
+
+**Verification found and fixed 5 mechanical bugs across 4 of the 6 files**, all from bug classes this file has
+seen before: (1) all 10 CVE labs in `batch20-network-pack.ts` plus both AD CS labs (ESC8, ESC4) in
+`batch20-mixed-pack-a.ts` carried the exact same narrative-only final hint bug just fixed at scale in batch
+19 above — the previous session had evidently copied the `cveLab()` factory forward before this session's
+batch-19 fix existed, propagating the same bug into 12 more labs. Fixed identically (`cat /root/root.txt`).
+(2) The GCP service-account-key Cloud lab's `curl https://...` target had no explicit port against a
+port-443 service — this platform's single most recurring mistake class (first flagged batch 6, now recurred
+at least seven times) — fixed to `:443`. (3) The ESC4 lab's `exploit`/hint targeted `10.10.300.2` (the ESC8
+lab's own host) instead of its own host's real IP, `10.10.300.3` — a copy-paste mismatch, fixed. (4) The
+second-order-SQLi Web lab's final step was a bare GET with no parameters, which could never trigger its own
+`vulnRoute` since this engine's `curl` has no cross-request state at all — genuine second-order SQLi (payload
+persists server-side, fires later with zero attacker involvement in the triggering request) can't be honestly
+modeled against a stateless simulator; fixed by having the final request carry the already-stored payload
+explicitly, consistent with how this file has handled comparable engine-limitation cases before (batch 11's
+combined-request Host-header lab, batch 15's given-not-rederived AES-GCM value) — flagged explicitly in
+`NOTES.md` rather than left implicit. All 25 labs verified clean after fixes: exactly 1 flag captured per lab
+via its own hint solve-path.
+
+**Citation check**: used `WebSearch` (confirmed working again this session) to verify the two AD CS techniques
+explicitly flagged for a recheck (ESC8, ESC4) plus all 10 CVEs — the highest-risk content in this batch, since
+each carries a specific number, CVSS score, or mechanism a static-knowledge pass could misremember. All 12
+checked out against primary/authoritative sources with zero corrections needed, including one close call
+worth naming: the FortiOS CVE-2018-13379 lab's "~500,000 credentials leaked in 2021" claim is the correct,
+larger, later (September 2021, RAMP forum) incident, distinct from an earlier, smaller November 2020 leak
+(~50,000 devices) a less careful check could have conflated with it. Full citations, plus the honest
+accounting of which of this batch's remaining labs were spot-reviewed rather than freshly re-searched (general
+Cloud/Forensics/SOC/Web/Malware technique classes that don't rest on a single disclosed CVE or exact figure),
+in `NOTES.md` batch 20.
+
+`tsc -b` clean, `oxlint` clean (same two pre-existing, unrelated warnings as above, neither touched by this
+batch). `393` total labs confirmed via the actual `LABS.length`/category breakdown, not estimated; no
+duplicate `id` values anywhere in the full lab set.

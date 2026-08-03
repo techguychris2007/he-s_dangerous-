@@ -61,6 +61,12 @@ import { batch18GtfobinsLabs } from '../labs/scenarios/batch18-gtfobins-pack';
 import { batch18MixedLabs } from '../labs/scenarios/batch18-mixed-pack';
 import { batch19NetworkLabs } from '../labs/scenarios/batch19-network-pack';
 import { batch19MixedLabs } from '../labs/scenarios/batch19-mixed-pack';
+import { batch20CloudLabs } from '../labs/scenarios/batch20-cloud-pack';
+import { batch20ForensicsLabs } from '../labs/scenarios/batch20-forensics-pack';
+import { batch20MixedLabsA } from '../labs/scenarios/batch20-mixed-pack-a';
+import { batch20NetworkLabs } from '../labs/scenarios/batch20-network-pack';
+import { batch20SocLabs } from '../labs/scenarios/batch20-soc-pack';
+import { batch20WebMalwareLabs } from '../labs/scenarios/batch20-web-malware-pack';
 import type { LabScenario } from '../labs/types';
 
 export interface LabEntry {
@@ -133,6 +139,12 @@ export const LABS: LabEntry[] = [
   ...toEntries(batch18MixedLabs),
   ...toEntries(batch19NetworkLabs),
   ...toEntries(batch19MixedLabs),
+  ...toEntries(batch20CloudLabs),
+  ...toEntries(batch20ForensicsLabs),
+  ...toEntries(batch20MixedLabsA),
+  ...toEntries(batch20NetworkLabs),
+  ...toEntries(batch20SocLabs),
+  ...toEntries(batch20WebMalwareLabs),
 ];
 
 /** Ordered to match the roadmap's actual teaching sequence (see curriculum.ts's MODULES order). */
