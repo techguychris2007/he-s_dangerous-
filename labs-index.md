@@ -4,22 +4,24 @@ Running count and category breakdown for the offensive-security lab expansion. S
 full narrative detail on every batch (what was added, why, and how each one was verified); this file is
 just the running tally `NOTES.md`'s citations and the "when I'm back" summary can point at.
 
-**Total labs: 308** (204 at the start of this expansion → 308 now, +104 so far toward the "up to 500, quality
+**Total labs: 338** (204 at the start of this expansion → 338 now, +134 so far toward the "up to 500, quality
 first" target). Every count below is the actual `LABS.length` broken out by `category`, not an estimate.
+Batch 18 marks a deliberate pace change (30 labs in one batch instead of six, per explicit instruction) —
+see the batch 18 entry below for how that pace is being sustained without lowering the accuracy bar.
 
 | Category | Count | This expansion added |
 |---|---|---|
-| Linux | 24 | +2 (Docker sudo NOPASSWD GTFOBins bind-mount privesc, GDB sudo NOPASSWD GTFOBins shell escape) |
-| Network | 29 | +4 (SMTP open relay abuse, CouchDB "Admin Party" unauthenticated access, CVE-2024-1709 ScreenConnect auth bypass, CVE-2024-3400 PAN-OS GlobalProtect command injection) |
-| Web | 45 | +5 (DNS rebinding SSRF-allowlist bypass, client-side prototype pollution via URL fragment to DOM XSS, Host header injection enabling password reset poisoning, missing Subresource Integrity on a third-party payment script, blind boolean-based SQLi extracted live with sqlmap) |
+| Linux | 46 | +24 (Docker sudo NOPASSWD GTFOBins bind-mount privesc, GDB sudo NOPASSWD GTFOBins shell escape, plus 22 more real GTFOBins sudo/SUID escapes in batch 18: chroot, nice, setarch, sqlite3, mysql, watch, unshare, taskset, timeout, ionice, stdbuf, flock, nohup, expect, zsh, dash, screen, nano, rsync, ssh/scp ProxyCommand, busybox) |
+| Network | 32 | +7 (SMTP open relay abuse, CouchDB "Admin Party" unauthenticated access, CVE-2024-1709 ScreenConnect auth bypass, CVE-2024-3400 PAN-OS GlobalProtect command injection, CVE-2024-6387 regreSSHion OpenSSH RCE, CVE-2023-46747 F5 BIG-IP AJP smuggling RCE, CVE-2024-4577 PHP-CGI Windows argument injection RCE) |
+| Web | 46 | +6 (DNS rebinding SSRF-allowlist bypass, client-side prototype pollution via URL fragment to DOM XSS, Host header injection enabling password reset poisoning, missing Subresource Integrity on a third-party payment script, blind boolean-based SQLi extracted live with sqlmap, SSRF via a PDF-generation service reading local files and cloud metadata) |
 | Active Directory | 23 | +8 (ADCS ESC1, RBCD abuse, Silver Ticket, Shadow Credentials, DCShadow rogue DC, GPP cpassword/MS14-025, LDAP anonymous bind description-field password disclosure, constrained delegation abuse via S4U2Self/S4U2Proxy protocol transition) |
 | Bug Bounty | 22 | +2 (Certificate Transparency logs exposing a forgotten staging subdomain, exposed .env file leaking full Laravel application secrets) |
-| SOC | 21 | +5 (Golden SAML detection via missing ADFS/Kerberos events, impossible travel / geo-velocity anomaly detection, illicit OAuth consent grant surviving a password reset, Golden Ticket detection via an anomalous 10-year ticket lifetime, WinRM lateral movement detected via wsmprovhost.exe correlation) |
+| SOC | 22 | +6 (Golden SAML detection via missing ADFS/Kerberos events, impossible travel / geo-velocity anomaly detection, illicit OAuth consent grant surviving a password reset, Golden Ticket detection via an anomalous 10-year ticket lifetime, WinRM lateral movement detected via wsmprovhost.exe correlation, encoded PowerShell command decoded to a C2 beacon configuration) |
 | Forensics | 19 | +9 (Volume Shadow Copy NTDS.dit dump, NTFS timestomping $SI/$FN mismatch, PowerShell ScriptBlock de-obfuscation, Recycle Bin $I metadata, USN Change Journal contradicts a timestomped file, Shellbags survive a deleted folder on a removed USB volume, Event ID 1102 audit-log-cleared correlated via Logon ID, NTFS Alternate Data Streams hiding a payload, NTFS $LogFile transaction records independently confirm timestomping) |
-| Cloud | 21 | +9 (IMDSv2 bypass, Docker-socket container escape, Lambda env-var secrets exposure, overly-permissive Azure SAS token, GCP allUsers Cloud Function, Kubernetes default automountServiceAccountToken + permissive RBAC, AWS Lambda Function URL public via authType NONE, exposed Azure Storage Account key granting full Shared Key access, GCP IAM actAs permission enabling privilege escalation) |
-| Security+ | 17 | +6 (SPF/DMARC misconfiguration enables spoofing, missing HSTS enables SSL stripping, insufficient log retention violates PCI DSS 10.5.1, VLAN hopping via 802.1Q double tagging, rogue DHCP server enabling a man-in-the-middle, 125kHz RFID proximity badge cloning) |
+| Cloud | 22 | +10 (IMDSv2 bypass, Docker-socket container escape, Lambda env-var secrets exposure, overly-permissive Azure SAS token, GCP allUsers Cloud Function, Kubernetes default automountServiceAccountToken + permissive RBAC, AWS Lambda Function URL public via authType NONE, exposed Azure Storage Account key granting full Shared Key access, GCP IAM actAs permission enabling privilege escalation, exposed etcd datastore leaking Kubernetes secrets) |
+| Security+ | 18 | +7 (SPF/DMARC misconfiguration enables spoofing, missing HSTS enables SSL stripping, insufficient log retention violates PCI DSS 10.5.1, VLAN hopping via 802.1Q double tagging, rogue DHCP server enabling a man-in-the-middle, 125kHz RFID proximity badge cloning, IDN homograph domain attack) |
 | Binary Analysis | 18 | +8 (stack canary leak via format string, use-after-free function pointer hijack, ret2libc defeating NX/ASLR, heap unlink metadata corruption, GOT overwrite via format-string arbitrary write, tcache poisoning via a UAF-enabled double-free, classic ret2win stack smash redirecting to a hidden function, type confusion in a tagged union hijacking control flow) |
-| Malware | 20 | +7 (process hollowing detection via PEB/VAD mismatch, DLL sideloading via search-order hijacking, LNK whitespace-padding command hiding, regsvr32 "Squiblydoo" AppLocker bypass, AMSI bypass via reflection-based field patching, WMI-based lateral movement via Win32_Process.Create, malicious PDF /OpenAction JavaScript auto-execution) |
+| Malware | 21 | +8 (process hollowing detection via PEB/VAD mismatch, DLL sideloading via search-order hijacking, LNK whitespace-padding command hiding, regsvr32 "Squiblydoo" AppLocker bypass, AMSI bypass via reflection-based field patching, WMI-based lateral movement via Win32_Process.Create, malicious PDF /OpenAction JavaScript auto-execution, MSBuild.exe inline-task AppLocker bypass) |
 | Security Engineering | 17 | +7 (secret still live in git history, forged webhook via missing signature verification, remember-me token survives password reset, ECB-penguin pattern leak, TOCTOU race condition enables a symlink attack, excessive container capabilities enable a cgroup release_agent escape, negative-quantity checkout business logic flaw) |
 | **API** (new category) | 17 | +17 (BFLA, JWT kid injection, legacy-version IDOR, excessive data exposure, rate-limit bypass, WebAuthn downgrade, method-override authz bypass, GraphQL field-level authz bypass, Referer-header API key leak, OAuth audience confusion, GraphQL field-suggestion leak, pagination cursor tampering, upload content-type spoofing, exposed OpenAPI spec, exposed source map leaking a hardcoded key, unrestricted resource consumption via a pagination-free bulk export, API key in URL query string leaked via access logs) |
 | **Cryptography** (new category) | 15 | +15 (ECB block-shuffling, hash length extension, JWT algorithm confusion, predictable PRNG session tokens, AES-CTR nonce reuse, Bleichenbacher RSA padding oracle, UUIDv1 reset-token entropy, ECDSA nonce reuse, Logjam DHE_EXPORT downgrade, batch GCD shared-prime attack, TOTP shared-secret reuse, PBKDF2 insufficient iteration count, CBC bit-flipping admin-cookie forgery, AES-GCM nonce reuse "Forbidden Attack", RSA e=3 cube root attack on an unpadded ciphertext) |
@@ -144,6 +146,22 @@ first" target). Every count below is the actual `LABS.length` broken out by `cat
     correlating an out-of-baseline Event ID 4624 logon with `wsmprovhost.exe` spawning an unexpected child
     process (SOC); and NTFS `$LogFile` transaction records providing a second, lower-level, independent
     confirmation of timestomping beyond this session's existing USN-journal lab (Forensics).
+18. **`d054547`** — 30 labs, a deliberate pace change per explicit instruction ("30+ per commit,
+    continue until 500"). 22 more real, GTFOBins-documented sudo/SUID escapes reusing the proven
+    ssh-foothold-and-privesc factory (Linux) — GTFOBins lists well over 100 binaries and only 19 had been
+    used before this batch, so this is a large, genuinely real, well-documented technique family that was
+    nowhere near exhausted, not a stretch to hit a number. Three more famous, real CVEs via the same
+    `exploit <module> <ip>` mechanic proven across ~16 existing CVE-RCE labs: CVE-2024-6387 (regreSSHion,
+    an OpenSSH signal-handler race condition, CVSS 8.1), CVE-2023-46747 (F5 BIG-IP TMUI AJP request
+    smuggling authentication bypass, CVSS 9.8), and CVE-2024-4577 (PHP-CGI Windows "Best Fit" argument
+    injection, CVSS 9.8, affecting every default XAMPP-for-Windows install) (Network). Plus five more
+    single-technique labs: an IDN homograph domain attack using a Cyrillic lookalike character with a
+    genuinely valid TLS certificate (Security+); an encoded PowerShell command decoding to a hardcoded C2
+    beacon configuration (SOC); MSBuild.exe's real inline-task feature (MITRE T1127.001) bypassing
+    application whitelisting through a signed Microsoft binary (Malware); SSRF via a PDF-generation
+    service's headless-browser renderer reaching both local files and cloud metadata (Web); and an exposed
+    etcd datastore on its real port 2379 leaking every Kubernetes secret with zero authentication,
+    completely bypassing the API server's own RBAC (Cloud).
 
 ## What's explicitly NOT attempted, and why
 

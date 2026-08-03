@@ -1025,3 +1025,91 @@ head-on in its own citation below rather than glossed over.
   one flag per lab, and a plausible-but-wrong request per lab captures none. The RSA e=3 lab's numeric
   values are the only ones in this batch requiring independent re-derivation before being trusted (see its
   citation above for the exact verification performed).
+
+## Sources checked, batch 18 (22 GTFOBins entries, regreSSHion, F5 BIG-IP AJP smuggling, PHP-CGI Best Fit, IDN homograph, EncodedCommand C2, MSBuild inline task, PDF-generator SSRF, exposed etcd)
+
+Explicit pace change starting this batch, per direct instruction: 30+ labs per commit instead of six,
+continuing toward the 500 target, with an equally explicit requirement that accuracy not drop to hit the
+number. The approach taken: lean on one genuinely large, well-documented, low-risk-of-inaccuracy technique
+family (GTFOBins) to cover most of the volume increase, spot-checking the less-common entries against
+gtfobins.org before writing rather than working from memory alone, and keep the remaining eight labs to the
+same single-technique, individually-cited standard as every prior batch.
+
+- **22 GTFOBins sudo/SUID entries** (chroot, nice, setarch, sqlite3, mysql, watch, unshare, taskset, timeout,
+  ionice, stdbuf, flock, nohup, expect, zsh, dash, screen, nano, rsync, ssh/scp ProxyCommand, busybox) —
+  [GTFOBins.org](https://gtfobins.org/) is the canonical, authoritative source for all of these. Spot-checked
+  the ones with real risk of a misremembered exact syntax via WebSearch before writing: `watch -x /bin/sh -c
+  'reset; exec /bin/sh 1>&0 2>&0'`, `nano -s /bin/sh` (with the real `^T` spell-check trigger explained in
+  the breakdown text), and the mysql/sqlite3 shell-escape dot-commands. The rest (chroot, nice, setarch,
+  unshare, taskset, timeout, ionice, stdbuf, flock, nohup, expect, zsh, dash, screen, rsync, ssh/scp
+  ProxyCommand, busybox) are stable, long-standing, high-confidence canonical GTFOBins entries. Every single
+  one reuses the exact same `makePrivescLab()` factory already proven live across 17 prior labs (the original
+  15, plus batch 12's Docker and batch 14's GDB entries) — no new engine mechanics, no new risk surface, just
+  new, real, previously-uncovered binaries. GTFOBins documents well over 100 exploitable binaries in total;
+  only 19 had been used on this platform before this batch, so this was a genuinely large, unexhausted, real
+  technique family, not a stretch to reach a number.
+- **CVE-2024-6387 (regreSSHion)** — [Qualys: regreSSHion — Remote Unauthenticated Code Execution Vulnerability in OpenSSH Server](https://blog.qualys.com/vulnerabilities-threat-research/2024/07/01/regresshion-remote-unauthenticated-code-execution-vulnerability-in-openssh-server),
+  [The Hacker News: New OpenSSH Vulnerability Could Lead to RCE as Root](https://thehackernews.com/2024/07/new-openssh-vulnerability-could-lead-to.html).
+  Confirmed the real mechanism (an async-signal-unsafe SIGALRM handler creating a glibc memory-allocator race
+  condition on Linux specifically), the real affected version range (8.5p1-9.8p1, plus unpatched pre-4.4p1),
+  the real regression relationship to CVE-2006-5051, the real CVSS score (8.1), and the real exploitation
+  difficulty figure (~10,000 attempts on average per Qualys' own research) — stated honestly in the briefing
+  rather than implying trivial one-shot exploitation.
+- **CVE-2023-46747 (F5 BIG-IP TMUI AJP smuggling)** — [Tenable: CVE-2023-46747 — Critical Authentication Bypass Vulnerability in F5 BIG-IP](https://www.tenable.com/blog/cve-2023-46747-critical-authentication-bypass-vulnerability-in-f5-big-ip),
+  [ProjectDiscovery: F5 BIG-IP Unauth RCE via AJP Smuggling — Technical Analysis](https://projectdiscovery.io/blog/cve-2023-46747-5-big-ip-unauthenticated-rce-via-ajp-smuggling).
+  Confirmed the real root cause (Content-Length/Transfer-Encoding handling inconsistency between Apache
+  HTTPd and Tomcat's AJP processing enabling request smuggling), the real CVSS score (9.8), the real
+  discoverers (Praetorian's Thomas Hendrickson and Michael Weber), and the real patch date (October 26,
+  2023).
+- **CVE-2024-4577 (PHP-CGI Windows "Best Fit" argument injection)** — [Orange Tsai: CVE-2024-4577 — Yet Another PHP RCE](https://blog.orange.tw/posts/2024-06-cve-2024-4577-yet-another-php-rce/),
+  [Orca Security: Critical CVE-2024-4577 — PHP CGI Argument Injection Vulnerability](https://orca.security/resources/blog/php-cgi-vulnerability-cve-2024-4577/).
+  Confirmed the real, specific root cause (Windows' "Best Fit" character-encoding conversion silently
+  mapping a soft-hyphen character to a literal ASCII hyphen, smuggling PHP-CGI command-line flags into a
+  request), the real relationship to CVE-2012-1823 (an explicit patch bypass, per the original researcher's
+  own framing), the real affected versions (PHP 8.3 before 8.3.8, 8.2 before 8.2.20, 8.1 before 8.1.29), and
+  the real, important scope detail that every default XAMPP-for-Windows install is vulnerable, not a rare
+  configuration.
+- **IDN homograph domain attack** — general, well-established real technique (Unicode characters from
+  non-Latin scripts, like Cyrillic а U+0430, are visually indistinguishable from Latin lookalikes in most
+  fonts but are entirely distinct to DNS/registrars/CAs). The specific, real, important nuance stated in
+  this lab's briefing rather than omitted: a homograph domain gets a perfectly valid TLS certificate like
+  any other legitimately-owned domain, so HTTPS and the padlock icon provide no protection against this
+  attack class at all.
+- **Encoded PowerShell -EncodedCommand decoding to a C2 beacon** — general, well-established real technique
+  (a legitimate PowerShell flag, real and necessary for safely passing complex scripts through shell-quoting
+  layers, also routinely abused because it defeats plain-text command-line signature matching until an
+  analyst actually decodes the Base64 payload).
+- **MSBuild.exe inline task / MITRE ATT&CK T1127.001** — [MITRE ATT&CK: T1127.001](https://attack.mitre.org/techniques/T1127/001/),
+  [LOLBAS: Msbuild](https://lolbas-project.github.io/lolbas/Binaries/Msbuild/).
+  Confirmed the real feature (inline C#/VB task compilation, introduced in .NET 4, embedded directly in
+  project-file XML) and the real, named malware family (PlugX) and post-exploitation framework (Empire, with
+  a built-in module) documented as having used exactly this technique.
+- **SSRF via a PDF-generation service** — [Intigriti: Exploiting PDF generators — A complete guide to finding SSRF vulnerabilities in PDF generators](https://www.intigriti.com/researchers/blog/hacking-tools/exploiting-pdf-generators-a-complete-guide-to-finding-ssrf-vulnerabilities-in-pdf-generators),
+  DEF CON 27: "Owning the Clout Through SSRF and PDF Generators" (Sadeghipour/Holt). Confirmed the real
+  mechanism (headless-browser-based PDF renderers fetch attacker-referenced resources — local files via
+  `file://`, cloud metadata via `169.254.169.254` — with no awareness that either destination is sensitive)
+  and the real, standard payload shapes (`<iframe src="file:///...">`, `<iframe src="http://169.254.169.254/...">`).
+- **Exposed etcd datastore** — [Hackviser: etcd Pentesting](https://hackviser.com/tactics/pentesting/services/etcd),
+  [StartupDefense: Kubernetes etcd Exploitation — Essential Security Guide](https://www.startupdefense.io/cyberattacks/kubernetes-etcd-exploitation).
+  Confirmed the real, standard port (2379), the real fact that etcd is Kubernetes' actual backing datastore
+  (not a cache — every Secret genuinely lives here), and the real, important architectural point this lab's
+  briefing makes explicitly: etcd enforces no Kubernetes-level RBAC of its own at all, so an exposed etcd
+  completely bypasses every authorization rule bound to the API server, not merely a lesser version of the
+  same access control.
+
+## NEEDS REVIEW (labs/topics), batch 18
+
+- While working on this batch, `git stash`/`tsc -b` revealed substantial, unrelated, uncommitted
+  in-progress work spanning many files this session never touched (`Terminal.tsx`, `LabPage.tsx`,
+  `SiemLabPage.tsx`, `icons.tsx`, `SiemConsole.tsx`, `CyberLabAI.tsx`, `OsintTerminal.tsx`,
+  `AiReadingCompanion.tsx`, and a new untracked `AiChatWindow.tsx`) — evidently a different, concurrent
+  session or process actively editing the same repository. This is what's currently causing `tsc -b` (and
+  therefore `npm run build`) to fail; confirmed via `git stash` that the errors are 100% unrelated to this
+  batch's own files (a `TerminalProps`/`onCommandRun` prop mismatch mid-edit elsewhere), and confirmed via a
+  direct `npx vite build` (bundling without full type-checking) that this batch's own code is structurally
+  sound. Not this session's work to fix — flagged here for visibility rather than touched.
+- All 30 labs were verified end-to-end with a scripted `tsx` run directly against the real `TerminalEngine`
+  class: every GTFOBins lab's full ssh-foothold → sudo-escalation → root-flag chain captures exactly 2 flags
+  (matching `totalFlags: 2`), every other lab captures exactly 1, and a plausible-but-wrong request per
+  mixed-pack lab captures none. No duplicate IDs within the batch (checked programmatically). No techniques
+  in this batch required skipping or faking.
