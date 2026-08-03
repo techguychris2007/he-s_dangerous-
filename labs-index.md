@@ -4,17 +4,17 @@ Running count and category breakdown for the offensive-security lab expansion. S
 full narrative detail on every batch (what was added, why, and how each one was verified); this file is
 just the running tally `NOTES.md`'s citations and the "when I'm back" summary can point at.
 
-**Total labs: 284** (204 at the start of this expansion → 284 now, +80 so far toward the "up to 500, quality
+**Total labs: 290** (204 at the start of this expansion → 290 now, +86 so far toward the "up to 500, quality
 first" target). Every count below is the actual `LABS.length` broken out by `category`, not an estimate.
 
 | Category | Count | This expansion added |
 |---|---|---|
-| Linux | 23 | +1 (Docker sudo NOPASSWD GTFOBins bind-mount privesc) |
-| Network | 27 | +2 (SMTP open relay abuse, CouchDB "Admin Party" unauthenticated access) |
-| Web | 44 | +4 (DNS rebinding SSRF-allowlist bypass, client-side prototype pollution via URL fragment to DOM XSS, Host header injection enabling password reset poisoning, missing Subresource Integrity on a third-party payment script) |
+| Linux | 24 | +2 (Docker sudo NOPASSWD GTFOBins bind-mount privesc, GDB sudo NOPASSWD GTFOBins shell escape) |
+| Network | 29 | +4 (SMTP open relay abuse, CouchDB "Admin Party" unauthenticated access, CVE-2024-1709 ScreenConnect auth bypass, CVE-2024-3400 PAN-OS GlobalProtect command injection) |
+| Web | 45 | +5 (DNS rebinding SSRF-allowlist bypass, client-side prototype pollution via URL fragment to DOM XSS, Host header injection enabling password reset poisoning, missing Subresource Integrity on a third-party payment script, blind boolean-based SQLi extracted live with sqlmap) |
 | Active Directory | 22 | +7 (ADCS ESC1, RBCD abuse, Silver Ticket, Shadow Credentials, DCShadow rogue DC, GPP cpassword/MS14-025, LDAP anonymous bind description-field password disclosure) |
-| Bug Bounty | 21 | +1 (Certificate Transparency logs exposing a forgotten staging subdomain) |
-| SOC | 19 | +3 (Golden SAML detection via missing ADFS/Kerberos events, impossible travel / geo-velocity anomaly detection, illicit OAuth consent grant surviving a password reset) |
+| Bug Bounty | 22 | +2 (Certificate Transparency logs exposing a forgotten staging subdomain, exposed .env file leaking full Laravel application secrets) |
+| SOC | 20 | +4 (Golden SAML detection via missing ADFS/Kerberos events, impossible travel / geo-velocity anomaly detection, illicit OAuth consent grant surviving a password reset, Golden Ticket detection via an anomalous 10-year ticket lifetime) |
 | Forensics | 16 | +6 (Volume Shadow Copy NTDS.dit dump, NTFS timestomping $SI/$FN mismatch, PowerShell ScriptBlock de-obfuscation, Recycle Bin $I metadata, USN Change Journal contradicts a timestomped file, Shellbags survive a deleted folder on a removed USB volume) |
 | Cloud | 20 | +8 (IMDSv2 bypass, Docker-socket container escape, Lambda env-var secrets exposure, overly-permissive Azure SAS token, GCP allUsers Cloud Function, Kubernetes default automountServiceAccountToken + permissive RBAC, AWS Lambda Function URL public via authType NONE, exposed Azure Storage Account key granting full Shared Key access) |
 | Security+ | 14 | +3 (SPF/DMARC misconfiguration enables spoofing, missing HSTS enables SSL stripping, insufficient log retention violates PCI DSS 10.5.1) |
@@ -97,6 +97,19 @@ first" target). Every count below is the actual `LABS.length` broken out by `cat
     Integrity attribute on a third-party payment script, referencing the real June 2024 polyfill.io CDN
     supply-chain compromise by name (Web); and WMI-based lateral movement via `Win32_Process.Create`,
     MITRE ATT&CK's ninth most common technique overall (Malware).
+14. **`a6ae0a3`** — 6 labs, built against an explicit "everything should be real" request: every lab
+    uses only this engine's genuinely live command handlers (`exploit`, `nmap`, `gobuster`, `curl`,
+    `sqlmap`, `ssh`/`hydra`/`sudo`) with none of the captured-recon-file convention used for a few labs in
+    recent batches. Two real, famous CVSS-10.0 CVEs via the same `exploit <module> <ip>` mechanic already
+    proven across ~13 existing CVE-RCE labs — CVE-2024-1709 (ConnectWise ScreenConnect setup-wizard auth
+    bypass) and CVE-2024-3400 (Palo Alto PAN-OS GlobalProtect command injection) — both Network; an exposed
+    `.env` file leaking a Laravel app's full secrets including its APP_KEY, discovered live via `gobuster`
+    (Bug Bounty); a blind boolean-based SQL injection extracted live with `sqlmap --batch --dump` as the
+    primary tool rather than curl-crafted UNION payloads (Web); a GDB sudo-NOPASSWD GTFOBins shell escape,
+    reusing the same ssh-foothold-and-privesc factory as the batch-12 Docker lab (Linux); and Golden Ticket
+    detection via a forged TGT's anomalous 10-year lifetime — Mimikatz/Rubeus's own hardcoded forging
+    default — genuinely real as a `cat`-based SOC log review, since that IS the actual analyst workflow for
+    this job function, not a simulation shortcut (SOC).
 
 ## What's explicitly NOT attempted, and why
 

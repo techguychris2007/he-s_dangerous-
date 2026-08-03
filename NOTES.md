@@ -749,3 +749,81 @@ own explicit answer per lab here rather than folding into the general citation.
   `tsx` run against the real `TerminalEngine` class — full solve path captures exactly one flag per lab
   (first try, no fix-and-reverify needed this batch), and a plausible-but-wrong request per lab captures
   none.
+
+## Sources checked, batch 14 (CVE-2024-1709, CVE-2024-3400, exposed .env, blind SQLi via sqlmap, GDB GTFOBins, Golden Ticket lifetime detection)
+
+This batch was built against an explicit "everything should be real" request — read as: minimize even the
+already-disclosed simplifications from recent batches (the captured-recon-file convention for commands this
+engine can't run live), and lean as hard as possible on commands this engine's `TerminalEngine` genuinely
+executes and validates. Every lab this batch uses only live command handlers; none use `cat` to stand in for
+a command the engine can't run. One lab (Golden Ticket detection) is still `cat`-based, and that's addressed
+head-on in its own citation below rather than glossed over.
+
+- **CVE-2024-1709 (ConnectWise ScreenConnect authentication bypass)** — [SentinelOne: CVE-2024-1709 vulnerability database entry](https://www.sentinelone.com/vulnerability-database/cve-2024-1709/),
+  [Huntress: A Catastrophe for Control — Understanding the ScreenConnect Authentication Bypass](https://www.huntress.com/blog/a-catastrophe-for-control-understanding-the-screenconnect-authentication-bypass).
+  Confirmed the real, exact mechanism (the setup wizard at `/SetupWizard.aspx`, meant to run once, stays
+  reachable afterward with no completed-setup check, letting an unauthenticated attacker create a new admin
+  account), the real CVSS score (10.0), and the real scale (34+ public PoCs, active exploitation within
+  days). Modeled via this platform's `exploit <module> <ip>` mechanic, identical to this session's ~13
+  existing CVE-RCE labs (Log4Shell, EternalBlue, ProxyShell-family, etc.) — a proven-live pattern, not a new
+  one introduced this batch.
+- **CVE-2024-3400 (Palo Alto PAN-OS GlobalProtect command injection)** — [Palo Alto Networks' own advisory: CVE-2024-3400](https://security.paloaltonetworks.com/CVE-2024-3400),
+  [Picus Security: CVE-2024-3400 Explained](https://www.picussecurity.com/resource/blog/cve-2024-3400-palo-alto-pan-os-command-injection-vulnerability-explained).
+  Confirmed the real mechanism (a malformed session ID enables unauthenticated arbitrary file creation,
+  chained into OS command injection as root), the real CVSS score (10.0), the real affected-version scope
+  (PAN-OS 10.2/11.0/11.1 with GlobalProtect gateway or portal configured — NOT Panorama, Cloud NGFW, or
+  Prisma Access, a distinction this lab's briefing states explicitly rather than overclaiming), and the real
+  post-disclosure exposure scan figure (143,000+ internet-facing devices). Same live `exploit` mechanic as
+  above.
+- **Exposed `.env` file leaking Laravel application secrets** — general, well-established real bug-bounty
+  finding class (multiple independent write-ups confirm the same root cause and impact pattern: webroot
+  misconfigured to the project's base directory instead of `public/`, `.env` never explicitly denied by the
+  web server, one GET request yielding DB credentials, third-party API keys, and Laravel's `APP_KEY`).
+  Confirmed the specific, accurate detail used in this lab's briefing: Laravel's `APP_KEY` is the actual key
+  used to sign/encrypt session cookies and other application data, so its exposure has consequences beyond
+  reading the file itself — stated carefully as "lets an attacker forge or decrypt anything the app protects
+  with it," not overclaimed as automatic RCE (a real, separate, gadget-chain-dependent risk this lab does
+  not claim). Modeled fully live: `gobuster` genuinely requires the target path to exist in the engine's
+  scenario data AND appear verbatim in the supplied wordlist file (confirmed by reading `webFuzz()` in
+  `engine.ts`), and `curl` fetches the real, unmodified `.env` content.
+- **Blind boolean-based SQL injection via `sqlmap`** — general, well-established real technique (distinct
+  from UNION-based SQLi: no data is ever reflected in the response, so extraction relies on true/false
+  response differences, exactly what `sqlmap --batch` automates and `--dump` extracts once confirmed).
+  Confirmed by reading `sqlmap()` in `engine.ts` that this platform's simulated `sqlmap` genuinely requires
+  `-u`/target URL parsing, a real `kind: 'sqli'` vulnRoute match, and the `--dump` flag before it will
+  extract anything — not simply present for flavor text while a `curl` command underneath does the real
+  work, unlike this session's earlier UNION-based SQLi lab which is curl-driven throughout.
+- **GDB sudo NOPASSWD shell escape** — [GTFOBins: gdb](https://gtfobins.org/gtfobins/gdb/).
+  Confirmed the real, exact, currently-documented command: `sudo gdb -nx -ex '!sh' -ex quit` — gdb's `!`
+  prefix is a real, built-in shell-escape command. Reused the same `makePrivescLab()` factory already
+  exported and proven live in batch 12's Docker lab, adding only a new, previously-uncovered GTFOBins
+  binary — mechanically identical to the platform's 16 other `privesc-*` labs, all of which are fully live
+  (`nmap`/`hydra`/`ssh`/`sudo -l`/`sudo`).
+- **Golden Ticket detection via anomalous 10-year ticket lifetime** — [HackTricks: Golden Ticket](https://hacktricks.wiki/en/windows-hardening/active-directory-methodology/golden-ticket.html),
+  [ManageEngine: How to detect Golden Ticket attacks](https://www.manageengine.com/log-management/siem-use-cases/threats/golden-ticket-detection.html).
+  Confirmed the real, specific fact this lab depends on: both Mimikatz and Rubeus forge Golden Tickets with
+  a hardcoded 10-year default lifetime unless an operator explicitly overrides it, and the real standard
+  domain default (10-hour TGT lifetime, 7-day renewal) that makes 10 years an obvious outlier — plus the
+  real, secondary corroborating signal this lab's event file also includes (RC4 encryption on an
+  AES-capable domain, another common forging-tool default). **Explicitly addressing this batch's "everything
+  real" framing**: this lab is `cat`-based, not live-command-based, and that is the correct answer here, not
+  a shortfall — a real SOC analyst investigates this exact finding by reading Event ID 4768/4769 fields in
+  a SIEM or the raw Security event log, not by running an offensive tool themselves. This matches every
+  other SOC-category lab already on this platform (Golden SAML, Kerberoasting detection, DNS tunneling,
+  Cobalt Strike beacon analysis, etc.) — log review IS the live, real, authentic workflow for this job
+  function, not a simulation standing in for something else.
+
+## NEEDS REVIEW (labs/topics), batch 14
+
+- Two of this batch's labs (both CVE-exploit labs) initially had incomplete `hints` arrays during
+  verification — mirroring an existing inconsistency already present in one earlier CVE lab (Ivanti Connect
+  Secure, batch 3) — the final hint was narrative-only ("real-world detail: ...") rather than including the
+  actual `cat /root/root.txt` step needed to capture the flag after `exploit` opens the session. Caught
+  during this batch's `tsx` verification run (both labs captured 0 flags on the first pass) and fixed by
+  adding an explicit "check /root/root.txt" hint before the narrative line, matching the already-correct
+  convention used by the EternalBlue lab. Worth revisiting the Ivanti lab's hints for the same fix in a
+  future pass, though it wasn't touched here since it's outside this batch's scope.
+- No other techniques in this batch required skipping or faking. All six were verified end-to-end with a
+  scripted `tsx` run against the real `TerminalEngine` class: full solve path captures exactly the expected
+  flag count per lab (2 for the multi-stage GDB privesc lab, matching its `totalFlags: 2`), and a
+  plausible-but-wrong request per lab captures none.
