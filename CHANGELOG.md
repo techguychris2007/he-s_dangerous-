@@ -1103,3 +1103,82 @@ array is scoped to its own isolated `TerminalEngine` instance, confirmed by read
 citations in `NOTES.md` batch 22, including an explicit accounting of what was modeled as code-review-only
 (BlueBorne, WebView JS-bridge execution, ContentProvider/exported-component IPC, WEP's statistical recovery)
 rather than faked as a live exploit this engine genuinely cannot honestly simulate.
+
+- **Batch 23 (432 → 482, +50 labs)** — this repo is being worked on by more than one concurrent session; twice
+  now (batch 20's drafts, and again here) a session has found a complete, unregistered body of work sitting on
+  disk from elsewhere and finished it rather than duplicating it. Two full modules turned up this way this
+  round: **IoT & Embedded Security** (5 lessons already written and registered in `curriculum.ts`, plus a
+  3-lab starter `iot-pack.ts`) and **AI Security** (5 lessons + a 2-file, 20-lab `ai-security-pack.ts`/
+  `ai-security-pack-2.ts`, fully wired into `curriculum.ts`/`labs.ts`/`types.ts`/`icons.tsx` already). Both were
+  read in full, `tsc -b`-verified, and every one of their labs re-run end-to-end against the real
+  `TerminalEngine` before anything was committed — nothing here shipped on trust alone.
+
+  **IoT (3 → 11 labs)**: added 8 new labs on top of the 3 pre-existing ones, all modeled with engine primitives
+  already established elsewhere on this platform — no new `engine.ts` surface needed (unlike Wireless in batch
+  22). Mirai's real, publicly-known default-credential table (a real ~60-pair list, not a fabricated one)
+  against both a Telnet login and a router web-admin panel; command injection in a diagnostic ping tool (the
+  same real vulnerability class behind a long list of home-router CVEs); an unsigned OTA firmware update
+  accepted with no signature check at all; UPnP `AddPortMapping` exposing an internal-only service to the
+  WAN side; an unauthenticated MQTT broker leaking telemetry and accepting control-topic publishes from
+  anyone; a hardcoded Wi-Fi provisioning key recovered by extracting and grepping firmware; a JTAG debug
+  interface left enabled in production hardware, used to halt the CPU and patch a working auth check directly
+  in RAM (deliberately distinct from the pre-existing UART-no-auth lab: that one is a debug console with *no*
+  auth at all, this one defeats a check that genuinely works); and the real, current CVE-2023-1389 TP-Link
+  Archer AX21 unauthenticated command-injection RCE (actively exploited in the wild by Mirai variants per
+  public reporting, confirmed via `WebSearch`).
+
+  **AI Security (new category, 20 labs)**: the OWASP Top 10 for LLM Applications made concrete rather than
+  abstract — direct, indirect (via a webpage an agent summarizes), and encoded-payload (base64/leetspeak
+  filter-evasion) prompt injection; a roleplay jailbreak; LLM-mediated stored XSS from unsanitized model
+  output rendered as HTML; an agent tool with SSRF reach into cloud instance metadata; training-data backdoor
+  poisoning (a trigger phrase that flips model behavior); a malicious pickle model file achieving RCE via
+  `__reduce__` on load (a real, well-documented ML-supply-chain risk — pickle deserialization executes
+  arbitrary code by design); model-DoS via a single deliberately expensive prompt; black-box model extraction
+  via a systematic query pattern; a translation-trick system-prompt extraction (asking the model to "translate"
+  its own instructions defeats naive instruction-secrecy); training-data PII memorization extraction; cross-
+  tenant RAG vector-store retrieval leaking another tenant's documents; an unsandboxed plugin tool allowing
+  path traversal to read arbitrary local files; excessive agency in two flavors (an email-sending tool used
+  with no human-in-the-loop confirmation, and an unrestricted shell tool that exfiltrates a secret); the real,
+  publicly reported Air Canada chatbot tribunal ruling (the airline was held liable for its chatbot's
+  hallucinated bereavement-fare policy — modeled as an analysis lab, the ruling itself being the point, not a
+  live exploit); an over-permissioned admin-database tool reachable through normal chat; the real,
+  publicly-reported pattern behind the 2023 Samsung/ChatGPT incident (employees pasting confidential source
+  code into a public AI tool with no data-retention guarantee); and a typosquatted machine-learning package as
+  a supply-chain risk, the same real root cause as several disclosed PyPI/npm incidents in this space.
+
+  **Mobile pack 2 (+10, 11 → 21 total)** and **Wireless pack 2 (+9, 10 → 19 total)**: read the existing packs
+  first specifically to avoid overlap. Mobile: `android:allowBackup="true"` enabling full private-data-
+  directory exfiltration via `adb backup` with no unlock code required on many Android versions; a client-side
+  in-app-purchase receipt-verification bypass (the app trusts a receipt it never actually validates server-
+  side); hardcoded secrets shipped in a React Native app's bundled JavaScript (distinct from the existing
+  native-`.so` hardcoded-key lab — RN/Flutter apps ship their actual JS logic as an easily-`strings`-able
+  bundle, a real and current framework-specific finding); SMS-permission abuse intercepting an OTP in transit;
+  an open, unauthenticated Firebase Realtime Database (the same real misconfiguration class as the existing
+  Firebase-Bug-Bounty lab, framed here specifically through a decompiled mobile app's angle); a biometric
+  "authentication" check that gates the UI but was never wrapped in a `CryptoObject`, so it protects nothing
+  cryptographically (distinct from the existing SSL-pinning/root-detection static-bypass lab — that defeats a
+  real check, this one was never a real check); a hardcoded Firebase Cloud Messaging server key enabling
+  arbitrary push-notification abuse (the real vulnerability class that hit Google Hangouts and Microsoft Teams
+  in 2020, confirmed via `WebSearch`); Android Keystore misuse via `setUserAuthenticationRequired(false)`; the
+  real, current CVE-2024-43093 Android privilege-escalation flaw; and an insufficient-binary-protections
+  finding (no obfuscation, no root detection at all — an absence-of-control finding, distinct in kind from
+  every bypass-an-existing-control lab already on the platform).
+
+  Wireless: WPS Pixie Dust PIN recovery (the real, disclosed 2014 offline weakness in poorly-seeded WPS PRNGs,
+  confirmed distinct from the existing brute-force-style WPS framing via `WebSearch`); a "hidden" SSID
+  (broadcast suppressed) trivially revealed by a connecting client's own probe requests, which still leak the
+  SSID in the clear; MAC-filtering bypass via spoofing an already-associated client's address (MAC filtering
+  provides zero real cryptographic protection); a post-connection pivot from the Wi-Fi network itself to a
+  default-credentialed IoT device sitting on it (a real, common real-world attack-chain shape); Wi-Fi Direct
+  static-WPS-PIN reuse; a WPA2-Enterprise EAP method downgrade to the broken MD5 challenge-response variant;
+  a BLE "Just Works" pairing MITM (the real, documented weak-association-model gap in BLE's simplest pairing
+  mode); MouseJack-style unencrypted 2.4GHz HID injection against a wireless keyboard/mouse dongle (the real,
+  publicly disclosed 2016 Bastille Networks research); and a Zigbee network left on its default, publicly-known
+  Trust Center link key.
+
+  Verified: all 50 new/expanded labs (plus the 3 pre-existing IoT labs, re-checked for regressions) pass the
+  same `tsx`-against-`TerminalEngine` harness as every prior batch — exact flag capture via each lab's own
+  `hints` solve path, zero duplicate `id` values across all 482 registered labs. `tsc -b` and `oxlint` both
+  clean (same two pre-existing, unrelated warnings every prior batch also reports; neither touched here).
+  `engine.ts`/`vfs.ts` were not modified this batch, so no regression risk there. Full citations in `NOTES.md`
+  batch 23.

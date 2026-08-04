@@ -4,14 +4,17 @@ Running count and category breakdown for the offensive-security lab expansion. S
 full narrative detail on every batch (what was added, why, and how each one was verified); this file is
 just the running tally `NOTES.md`'s citations and the "when I'm back" summary can point at.
 
-**Total labs: 432** (204 at the start of this expansion → 432 now, +228 so far toward the "up to 500, quality
+**Total labs: 482** (204 at the start of this expansion → 482 now, +278 so far toward the "up to 500, quality
 first" target). Every count below is the actual `LABS.length` broken out by `category`, not an estimate.
 Batch 18 marked a deliberate pace change (30 labs in one batch instead of six, per explicit instruction);
 batch 19 continued it under a real tooling constraint (finalized in a later session, see its entry below);
 batch 20 registered, verified, fixed, and documented 25 labs a previous session had drafted but never
 finished; batch 21 is genuinely new content, 3 labs added to each of the six thinnest categories; batch 22
 launches two brand-new categories, **Mobile** and **Wireless**, closing a real engine-capability gap flagged
-as out of scope since batch 2 (see below).
+as out of scope since batch 2 (see below); batch 23 finishes an in-progress **IoT & Embedded Security**
+module left uncommitted by an earlier session (11 labs), adds a second pass to Mobile (+10) and Wireless
+(+9), and registers a brand-new **AI Security** category (20 labs) covering the OWASP Top 10 for LLMs —
+also picked up complete-but-uncommitted from an earlier session and verified end-to-end here.
 
 | Category | Count | This expansion added |
 |---|---|---|
@@ -29,8 +32,10 @@ as out of scope since batch 2 (see below).
 | Security Engineering | 21 | +11 (secret in git history, forged webhook, remember-me token, ECB-penguin, TOCTOU symlink race, cgroup release_agent escape, negative-quantity checkout, hardcoded signing key in a mobile APK, plus batch 21's a never-expiring pre-signed URL, a verbose error stack-trace leak, and a debug feature flag left enabled in production) |
 | **API** | 21 | +21 (BFLA, JWT kid injection, legacy-version IDOR, excessive data exposure, rate-limit bypass, WebAuthn downgrade, method-override authz bypass, GraphQL field-level authz bypass, Referer-header API key leak, OAuth audience confusion, GraphQL field-suggestion leak, pagination cursor tampering, upload content-type spoofing, exposed OpenAPI spec, exposed source map, unrestricted resource consumption, API key in a URL query string, mass assignment role escalation, plus batch 21's GraphQL query-depth/complexity DoS, sequential/predictable API keys, and SSRF via open-redirect chaining bypassing a webhook allowlist) |
 | **Cryptography** | 19 | +19 (ECB block-shuffling, hash length extension, JWT algorithm confusion, predictable PRNG session tokens, AES-CTR nonce reuse, Bleichenbacher, UUIDv1 reset-token entropy, ECDSA nonce reuse, Logjam, batch GCD shared-prime, TOTP shared-secret reuse, PBKDF2 insufficient iterations, CBC bit-flipping, AES-GCM "Forbidden Attack", RSA e=3 cube root, Debian OpenSSL predictable PRNG CVE-2008-0166, plus batch 21's Wiener's attack (small RSA private exponent), AES-CBC static/zero IV block splicing, and a bcrypt cost factor too low) |
-| **Mobile** (new, batch 22) | 11 | +11 (an exported Activity bypassing the app's own login screen, a hardcoded payment API key in decompiled source, a trust-all TrustManager defeating TLS, a plaintext-SharedPreferences password, a BOLA reachable by replaying an intercepted mobile request — these 5 were an unregistered draft from an earlier session, verified and kept as-is — plus 6 genuinely new this batch: a hardcoded third-party API key via `grep`/`strings` on decompiled source, cleartext HTTP via a missing Network Security Config, a WebView JavaScript-bridge RCE via `addJavascriptInterface`, an unprotected exported ContentProvider SQL injection (CVE-2020-0060 pattern), root-detection/SSL-pinning defeated via static smali patching, an iOS Keychain item stored with `kSecAttrAccessibleAlways`, and a custom-URL-scheme OAuth authorization-code hijack, CWE-939) |
-| **Wireless** (new, batch 22) | 10 | +10, all new: live WPA2 4-way handshake capture via the new `airmon-ng`/`airodump-ng`/`aireplay-ng` engine commands, a clientless PMKID capture, WEP IV-reuse statistical key recovery (FMS/PTW), an evil-twin clone of an open guest SSID, a KARMA attack exploiting broadcast probe requests, captive-portal Wi-Fi-password phishing, a WPA3-SAE lab deliberately built so it CANNOT be offline-cracked (the point of the lab), BLE GATT characteristic enumeration exposing a device PIN, a BlueBorne (2017) zero-click RCE case study, and a WPA2-Enterprise rogue-RADIUS credential capture via missing certificate validation |
+| **Mobile** | 21 | +11 in batch 22 (an exported Activity bypassing the app's own login screen, a hardcoded payment API key in decompiled source, a trust-all TrustManager defeating TLS, a plaintext-SharedPreferences password, a BOLA reachable by replaying an intercepted mobile request, a hardcoded third-party API key, cleartext HTTP via a missing Network Security Config, a WebView JavaScript-bridge RCE via `addJavascriptInterface`, an unprotected exported ContentProvider SQL injection, root-detection/SSL-pinning defeated via static smali patching, an iOS Keychain item stored with `kSecAttrAccessibleAlways`, a custom-URL-scheme OAuth authorization-code hijack), +10 in batch 23 (`android:allowBackup` adb-backup exfiltration, client-side in-app-purchase receipt bypass, hardcoded secrets in a React Native JS bundle, SMS-permission OTP interception, an open unauthenticated Firebase Realtime Database, biometric auth never bound to a `CryptoObject`, a hardcoded FCM server key enabling push abuse, Android Keystore misuse via `setUserAuthenticationRequired(false)`, CVE-2024-43093 Android privilege escalation, and a no-obfuscation/no-root-detection static-analysis finding) |
+| **Wireless** | 19 | +10 in batch 22 (live WPA2 4-way handshake capture via the new `airmon-ng`/`airodump-ng`/`aireplay-ng` engine commands, a clientless PMKID capture, WEP IV-reuse key recovery, an evil-twin clone of an open guest SSID, a KARMA attack, captive-portal phishing, a WPA3-SAE lab deliberately built so it CANNOT be offline-cracked, BLE GATT enumeration, a BlueBorne case study, a WPA2-Enterprise rogue-RADIUS capture), +9 in batch 23 (WPS Pixie Dust PIN recovery, a "hidden" SSID trivially revealed by probe requests, MAC-filtering bypass via spoofing an associated client's address, a post-connection pivot to default-credentialed IoT devices on the same network, Wi-Fi Direct static-WPS-PIN reuse, WPA2-Enterprise EAP-MD5 downgrade, a BLE Just Works pairing MITM, MouseJack-style 2.4GHz HID injection, and a Zigbee default Trust Center link key) |
+| **IoT & Embedded Security** (new, batch 23) | 11 | +11: firmware `/etc/shadow` hash extraction and cracking, a UART root shell with no auth, Mirai's real default-credential login, Mirai's full ~60-pair credential table against a router web admin panel, command injection in a diagnostic ping tool, an unsigned OTA firmware update with no signature check, UPnP `AddPortMapping` exposing an internal service, an unauthenticated MQTT broker leaking telemetry/control topics, a hardcoded Wi-Fi provisioning key recovered from firmware, a JTAG CPU-halt/RAM-patch bypass of an otherwise-working auth check, and the real CVE-2023-1389 TP-Link Archer AX21 RCE |
+| **AI Security** (new, batch 23) | 20 | +20, the OWASP Top 10 for LLM Applications made concrete: direct/indirect/encoded-payload prompt injection, a roleplay jailbreak, LLM-mediated stored XSS, an agent's SSRF-capable tool reaching cloud metadata, training-data backdoor poisoning, a malicious pickle model file (RCE), model-DoS via an expensive prompt, black-box model extraction, translation-trick system-prompt extraction, PII memorization extraction, cross-tenant RAG vector-store leakage, an unsandboxed plugin path traversal, excessive agency (unauthorized email send, an unrestricted shell tool exfiltrating secrets), the real Air Canada chatbot liability ruling, an over-permissioned admin-DB tool, the real Samsung-ChatGPT-style confidential-data-pasted-into-a-public-AI-tool incident, and a typosquatted ML package supply-chain risk |
 
 ## Real engine capability expansion, batch 22
 
@@ -270,6 +275,23 @@ a GTFOBins Linux-privesc chain) confirming zero regressions. Full detail in `NOT
     exported ContentProvider SQL injection (the real CVE-2020-0060 pattern), root-detection/SSL-pinning
     defeated via static smali patching, an iOS Keychain item stored with `kSecAttrAccessibleAlways`, and a
     custom-URL-scheme OAuth authorization-code hijack (CWE-939). Full citations in `NOTES.md` batch 22.
+23. **50 labs (432 → 482)**: picked up two more complete-but-uncommitted modules left by concurrent sessions
+    working in the same repo, verified both end-to-end, and shipped a second pass on Mobile/Wireless. **IoT &
+    Embedded Security** (new category, 11 labs): the lesson content (5 lessons, `src/content/iot/`) and a
+    3-lab starter pack already existed uncommitted; expanded the pack to 11 — firmware `/etc/shadow` extraction,
+    a UART root shell, Mirai's real default-credential login and its full ~60-pair table against a router web
+    admin panel, diagnostic-tool command injection, an unsigned OTA update, UPnP port-mapping exposure, an
+    unauthenticated MQTT broker, a hardcoded Wi-Fi provisioning key pulled from firmware, a JTAG CPU-halt/
+    RAM-patch auth bypass, and the real CVE-2023-1389 TP-Link Archer AX21 RCE. All modeled with existing engine
+    primitives (`cat`/`strings`/`grep`/`find`/`curl`+`vulnRoutes`/`exploit`) — no new `engine.ts` surface needed,
+    unlike Wireless in batch 22. **AI Security** (new category, 20 labs across two packs): also found complete-
+    but-uncommitted (5 lessons + `ai-security-pack.ts`/`ai-security-pack-2.ts`), verified as-is — the OWASP Top
+    10 for LLM Applications made concrete, including two real, publicly documented incidents modeled directly
+    (the Air Canada chatbot liability tribunal ruling, a Samsung-ChatGPT-style confidential-data-paste incident).
+    **Mobile pack 2** (+10, 11 → 21) and **Wireless pack 2** (+9, 10 → 19): genuinely new techniques checked
+    against the existing packs to avoid overlap — see the category table above for the full list. All 50 labs
+    (plus the 3 pre-existing IoT labs) mechanically re-verified end-to-end against `TerminalEngine`; zero
+    duplicate ids across all 482 registered labs; `tsc -b`/`oxlint` clean. Full citations in `NOTES.md` batch 23.
 
 ## What's explicitly NOT attempted, and why
 

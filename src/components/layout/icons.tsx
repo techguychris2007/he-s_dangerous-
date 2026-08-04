@@ -407,6 +407,23 @@ export function IconMobile({ className }: IconProps) {
   );
 }
 
+export function IconChip({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
+      <rect x="6" y="6" width="12" height="12" rx="1.5" />
+      <path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function IconBrain({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
+      <path d="M9 4a3 3 0 0 0-3 3 3 3 0 0 0-2 2.8V12a3 3 0 0 0 1 5.6V19a2 2 0 0 0 2 2h1M15 4a3 3 0 0 1 3 3 3 3 0 0 1 2 2.8V12a3 3 0 0 1-1 5.6V19a2 2 0 0 1-2 2h-1M9 4a3 3 0 0 1 3-2 3 3 0 0 1 3 2M9 4v16M15 4v16" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function IconCode({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
@@ -459,6 +476,8 @@ const ICONS: Record<string, (p: IconProps) => ReactElement> = {
   crosshair: IconCrosshair,
   code: IconCode,
   mobile: IconMobile,
+  chip: IconChip,
+  brain: IconBrain,
 };
 
 export function ModuleIcon({ icon, className }: { icon: string; className?: string }) {

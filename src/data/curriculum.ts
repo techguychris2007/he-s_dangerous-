@@ -122,6 +122,18 @@ import CrackingHandshakesAndWpa3 from '../content/wireless/03-cracking-handshake
 import RogueApsAndEvilTwinAttacks from '../content/wireless/04-rogue-aps-and-evil-twin-attacks';
 import BluetoothAndBleSecurity from '../content/wireless/05-bluetooth-and-ble-security';
 
+import IotArchitectureAndAttackSurface from '../content/iot/01-iot-architecture-and-attack-surface';
+import FirmwareExtractionAndStaticAnalysis from '../content/iot/02-firmware-extraction-and-static-analysis';
+import HardwareHackingUartJtagSpi from '../content/iot/03-hardware-hacking-uart-jtag-spi';
+import EmbeddedWebInterfacesAndCommonVulns from '../content/iot/04-embedded-web-interfaces-and-common-vulns';
+import IotBotnetsMiraiAndBeyond from '../content/iot/05-iot-botnets-mirai-and-beyond';
+
+import AiSecurityFundamentalsOwaspLlmTop10 from '../content/ai-security/01-ai-security-fundamentals-owasp-llm-top-10';
+import PromptInjectionAndJailbreaking from '../content/ai-security/02-prompt-injection-and-jailbreaking';
+import InsecureOutputHandlingAndExcessiveAgency from '../content/ai-security/03-insecure-output-handling-and-excessive-agency';
+import TrainingDataPoisoningModelTheftSupplyChain from '../content/ai-security/04-training-data-poisoning-model-theft-supply-chain';
+import SensitiveInfoDisclosureRagSecurityCaseStudies from '../content/ai-security/05-sensitive-info-disclosure-rag-security-case-studies';
+
 import SecurityEconomics from '../content/secengineering/01-security-economics';
 import SecureDesignPrinciples from '../content/secengineering/02-secure-design-principles';
 import ThreatModeling from '../content/secengineering/03-threat-modeling';
@@ -711,6 +723,63 @@ export const MODULES: ModuleMeta[] = [
       },
     ],
   },
+  {
+    id: 'iot',
+    slug: 'iot',
+    title: 'IoT & Embedded Security',
+    subtitle: 'Firmware analysis, UART/JTAG hardware hacking, embedded web UIs, and the Mirai botnet',
+    description:
+      'The physically-accessible attack surface: extracting and statically analyzing firmware with binwalk, ' +
+      'hardware debug interfaces (UART/JTAG/SPI flash) that often hand over a root shell to anyone holding ' +
+      'the device, recurring embedded web-UI vulnerability patterns, and the Mirai botnet\'s full lifecycle ' +
+      'as a case study in what happens when these findings repeat across an entire industry at scale.',
+    status: 'available',
+    sourceBooks: ['The Hardware Hacking Handbook', 'Practical IoT Hacking'],
+    icon: 'chip',
+    lessons: [
+      { id: 'iot-1', slug: 'iot-architecture-and-attack-surface', title: 'IoT Architecture & the Embedded Attack Surface', summary: 'The four-layer model, embedded Linux vs. RTOS, and the OWASP IoT Top 10.', minutes: 12, Content: IotArchitectureAndAttackSurface },
+      { id: 'iot-2', slug: 'firmware-extraction-and-static-analysis', title: 'Firmware Extraction & Static Analysis', summary: 'binwalk, SquashFS extraction, and hunting hardcoded credentials in /etc/shadow.', minutes: 13, Content: FirmwareExtractionAndStaticAnalysis },
+      { id: 'iot-3', slug: 'hardware-hacking-uart-jtag-spi', title: 'Hardware Hacking Fundamentals: UART, JTAG & SPI', summary: 'Serial console root shells, JTAG debug access, and dumping SPI flash directly.', minutes: 13, Content: HardwareHackingUartJtagSpi },
+      { id: 'iot-4', slug: 'embedded-web-interfaces-and-common-vulns', title: 'Embedded Web Interfaces & Common IoT Vulnerabilities', summary: 'Default credentials, command injection in diagnostic tools, and insecure OTA updates.', minutes: 12, Content: EmbeddedWebInterfacesAndCommonVulns },
+      {
+        id: 'iot-5', slug: 'iot-botnets-mirai-and-beyond', title: 'IoT Botnets & the Broader Ecosystem: Mirai and Beyond', summary: 'Mirai\'s full attack chain, its source leak, the botnets that followed, and the regulation it triggered.', minutes: 13, Content: IotBotnetsMiraiAndBeyond,
+        quiz: [
+          { id: 'q1', prompt: 'Why was Mirai able to compromise hundreds of thousands of devices using only around 60 credential pairs?', choices: ['It exploited a single zero-day vulnerability', 'Many IoT vendors shipped devices with hardcoded default credentials that users had no way to change', 'It used a novel cryptographic attack', 'It required physical access to each device'], correctIndex: 1, explanation: 'Mirai\'s success came from I1 (weak/hardcoded credentials) repeated across an entire industry, not from any single sophisticated exploit.' },
+          { id: 'q2', prompt: 'Why does JTAG access effectively bypass every software-level security control on a device?', choices: ['JTAG requires the same password as the web UI', 'JTAG halts the CPU directly and allows raw memory read/write, with no OS-level access control running while the CPU is halted', 'JTAG only works over the network', 'It doesn\'t — JTAG is fully sandboxed by the OS'], correctIndex: 1, explanation: 'JTAG operates below the software layer entirely — with the CPU halted via the debug interface, there is no running OS to enforce any access control at all.' },
+          { id: 'q3', prompt: 'What is the key difference between an update mechanism that checks a checksum versus one that verifies a cryptographic signature?', choices: ['There is no meaningful difference', 'A checksum only protects against accidental corruption; a signature verifies the image genuinely came from the vendor and wasn\'t deliberately substituted', 'Checksums are always stronger than signatures', 'Signatures only work on encrypted firmware'], correctIndex: 1, explanation: 'A matching checksum only proves the file wasn\'t corrupted in transit — it says nothing about whether the file is a deliberately malicious substitution, which only a verified cryptographic signature actually rules out.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'ai-security',
+    slug: 'ai-security',
+    title: 'AI & LLM Security',
+    subtitle: 'Prompt injection, jailbreaking, insecure output handling, and the OWASP Top 10 for LLMs',
+    description:
+      'Natural language as a new, largely unsolved attack surface: prompt injection and jailbreaking, ' +
+      'insecure output handling and excessive agency in AI agents, training data poisoning and model-supply-' +
+      'chain risks (malicious pickle files, model theft), and sensitive information disclosure through ' +
+      'memorized training data, careless human input, and unscoped RAG retrieval — grounded throughout in ' +
+      'real, publicly documented incidents.',
+    status: 'available',
+    sourceBooks: ['OWASP Top 10 for Large Language Model Applications', 'NIST AI Risk Management Framework'],
+    icon: 'brain',
+    lessons: [
+      { id: 'ai-1', slug: 'ai-security-fundamentals-owasp-llm-top-10', title: 'AI/LLM Security Fundamentals & the OWASP Top 10 for LLMs', summary: 'Why natural language is a genuinely new untrusted input channel, and the OWASP LLM Top 10 as a working map.', minutes: 12, Content: AiSecurityFundamentalsOwaspLlmTop10 },
+      { id: 'ai-2', slug: 'prompt-injection-and-jailbreaking', title: 'Prompt Injection & Jailbreaking', summary: 'Direct and indirect prompt injection, jailbreak techniques, and the Chevrolet chatbot incident.', minutes: 13, Content: PromptInjectionAndJailbreaking },
+      { id: 'ai-3', slug: 'insecure-output-handling-and-excessive-agency', title: 'Insecure Output Handling & Excessive Agency', summary: 'LLM-mediated XSS/SSRF, agentic tool misuse, and the Air Canada chatbot liability ruling.', minutes: 13, Content: InsecureOutputHandlingAndExcessiveAgency },
+      { id: 'ai-4', slug: 'training-data-poisoning-model-theft-supply-chain', title: 'Training Data Poisoning, Model Theft & Supply Chain', summary: 'Backdoor triggers, malicious pickle model files, and model extraction via repeated queries.', minutes: 13, Content: TrainingDataPoisoningModelTheftSupplyChain },
+      {
+        id: 'ai-5', slug: 'sensitive-info-disclosure-rag-security-case-studies', title: 'Sensitive Information Disclosure, RAG Security & Case Studies', summary: 'Training data memorization, the Samsung ChatGPT incident, and cross-tenant RAG data leakage.', minutes: 13, Content: SensitiveInfoDisclosureRagSecurityCaseStudies,
+        quiz: [
+          { id: 'q1', prompt: 'Why can\'t an LLM reliably distinguish a developer\'s system prompt from an attacker\'s injected instruction?', choices: ['LLMs are not trained on any instructions at all', 'Both are just concatenated text handed to the model with no cryptographic separation marking one as more authoritative', 'System prompts are always encrypted', 'This is only a problem for older models'], correctIndex: 1, explanation: 'This is the root cause behind prompt injection: system prompt, retrieved context, and user input are all just text with no enforced trust boundary between them.' },
+          { id: 'q2', prompt: 'Why does limiting an AI agent\'s tool permissions (least privilege) matter even if prompt injection can\'t be fully prevented?', choices: ['It has no real effect on security', 'A successfully injected/jailbroken model can only cause real damage through the capabilities it actually has — a narrowly-scoped agent limits the blast radius regardless of what the model is tricked into saying', 'It makes the model respond faster', 'It only matters for cost control'], correctIndex: 1, explanation: 'This is the excessive-agency lesson\'s core defense: enforcing security outside the model, so a successful injection has nothing dangerous to actually act on.' },
+          { id: 'q3', prompt: 'What made the Air Canada chatbot tribunal ruling significant?', choices: ['It was the first AI system ever deployed by an airline', 'It established that a company can be held legally liable for incorrect information its customer-facing AI states, not just for what a human employee says', 'It banned the use of chatbots in Canada', 'It only applied to prompt-injection attacks, not hallucinations'], correctIndex: 1, explanation: 'The tribunal ruled Air Canada liable for its chatbot\'s incorrect (hallucinated) statement about bereavement fares — no injection or attacker was involved at all, just an unreliable AI output the company was held responsible for.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const ROADMAP: RoadmapStage[] = [
@@ -735,6 +804,8 @@ export const ROADMAP: RoadmapStage[] = [
   { title: 'Security Engineering', status: 'available', moduleSlug: 'secengineering', sourceBooks: ['Security Engineering — Ross Anderson'], track: 'security' },
   { title: 'Mobile Security', status: 'available', moduleSlug: 'mobile', sourceBooks: ['The Mobile Application Hacker\'s Handbook', 'OWASP MASTG'], track: 'security' },
   { title: 'Wireless & Wi-Fi Hacking', status: 'available', moduleSlug: 'wireless', sourceBooks: ['Hacking Exposed Wireless', 'RTFM'], track: 'security' },
+  { title: 'IoT & Embedded Security', status: 'available', moduleSlug: 'iot', sourceBooks: ['The Hardware Hacking Handbook', 'Practical IoT Hacking'], track: 'security' },
+  { title: 'AI & LLM Security', status: 'available', moduleSlug: 'ai-security', sourceBooks: ['OWASP Top 10 for LLM Applications', 'NIST AI RMF'], track: 'security' },
   { title: 'Guided Hands-On Labs (142 labs)', status: 'available', href: '/labs', sourceBooks: ['Applied practice across every module above'], track: 'security' },
 
   { title: 'Code Portal: Python Fundamentals', status: 'available', moduleSlug: 'code-python-fundamentals', sourceBooks: ['Python Crash Course'], track: 'programming' },

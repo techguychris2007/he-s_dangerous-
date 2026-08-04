@@ -18,7 +18,9 @@ export type VulnKind =
   | 'path-traversal'
   | 'cors-misconfig'
   | 'cache-deception'
-  | 'hpp';
+  | 'hpp'
+  | 'prompt-injection'
+  | 'excessive-agency';
 
 export interface VulnRoute {
   kind: VulnKind;
@@ -167,7 +169,9 @@ export interface LabScenario {
     | 'API'
     | 'Cryptography'
     | 'Mobile'
-    | 'Wireless';
+    | 'Wireless'
+    | 'IoT'
+    | 'AI Security';
   briefing: string;
   objectives: (string | ObjectiveStep)[];
   hints: string[];

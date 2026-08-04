@@ -72,6 +72,11 @@ import { batch21SecplusSecengineeringLabs } from '../labs/scenarios/batch21-secp
 import { batch21BinaryBugbountyLabs } from '../labs/scenarios/batch21-binary-bugbounty-pack';
 import { mobileLabs } from '../labs/scenarios/mobile-pack';
 import { wirelessLabs } from '../labs/scenarios/wireless-pack';
+import { iotLabs } from '../labs/scenarios/iot-pack';
+import { mobileLabs2 } from '../labs/scenarios/mobile-pack-2';
+import { wirelessLabs2 } from '../labs/scenarios/wireless-pack-2';
+import { aiSecurityLabs } from '../labs/scenarios/ai-security-pack';
+import { aiSecurityLabs2 } from '../labs/scenarios/ai-security-pack-2';
 import type { LabScenario } from '../labs/types';
 
 export interface LabEntry {
@@ -155,6 +160,11 @@ export const LABS: LabEntry[] = [
   ...toEntries(batch21BinaryBugbountyLabs),
   ...toEntries(mobileLabs),
   ...toEntries(wirelessLabs),
+  ...toEntries(iotLabs),
+  ...toEntries(mobileLabs2),
+  ...toEntries(wirelessLabs2),
+  ...toEntries(aiSecurityLabs),
+  ...toEntries(aiSecurityLabs2),
 ];
 
 /** Ordered to match the roadmap's actual teaching sequence (see curriculum.ts's MODULES order). */
@@ -175,6 +185,8 @@ export const LAB_CATEGORIES = [
   'Cryptography',
   'Mobile',
   'Wireless',
+  'IoT',
+  'AI Security',
 ] as const;
 
 /** Maps a teaching module slug to the lab category whose labs should appear on that module's page. */
@@ -198,6 +210,8 @@ export const MODULE_TO_LAB_CATEGORY: Record<string, (typeof LAB_CATEGORIES)[numb
   'crypto-attacks': 'Cryptography',
   mobile: 'Mobile',
   wireless: 'Wireless',
+  iot: 'IoT',
+  'ai-security': 'AI Security',
 };
 
 export function findLab(slug?: string): LabEntry | undefined {
