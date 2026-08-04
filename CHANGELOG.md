@@ -1182,3 +1182,55 @@ rather than faked as a live exploit this engine genuinely cannot honestly simula
   clean (same two pre-existing, unrelated warnings every prior batch also reports; neither touched here).
   `engine.ts`/`vfs.ts` were not modified this batch, so no regression risk there. Full citations in `NOTES.md`
   batch 23.
+
+- **Batch 24 (482 → 490, +8 labs)** — a real `msfconsole` sub-shell simulation, explicitly requested: the
+  platform's existing Metasploit-flavored labs used a one-line `exploit <name> <ip>` shortcut, and the ask was
+  for the literal, real, multi-step `msfconsole` command sequence — `msfconsole` → `search`/`use <path>` →
+  `set <OPTION> <value>` → `show options` → `run`/`exploit` — real enough that the exact same commands would
+  work typed into a real Kali box's `msfconsole` against a real vulnerable target (most of these are the
+  standard Metasploitable2 teaching services). Implemented as a new, purely additive modal engine state
+  (`msfSession`), mirroring the existing `awaitingAuth` password-prompt pattern already used for `ssh`. The
+  old shortcut and its `exploitableAs` field are completely untouched — the session-granting logic used by
+  both paths was factored into one shared `grantSession` method so there is exactly one implementation of
+  "what happens when an exploit succeeds," and every existing post-exploitation command works unchanged
+  regardless of which path opened the session.
+
+  One real, mechanical bug caught by this batch's own verification before commit: `set`/`unset` originally
+  force-uppercased every option name, which silently broke any module with a mixed-case real option name
+  (`HttpUsername`, `SMBUser`) while happily working for all-uppercase ones (`RHOSTS`, `USERNAME`) — masking
+  the bug until two of the eight new labs (Tomcat, psexec) exposed it. Fixed by resolving a typed option name
+  case-insensitively against the currently-loaded module's real declared option names (cached on the msf
+  session at `use` time), falling back to uppercase only for the implicit ones (`RHOSTS`/`RPORT`/`LHOST`)
+  no module explicitly declares — the same case-insensitive-match, canonical-casing-preserved behavior real
+  `msfconsole` actually has.
+
+  Auxiliary (non-exploit, e.g. scanner) modules are modeled as genuinely distinct from exploit modules: `run`
+  never opens a session for one, matching real behavior, and prints scan-style output that can carry a flag
+  directly — the pack's eighth lab, `auxiliary/scanner/smb/smb_version`, exists specifically to teach that not
+  every real msfconsole module ends in a shell.
+
+  8 new Network-category labs, every module path/required-option/default-option confirmed via `WebSearch`
+  against Rapid7's own module documentation or source before writing: `exploit/unix/ftp/vsftpd_234_backdoor`
+  and `exploit/unix/irc/unreal_ircd_3281_backdoor` (the two classic Metasploitable2 backdoored-distribution-
+  archive teaching targets), `exploit/multi/http/tomcat_mgr_upload` (authenticated WAR deploy, paired with a
+  discovered-credentials recon file), `exploit/multi/http/struts2_content_type_ognl` (CVE-2017-5638, the real
+  2017 Equifax-breach CVE — confirmed the real default `TARGETURI` of `/struts2-showcase/`),
+  `exploit/multi/http/php_cgi_arg_injection` (CVE-2012-1823), `exploit/unix/webapp/wp_admin_shell_upload`
+  (authenticated WordPress plugin-editor RCE, "by design" rather than a CVE), `exploit/windows/smb/psexec`
+  (credentialed lateral movement, paired with a `crackmapexec` credential-confirmation step first — the real,
+  standard "confirm creds work before spending a session on them" operator habit), and the auxiliary scanner
+  above.
+
+  Verified: all 8 new labs plus 8 dedicated negative controls (an unreachable `RHOSTS` never opens a session
+  or captures a flag, for every single lab) pass the same `tsx`-against-`TerminalEngine` harness as every
+  prior batch. Regression-checked against 4 pre-existing labs from unrelated batches/categories that use the
+  modern hints-as-literal-commands convention (an AD CS ESC8 lab from batch 20, a WPS Pixie Dust lab from
+  batch 23, an AI Security jailbreak lab, and the CVE-2023-1389 IoT lab) — all four still pass unchanged,
+  confirming zero regressions from the `engine.ts` changes. (Three OTHER pre-existing labs were initially
+  mis-picked as regression targets and appeared to fail — `linux-fundamentals`, the existing Samba
+  `msf-samba-usermap-domain-pivot` lab, and `ad-golden-ticket-persistence` — but all three turned out to
+  predate the hints-as-literal-commands convention entirely, writing their `hints` as narrative prose instead
+  of runnable command strings; a blind hint-runner harness was never going to solve them regardless of any
+  engine change, confirmed by reading each one's actual `hints` array before concluding it wasn't a real
+  regression.) `tsc -b` and `oxlint` both clean. Zero duplicate ids across all 490 registered labs. Full
+  citations in `NOTES.md` batch 24.

@@ -1888,3 +1888,81 @@ other unrelated concurrent work.
 - No new engine limitations were hit this batch — IoT was modeled entirely with existing primitives (`cat`/
   `strings`/`grep`/`find`/`curl`+`vulnRoutes`/`exploit`), and AI Security's labs (already written) use the same
   `curl`+`vulnRoutes` and file-analysis conventions throughout.
+
+## Sources checked, batch 24 (real msfconsole simulation + Metasploit lab pack)
+
+Explicit brief this round, given directly rather than inferred: the platform's existing Metasploit-flavored
+labs use a one-line `exploit <name> <ip>` shortcut; the ask was for the real, literal, multi-step `msfconsole`
+workflow instead — commands accurate enough to copy into a real Kali box's `msfconsole` against a real
+vulnerable target (Metasploitable2, for the classic ones below) and have them genuinely work. Every module
+path and required/default option below was checked against Rapid7's own module documentation or source, not
+assumed from memory.
+
+- **`exploit/unix/ftp/vsftpd_234_backdoor`** — [Rapid7: VSFTPD 2.3.4 Backdoor Command Execution](https://www.rapid7.com/db/modules/exploit/unix/ftp/vsftpd_234_backdoor/),
+  [rapid7/metasploit-framework: vsftpd_234_backdoor.rb](https://github.com/rapid7/metasploit-framework/blob/master/modules/exploits/unix/ftp/vsftpd_234_backdoor.rb).
+  Confirmed the real 2011 malicious-source-tarball incident and the real module's two options (RHOST, RPORT
+  defaulting to 21) — no credentials or crafted payload needed beyond a target IP, the standard first
+  Metasploitable2 teaching exploit.
+- **`exploit/unix/irc/unreal_ircd_3281_backdoor`** — [Rapid7: UnrealIRCD 3.2.8.1 Backdoor Command Execution](https://www.rapid7.com/db/modules/exploit/unix/irc/unreal_ircd_3281_backdoor/),
+  [InfosecMatter module library entry](https://www.infosecmatter.com/metasploit-module-library/?mm=exploit%2Funix%2Firc%2Funreal_ircd_3281_backdoor).
+  Confirmed the real 2009-2010 trojaned `Unreal3.2.8.1.tar.gz` distribution-archive compromise and RPORT's
+  real default of 6667 (IRC's standard port).
+- **`exploit/multi/http/tomcat_mgr_upload`** — [rapid7/metasploit-framework: tomcat_mgr_upload.md](https://github.com/rapid7/metasploit-framework/blob/master/documentation/modules/exploit/multi/http/tomcat_mgr_upload.md).
+  Confirmed the real `HttpUsername`/`HttpPassword` option names (mixed case — the exact detail that exposed
+  this batch's `set` case-sensitivity bug, see below) and that authenticated WAR deploy through the Manager
+  application is code execution "by design," not a CVE.
+- **`exploit/multi/http/struts2_content_type_ognl`** — [rapid7/metasploit-framework: struts2_content_type_ognl.rb](https://github.com/rapid7/metasploit-framework/blob/master/modules/exploits/multi/http/struts2_content_type_ognl.rb),
+  [Rapid7: Apache Struts Jakarta Multipart Parser OGNL Injection](https://www.rapid7.com/db/modules/exploit/multi/http/struts2_content_type_ognl/).
+  Confirmed CVE-2017-5638 (the real Equifax-breach CVE), the real required options (RHOSTS, RPORT, TARGETURI),
+  and TARGETURI's real default of `/struts2-showcase/` — used directly rather than guessed.
+- **`exploit/multi/http/php_cgi_arg_injection`** — [rapid7/metasploit-framework: php_cgi_arg_injection.rb](https://github.com/rapid7/metasploit-framework/blob/master/modules/exploits/multi/http/php_cgi_arg_injection.rb),
+  [PentesterLab: CVE-2012-1823](https://pentesterlab.com/exercises/cve-2012-1823).
+  Confirmed CVE-2012-1823's real mechanism (the CGI spec's de-globbing step never running for an
+  unrecognized Content-Type, letting a `-d`-flag query string set arbitrary php.ini directives) and RPORT's
+  real default of 80.
+- **`exploit/unix/webapp/wp_admin_shell_upload`** — [rapid7/metasploit-framework: wp_admin_shell_upload.md](https://github.com/rapid7/metasploit-framework/blob/master/documentation/modules/exploit/unix/webapp/wp_admin_shell_upload.md).
+  Confirmed the real required options (USERNAME, PASSWORD, TARGETURI, RHOST, RPORT — all uppercase, unlike
+  Tomcat's mixed-case pair) and that this module works via the legitimate plugin editor rather than any
+  specific WordPress CVE, making it version-independent by design.
+- **`exploit/windows/smb/psexec`** — [rapid7/metasploit-framework: psexec.md](https://github.com/rapid7/metasploit-framework/blob/master/documentation/modules/exploit/windows/smb/psexec.md).
+  Confirmed the real `SMBUser`/`SMBPass` option names (mixed case again) and that this module is the same
+  legitimate technique as Microsoft's own Sysinternals PsExec — credentialed SMB service creation, not
+  exploitation of a bug.
+- **`auxiliary/scanner/smb/smb_version`** — [rapid7/metasploit-framework: smb_version.md](https://github.com/rapid7/metasploit-framework/blob/master/documentation/modules/auxiliary/scanner/smb/smb_version.md).
+  Confirmed this is a real, extremely commonly used auxiliary (non-exploit) module and its real output shape
+  (SMB dialect/version, OS fingerprint) — the basis for modeling auxiliary modules as never opening a session,
+  distinct from every exploit-module lab in this pack.
+
+## A real mechanical bug caught by this batch's own verification
+
+`set`/`unset` originally force-uppercased every option name before storing it (`session.options[name.toUpperCase()]`).
+This is wrong: real `msfconsole` option names keep their real declared casing (`HttpUsername`, `SMBUser`) and
+`set` matches case-insensitively against that canonical form, not by mangling everything to uppercase. The
+bug stayed invisible through the first six labs written (all-uppercase real names: RHOSTS, RPORT, TARGETURI,
+USERNAME, PASSWORD all happen to already BE uppercase) and only surfaced when the Tomcat and psexec labs'
+`show options`/`run` logic checked `requiredOptions` (declared as `'HttpUsername'`, `'SMBUser'`) against
+options stored under `'HTTPUSERNAME'`/`'SMBUSER'` — a silent mismatch, caught by this batch's own `tsx`
+verification harness (both labs failed to capture their flag on the first run) rather than by reading the
+code. Fixed by caching the currently-loaded module's real declared option names on the msf session at `use`
+time and resolving a typed name against them case-insensitively, falling back to uppercase only for the
+implicit options (RHOSTS/RPORT/LHOST) no module declares explicitly.
+
+## NEEDS REVIEW (labs/topics), batch 24
+
+- **This pack models 8 real modules but is not an exhaustive Metasploit walkthrough** — real `msfconsole` has
+  thousands of modules; these 8 were chosen for real-world teaching value and mechanic diversity (backdoored-
+  archive exploits needing zero configuration, credentialed web-app RCE, a named CVE, credentialed lateral
+  movement, and one auxiliary-only recon module) rather than breadth for its own sake. A future batch could
+  extend this pack the same way Mobile/Wireless got a "pack 2."
+- **`search` is a minimal substring match against this lab's own network, not a real module database** — this
+  engine has no full catalog of Metasploit's thousands of real modules to search against, so `search` only
+  ever surfaces whatever `metasploitModule` a lab's own hosts define. Flagged honestly rather than implying
+  full real-msfconsole search behavior.
+- **Three pre-existing labs were mis-picked as regression-check targets and initially appeared broken**
+  (`linux-fundamentals`, `msf-samba-usermap-domain-pivot`, `ad-golden-ticket-persistence`) — all three predate
+  the hints-as-literal-commands convention this file has documented since early batches, writing `hints` as
+  narrative prose instead of runnable command strings (confirmed by reading each one's actual `hints` array
+  before concluding it wasn't a real regression). Swapped in four labs from batches known to use the modern
+  convention (an AD CS ESC8 lab, a WPS Pixie Dust lab, an AI Security jailbreak lab, and the CVE-2023-1389 IoT
+  lab) — all four passed unchanged, the actual, valid confirmation that this batch's `engine.ts` changes are
+  regression-free.

@@ -4,7 +4,7 @@ Running count and category breakdown for the offensive-security lab expansion. S
 full narrative detail on every batch (what was added, why, and how each one was verified); this file is
 just the running tally `NOTES.md`'s citations and the "when I'm back" summary can point at.
 
-**Total labs: 482** (204 at the start of this expansion → 482 now, +278 so far toward the "up to 500, quality
+**Total labs: 490** (204 at the start of this expansion → 490 now, +286 so far toward the "up to 500, quality
 first" target). Every count below is the actual `LABS.length` broken out by `category`, not an estimate.
 Batch 18 marked a deliberate pace change (30 labs in one batch instead of six, per explicit instruction);
 batch 19 continued it under a real tooling constraint (finalized in a later session, see its entry below);
@@ -14,12 +14,15 @@ launches two brand-new categories, **Mobile** and **Wireless**, closing a real e
 as out of scope since batch 2 (see below); batch 23 finishes an in-progress **IoT & Embedded Security**
 module left uncommitted by an earlier session (11 labs), adds a second pass to Mobile (+10) and Wireless
 (+9), and registers a brand-new **AI Security** category (20 labs) covering the OWASP Top 10 for LLMs —
-also picked up complete-but-uncommitted from an earlier session and verified end-to-end here.
+also picked up complete-but-uncommitted from an earlier session and verified end-to-end here. Batch 24 adds
+a real `msfconsole` sub-shell simulation to the engine (`use`/`set`/`show options`/`run`, not the older
+one-line `exploit <name> <ip>` shortcut) and 8 Metasploit labs built on it — every command taught is the
+literal real syntax, module path, and required-option set a real Kali box's `msfconsole` expects.
 
 | Category | Count | This expansion added |
 |---|---|---|
 | Linux | 46 | +24 (Docker sudo NOPASSWD GTFOBins bind-mount privesc, GDB sudo NOPASSWD GTFOBins shell escape, plus 22 more real GTFOBins sudo/SUID escapes in batch 18: chroot, nice, setarch, sqlite3, mysql, watch, unshare, taskset, timeout, ionice, stdbuf, flock, nohup, expect, zsh, dash, screen, nano, rsync, ssh/scp ProxyCommand, busybox) |
-| Network | 55 | +30 (SMTP open relay abuse, CouchDB "Admin Party" unauthenticated access, CVE-2024-1709 ScreenConnect, CVE-2024-3400 PAN-OS GlobalProtect, CVE-2024-6387 regreSSHion, CVE-2023-46747 F5 BIG-IP AJP smuggling, CVE-2024-4577 PHP-CGI Best Fit, 13 CVEs in batch 19 (ProxyLogon, ProxyShell, Confluence OGNL injection, Spring4Shell, PaperCut auth bypass, Citrix ADC path traversal, Citrix NetScaler stack overflow, FortiOS SSL VPN OOB write, Confluence broken access control, vCenter vROps plugin upload, VMware Aria command injection, JetBrains TeamCity auth bypass, PHPUnit eval-stdin), plus 10 more CVEs in batch 20: BlueKeep, SMBGhost, Follina, the XZ Utils/liblzma supply-chain backdoor, Outlook zero-click NTLM leak, Pulse Secure arbitrary file read, ProxyNotShell, Apache path traversal, WinRAR spoofed extension, FortiOS path traversal) |
+| Network | 63 | +38 (SMTP open relay abuse, CouchDB "Admin Party" unauthenticated access, CVE-2024-1709 ScreenConnect, CVE-2024-3400 PAN-OS GlobalProtect, CVE-2024-6387 regreSSHion, CVE-2023-46747 F5 BIG-IP AJP smuggling, CVE-2024-4577 PHP-CGI Best Fit, 13 CVEs in batch 19 (ProxyLogon, ProxyShell, Confluence OGNL injection, Spring4Shell, PaperCut auth bypass, Citrix ADC path traversal, Citrix NetScaler stack overflow, FortiOS SSL VPN OOB write, Confluence broken access control, vCenter vROps plugin upload, VMware Aria command injection, JetBrains TeamCity auth bypass, PHPUnit eval-stdin), 10 more CVEs in batch 20 (BlueKeep, SMBGhost, Follina, the XZ Utils/liblzma supply-chain backdoor, Outlook zero-click NTLM leak, Pulse Secure arbitrary file read, ProxyNotShell, Apache path traversal, WinRAR spoofed extension, FortiOS path traversal), plus 8 real `msfconsole`-workflow Metasploit labs in batch 24: vsftpd 2.3.4 backdoor, UnrealIRCd 3.2.8.1 backdoor, Tomcat Manager authenticated WAR upload, Struts2 OGNL injection (CVE-2017-5638, the Equifax-breach CVE), PHP-CGI argument injection (CVE-2012-1823), WordPress authenticated admin shell upload, credentialed Windows psexec lateral movement, and an `auxiliary/scanner/smb/smb_version` recon-only module (no session opens — the point of the lab)) |
 | Web | 50 | +10 (DNS rebinding SSRF-allowlist bypass, client-side prototype pollution, Host header password reset poisoning, missing SRI on a payment script, blind SQLi via sqlmap, SSRF via a PDF-generation service, server-side XSS in a dynamic PDF report, Node.js insecure deserialization via node-serialize, plus batch 20's XXE via a malicious SVG upload and second-order SQL injection via a stored display name) |
 | Active Directory | 27 | +12 (ADCS ESC1, RBCD abuse, Silver Ticket, Shadow Credentials, DCShadow rogue DC, GPP cpassword/MS14-025, LDAP anonymous bind disclosure, constrained delegation S4U abuse, GPO GenericWrite immediate-task abuse, DCSync rights self-granted via WriteDacl, plus batch 20's ADCS ESC8 (NTLM relay to web enrollment) and ESC4 (certificate template ACL abuse)) |
 | Bug Bounty | 25 | +5 (Certificate Transparency logs exposing a forgotten staging subdomain, exposed .env file leaking full Laravel application secrets, plus batch 21's a leaked public Postman collection exposing live API keys, broken link hijacking via a dangling social-media handle, and an exposed Firebase Realtime Database with public read/write rules) |
@@ -292,6 +295,26 @@ a GTFOBins Linux-privesc chain) confirming zero regressions. Full detail in `NOT
     against the existing packs to avoid overlap — see the category table above for the full list. All 50 labs
     (plus the 3 pre-existing IoT labs) mechanically re-verified end-to-end against `TerminalEngine`; zero
     duplicate ids across all 482 registered labs; `tsc -b`/`oxlint` clean. Full citations in `NOTES.md` batch 23.
+24. **8 labs (482 → 490)**: a real, multi-step `msfconsole` sub-shell added to `engine.ts` — purely additive,
+    the existing one-line `exploit <name> <ip>` shortcut (still used by ~19 CVE-RCE labs) is completely
+    untouched. `msfconsole` enters the mode; `search`/`use <module-path>`/`set <OPTION> <value>`/`show
+    options`/`run`|`exploit`/`back`/`exit` are real msfconsole syntax, option names keep their real canonical
+    casing (`HttpUsername`, `SMBUser`, not forced uppercase — a genuine bug caught and fixed by this batch's
+    own verification pass before commit), and a successful exploit-module `run` calls the exact same
+    session-granting code path the old shortcut already used (factored into one shared `grantSession`
+    method), so every existing post-exploitation command works unchanged regardless of which path a learner
+    took to get there. Auxiliary (non-exploit) modules are modeled distinctly — `run` never opens a session,
+    matching real behavior, and can reveal a flag directly through scan output instead. 8 new Network-category
+    labs built on it: the vsftpd 2.3.4 and UnrealIRCd 3.2.8.1 Metasploitable2-classic backdoors, Tomcat
+    Manager authenticated WAR upload, Struts2 CVE-2017-5638 (the real Equifax-breach CVE), PHP-CGI
+    CVE-2012-1823, WordPress authenticated admin shell upload, credentialed Windows `psexec` lateral movement
+    (paired with a `crackmapexec` credential-confirmation step), and `auxiliary/scanner/smb/smb_version` as
+    the pack's one pure-recon, no-exploitation module. Every real module path, required option, and default
+    option value confirmed via `WebSearch` against Rapid7's own module documentation/source before writing
+    each lab. All 8 labs plus 8 dedicated negative controls (wrong `RHOSTS` never opens a session) verified
+    end-to-end; regression-checked against 4 pre-existing labs from unrelated batches/categories (all still
+    pass) to confirm the `engine.ts` changes introduced zero regressions; zero duplicate ids across all 490
+    registered labs; `tsc -b`/`oxlint` clean. Full citations in `NOTES.md` batch 24.
 
 ## What's explicitly NOT attempted, and why
 

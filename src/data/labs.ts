@@ -77,6 +77,7 @@ import { mobileLabs2 } from '../labs/scenarios/mobile-pack-2';
 import { wirelessLabs2 } from '../labs/scenarios/wireless-pack-2';
 import { aiSecurityLabs } from '../labs/scenarios/ai-security-pack';
 import { aiSecurityLabs2 } from '../labs/scenarios/ai-security-pack-2';
+import { metasploitLabs } from '../labs/scenarios/metasploit-pack';
 import type { LabScenario } from '../labs/types';
 
 export interface LabEntry {
@@ -165,6 +166,7 @@ export const LABS: LabEntry[] = [
   ...toEntries(wirelessLabs2),
   ...toEntries(aiSecurityLabs),
   ...toEntries(aiSecurityLabs2),
+  ...toEntries(metasploitLabs),
 ];
 
 /** Ordered to match the roadmap's actual teaching sequence (see curriculum.ts's MODULES order). */

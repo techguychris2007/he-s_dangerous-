@@ -1,5 +1,5 @@
 import { getNode, setNode, pathToString, resolvePath, type FsNode } from './vfs';
-import type { HostDef, LabScenario, AwsAccountDef, AwsCredential } from './types';
+import type { HostDef, LabScenario, AwsAccountDef, AwsCredential, MsfModuleDef } from './types';
 
 export type LineKind = 'input' | 'output' | 'error' | 'success' | 'system' | 'muted';
 
@@ -33,7 +33,7 @@ const KNOWN_COMMANDS = [
   'john', 'cewl', 'enum4linux', 'smbclient', 'masscan', 'rustscan', 'nc', 'netcat', 'sudo', 'su',
   'exit', 'logout', 'clear', 'objectives', 'hint', 'chmod', 'history', 'export', 'aws',
   'wc', 'sort', 'uniq', 'head', 'tail', 'cut', 'tr', 'xargs',
-  'airmon-ng', 'airodump-ng', 'aireplay-ng',
+  'airmon-ng', 'airodump-ng', 'aireplay-ng', 'msfconsole',
 ];
 
 /** Simulated per-command latency, roughly proportional to how long the real tool actually takes
@@ -59,6 +59,7 @@ export const COMMAND_LATENCY_MS: Record<string, number> = {
   netexec: 500,
   secretsdump: 550,
   exploit: 750,
+  msfconsole: 900,
   cewl: 500,
   ping: 250,
   'airodump-ng': 900,
@@ -75,6 +76,11 @@ export class TerminalEngine {
    *  not per ssh session, matching how a real exported env var survives sshing elsewhere. */
   private sessionEnv: Record<string, string> = {};
   private awaitingAuth: { ip: string; user: string; host: HostDef } | null = null;
+  /** Non-null while the shell is inside `msfconsole` — mirrors `awaitingAuth`'s "modal sub-state that
+   *  intercepts `run()`" shape, but for the real, multi-step `use`/`set`/`run` workflow instead of a
+   *  password prompt. `modulePath` is whatever the learner last `use`d (any string, matching real
+   *  msfconsole's behavior of not validating a module exists until you try to `run` it). */
+  private msfSession: { modulePath: string | null; moduleDef: MsfModuleDef | null; options: Record<string, string> } | null = null;
 
   constructor(scenario: LabScenario) {
     this.scenario = scenario;
@@ -114,6 +120,13 @@ export class TerminalEngine {
 
   getPrompt(): string {
     if (this.awaitingAuth) return `Password for ${this.awaitingAuth.user}@${this.awaitingAuth.ip}:`;
+    if (this.msfSession) {
+      if (!this.msfSession.modulePath) return 'msf6 > ';
+      const slash = this.msfSession.modulePath.indexOf('/');
+      const type = slash === -1 ? 'exploit' : this.msfSession.modulePath.slice(0, slash);
+      const short = slash === -1 ? this.msfSession.modulePath : this.msfSession.modulePath.slice(slash + 1);
+      return `msf6 ${type}(${short}) > `;
+    }
     const s = this.session;
     const host = s.isAttacker ? this.scenario.attacker.hostname : (s.host as HostDef).hostname;
     const marker = this.effectiveUser() === 'root' ? '#' : '$';
@@ -1032,6 +1045,21 @@ export class TerminalEngine {
     ];
   }
 
+  /** Shared by the one-line `exploit <name> <ip>` shortcut AND the realistic `msfconsole` `run`/`exploit`
+   *  command below — there is exactly one implementation of "a successful exploit opens a session," so a
+   *  learner who got here via either path lands in the exact same normal shell, and every existing
+   *  post-exploitation command (`cat`, `find`, `sudo -l`, ...) works unchanged regardless of how they arrived. */
+  private grantSession(host: HostDef): void {
+    const rootSession: Session = {
+      isAttacker: false,
+      host,
+      user: 'SYSTEM',
+      cwd: ['root'],
+      isRoot: true,
+    };
+    this.stack.push(rootSession);
+  }
+
   private exploit(args: string[]): OutLine[] {
     const moduleName = args[0];
     const ip = args.find((a) => /^\d+\.\d+\.\d+\.\d+$/.test(a));
@@ -1044,20 +1072,150 @@ export class TerminalEngine {
         { kind: 'error', text: `[-] ${ip}:445 - Exploit failed: target is not vulnerable to '${moduleName}', or the module name is wrong.` },
       ];
     }
-    const rootSession: Session = {
-      isAttacker: false,
-      host,
-      user: 'SYSTEM',
-      cwd: ['root'],
-      isRoot: true,
-    };
-    this.stack.push(rootSession);
+    this.grantSession(host);
     return [
       { kind: 'system', text: `[*] Started reverse handler on 10.10.14.1:4444` },
       { kind: 'system', text: `[*] ${ip}:445 - Sending exploit packet...` },
       { kind: 'success', text: `[+] ${ip}:445 - Exploit completed, session opened` },
       { kind: 'success', text: `[*] Meterpreter session 1 opened (SYSTEM)` },
     ];
+  }
+
+  /** `msfconsole` — enters the realistic multi-step Metasploit sub-shell (`use`/`set`/`show options`/`run`),
+   *  a genuinely different, real command sequence from the `exploit <name> <ip>` shortcut above. */
+  private msfconsole(): OutLine[] {
+    this.msfSession = { modulePath: null, moduleDef: null, options: {} };
+    return [
+      { kind: 'system', text: '       =[ metasploit v6.4.0-dev                          ]' },
+      { kind: 'system', text: '+ -- --=[ 2400+ exploits - 1250+ auxiliary - 400+ post     ]' },
+      { kind: 'system', text: '+ -- --=[ 1400+ payloads - 46 encoders - 11 nops           ]' },
+    ];
+  }
+
+  /** Command dispatch while inside `msfconsole`. Real `msfconsole` doesn't validate a `use`d module path
+   *  actually exists (this engine has no full module database to check against) — it only fails at `run`
+   *  time if the target isn't actually vulnerable to whatever's currently loaded, exactly like the real tool
+   *  failing at exploit time rather than at `use` time for a syntactically-valid-looking path. */
+  private dispatchMsf(line: string, onFlag: (flag: string) => void): OutLine[] {
+    const session = this.msfSession as { modulePath: string | null; moduleDef: MsfModuleDef | null; options: Record<string, string> };
+    const [cmd, ...args] = tokenize(line);
+    // Real msfconsole option names are case-preserving in their canonical declared form (e.g.
+    // `HttpUsername`, `SMBUser`) but `set`/`unset` match them case-insensitively regardless of how the
+    // learner types them — so a typed name is resolved against the currently-loaded module's real declared
+    // names (falling back to plain uppercase for implicit ones like RHOSTS/RPORT/LHOST that aren't listed
+    // in any module's `requiredOptions`/`defaultOptions`).
+    const canonicalOptionName = (typed: string): string => {
+      const known = ['RHOSTS', ...(session.moduleDef?.requiredOptions ?? []), ...Object.keys(session.moduleDef?.defaultOptions ?? {})];
+      return known.find((k) => k.toLowerCase() === typed.toLowerCase()) ?? typed.toUpperCase();
+    };
+    switch (cmd) {
+      case 'search': {
+        const term = args.join(' ').toLowerCase();
+        const hits = this.scenario.network.filter((h) => h.metasploitModule && h.metasploitModule.path.toLowerCase().includes(term));
+        if (!term || hits.length === 0) return [{ kind: 'muted', text: '[-] No results from search' }];
+        return [
+          { kind: 'output', text: '   #  Name                                        Disclosure Date  Rank    Check  Description' },
+          { kind: 'output', text: '   -  ----                                        ----------------  ----    -----  -----------' },
+          ...hits.map((h, i) => ({ kind: 'output' as const, text: `   ${i}  ${h.metasploitModule!.path}` })),
+        ];
+      }
+      case 'use': {
+        const path = args[0];
+        if (!path) return [{ kind: 'error', text: 'usage: use <module-path>' }];
+        session.modulePath = path;
+        const known = this.scenario.network.find((h) => h.metasploitModule?.path === path);
+        session.moduleDef = known?.metasploitModule ?? null;
+        session.options = session.moduleDef?.defaultOptions ? { ...session.moduleDef.defaultOptions } : {};
+        return [{ kind: 'system', text: `${path.startsWith('auxiliary') ? 'auxiliary' : 'exploit'}(${path.slice(path.indexOf('/') + 1)}) — module loaded` }];
+      }
+      case 'back':
+        session.modulePath = null;
+        session.moduleDef = null;
+        session.options = {};
+        return [];
+      case 'set': {
+        const [name, ...rest] = args;
+        if (!name || rest.length === 0) return [{ kind: 'error', text: 'usage: set <OPTION> <value>' }];
+        const canonical = canonicalOptionName(name);
+        session.options[canonical] = rest.join(' ');
+        return [{ kind: 'output', text: `${canonical} => ${rest.join(' ')}` }];
+      }
+      case 'unset': {
+        const name = args[0];
+        if (!name) return [{ kind: 'error', text: 'usage: unset <OPTION>' }];
+        const canonical = canonicalOptionName(name);
+        delete session.options[canonical];
+        return [{ kind: 'output', text: `Unsetting ${canonical}...` }];
+      }
+      case 'show': {
+        if (args[0] !== 'options') return [{ kind: 'error', text: 'usage: show options' }];
+        if (!session.modulePath) return [{ kind: 'error', text: '[-] No module selected.' }];
+        const required = new Set(['RHOSTS', ...(session.moduleDef?.requiredOptions ?? [])]);
+        const names = new Set([...required, ...Object.keys(session.options)]);
+        const out: OutLine[] = [
+          { kind: 'output', text: 'Module options:' },
+          { kind: 'output', text: '' },
+          { kind: 'output', text: '   Name     Current Setting  Required  Description' },
+          { kind: 'output', text: '   ----     ----------------  --------  -----------' },
+        ];
+        for (const name of names) {
+          out.push({ kind: 'output', text: `   ${name.padEnd(8)} ${(session.options[name] ?? '').padEnd(17)} ${required.has(name) ? 'yes' : 'no'}` });
+        }
+        return out;
+      }
+      case 'run':
+      case 'exploit': {
+        if (!session.modulePath) return [{ kind: 'error', text: '[-] No module selected.' }];
+        const rhosts = session.options['RHOSTS'];
+        if (!rhosts) return [{ kind: 'error', text: '[-] RHOSTS => not set — run "set RHOSTS <target-ip>" first.' }];
+        const host = this.findHostByIp(rhosts);
+        if (!host) return [{ kind: 'system', text: '[*] Started reverse handler' }, { kind: 'error', text: `[-] ${rhosts}:- - Exploit failed: unreachable target.` }];
+        const mod = host.metasploitModule;
+        if (!mod || mod.path !== session.modulePath) {
+          return [
+            { kind: 'system', text: `[*] Started reverse TCP handler` },
+            { kind: 'error', text: `[-] ${rhosts} - Exploit failed: target is not vulnerable to '${session.modulePath}'.` },
+          ];
+        }
+        const missing = mod.requiredOptions.filter((o) => !session.options[o]);
+        if (missing.length) {
+          return [{ kind: 'error', text: `[-] Exploit failed: required option${missing.length > 1 ? 's' : ''} not set: ${missing.join(', ')}` }];
+        }
+        // Auxiliary modules (scanners/enumerators) never open a session, unlike exploit modules — real
+        // msfconsole leaves you sitting at the module's prompt afterward, ready to `back`/`use` the next
+        // step (e.g. an exploit module chosen based on what the scan just revealed).
+        if (session.modulePath.startsWith('auxiliary')) {
+          const out: OutLine[] = mod.scanOutput
+            ? mod.scanOutput.split('\n').map((l) => ({ kind: 'success' as const, text: l }))
+            : [{ kind: 'success', text: `[+] ${rhosts}: - scan complete` }];
+          out.push({ kind: 'system', text: 'Auxiliary module execution completed' });
+          out.forEach((l) => {
+            const m = l.text.match(FLAG_RE);
+            if (m) onFlag(m[0]);
+          });
+          return out;
+        }
+        this.grantSession(host);
+        this.msfSession = null;
+        const out: OutLine[] = [
+          { kind: 'system', text: '[*] Started reverse TCP handler on 10.10.14.1:4444' },
+          { kind: 'system', text: `[*] ${rhosts} - Sending stage (1017704 bytes) to ${rhosts}` },
+          { kind: 'success', text: `[+] ${rhosts} - Exploit completed, session opened` },
+          { kind: 'success', text: '[*] Meterpreter session 1 opened (10.10.14.1:4444 -> ' + rhosts + ':4444)' },
+        ];
+        out.forEach((l) => {
+          const m = l.text.match(FLAG_RE);
+          if (m) onFlag(m[0]);
+        });
+        return out;
+      }
+      case 'exit':
+      case 'quit':
+        this.msfSession = null;
+        return [];
+      default:
+        return [{ kind: 'error', text: `[-] Unknown command: ${cmd}` }];
+    }
   }
 
   private ftp(args: string[]): OutLine[] {
@@ -1368,6 +1526,8 @@ export class TerminalEngine {
       { kind: 'output', text: 'hashcat/john -m/--wordlist .., cewl <url>     — password cracking' },
       { kind: 'output', text: 'sudo -l, sudo <cmd>, exit                     — privesc / sessions' },
       { kind: 'output', text: 'airmon-ng start/stop, airodump-ng, aireplay-ng — 802.11 wireless recon/capture' },
+      { kind: 'output', text: 'exploit <name> <ip>                           — quick CVE-RCE shortcut' },
+      { kind: 'output', text: 'msfconsole  then  use/set/show options/run    — real Metasploit workflow' },
       { kind: 'output', text: 'objectives, hint, clear, history               — lab helpers' },
       { kind: 'output', text: 'cmd1 | cmd2, cmd1 && cmd2, cmd1 ; cmd2         — pipes & chaining' },
       { kind: 'output', text: 'grep/wc/sort/uniq/head/tail/cut/tr/xargs       — pipeline filters (right side of |)' },
@@ -1395,6 +1555,9 @@ export class TerminalEngine {
     }
     if (!line) return [];
     if (line !== 'history') this.commandHistory.push(line);
+    if (this.msfSession) {
+      return this.dispatchMsf(line, onFlag);
+    }
 
     // Zero-risk fast path: the overwhelming majority of real commands (and every existing lab's
     // expected invocations) contain none of these characters at all, so route them straight into
@@ -1657,6 +1820,8 @@ export class TerminalEngine {
         return this.crackmapexec(args);
       case 'exploit':
         return this.exploit(args);
+      case 'msfconsole':
+        return this.msfconsole();
       case 'airmon-ng':
         return this.airmonNg(args);
       case 'airodump-ng':
