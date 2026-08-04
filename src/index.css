@@ -238,7 +238,7 @@ main h1, .page-title {
 .pill {
   font-family: var(--font-mono);
   font-size: 0.7rem;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.02em;
   padding: 0.2rem 0.55rem;

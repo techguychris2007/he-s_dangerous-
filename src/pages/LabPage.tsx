@@ -49,7 +49,7 @@ export default function LabPage() {
             style={{ width: `${Math.round((100 * captured) / scenario.totalFlags)}%` }}
           />
         </div>
-        <h1 className="text-2xl font-bold text-[var(--color-heading)] mb-3">{scenario.title}</h1>
+        <h1 className="text-2xl font-extrabold tracking-tight leading-tight text-[var(--color-heading)] mb-3">{scenario.title}</h1>
         <p className="text-sm text-[var(--color-text-dim)] leading-relaxed mb-5">{scenario.briefing}</p>
 
         {/* The single most important thing to see the moment the last flag lands — placed before the

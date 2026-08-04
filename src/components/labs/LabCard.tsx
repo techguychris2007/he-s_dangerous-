@@ -75,7 +75,7 @@ export default function LabCard({ lab, variant = 'catalog' }: { lab: LabEntry; v
           {variant === 'task' && <span className="pill bg-[var(--color-accent)]/10 text-[var(--color-accent-dim)]">Report</span>}
         </div>
 
-        <Link to={labUrl} className="font-semibold text-[var(--color-heading)] text-sm mb-1.5 hover:text-[var(--color-accent-dim)] transition-colors">
+        <Link to={labUrl} className="font-bold text-[var(--color-heading)] text-[15px] leading-snug mb-1.5 hover:text-[var(--color-accent-dim)] transition-colors">
           {lab.scenario.title}
         </Link>
 
@@ -114,7 +114,7 @@ export default function LabCard({ lab, variant = 'catalog' }: { lab: LabEntry; v
           </div>
           <Link
             to={labUrl}
-            className="w-full px-4 py-2.5 rounded-lg bg-[var(--color-accent)] text-white font-semibold text-sm text-center hover:brightness-110 transition flex items-center justify-center gap-1.5"
+            className="w-full px-4 py-2.5 rounded-lg bg-[var(--color-accent)] text-white font-bold text-sm text-center hover:brightness-110 transition flex items-center justify-center gap-1.5"
           >
             {ctaLabel} &rarr;
           </Link>
