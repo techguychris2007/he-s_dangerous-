@@ -1630,3 +1630,210 @@ risk was checked against all 393 existing lab titles first via targeted `grep` b
   the established `#CRACKME_*`-marker crackme convention for the three Binary Analysis labs), and all 18 were
   verified end-to-end with a scripted `tsx` run against the real `TerminalEngine` class — full solve path
   captures exactly one flag per lab, first try after the one fix above. `tsc -b` and `oxlint` both clean.
+
+## Sources checked, batch 22 (Mobile + Wireless — new categories, plus real engine capability expansion)
+
+The real gap this batch closes: `labs-index.md`'s "What's explicitly NOT attempted" section has flagged
+wireless labs as out of scope since batch 2 — "the engine has no aircrack-ng-family commands, so a real
+wireless lab needs new engine work first." This batch adds exactly that (`airmon-ng`/`airodump-ng`/
+`aireplay-ng` in `engine.ts`), purely additively (new `KNOWN_COMMANDS` entries, new dispatch-switch cases, new
+private methods — no existing method's behavior touched), then builds real lab content against it. Mobile
+Security labs needed no comparable engine work at all — the existing "binaries/apps as pre-extracted text
+files" convention (`cat`/`strings`/`grep`/`curl`) covers nearly everything a static-analysis-heavy mobile
+assessment needs directly.
+
+**Engine additions, and why each is scoped the way it is**: `airmon-ng start|stop <iface>` is a pure
+confirmation printout — no session state is tracked, matching the same "narrate the prerequisite, don't gate
+later commands on it" convention this engine already uses for `chmod`. `airodump-ng` reads a new optional
+`HostDef.wifiNetwork` field (`{ ssid, bssid, channel, encryption, captureFile? }` — added to `types.ts`) and
+has two modes: a bare scan lists every network a scenario defines, and a targeted `--bssid ... -w <prefix>`
+capture writes `<prefix>-01.hc22000` using the network's `captureFile` string, if one is set. That
+`captureFile` string reuses the *exact* `#HASHCAT_HASH:`/`#HASHCAT_PLAINTEXT:`/`#HASHCAT_FLAG:` marker
+convention `hashcat`/`john` already read elsewhere in this engine, unmodified — meaning cracking a captured
+handshake needed zero new engine code beyond the capture step itself, just the existing
+`hashcat -m 22000 <file> <wordlist>` command every lab author already knows works. `aireplay-ng --deauth`
+is flavor/framing only, matching this batch's own instruction to keep it lightweight if tracked state adds no
+real teaching value — the *outcome* of a successful deauth (a handshake becoming capturable) is modeled
+directly via whether `wifiNetwork.captureFile` is set, not via a separate "was a deauth actually sent" flag.
+
+- **PMKID attack / hashcat mode 22000** — [hashcat's own wiki: cracking_wpawpa2](https://hashcat.net/wiki/doku.php?id=cracking_wpawpa2),
+  [evilsocket: Pwning WiFi networks with bettercap and the PMKID client-less attack](https://www.evilsocket.net/2019/02/13/Pwning-WiFi-networks-with-bettercap-and-the-PMKID-client-less-attack/).
+  Confirmed: the technique was first demonstrated by hashcat's own creator, Jens "atom" Steube, in 2018;
+  modern hashcat mode 22000 unifies PMKID and EAPOL-handshake captures into one format (superseding the
+  deprecated mode 2500), and the real capture chain is `hcxdumptool` -> `hcxpcapngtool` -> `hashcat -m 22000`
+  — no connected client or deauth frame required at all, the specific "clientless" property this lab's
+  briefing depends on.
+- **WEP IV reuse / FMS and PTW attacks** — [Aircrack-ng's own wiki](https://www.aircrack-ng.org/doku.php?id=aircrack-ng),
+  general search-aggregated confirmation of the FMS (Fluhrer-Mantin-Shamir, 2001) and PTW (Pyshkin-Tews-
+  Weinmann, 2007) attacks. Confirmed: WEP's 24-bit IV is transmitted in plaintext and collides within
+  thousands of packets on a busy network; PTW (aircrack-ng's default WEP-cracking method today) needs far
+  fewer captured packets than the older FMS attack and doesn't depend on "weak" IVs the way FMS did. Modeled
+  deliberately as a *statistical key recovery*, not a dictionary/wordlist attack — this engine's `hashcat`/
+  `john` marker convention would have been a technically inaccurate framing for WEP specifically, since real
+  WEP key recovery isn't a password guess at all; used the established `cat`-a-captured-recon-file convention
+  instead, with the real `aircrack-ng` PTW-attack command spelled out in the briefing.
+- **KARMA attack** — [Wikipedia: KARMA attack](https://en.wikipedia.org/wiki/KARMA_attack), [theta44.org (the
+  original KARMA tools page)](https://theta44.org/karma/). Confirmed: first published in 2004 by Dino Dai Zovi
+  and Shane Macaulay; the real, defining mechanism is a rogue AP listening for devices' own unencrypted probe-
+  request broadcasts (their "Preferred Network List") and answering *every* probed SSID — mechanically
+  distinct from a classic evil twin, which clones one specific, already-observed nearby network rather than
+  impersonating whatever a device asks for by name.
+- **Evil twin / rogue AP, open-network variant** and **captive portal credential phishing** — grounded
+  directly in this platform's own `src/content/wireless/04-rogue-aps-and-evil-twin-attacks.tsx` lesson
+  content (already written and cited in a prior session), which itself names `wifiphisher`'s real automation
+  chain (clone SSID -> deauth -> serve fake captive portal -> capture credentials) — not independently
+  re-searched this batch since the lesson content was the direct source, consistent with this file's standing
+  practice of citing prior verified platform content as a source when that's genuinely where a lab's framing
+  came from.
+- **WPA3-SAE resistance to offline cracking** — grounded directly in this platform's own
+  `src/content/wireless/03-cracking-handshakes-and-wpa3.tsx` lesson content. Confirmed the real, current
+  protocol property this lab depends on: SAE (Dragonfly) requires a fresh, interactive exchange with the AP
+  for every authentication attempt, producing no static value an attacker can carry away and test guesses
+  against offline — deliberately built so the lab's own `airodump-ng --bssid ... -w` capture step can **never**
+  succeed (the scenario's `wifiNetwork.captureFile` is left undefined entirely), matching the platform's own
+  explicit instruction not to fake a lab where WPA3-SAE can be offline-cracked. The flag is earned by reading
+  and demonstrating understanding of *why* the capture fails, via a `cat`-based analysis file — the same
+  "code-review/analysis lab" convention already established for the ECB-penguin (batch 9) and client-side-
+  prototype-pollution (batch 10) labs, applied here to a conceptual-resistance finding instead of a live bug.
+- **BLE GATT characteristic enumeration** — grounded directly in this platform's own
+  `src/content/wireless/05-bluetooth-and-ble-security.tsx` lesson content, which already documents the real
+  `gatttool -b <mac> -I` / `primary` / `char-read-hnd` workflow and the "proximity is not authentication" gap
+  this lab models. This engine has no live Bluetooth/BLE radio simulation at all, so — consistent with the
+  established captured-recon-file convention (LDAP anonymous bind, Azure Storage key, crt.sh in earlier
+  batches) — the enumeration output is presented via `cat`, with the real command spelled out for direct
+  transferability to a genuine BLE assessment.
+- **BlueBorne (2017)** — [BleepingComputer: BlueBorne Vulnerabilities Impact Over 5 Billion Bluetooth-Enabled
+  Devices](https://www.bleepingcomputer.com/news/security/blueborne-vulnerabilities-impact-over-5-billion-bluetooth-enabled-devices/),
+  [Wikipedia: BlueBorne (security vulnerability)](https://en.wikipedia.org/wiki/BlueBorne_(security_vulnerability)).
+  Confirmed the real, specific CVE list (CVE-2017-0781/0782/0783/0785 Android, CVE-2017-1000251/1000250 Linux,
+  CVE-2017-14315 iOS, CVE-2017-8628 Windows), the real disclosure date (September 12, 2017, by Armis Labs),
+  and the real affected-device estimate (5.3+ billion at disclosure) — cross-checked the CVE list against two
+  independent sources rather than trusting one, since a wrong CVE number is exactly the kind of specific,
+  checkable detail this file's standing practice treats as worth double-checking. Built as a pure case-study
+  analysis lab (not a live exploit) since this is a genuine memory-corruption RCE chain in compiled OS
+  Bluetooth-stack code — fundamentally outside what a request/response terminal simulator can honestly model
+  live, the same reasoning already applied to this batch's WPA3-SAE lab and to the ECB-penguin/DOM-XSS labs
+  in prior batches.
+- **WPA2-Enterprise missing certificate validation / rogue RADIUS (hostapd-wpe)** — [SecureW2: Without Server
+  Certificate Validation, WPA2-Enterprise Isn't Secure](https://securew2.com/blog/without-server-certificate-validation-wpa2-enterprise-isnt-secure),
+  general search-aggregated confirmation of `hostapd-wpe`'s real, documented behavior. Confirmed: `hostapd-wpe`
+  is a real, patched RADIUS server specifically built to capture MSCHAPv2 username/challenge/response when a
+  connecting client skips validating the RADIUS server's TLS certificate against the corporate CA — and that
+  hashcat mode 5500 is the real, current mode for cracking a captured NetNTLM/MSCHAPv2 exchange, the same
+  "capture then crack" shape as this module's WPA2-Personal labs, applied one layer up at the 802.1X/RADIUS
+  level instead of the PSK.
+- **Android `addJavascriptInterface` WebView bridge RCE** — [WithSecure Labs: WebView addJavascriptInterface
+  Remote Code Execution](https://labs.withsecure.com/publications/webview-addjavascriptinterface-remote-code-execution),
+  [CERT Secure Coding: DRD13](https://wiki.sei.cmu.edu/confluence/pages/viewpage.action?pageId=87150717).
+  Confirmed the real, exact mitigation boundary: Android 4.2 (API 17)'s `@JavascriptInterface` annotation
+  requirement closes the older, more general reflection-based RCE (any public method reachable pre-4.2), but
+  only restricts *which* methods are exposed — an annotated method that is itself dangerous (this lab's
+  `runDiagnostic(String)` piping straight to `Runtime.exec()`) remains fully exploitable on any modern Android
+  version. This lab's flag is earned via a live exploitation-chain PoC file (not merely finding the bridge
+  declaration), since actually running injected JavaScript inside a live WebView is beyond what this
+  request/response engine can execute.
+- **Unprotected exported Android ContentProvider / SQL injection** — [Corgea: CWE-926 — Improper Export of
+  Android Application Components](https://hub.corgea.com/vulnerabilities/CWE-926), [Advania: SQL Injection In
+  com.android.providers.telephony ver 10 — CVE-2020-0060](https://www.advania.co.uk/blog/security/android-telephony-vulnerability/).
+  Confirmed the real, named CWE (CWE-926, covering exported Activities/Services/Receivers/Providers alike —
+  this lab's Provider variant specifically), and a real, disclosed CVE (CVE-2020-0060) matching the identical
+  root-cause shape modeled here: a `ContentProvider.query()` implementation concatenating caller-supplied
+  projection/selection arguments directly into raw SQL instead of parameterizing them.
+- **Exported Android Activity bypassing a login gate (CWE-926, Activity variant)** — same CWE-926 source as
+  above; confirmed the real, general mechanism (an exported component reachable via a raw `Intent` from any
+  other installed app, regardless of what the app's own UI normally requires to reach the same screen) —
+  this specific lab reuses/extends a pre-existing, previously-unregistered draft lab already covering this
+  exact class (`mobile-exported-activity-admin-bypass`, found already sitting in `mobile-pack.ts`
+  unregistered — see the note on the pre-existing draft below), so no new lab was written for it this batch,
+  just verified and kept.
+- **Custom URL scheme OAuth authorization-code hijacking (CWE-939)** — [CWE-939: Improper Authorization in
+  Handler for Custom URL Scheme](https://cwe.mitre.org/data/definitions/939.html), [Ostorlab: One Scheme to
+  Rule Them All — OAuth Account Takeover](https://blog.ostorlab.co/one-scheme-to-rule-them-all.html), [Evan
+  Connelly: Mobile OAuth Attacks — iOS URL Scheme Hijacking Revamped](https://evanconnelly.github.io/post/ios-oauth/).
+  Confirmed the real, named CWE and the real mechanism: a bare custom URL scheme (unlike an HTTPS-based
+  Android App Link/iOS Universal Link, which is cryptographically verified via a hosted digital-asset-links
+  file) can be registered by any app on the device with no verification at all, and — specifically when the
+  OAuth flow lacks PKCE — possessing the intercepted authorization code alone is sufficient to redeem it for
+  a token; PKCE's `code_verifier` requirement is confirmed as the real, standard mitigation that breaks this
+  exact interception chain.
+- **iOS Keychain `kSecAttrAccessibleAlways`** — [Apple's own developer documentation:
+  kSecAttrAccessibleAlways](https://developer.apple.com/documentation/security/ksecattraccessiblealways),
+  [Apple's own developer documentation: kSecAttrAccessibleWhenUnlockedThisDeviceOnly](https://developer.apple.com/documentation/security/ksecattraccessiblewhenunlockedthisdeviceonly).
+  Confirmed directly from Apple's own primary documentation (the strongest possible source for this specific
+  claim): `kSecAttrAccessibleAlways` items "can always be accessed regardless of whether the device is
+  locked" and are explicitly "not recommended for application use," while
+  `kSecAttrAccessibleWhenUnlockedThisDeviceOnly` restricts access to only while unlocked and ties the item to
+  one specific device — the exact contrast this lab's briefing depends on.
+- **Root detection / SSL pinning defeated via static smali patching** — [Cywarx: APK Code Tampering & Smali
+  Patching — A Bug Bounty Guide](https://cywarx.com/blogs/android-apk-code-tampering-guide), [OWASP MASTG:
+  MASTG-TECH-0012 — Bypassing Certificate Pinning](https://mas.owasp.org/MASTG/techniques/android/MASTG-TECH-0012/).
+  Confirmed the real, standard static workflow (`apktool d` -> identify and flip the specific `if-eqz`/`if-nez`
+  branch controlling enforcement in the decompiled smali -> `apktool b` -> re-sign) as a genuine alternative to
+  runtime Frida hooking, specifically useful against apps hardened with anti-Frida/anti-instrumentation
+  detection — deliberately built as a *distinct* lab from the pre-existing draft's `mobile-trust-all-
+  certificate-mitm-proof` (a TrustManager that was broken from the start, found already-defeated) rather than
+  a reskin: this new lab's app has a genuinely *working* pinning/root check that a static patch defeats after
+  the fact, a mechanically different finding.
+- **Hardcoded third-party API key in decompiled Android source**, **plaintext SQLite local storage**,
+  **cleartext HTTP via a missing Android Network Security Config** — all three grounded directly in this
+  platform's own `src/content/mobile/02-static-analysis-of-android-apps.tsx` and
+  `src/content/mobile/04-insecure-data-storage-and-communication.tsx` lesson content, which already documents
+  the real `jadx`/`grep` hardcoded-secret workflow, the real insecure-local-storage patterns (SharedPreferences/
+  SQLite/Keychain-skipped), and the real `cleartextTrafficPermitted="true"` Network Security Config tell — not
+  independently re-searched this batch since the lesson content (itself researched in an earlier session) was
+  the direct, sufficient source for these well-established, standard mobile-assessment findings.
+
+## A pre-existing, unregistered draft was found and extended, not replaced
+
+`src/labs/scenarios/mobile-pack.ts` already existed on disk with 5 real, well-built labs (an exported-Activity
+login bypass, a hardcoded payment API key, a trust-all `TrustManager` MITM proof, plaintext-SharedPreferences
+credential storage, and a BOLA-via-intercepted-mobile-request capstone) — drafted in an earlier, unfinished
+session and never registered in `src/data/labs.ts`, never verified, never committed. Same situation this file
+already documented once before for `batch20-*.ts` (see the batch 20 entry above). Checked all 5 for id/flag/IP
+collisions against every other lab on the platform (`grep` across all scenario files — zero collisions found),
+then verified all 5 end-to-end via the same `tsx`-against-`TerminalEngine` harness used for this batch's own
+new labs: all 5 pass, capturing exactly 1 flag each via their own `hints` solve path. Kept as-is rather than
+rewritten, and this batch's 6 new mobile labs were written to complement rather than duplicate their coverage
+(see the id list in `labs-index.md`). One cosmetic, non-blocking observation from verification, logged here
+for completeness rather than silently fixed: `mobile-bola-intercepted-api-replay`'s final `hints` entry is a
+narrative sentence rather than a runnable command — but the flag is already captured by the SECOND hint (the
+actual `curl ... trip_id=48832` command), so this does **not** reproduce the batch-14/19 "unsolvable due to
+narrative-only final hint" bug class (that class only breaks a lab when the FINAL, flag-capturing step is
+itself narrative) — flagged for optional future polish, not fixed here since it doesn't affect solvability and
+touching pre-existing content outside a batch's stated scope is exactly the kind of thing this file's own
+precedent (batch 14's Ivanti-lab note) treats as "worth revisiting, not required now."
+
+## NEEDS REVIEW (labs/topics), batch 22
+
+- **The WEP lab's key-recovery step is presented as a given tooling output** (aircrack-ng's own PTW-attack
+  result), not independently re-derived — the real PTW/FMS statistical recovery algorithm is a substantially
+  deeper computation than this session implemented or ran, the same honestly-scoped-rather-than-independently-
+  reproduced treatment already applied to the AES-GCM "Forbidden Attack" lab in batch 15 for an analogous
+  reason (real finite-field/statistical math beyond a quick Node one-liner).
+- **The BlueBorne lab is deliberately a case-study/analysis lab, not a live exploit** — a genuine memory-
+  corruption RCE chain in compiled OS Bluetooth-stack code has no honest live-simulation path in a
+  request/response terminal engine; same reasoning as every prior "fundamentally dynamic, can't be faked as a
+  live exploit" case in this file (client-side prototype pollution, ECB-penguin).
+- **The WPA3-SAE lab is deliberately built so it cannot be "cracked"** — this is a feature of the lab design,
+  not a limitation to note as a gap: SAE's real protocol property is that it produces no offline-attackable
+  static value at all, and faking a successful crack against it would have been the one genuinely dishonest
+  option available, explicitly ruled out by this batch's own brief.
+- **BLE GATT enumeration is modeled via the established captured-recon-file convention** (this engine has no
+  Bluetooth/BLE radio simulation at all, confirmed by reading `KNOWN_COMMANDS` in `engine.ts` before writing
+  this lab) — same convention already used for LDAP anonymous bind (batch 12), Azure Storage key and crt.sh
+  (batch 13).
+- **Every ContentProvider/exported-component/WebView-bridge finding is modeled via `cat`-based static
+  analysis plus a PoC-output file, not a live `adb`/Binder-IPC/JavaScript-execution simulation** — these are
+  genuinely device-local IPC and in-WebView JS-execution mechanisms with no honest request/response mapping
+  onto this engine, the same "don't force a fake live exploit path that wouldn't reflect reality" standard
+  this file has applied consistently since the DOM-XSS lab in batch 10.
+- No other techniques in this batch required skipping or faking. All 21 new/newly-registered labs (11
+  Mobile — 5 pre-existing-draft + 6 new, 10 Wireless — all new) were verified end-to-end with a scripted `tsx`
+  run against the real `TerminalEngine` class: full solve path captures exactly one flag per lab, and a
+  plausible-but-wrong request per lab (spot-checked across every `vulnRoute`-based lab in both packs, plus a
+  dedicated check confirming the WPA3-SAE lab's capture step genuinely cannot succeed) captures none. Also
+  re-ran a full-solve-path spot-check against three pre-existing labs from other categories/batches (the
+  existing pre-baked WPA2-handshake lab, EternalBlue, and a GTFOBins Linux-privesc chain) to confirm this
+  batch's purely-additive `engine.ts`/`types.ts` changes introduced zero regressions — all three still pass.
+  `tsc -b` and `oxlint` both clean (same two pre-existing, unrelated warnings as every prior batch, neither
+  touched by this one).

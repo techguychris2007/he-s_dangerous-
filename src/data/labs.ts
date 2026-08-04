@@ -70,6 +70,8 @@ import { batch20WebMalwareLabs } from '../labs/scenarios/batch20-web-malware-pac
 import { batch21CryptoApiLabs } from '../labs/scenarios/batch21-crypto-api-pack';
 import { batch21SecplusSecengineeringLabs } from '../labs/scenarios/batch21-secplus-secengineering-pack';
 import { batch21BinaryBugbountyLabs } from '../labs/scenarios/batch21-binary-bugbounty-pack';
+import { mobileLabs } from '../labs/scenarios/mobile-pack';
+import { wirelessLabs } from '../labs/scenarios/wireless-pack';
 import type { LabScenario } from '../labs/types';
 
 export interface LabEntry {
@@ -151,6 +153,8 @@ export const LABS: LabEntry[] = [
   ...toEntries(batch21CryptoApiLabs),
   ...toEntries(batch21SecplusSecengineeringLabs),
   ...toEntries(batch21BinaryBugbountyLabs),
+  ...toEntries(mobileLabs),
+  ...toEntries(wirelessLabs),
 ];
 
 /** Ordered to match the roadmap's actual teaching sequence (see curriculum.ts's MODULES order). */
@@ -169,6 +173,8 @@ export const LAB_CATEGORIES = [
   'Security Engineering',
   'API',
   'Cryptography',
+  'Mobile',
+  'Wireless',
 ] as const;
 
 /** Maps a teaching module slug to the lab category whose labs should appear on that module's page. */
@@ -190,6 +196,8 @@ export const MODULE_TO_LAB_CATEGORY: Record<string, (typeof LAB_CATEGORIES)[numb
   secengineering: 'Security Engineering',
   'api-security': 'API',
   'crypto-attacks': 'Cryptography',
+  mobile: 'Mobile',
+  wireless: 'Wireless',
 };
 
 export function findLab(slug?: string): LabEntry | undefined {

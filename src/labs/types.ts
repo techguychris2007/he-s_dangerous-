@@ -97,6 +97,20 @@ export interface AwsAccountDef {
   credentials: AwsCredential[];
 }
 
+export interface WifiNetworkDef {
+  ssid: string;
+  bssid: string;
+  channel: number;
+  /** free-text encryption label as `airodump-ng`'s ENC column would show it, e.g. 'WPA2', 'WPA3-SAE', 'WEP', 'OPEN' */
+  encryption: string;
+  /** pre-formatted `#HASHCAT_HASH:`/`#HASHCAT_PLAINTEXT:`/`#HASHCAT_FLAG:` marker content (the exact same
+   *  convention `hashcat`/`john` already read elsewhere in this engine) that `airodump-ng -w <prefix>`
+   *  "writes" into a capture file once a handshake/PMKID has been captured against this network — so
+   *  cracking it needs zero new engine code, just the existing `hashcat -m 22000` step. Omit for a network
+   *  that's still just visible in a scan (no capture available yet). */
+  captureFile?: string;
+}
+
 export interface HostDef {
   hostname: string;
   ip: string;
@@ -112,6 +126,10 @@ export interface HostDef {
   ntdsHashes?: string;
   /** the AWS account this host represents/fronts — real `aws s3`/`aws sts`/`aws iam`/`aws ec2` commands operate against this */
   awsAccount?: AwsAccountDef;
+  /** models this "host" as a wireless AP/network instead of (or alongside) an IP-reachable service —
+   *  read by `airodump-ng`/`aireplay-ng`. The host's existing `ip` is still used for any wired-side
+   *  services it also exposes (e.g. a captive portal or a rogue RADIUS endpoint over `curl`). */
+  wifiNetwork?: WifiNetworkDef;
 }
 
 export interface AttackerBox {
@@ -147,7 +165,9 @@ export interface LabScenario {
     | 'Malware'
     | 'Security Engineering'
     | 'API'
-    | 'Cryptography';
+    | 'Cryptography'
+    | 'Mobile'
+    | 'Wireless';
   briefing: string;
   objectives: (string | ObjectiveStep)[];
   hints: string[];

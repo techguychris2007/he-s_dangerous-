@@ -4,12 +4,14 @@ Running count and category breakdown for the offensive-security lab expansion. S
 full narrative detail on every batch (what was added, why, and how each one was verified); this file is
 just the running tally `NOTES.md`'s citations and the "when I'm back" summary can point at.
 
-**Total labs: 411** (204 at the start of this expansion → 411 now, +207 so far toward the "up to 500, quality
+**Total labs: 432** (204 at the start of this expansion → 432 now, +228 so far toward the "up to 500, quality
 first" target). Every count below is the actual `LABS.length` broken out by `category`, not an estimate.
 Batch 18 marked a deliberate pace change (30 labs in one batch instead of six, per explicit instruction);
 batch 19 continued it under a real tooling constraint (finalized in a later session, see its entry below);
 batch 20 registered, verified, fixed, and documented 25 labs a previous session had drafted but never
-finished; batch 21 is genuinely new content, 3 labs added to each of the six thinnest categories.
+finished; batch 21 is genuinely new content, 3 labs added to each of the six thinnest categories; batch 22
+launches two brand-new categories, **Mobile** and **Wireless**, closing a real engine-capability gap flagged
+as out of scope since batch 2 (see below).
 
 | Category | Count | This expansion added |
 |---|---|---|
@@ -27,6 +29,20 @@ finished; batch 21 is genuinely new content, 3 labs added to each of the six thi
 | Security Engineering | 21 | +11 (secret in git history, forged webhook, remember-me token, ECB-penguin, TOCTOU symlink race, cgroup release_agent escape, negative-quantity checkout, hardcoded signing key in a mobile APK, plus batch 21's a never-expiring pre-signed URL, a verbose error stack-trace leak, and a debug feature flag left enabled in production) |
 | **API** | 21 | +21 (BFLA, JWT kid injection, legacy-version IDOR, excessive data exposure, rate-limit bypass, WebAuthn downgrade, method-override authz bypass, GraphQL field-level authz bypass, Referer-header API key leak, OAuth audience confusion, GraphQL field-suggestion leak, pagination cursor tampering, upload content-type spoofing, exposed OpenAPI spec, exposed source map, unrestricted resource consumption, API key in a URL query string, mass assignment role escalation, plus batch 21's GraphQL query-depth/complexity DoS, sequential/predictable API keys, and SSRF via open-redirect chaining bypassing a webhook allowlist) |
 | **Cryptography** | 19 | +19 (ECB block-shuffling, hash length extension, JWT algorithm confusion, predictable PRNG session tokens, AES-CTR nonce reuse, Bleichenbacher, UUIDv1 reset-token entropy, ECDSA nonce reuse, Logjam, batch GCD shared-prime, TOTP shared-secret reuse, PBKDF2 insufficient iterations, CBC bit-flipping, AES-GCM "Forbidden Attack", RSA e=3 cube root, Debian OpenSSL predictable PRNG CVE-2008-0166, plus batch 21's Wiener's attack (small RSA private exponent), AES-CBC static/zero IV block splicing, and a bcrypt cost factor too low) |
+| **Mobile** (new, batch 22) | 11 | +11 (an exported Activity bypassing the app's own login screen, a hardcoded payment API key in decompiled source, a trust-all TrustManager defeating TLS, a plaintext-SharedPreferences password, a BOLA reachable by replaying an intercepted mobile request — these 5 were an unregistered draft from an earlier session, verified and kept as-is — plus 6 genuinely new this batch: a hardcoded third-party API key via `grep`/`strings` on decompiled source, cleartext HTTP via a missing Network Security Config, a WebView JavaScript-bridge RCE via `addJavascriptInterface`, an unprotected exported ContentProvider SQL injection (CVE-2020-0060 pattern), root-detection/SSL-pinning defeated via static smali patching, an iOS Keychain item stored with `kSecAttrAccessibleAlways`, and a custom-URL-scheme OAuth authorization-code hijack, CWE-939) |
+| **Wireless** (new, batch 22) | 10 | +10, all new: live WPA2 4-way handshake capture via the new `airmon-ng`/`airodump-ng`/`aireplay-ng` engine commands, a clientless PMKID capture, WEP IV-reuse statistical key recovery (FMS/PTW), an evil-twin clone of an open guest SSID, a KARMA attack exploiting broadcast probe requests, captive-portal Wi-Fi-password phishing, a WPA3-SAE lab deliberately built so it CANNOT be offline-cracked (the point of the lab), BLE GATT characteristic enumeration exposing a device PIN, a BlueBorne (2017) zero-click RCE case study, and a WPA2-Enterprise rogue-RADIUS credential capture via missing certificate validation |
+
+## Real engine capability expansion, batch 22
+
+`src/labs/engine.ts` gained three new commands — `airmon-ng`, `airodump-ng`, `aireplay-ng` — closing the exact
+gap this file's own "What's explicitly NOT attempted" section named since batch 2. `airodump-ng`'s targeted
+capture mode writes a file using the *same* `#HASHCAT_HASH:`/`#HASHCAT_PLAINTEXT:`/`#HASHCAT_FLAG:` marker
+convention `hashcat`/`john` already read for every password-cracking lab on this platform, so cracking a
+captured WPA2 handshake needed zero further engine work beyond the capture step itself. `src/labs/types.ts`
+gained a new optional `HostDef.wifiNetwork` field (`{ ssid, bssid, channel, encryption, captureFile? }`)
+modeling a wireless network as a target. All changes are purely additive — no existing command's behavior was
+touched — and verified via a full regression spot-check (the pre-existing WPA2-handshake lab, EternalBlue, and
+a GTFOBins Linux-privesc chain) confirming zero regressions. Full detail in `NOTES.md` batch 22.
 
 ## Batches shipped so far
 
@@ -237,18 +253,32 @@ finished; batch 21 is genuinely new content, 3 labs added to each of the six thi
     REST-style path segment, which this engine's `curl` can't match against a `vulnRoute` (only query-string/
     POST-body params are matched) — fixed to a query parameter. Full citations in `NOTES.md` batch 21 and
     `CHANGELOG.md`'s batch 21 entry.
+22. **21 labs (411 → 432)**: launches two brand-new categories, **Mobile** (11 labs) and **Wireless** (10
+    labs). Closes the real engine gap named in "What's explicitly NOT attempted" since batch 2 by adding
+    `airmon-ng`/`airodump-ng`/`aireplay-ng` to `engine.ts`, purely additively, reusing the existing
+    `#HASHCAT_*`-marker convention so cracking a captured WPA2 handshake needed no further engine work. Found
+    and extended (rather than replaced) a pre-existing, unregistered `mobile-pack.ts` draft (5 labs) left by
+    an earlier unfinished session — same situation this file already documented once for batch 20's drafts.
+    Wireless: a live WPA2 handshake capture/crack using the new commands (distinct from the platform's
+    existing pre-baked-capture WPA2 lab), a clientless PMKID capture, WEP IV-reuse statistical key recovery
+    (FMS/PTW, explicitly NOT a dictionary attack), an evil-twin open-SSID clone, a KARMA attack, captive-
+    portal Wi-Fi-password phishing, a WPA3-SAE lab deliberately built to be uncrackable (the actual point —
+    SAE produces no static offline-attackable value at all), BLE GATT enumeration, a BlueBorne (2017)
+    zero-click RCE case study, and a WPA2-Enterprise rogue-RADIUS credential capture. Mobile (6 new, complementing
+    the 5-lab draft): a hardcoded third-party API key in decompiled source, cleartext HTTP via a missing
+    Network Security Config, a WebView JavaScript-bridge RCE (`addJavascriptInterface`), an unprotected
+    exported ContentProvider SQL injection (the real CVE-2020-0060 pattern), root-detection/SSL-pinning
+    defeated via static smali patching, an iOS Keychain item stored with `kSecAttrAccessibleAlways`, and a
+    custom-URL-scheme OAuth authorization-code hijack (CWE-939). Full citations in `NOTES.md` batch 22.
 
 ## What's explicitly NOT attempted, and why
 
-- **Wireless labs** (WPA2/WPA3 handshake capture, Evil Twin, deauth, rogue AP) — this platform's labs run
-  through a simulated `TerminalEngine` (see `src/labs/engine.ts`), not a real Kali box or real RF hardware.
-  The engine's `KNOWN_COMMANDS` list has no `aircrack-ng`/`airodump-ng`/`aireplay-ng` family — adding real
-  wireless labs would first require adding new engine commands to simulate those tools' behavior, which is
-  a different, larger scope than writing lab content against existing commands. Flagged here rather than
-  faking wireless commands that wouldn't actually run.
 - **500 as a literal target** — treated the same way every volume target in this session's `CHANGELOG.md`
-  is treated: an upper bound to work toward with real per-lab verification, not a quota. 15 real,
-  individually-verified labs in this pass; continuing in the same pattern.
+  is treated: an upper bound to work toward with real per-lab verification, not a quota. Continuing in the
+  same pattern.
+- Wireless labs were the standing example in this section for 20 batches (flagged since batch 2, closed in
+  batch 22 above) — kept as a note here that the section itself is meant to be revisited and closed out over
+  time, not a permanent list of things this platform can never do.
 
 ## Verification method (same for every lab in this file)
 

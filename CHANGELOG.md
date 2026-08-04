@@ -1028,3 +1028,78 @@ batches 19 and 20: exactly 1 flag captured per lab via its own hint solve-path. 
 (same two pre-existing, unrelated warnings, neither touched by this batch). `411` total labs confirmed via
 the actual `LABS.length`/category breakdown; no duplicate `id` values or IP-address collisions anywhere in the
 full lab set. Full citations in `NOTES.md` batch 21.
+
+### Batch 22: two brand-new categories, Mobile and Wireless (411 → 432), plus a real engine capability expansion
+
+Two brand-new teaching modules ("Mobile Security" and "Wireless & Wi-Fi Hacking," 5 lessons each) were fully
+written in a prior session but never committed — `src/data/curriculum.ts`'s `MODULES`/`ROADMAP` registration
+had a clean, isolated, 56-line additions-only diff sitting uncommitted, while the lesson content itself
+(`src/content/mobile/*.tsx`, `src/content/wireless/*.tsx`) and the `IconMobile` icon it references had already
+landed in an earlier commit (`38eae2f`). Verified the registration is real and correct — `tsc -b` clean, every
+`Content` component it references exists and default-exports correctly, every quiz's `correctIndex` is in
+range, and `vite`'s dev-server transform of both the new content files and `curriculum.ts` itself succeeds
+with zero errors — then committed just that one file on its own.
+
+The actual unfinished work was the lab side: neither category existed in the labs system at all before this
+batch — no `'Mobile'`/`'Wireless'` in `LabScenario['category']`, no entries in `LAB_CATEGORIES`, and
+`labs-index.md` had flagged wireless labs as explicitly out of scope since batch 2 ("the engine has no
+aircrack-ng-family commands"). Closed that gap for real: added `airmon-ng`, `airodump-ng`, and `aireplay-ng`
+to `src/labs/engine.ts` (new `KNOWN_COMMANDS` entries, new dispatch-switch cases, three new private methods,
+`help()` text updated, `COMMAND_LATENCY_MS` entries for the two that represent a real non-instant scan/attack)
+— purely additive, no existing method's behavior touched. `airodump-ng`'s targeted-capture mode reads a new
+optional `HostDef.wifiNetwork` field (`src/labs/types.ts`) and writes a capture file using the *exact same*
+`#HASHCAT_HASH:`/`#HASHCAT_PLAINTEXT:`/`#HASHCAT_FLAG:` marker convention `hashcat`/`john` already read
+elsewhere in this engine, so cracking a captured WPA2 handshake needed zero further engine work — a learner
+just runs the existing `hashcat -m 22000 <file> <wordlist>` command exactly like every other password-cracking
+lab already works.
+
+**Wireless (10 new labs, `wireless-pack.ts`)**: a live WPA2 4-way handshake capture and crack using the new
+`airmon-ng`/`airodump-ng`/`aireplay-ng` commands end to end (deliberately distinct from the platform's existing
+`net-wifi-wpa2-handshake-crack` lab, which uses a pre-supplied capture file — this one requires actually
+running the live capture chain); a clientless PMKID capture (hashcat's creator Jens "atom" Steube's real 2018
+technique, mode 22000 unifies both formats); WEP IV-reuse statistical key recovery via the real FMS/PTW
+attacks, deliberately modeled as a statistical recovery rather than a dictionary crack since that's what it
+actually is; an evil-twin clone of an open guest SSID intercepting plaintext traffic; a KARMA attack
+(Dino Dai Zovi/Shane Macaulay, 2004) exploiting devices' own broadcast probe requests; captive-portal Wi-Fi-
+password phishing via a wifiphisher-style fake login page; a WPA3-SAE lab deliberately built so it **cannot**
+be cracked — the scenario's `wifiNetwork.captureFile` is left undefined entirely, so repeated capture attempts
+genuinely never succeed, and the flag is earned by understanding *why* via an analysis file, not by faking a
+crack that real SAE doesn't allow; BLE GATT characteristic enumeration exposing an unauthenticated device PIN;
+a BlueBorne (2017) zero-click RCE case study, built as pure code-review/analysis since a real memory-corruption
+RCE chain in compiled OS Bluetooth-stack code has no honest live-simulation path in this engine; and a
+WPA2-Enterprise rogue-RADIUS (hostapd-wpe) credential capture exploiting missing client-side certificate
+validation.
+
+**Mobile (11 labs, `mobile-pack.ts`)**: found a pre-existing, unregistered draft already sitting on disk (5
+real labs — an exported-Activity login bypass, a hardcoded payment API key, a trust-all TrustManager MITM
+proof, plaintext-SharedPreferences credential storage, and a BOLA capstone) from an earlier, unfinished
+session, the same situation this file already documented once for batch 20's drafts. Checked all 5 for
+id/flag/IP collisions against the other 411 labs (none found), verified all 5 end-to-end, and kept them as-is
+rather than rewriting. Added 6 genuinely new labs to complement rather than duplicate that coverage: a
+hardcoded third-party API key recovered via `grep`/`strings` on decompiled source (distinct from the existing
+platform lab where a signing/HMAC key is baked into a native `.so`); cleartext HTTP traffic via a missing
+Android Network Security Config; a WebView JavaScript-bridge RCE via `addJavascriptInterface` (confirmed the
+real API-17 `@JavascriptInterface` mitigation boundary — it restricts which methods are reachable from JS, not
+whether an exposed one is itself dangerous); an unprotected exported ContentProvider SQL injection, the same
+real root-cause class as CVE-2020-0060; root-detection and SSL-pinning defeated via **static** smali patching
+(`apktool` decode → flip the enforcing branch → rebuild → re-sign — deliberately distinct from the pre-existing
+draft's already-broken, never-implemented TrustManager, since this one shows a genuinely working check
+defeated after the fact); an iOS Keychain item stored with `kSecAttrAccessibleAlways`, cited directly from
+Apple's own developer documentation; and a custom-URL-scheme OAuth authorization-code hijack (CWE-939),
+grounded in the real "no PKCE + unverified bare scheme" precondition pair.
+
+Verified all 21 labs (11 Mobile, 10 Wireless) end-to-end with the same `tsx`-against-`TerminalEngine` harness
+used for every prior batch: exactly 1 flag captured per lab via its own `hints` solve path, and negative
+controls (a plausible-but-wrong request) spot-checked across every `vulnRoute`-based lab in both packs capture
+none — including a dedicated check confirming the WPA3-SAE lab's capture step genuinely never succeeds no
+matter how many times it's retried. Also re-ran a full-solve-path regression spot-check against three
+pre-existing labs from unrelated categories/batches (the existing pre-baked WPA2-handshake lab, EternalBlue,
+and a GTFOBins Linux-privesc chain) to confirm this batch's `engine.ts`/`types.ts` changes introduced zero
+regressions — all three still pass unchanged. `tsc -b` clean, `oxlint` clean (same two pre-existing, unrelated
+warnings as every prior batch, neither touched here). `432` total labs confirmed via the actual
+`LABS.length`/category breakdown; no duplicate `id` values anywhere in the full lab set (cross-scenario IP
+address reuse exists, as it already did before this batch, but is harmless — each `LabScenario`'s `network`
+array is scoped to its own isolated `TerminalEngine` instance, confirmed by reading `engine.ts`). Full
+citations in `NOTES.md` batch 22, including an explicit accounting of what was modeled as code-review-only
+(BlueBorne, WebView JS-bridge execution, ContentProvider/exported-component IPC, WEP's statistical recovery)
+rather than faked as a live exploit this engine genuinely cannot honestly simulate.

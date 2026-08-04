@@ -33,6 +33,7 @@ const KNOWN_COMMANDS = [
   'john', 'cewl', 'enum4linux', 'smbclient', 'masscan', 'rustscan', 'nc', 'netcat', 'sudo', 'su',
   'exit', 'logout', 'clear', 'objectives', 'hint', 'chmod', 'history', 'export', 'aws',
   'wc', 'sort', 'uniq', 'head', 'tail', 'cut', 'tr', 'xargs',
+  'airmon-ng', 'airodump-ng', 'aireplay-ng',
 ];
 
 /** Simulated per-command latency, roughly proportional to how long the real tool actually takes
@@ -60,6 +61,8 @@ export const COMMAND_LATENCY_MS: Record<string, number> = {
   exploit: 750,
   cewl: 500,
   ping: 250,
+  'airodump-ng': 900,
+  'aireplay-ng': 600,
 };
 
 export class TerminalEngine {
@@ -931,6 +934,104 @@ export class TerminalEngine {
     return [{ kind: 'output', text: svc.banner ?? `${svc.name} ${svc.version}` }];
   }
 
+  /** airmon-ng — puts a wireless interface into (or out of) monitor mode. Modeled as a pure confirmation
+   *  printout, the same "narrate the real prerequisite step, don't gate later commands on tracked state"
+   *  convention this engine already uses for `chmod`: no later wireless command in this engine actually
+   *  checks "is monitor mode currently on" before working, since a real learner's very next command is
+   *  always `airodump-ng` against the resulting `<iface>mon` interface regardless. */
+  private airmonNg(args: string[]): OutLine[] {
+    const sub = args[0];
+    const iface = args[1];
+    if ((sub !== 'start' && sub !== 'stop') || !iface) {
+      return [{ kind: 'error', text: 'usage: airmon-ng start|stop <interface>' }];
+    }
+    if (sub === 'stop') {
+      return [{ kind: 'system', text: `${iface}: monitor mode disabled.` }];
+    }
+    const monIface = iface.endsWith('mon') ? iface : `${iface}mon`;
+    return [
+      { kind: 'system', text: `Found 2 processes that could cause trouble.` },
+      { kind: 'muted', text: `Kill them using 'airmon-ng check kill' before putting the card in monitor mode.` },
+      { kind: 'output', text: `PHY     Interface       Driver          Chipset` },
+      { kind: 'output', text: `phy0    ${iface.padEnd(15)} iwlwifi         Intel Wireless` },
+      { kind: 'success', text: `\t(mac80211 monitor mode vif enabled for [phy0]${iface} on [phy0]${monIface})` },
+    ];
+  }
+
+  /** airodump-ng — 802.11 recon and (targeted) handshake/PMKID capture, reading the optional
+   *  `HostDef.wifiNetwork` this batch adds to model a "target" as a nearby wireless network instead of
+   *  (or alongside) an IP-reachable service. Two modes:
+   *   1. `airodump-ng <mon-iface>` (no --bssid) — general scan: lists every network this scenario defines
+   *      a `wifiNetwork` for, matching the real tool's live-updating scan table.
+   *   2. `airodump-ng --bssid <BSSID> -c <channel> -w <prefix> <mon-iface>` — targeted capture against one
+   *      network: if that network's `wifiNetwork.captureFile` is set, "writes" it to `<prefix>-01.hc22000`
+   *      in the attacker's current directory using the exact same `#HASHCAT_HASH:`/`#HASHCAT_PLAINTEXT:`/
+   *      `#HASHCAT_FLAG:` marker convention `hashcat`/`john` already read — cracking a captured handshake
+   *      needs zero new engine code beyond this, just the existing `hashcat -m 22000 <file> <wordlist>` step. */
+  private airodumpNg(args: string[]): OutLine[] {
+    const bssidIdx = args.indexOf('--bssid');
+    const bssid = bssidIdx >= 0 ? args[bssidIdx + 1] : undefined;
+    const wIdx = args.indexOf('-w');
+    const writePrefix = wIdx >= 0 ? args[wIdx + 1] : undefined;
+    const networks = this.scenario.network.filter((h) => h.wifiNetwork);
+
+    if (!bssid) {
+      if (networks.length === 0) return [{ kind: 'muted', text: '(no beacon frames seen — no networks in range)' }];
+      const out: OutLine[] = [{ kind: 'output', text: ' BSSID              PWR  Beacons    #Data  CH   ENC       ESSID' }];
+      for (const h of networks) {
+        const wn = h.wifiNetwork!;
+        out.push({ kind: 'output', text: ` ${wn.bssid}  -42       812        3   ${String(wn.channel).padEnd(3)} ${wn.encryption.padEnd(9)} ${wn.ssid}` });
+      }
+      return out;
+    }
+
+    const target = networks.find((h) => h.wifiNetwork!.bssid.toLowerCase() === bssid.toLowerCase());
+    if (!target?.wifiNetwork) {
+      return [{ kind: 'error', text: `airodump-ng: no beacon frames seen for BSSID ${bssid} — is the interface in monitor mode and in range?` }];
+    }
+    const wn = target.wifiNetwork;
+    const out: OutLine[] = [
+      { kind: 'system', text: ` CH ${wn.channel} ][ Elapsed: 24 s ]` },
+      { kind: 'output', text: ` BSSID              PWR RXQ  Beacons    #Data  CH   ENC       ESSID` },
+      { kind: 'output', text: ` ${wn.bssid}  -38 100      918      211   ${String(wn.channel).padEnd(3)} ${wn.encryption.padEnd(9)} ${wn.ssid}` },
+    ];
+    if (!wn.captureFile) {
+      out.push({ kind: 'muted', text: '(no station traffic captured yet — try aireplay-ng --deauth to force a client to reassociate)' });
+      return out;
+    }
+    out.push({ kind: 'success', text: ` [ handshake captured: ${wn.bssid} ]` });
+    if (!writePrefix) {
+      out.push({ kind: 'muted', text: 'handshake captured — re-run with -w <prefix> to save it to a file.' });
+      return out;
+    }
+    const filename = `${writePrefix}-01.hc22000`;
+    setNode(this.fsRoot(), this.resolveInSession(filename), { type: 'file', content: wn.captureFile });
+    out.push({ kind: 'success', text: `[ capture written to ${filename} ]` });
+    return out;
+  }
+
+  /** aireplay-ng — deauthentication framing step. Purely narrative/flavor, matching this batch's own
+   *  scope note: it forces a fresh handshake to appear in a subsequent `airodump-ng` capture, but this
+   *  engine models that OUTCOME directly via the target's `wifiNetwork.captureFile` already being present
+   *  rather than tracking "was a deauth actually sent" as extra session state that would add bookkeeping
+   *  with no teaching value over just running it as the objectives describe. */
+  private aireplayNg(args: string[]): OutLine[] {
+    const deauthIdx = args.indexOf('--deauth');
+    const count = deauthIdx >= 0 ? args[deauthIdx + 1] : undefined;
+    const aIdx = args.indexOf('-a');
+    const bssid = aIdx >= 0 ? args[aIdx + 1] : undefined;
+    if (deauthIdx < 0 || !bssid) {
+      return [{ kind: 'error', text: 'usage: aireplay-ng --deauth <count> -a <BSSID> [-c <client-mac>] <mon-iface>' }];
+    }
+    const host = this.scenario.network.find((h) => h.wifiNetwork?.bssid.toLowerCase() === bssid.toLowerCase());
+    if (!host) return [{ kind: 'error', text: `aireplay-ng: no such BSSID ${bssid} in range` }];
+    return [
+      { kind: 'system', text: `Sending ${count ?? '5'} directed DeAuth packets to ${bssid} (this may take a while)...` },
+      { kind: 'muted', text: `${new Date().toTimeString().slice(0, 8)}  Sending 64 directed DeAuth. STMAC: [FF:FF:FF:FF:FF:FF] [ 27|64 ACKs]` },
+      { kind: 'success', text: `Deauthentication packets sent — check airodump-ng for a fresh handshake.` },
+    ];
+  }
+
   private exploit(args: string[]): OutLine[] {
     const moduleName = args[0];
     const ip = args.find((a) => /^\d+\.\d+\.\d+\.\d+$/.test(a));
@@ -1266,6 +1367,7 @@ export class TerminalEngine {
       { kind: 'output', text: 'ssh user@ip, hydra -l user -P list ssh://ip   — access' },
       { kind: 'output', text: 'hashcat/john -m/--wordlist .., cewl <url>     — password cracking' },
       { kind: 'output', text: 'sudo -l, sudo <cmd>, exit                     — privesc / sessions' },
+      { kind: 'output', text: 'airmon-ng start/stop, airodump-ng, aireplay-ng — 802.11 wireless recon/capture' },
       { kind: 'output', text: 'objectives, hint, clear, history               — lab helpers' },
       { kind: 'output', text: 'cmd1 | cmd2, cmd1 && cmd2, cmd1 ; cmd2         — pipes & chaining' },
       { kind: 'output', text: 'grep/wc/sort/uniq/head/tail/cut/tr/xargs       — pipeline filters (right side of |)' },
@@ -1555,6 +1657,12 @@ export class TerminalEngine {
         return this.crackmapexec(args);
       case 'exploit':
         return this.exploit(args);
+      case 'airmon-ng':
+        return this.airmonNg(args);
+      case 'airodump-ng':
+        return this.airodumpNg(args);
+      case 'aireplay-ng':
+        return this.aireplayNg(args);
       case 'secretsdump':
         return this.secretsdump(args, onFlag);
       case 'dig':
