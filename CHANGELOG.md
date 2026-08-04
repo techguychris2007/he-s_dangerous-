@@ -1273,3 +1273,37 @@ rather than faked as a live exploit this engine genuinely cannot honestly simula
   confirming that batch's engine changes remain solid). `tsc -b` and `oxlint` both clean. This batch crosses
   the "up to 500" running target set at the start of this expansion — noted here rather than treated as a
   finish line; nothing about the per-lab verification bar changes. Full citations in `NOTES.md` batch 25.
+
+- **Batch 26 (502 → 528, +26 labs)** — genuinely new content, 3 labs per category added to the six thinnest
+  categories (IoT, Cryptography, Security+, Security Engineering, API, Binary Analysis), each `WebSearch`-
+  cited before writing. Also picked up and verified an unrelated 8-lab concurrent-session drop
+  (`iot-pack-3.ts`) that was already imported and registered in `labs.ts` but never mechanically checked —
+  same "don't trust present-on-disk as done" standard applied since batch 25.
+
+  Real, current techniques: an AES-CBC padding oracle (the actual Vaudenay-style mechanism behind POODLE and
+  Lucky 13), JWT `alg: none` signature bypass (CVE-2015-9235's persistent bug class, still resurfacing in
+  fresh CVEs across JWT libraries), an ECDH invalid-curve attack recovering a full long-term private key (the
+  real flaw once found in Oracle's default Java TLS provider and Bouncy Castle), OWASP API6:2023 unrestricted
+  business-flow abuse, GraphQL alias-batching defeating a per-request rate limit, a JWT `jku` header pointing
+  at an attacker-controlled JWKS, Java deserialization RCE via a real Apache Commons Collections/ysoserial
+  gadget chain, a ROP chain invoking `mprotect()` to defeat NX with zero libc leak required, unauthenticated
+  CoAP (NoSec mode) device control and CoAP amplification DDoS, and a single hardcoded TLS private key shared
+  across 40,000+ deployed units of one product line.
+
+  Four real mechanical bugs caught by this batch's own verification pass and fixed before commit — two in
+  this batch's own new labs: a GraphQL rate-limit-bypass lab's `curl -d` value was missing the `query=` key
+  name, so the engine's form-encoded parser never extracted the parameter the `vulnRoute` was matching on;
+  a ROP-chain lab's crackme password contained literal `;` characters, which this engine's shell-grammar
+  layer treats as a command separator, silently fragmenting one argument into pieces that could never match.
+  Two more in the unrelated `iot-pack-3.ts` drop: a `grep` pattern matched the file's `PRIVATE KEY` marker
+  lines but never the differently-cased, underscore-joined flag text sitting on a separate line (fixed to a
+  case-insensitive, broader pattern); a CVE-exploit lab was missing its final `cat /root/root.txt` step
+  entirely — the exact "missing flag-capture step" mistake class first documented in this file's own batch 19
+  entry, recurring here in someone else's unverified draft exactly as it once did in this session's own.
+
+  Verified: all 26 new labs plus all 8 `iot-pack-3.ts` labs pass the standard `tsx`-against-`TerminalEngine`
+  harness; dedicated negative controls on every one of this batch's live `curl`+`vulnRoutes` labs (7 of them)
+  confirm a benign request captures nothing; a full-platform check found zero duplicate `id` values and zero
+  duplicate `flag{...}` strings across all 528 registered labs; regression-checked against 3 pre-existing
+  labs from unrelated batches (all still pass). `tsc -b` and `oxlint` both clean. Full citations in `NOTES.md`
+  batch 26.

@@ -80,8 +80,10 @@ import { aiSecurityLabs2 } from '../labs/scenarios/ai-security-pack-2';
 import { mobileLabs3 } from '../labs/scenarios/mobile-pack-3';
 import { wirelessLabs3 } from '../labs/scenarios/wireless-pack-3';
 import { iotLabs2 } from '../labs/scenarios/iot-pack-2';
+import { iotLabs3 } from '../labs/scenarios/iot-pack-3';
 import { aiSecurityLabs3 } from '../labs/scenarios/ai-security-pack-3';
 import { metasploitLabs } from '../labs/scenarios/metasploit-pack';
+import { batch26MixedLabs } from '../labs/scenarios/batch26-mixed-pack';
 import type { LabScenario } from '../labs/types';
 
 export interface LabEntry {
@@ -174,7 +176,9 @@ export const LABS: LabEntry[] = [
   ...toEntries(mobileLabs3),
   ...toEntries(wirelessLabs3),
   ...toEntries(iotLabs2),
+  ...toEntries(iotLabs3),
   ...toEntries(aiSecurityLabs3),
+  ...toEntries(batch26MixedLabs),
 ];
 
 /** Ordered to match the roadmap's actual teaching sequence (see curriculum.ts's MODULES order). */

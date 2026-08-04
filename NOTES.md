@@ -2027,3 +2027,126 @@ applied to every batch since the beginning, restated here because the instructio
   future batch's verification pass alongside the duplicate-id check, given how cheap it is to run and that a
   duplicate flag string (unlike a duplicate id, which would be a build-breaking collision) could otherwise
   ship silently.
+
+## Sources checked, batch 26 (six thinnest categories + iot-pack-3.ts verification)
+
+- **CoAP (Constrained Application Protocol) NoSec mode and amplification DDoS** — [The Shadowserver Foundation: Accessible CoAP Report](https://www.shadowserver.org/news/accessible-coap-report-scanning-for-exposed-constrained-application-protocol-services/),
+  [IETF: Attacks on the Constrained Application Protocol (CoAP)](https://datatracker.ietf.org/doc/html/draft-ietf-core-attacks-on-coap).
+  Confirmed the real, current scale (~460,000 exposed CoAP services found by internet-wide scanning) and the
+  real mechanism: CoAP defines no authentication/authorization primitives of its own at all (unlike HTTP,
+  which at least has a slot for an Authorization header even when misused) — NoSec mode means genuinely zero
+  protection, and UDP's spoofable source address plus a small-request/large-response ratio is what makes the
+  amplification variant real and current.
+- **Shared hardcoded TLS/firmware keys across an entire IoT product line** — cross-referenced against
+  published firmware-analysis research (32,000 firmware images yielding 35,000 extracted private keys and
+  hardcoded credentials, per the search results) confirming this is a real, repeatedly-documented, mass-scale
+  failure mode, not a hypothetical — the same key baked into every unit of a model at build time rather than
+  generated per-device.
+- **AES-CBC padding oracle attacks (Vaudenay-style, POODLE/Lucky-13 family)** — [NCC Group: Cryptopals — Exploiting CBC Padding Oracles](https://www.nccgroup.com/research/cryptopals-exploiting-cbc-padding-oracles/),
+  [Microsoft Learn: CBC decryption vulnerability](https://learn.microsoft.com/en-us/dotnet/standard/security/vulnerabilities-cbc-mode).
+  Confirmed the real byte-at-a-time recovery mechanism (IV/preceding-block bit-flipping against a padding-
+  validity oracle) and that this is the same root cause behind two real, famous, named attacks (POODLE
+  against SSL 3.0, Lucky 13 exploiting timing instead of an explicit error) — deliberately built this lab's
+  oracle as an explicit two-response-shape leak rather than a timing side-channel, since a timing oracle
+  isn't something this engine's request/response model can honestly simulate.
+- **JWT `alg: none` signature bypass** — [Invicti: JWT Signature Bypass via None Algorithm](https://www.invicti.com/web-application-vulnerabilities/jwt-signature-bypass-via-none-algorithm),
+  [ARMO: CVE-2026-28802 Authlib signature bypass](https://www.armosec.io/blog/authlib-cve-2026-28802-jwt-signature-verification-bypass/).
+  Confirmed CVE-2015-9235 as the canonical original disclosure and, notably, that this exact bug class is NOT
+  purely historical — a fresh CVE (CVE-2026-28802, Authlib) surfaced the identical root cause this year,
+  making the framing "a persistent, recurring issue" accurate rather than dated.
+- **ECDH invalid-curve attacks** — [web-in-security.blogspot.com: Practical Invalid Curve Attacks](https://web-in-security.blogspot.com/2015/09/practical-invalid-curve-attacks.html),
+  [Springer: Practical Invalid Curve Attacks on TLS-ECDH](https://link.springer.com/chapter/10.1007/978-3-319-24174-6_21).
+  Confirmed the real disclosed vulnerability in Oracle's default Java TLS provider (JSSE/SunEC) and Bouncy
+  Castle, the real consequence (full long-term private-key extraction from a small number of crafted
+  handshakes against small-subgroup curves, not just one session's traffic), and the real underlying flaw
+  (missing point-on-curve validation before the ECDH scalar multiplication).
+- **DNS cache poisoning / the Kaminsky technique** — [unixwiz.net: An Illustrated Guide to the Kaminsky DNS Vulnerability](http://unixwiz.net/techtips/iguide-kaminsky-dns-vuln.html).
+  Confirmed the real two-step mechanism (random-subdomain query flooding to force fresh lookups, then racing
+  forged responses against the small 16-bit transaction-ID space) — this is a distinct technique from this
+  platform's existing DNS-rebinding SSRF-allowlist-bypass lab (batch 2), which exploits a completely different
+  property of DNS (TOCTOU on a resolved IP changing between check and use, not a cache-poisoning race).
+- **BadUSB / USB Rubber Ducky HID keystroke injection** — [Ivanti: What is a BadUSB?](https://www.ivanti.com/blog/what-is-badusb),
+  general well-documented pentesting tooling (Hak5's Rubber Ducky, since 2010). Confirmed the real mechanism
+  (HID device-class trust — the OS treats it as a keyboard with no driver-approval prompt) and used the
+  "inhuman typing speed" detection signal as the lab's concrete, checkable indicator.
+- **OWASP API6:2023 Unrestricted Access to Sensitive Business Flows** — [OWASP's own API Security Top 10 2023 page for API6](https://owasp.org/API-Security/editions/2023/en/0xa6-unrestricted-access-to-sensitive-business-flows/).
+  Confirmed this is a real, named, current OWASP category (distinct from every other API-category lab already
+  on this platform) and used one of OWASP's own cited real-world example shapes (automated bulk
+  reservation/scalping) rather than inventing an unrelated scenario.
+- **GraphQL query aliasing bypassing a per-operation rate limit** — well-established, current GraphQL security
+  knowledge (PortSwigger and multiple GraphQL-security vendors document alias-based batching as a standard
+  rate-limit-bypass technique); not independently re-searched via a fresh dedicated query this batch since it
+  follows directly from GraphQL's own spec-defined aliasing feature combined with the well-known "rate limiters
+  usually count HTTP requests, not GraphQL operations" gap.
+- **JWT `jku` header injection / attacker-controlled JWKS** — [Invicti: Unvalidated JWT jku parameter](https://www.invicti.com/vulnerabilities/web/unvalidated-jwt-jku-parameter/),
+  [jwtarsenal.com: JKU Injection](https://jwtarsenal.com/knowledge-base/jku-injection).
+  Confirmed the real mechanism (the server fetches whatever URL the token's OWN header claims, with no
+  allowlist) and its real SSRF overlap — distinct from this platform's existing "jku"-adjacent JWT labs (kid
+  injection, algorithm confusion), which exploit different fields/mechanisms entirely.
+- **Java deserialization RCE via Apache Commons Collections / ysoserial** — [the ysoserial project itself](https://github.com/frohoff/ysoserial),
+  [Deepwatch: Ysoserial Explained](https://www.deepwatch.com/glossary/ysoserial/).
+  Confirmed the real gadget-chain mechanism (InvokerTransformer/PriorityQueue chaining legitimate Commons
+  Collections 3.1 code into `Runtime.exec()`, no vulnerability in Commons Collections itself) and that this
+  was the first publicly-demonstrated high-impact Java deserialization gadget chain — distinct from this
+  platform's existing Node.js `node-serialize` deserialization lab (different language, different mechanism:
+  JS `eval`-based vs. Java reflection-based gadget chaining).
+- **ROP chains invoking `mprotect()` to defeat NX with no libc leak** — [InfoSec Write-ups: Defeating NX By Invoking mprotect() Using ROP](https://infosecwriteups.com/arm-exploitation-defeating-nx-by-invoking-mprotect-using-rop-1450b6667c16),
+  [HackTricks: ROP & JOP](https://hacktricks.wiki/en/binary-exploitation/rop-return-oriented-programing/index.html).
+  Confirmed the real technique and its genuine distinction from this platform's existing ret2libc lab: ret2libc
+  calls an EXISTING libc function directly (needs a libc base-address leak to defeat ASLR), while this
+  mprotect-ROP chain uses only gadgets already present in the target binary's own, non-randomized code (no PIE
+  needed to defeat) to manually mark memory executable before jumping to injected shellcode.
+- **Format string vulnerabilities enabling arbitrary memory reads via `%s`/positional specifiers** —
+  [Infosec Institute: How to exploit format string vulnerabilities](https://www.infosecinstitute.com/resources/secure-coding/how-to-exploit-format-string-vulnerabilities/).
+  Confirmed the real `%N$s` positional-specifier mechanism for targeted reads and that this is a genuinely
+  distinct primitive (arbitrary READ, zero memory corruption) from every other Binary Analysis lab already on
+  this platform, all of which involve either a write primitive or a control-flow hijack.
+
+## A pre-existing, unregistered drop was found, verified for the first time, and two real bugs fixed
+
+`src/labs/scenarios/iot-pack-3.ts` (8 labs) was already imported and spread into `LABS` in `src/data/labs.ts`
+by a concurrent session before this batch started, but — per this file's own now-standing practice since
+batch 25 — "present in the registry" was not treated as "verified." Running all 8 through the same `tsx`-
+against-`TerminalEngine` harness used for this batch's own new labs caught two real, distinct mechanical bugs:
+
+1. `iot-spi-flash-dump-recovers-signing-key`'s `grep -a "PRIVATE KEY" recovered-flash-dump.bin` step matched
+   the file's `-----BEGIN/END RSA PRIVATE KEY-----` marker lines (case-sensitive, exact "PRIVATE KEY" with a
+   space) but never the actual flag line, whose text uses lowercase, underscore-joined `private_key` — a
+   case AND separator mismatch that meant the grep step correctly displayed relevant-looking output while
+   never triggering flag capture at all. Fixed by switching to a case-insensitive `grep -i "private"` pattern
+   broad enough to match both the marker lines and the flag text.
+2. `iot-cve-2021-36260-hikvision-webserver-rce`'s `hints` array ended immediately after the `exploit`
+   command, with no follow-up `cat /root/root.txt` step at all — the exact "missing flag-capture step"
+   mistake class this file first documented all the way back in batch 19 (see that entry: "a protocol/port
+   mismatch plus a missing flag-capture step on a database-credentials lab"), recurring here in a different
+   session's unverified draft. Fixed by adding the missing final step.
+
+Both fixes verified: all 8 `iot-pack-3.ts` labs now pass end-to-end, matching the standard applied to every
+lab this session touches regardless of authorship.
+
+## Two real mechanical bugs caught in this batch's own new labs
+
+1. `api-graphql-alias-batching-rate-limit-bypass`'s `curl -X POST ... -d "aliased_batch_50_login_attempts"`
+   sent a raw string with no `key=value` shape at all — this engine's `curl` parses POST bodies as
+   form-encoded pairs (`parseParams`, splitting on `&` and `=`), so a bare string with no `=` never populates
+   any named parameter, and the lab's `vulnRoute` (matching on a `query` parameter) never saw a value to test
+   against its `triggerSubstrings` at all. Fixed by sending `-d "query=aliased_batch_50_login_attempts"`.
+2. `binary-rop-chain-mprotect-nx-bypass`'s crackme password was written as a semicolon-separated gadget-
+   address sequence (`0x400693;0x601040;...`) — but this engine's `run()` method checks the raw command line
+   against `/[|;&>]/` BEFORE dispatching, and routes anything containing a `;` through the shell-chain parser
+   (`runChain`/`splitChain`) instead of treating it as one plain command. The semicolons in the "password"
+   value split the single crackme argument into multiple separate shell stages, none of which could ever
+   match the full `#CRACKME_PASSWORD:` string. Fixed by replacing `;` with `-` throughout the gadget-chain
+   token, avoiding this engine's shell-grammar special characters (`|;&>`) entirely.
+
+## NEEDS REVIEW (labs/topics), batch 26
+
+- **`iot-owasp-top10-gap-analysis-capstone`** (from the `iot-pack-3.ts` drop, not authored this batch) has a
+  minor, self-inconsistent narrative detail not worth a content rewrite: its checklist file labels the
+  privacy-protection category "I6" with a footnote explaining the renumbering, while the lab's own briefing
+  text calls it "I8" — the flag text itself doesn't depend on either number, so this doesn't affect
+  solvability at all, but it's a small polish item flagged honestly rather than silently left unmentioned,
+  consistent with this file's standard practice for anything noticed but out of a batch's stated scope.
+- No new engine capability or limitation surfaced this batch — every technique (CoAP-as-curl, `vulnRoutes`-
+  based web labs, `cat`-based analysis, crackme-marker binaries, and one `exploit <name> <ip>` CVE lab) fits
+  existing, already-established engine conventions.
