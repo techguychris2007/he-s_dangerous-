@@ -9,9 +9,36 @@ import { useProgress } from '../state/progressStore';
 import CodeConsole from '../components/code/CodeConsole';
 import CyberLabAI from '../components/labs/CyberLabAI';
 import DifficultyPill from '../components/common/DifficultyPill';
-import { IconCheck, IconCode } from '../components/layout/icons';
+import { IconCheck, IconCode, IconDownload } from '../components/layout/icons';
+import type { CodeLanguage, CodeTask } from '../labs/codeTypes';
 
 const ALL_CODE_TASKS = [...PYTHON_TASKS, ...CPP_TASKS, ...JS_TASKS, ...ML_TASKS, ...SECURITY_TASKS];
+
+const EXTENSION_BY_LANGUAGE: Record<CodeLanguage, string> = { python: 'py', cpp: 'cpp', javascript: 'js' };
+const COMMENT_PREFIX_BY_LANGUAGE: Record<CodeLanguage, string> = { python: '#', cpp: '//', javascript: '//' };
+
+function slugify(title: string): string {
+  return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'solution';
+}
+
+/** Builds a ready-to-commit source file from whatever the learner currently has in the editor — a
+ *  short, real-comment-syntax header (task name, category, difficulty) followed by their code exactly
+ *  as written, nothing fabricated or added. Downloads client-side via a Blob URL; no backend involved. */
+function downloadTaskCode(task: CodeTask, code: string) {
+  const ext = EXTENSION_BY_LANGUAGE[task.language];
+  const c = COMMENT_PREFIX_BY_LANGUAGE[task.language];
+  const filename = `${slugify(task.title)}.${ext}`;
+  const header = [`${c} ${task.title}`, `${c} ${task.category} · ${task.difficulty}`, `${c} Solved on DarkWorld (darkworld app) — ${new Date().toISOString().slice(0, 10)}`, ''].join('\n');
+  const blob = new Blob([header + code.trimEnd() + '\n'], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
 
 export default function CodeTaskPage() {
   const { taskId } = useParams();
@@ -101,6 +128,14 @@ export default function CodeTaskPage() {
             {task.solution}
           </pre>
         )}
+
+        <button
+          onClick={() => downloadTaskCode(task, currentCodeRef.current || task.starterCode)}
+          className="w-full mt-3 px-3 py-2 rounded-lg border border-[var(--color-border)] text-xs font-semibold text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-heading)] transition-colors flex items-center justify-center gap-1.5"
+          title={`Download your code as a .${EXTENSION_BY_LANGUAGE[task.language]} file — ready to commit to your own GitHub repo`}
+        >
+          <IconDownload className="w-3.5 h-3.5" /> Download code (.{EXTENSION_BY_LANGUAGE[task.language]})
+        </button>
 
         {done && (
           <div className="mt-5 flex items-center gap-2 text-sm font-semibold text-[var(--color-success)]">

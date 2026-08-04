@@ -4,6 +4,7 @@ import { useAuth } from '../state/authStore';
 import Logo from '../components/layout/Logo';
 import AgencyBackdrop from '../components/layout/AgencyBackdrop';
 import { IconUser, IconLock, IconMail } from '../components/layout/icons';
+import { LABS } from '../data/labs';
 
 type Mode = 'signin' | 'signup' | 'reset';
 
@@ -48,6 +49,9 @@ export default function LoginPage() {
 
   const initialMode: Mode = searchParams.get('mode') === 'signup' ? 'signup' : 'signin';
   const [mode, setMode] = useState<Mode>(initialMode);
+
+  const totalLabs = LABS.length;
+  const totalFlags = LABS.reduce((n, l) => n + l.scenario.totalFlags, 0);
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -147,12 +151,12 @@ export default function LoginPage() {
           </p>
           <div className="flex items-center gap-8">
             <div>
-              <div className="text-2xl font-extrabold text-white">142+</div>
+              <div className="text-2xl font-extrabold text-white">{totalLabs}+</div>
               <div className="text-2xs font-mono uppercase tracking-[0.2em] text-[#7c93ae] mt-1">Hands-on labs</div>
             </div>
             <div>
-              <div className="text-2xl font-extrabold text-white">18</div>
-              <div className="text-2xs font-mono uppercase tracking-[0.2em] text-[#7c93ae] mt-1">Real-execution labs</div>
+              <div className="text-2xl font-extrabold text-white">{totalFlags}+</div>
+              <div className="text-2xs font-mono uppercase tracking-[0.2em] text-[#7c93ae] mt-1">Flags to capture</div>
             </div>
           </div>
         </div>
