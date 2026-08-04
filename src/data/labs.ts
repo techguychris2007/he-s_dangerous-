@@ -85,6 +85,7 @@ import { aiSecurityLabs3 } from '../labs/scenarios/ai-security-pack-3';
 import { metasploitLabs } from '../labs/scenarios/metasploit-pack';
 import { batch26MixedLabs } from '../labs/scenarios/batch26-mixed-pack';
 import { metasploitLabs2 } from '../labs/scenarios/metasploit-pack-2';
+import { metasploitLabs3 } from '../labs/scenarios/metasploit-pack-3';
 import type { LabScenario } from '../labs/types';
 
 export interface LabEntry {
@@ -181,6 +182,7 @@ export const LABS: LabEntry[] = [
   ...toEntries(aiSecurityLabs3),
   ...toEntries(batch26MixedLabs),
   ...toEntries(metasploitLabs2),
+  ...toEntries(metasploitLabs3),
 ];
 
 /** Ordered to match the roadmap's actual teaching sequence (see curriculum.ts's MODULES order). */

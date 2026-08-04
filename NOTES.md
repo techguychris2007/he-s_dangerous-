@@ -2199,3 +2199,61 @@ and required/default option confirmed against Rapid7's own module documentation 
   concurrent sessions writing to shared registry files, and a transient whole-project build failure doesn't
   necessarily mean a given batch's own changes are broken — it's worth checking the specific file/line before
   assuming so.
+
+## Sources checked, batch 28 (Metasploit pack 3)
+
+- **`exploit/windows/smb/ms17_010_eternalblue`** — [InfosecMatter module library entry](https://www.infosecmatter.com/metasploit-module-library/?mm=exploit%2Fwindows%2Fsmb%2Fms17_010_eternalblue),
+  [rapid7/metasploit-framework: ms17_010_eternalblue.md](https://github.com/rapid7/metasploit-framework/blob/master/documentation/modules/exploit/windows/smb/ms17_010_eternalblue.md).
+  Confirmed the real default behavior (anonymous SMB login by default, SMBUser/SMBPass genuinely optional)
+  and RPORT's real default of 445 — this platform's existing `eternalblue-smb-rce` lab (via the older
+  shortcut) already covers the same real technique; this lab is deliberately a second, differently-mechanic
+  path to it, not a duplicate.
+- **Shellshock, `exploit/multi/http/apache_mod_cgi_bash_env_exec` (CVE-2014-6271)** — [Rapid7: Apache mod_cgi Bash Environment Variable Code Injection](https://www.rapid7.com/db/modules/exploit/multi/http/apache_mod_cgi_bash_env_exec/).
+  Confirmed the real mechanism: the payload rides in the HTTP User-Agent header (CGI's design converts HTTP
+  headers into environment variables), and bash's parsing bug means a trailing command after a crafted
+  function definition executes on shell STARTUP, before the invoked script itself ever runs.
+  Confirmed the real, current CVE identifier and the disclosure date (September 2014).
+- **Drupageddon, `exploit/multi/http/drupal_drupageddon` (CVE-2014-3704)** — [rapid7/metasploit-framework: drupal_drupageddon.md](https://github.com/rapid7/metasploit-framework/blob/master/documentation/modules/exploit/multi/http/drupal_drupageddon.md).
+  Confirmed the real two-step chain (SQL injection via crafted array-style parameter keys, no authentication
+  needed, followed by planting and then triggering execution of PHP through Drupal's own form cache) and the
+  real default TARGETURI of `/`.
+- **CouchDB CVE-2017-12635/12636, `exploit/linux/http/apache_couchdb_cmd_exec`** — [InfosecMatter module library entry](https://www.infosecmatter.com/metasploit-module-library/?mm=exploit/linux/http/apache_couchdb_cmd_exec),
+  [Apache CouchDB's own docs: CVE-2017-12635](https://docs.couchdb.org/en/stable/cve/2017-12635.html).
+  **Research correction worth logging**: initially assumed the module would be named something like
+  `couchdb_erlang_rce` before searching — the real module name is `apache_couchdb_cmd_exec`, confirmed
+  directly from Rapid7's own source tree rather than guessed from the CVE's informal "Erlang RCE" nickname.
+  Confirmed the real chained mechanism: CVE-2017-12635 is a role-validation type confusion (sending a JSON
+  array where a string is expected bypasses the admin-role check, letting a non-admin self-grant admin),
+  and CVE-2017-12636 is the second stage (a now-admin account configuring a malicious Erlang query server to
+  achieve command execution) — genuinely distinct from this platform's existing "Admin Party" lab, which
+  exploits a server that never had an admin account configured at all, not a privilege escalation from an
+  existing unprivileged one.
+- **Tomcat CVE-2017-12617, `exploit/multi/http/tomcat_jsp_upload_bypass`** — [rapid7/metasploit-framework: tomcat_jsp_upload_bypass.rb](https://github.com/rapid7/metasploit-framework/blob/master/modules/exploits/multi/http/tomcat_jsp_upload_bypass.rb),
+  [Security Risk Advisors: New Vulnerability, Same Old Tomcat — CVE-2017-12617](https://sra.io/blog/new-vulnerability-same-old-tomcat-cve-2017-12617/).
+  Confirmed the real precondition (`DefaultServlet` configured with `readonly=false`, meant to enable WebDAV-
+  style editing) and that this is genuinely a DIFFERENT vulnerability class from the platform's existing
+  `tomcat_mgr_upload` lab: that one is credentialed Manager-application WAR deploy; this one is an
+  unauthenticated HTTP PUT bypass requiring no login at all.
+- **`auxiliary/scanner/mysql/mysql_login`** — [rapid7/metasploit-framework: mysql_login.md](https://github.com/rapid7/metasploit-framework/blob/master/documentation/modules/auxiliary/scanner/mysql/mysql_login.md).
+  Confirmed the real option set (USERNAME/PASSWORD for single-credential confirmation, matching this lab's
+  shape) and RPORT's real default of 3306 — the third distinct auxiliary-module flavor on this platform now
+  (fingerprint-only `smb_version`, single-credential `ssh_login`, and this one), differentiated by service
+  and by scenario framing (a leaked config file rather than a prior brute-force pass).
+
+## NEEDS REVIEW (labs/topics), batch 28
+
+- None — all 6 labs passed mechanical verification on the first run, no bugs found or fixed this batch.
+- **A pre-existing lab was mis-picked as a regression-check target and initially appeared broken**
+  (`eternalblue-smb-rce`, from `intense-realworld-pack.ts`) — its `hints` array is narrative prose
+  (`'nmap -sV 10.10.106.4 — look for an old SMB version number on port 445.'`) rather than runnable command
+  strings, the same pre-hints-as-commands-convention pattern already documented for `linux-fundamentals`,
+  `msf-samba-usermap-domain-pivot`, and `ad-golden-ticket-persistence` in earlier batches. Confirmed by
+  reading its actual `hints` array before concluding it wasn't a real regression; swapped in a modern-
+  convention lab (`msf-jenkins-script-console-groovy-rce`) for the actual regression confirmation, which
+  passed cleanly.
+- **Two more unrelated concurrent sessions surfaced during this batch**: a `curriculum.ts` edit (Cloud module
+  lessons 6-8 this time, following the same pattern as batches 25-27) caused another transient whole-project
+  `tsc -b` failure, and a new untracked file (`src/content/forensics/04-disk-forensics-and-file-system-
+  analysis.tsx`) had a genuine `oxlint` syntax error mid-write. Both confirmed via `git status`/reading the
+  reported paths to be entirely outside this batch's own changes before proceeding — neither staged,
+  neither committed, neither touched.

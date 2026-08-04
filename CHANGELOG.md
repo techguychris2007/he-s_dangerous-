@@ -1333,3 +1333,30 @@ rather than faked as a live exploit this engine genuinely cannot honestly simula
   whole-project `tsc -b` failure, confirmed both times (by re-running immediately after, and by checking the
   reported file paths) to be entirely outside this batch's own changes before proceeding. Full citations in
   `NOTES.md` batch 27.
+
+- **Batch 28 (534 → 540, +6 labs)** — a third Metasploit pack, still on the real `msfconsole` mechanic, no
+  engine changes needed. Two of the six deliberately revisit a technique this platform already has a lab
+  for via a different mechanic, each explicitly differentiated in its briefing: `exploit/windows/smb/
+  ms17_010_eternalblue` (EternalBlue/MS17-010, the existing `eternalblue-smb-rce` lab uses the older one-line
+  shortcut) and `exploit/linux/http/apache_couchdb_cmd_exec` (CVE-2017-12635/12636, a non-admin-to-RCE
+  privilege-escalation chain via a role-validation type confusion — mechanically distinct from the existing
+  "Admin Party" no-admin-account misconfig lab). Four new modules: Shellshock (CVE-2014-6271, a crafted
+  User-Agent header becomes an environment variable bash executes on startup), Drupageddon (CVE-2014-3704,
+  unauthenticated SQLi planting PHP into Drupal's own form cache), an unauthenticated Tomcat PUT-method JSP
+  upload bypass (CVE-2017-12617, distinct from the credentialed `tomcat_mgr_upload` lab), and a third
+  auxiliary module, `auxiliary/scanner/mysql/mysql_login`, confirming a leaked database credential with no
+  session opened.
+
+  One real research correction caught before writing: the CouchDB CVE module's actual real name is
+  `exploit/linux/http/apache_couchdb_cmd_exec`, not the more guessable `couchdb_erlang_rce` initially assumed
+  — confirmed via `WebSearch` against Rapid7's own module source before committing to a module path.
+
+  Verified: all 6 labs plus 6 dedicated negative controls passed on the first run, zero bugs found.
+  Regression-checked against 4 pre-existing labs; one initially-picked target (the pre-existing shortcut-based
+  `eternalblue-smb-rce` lab) turned out to predate the hints-as-literal-commands convention (narrative hints,
+  the same root cause already documented for three other pre-existing labs in recent batches) — swapped for a
+  modern-convention lab and reconfirmed clean rather than treated as a real regression. Zero duplicate ids or
+  flag strings across all 540 registered labs. `tsc -b` clean for every file this batch touched; `oxlint`
+  flagged one new error in an unrelated, untracked, concurrently-mid-write forensics content file, confirmed
+  via `git status` to be someone else's in-progress work and left untouched. Full citations in `NOTES.md`
+  batch 28.
