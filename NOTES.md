@@ -1966,3 +1966,64 @@ implicit options (RHOSTS/RPORT/LHOST) no module declares explicitly.
   convention (an AD CS ESC8 lab, a WPS Pixie Dust lab, an AI Security jailbreak lab, and the CVE-2023-1389 IoT
   lab) — all four passed unchanged, the actual, valid confirmation that this batch's `engine.ts` changes are
   regression-free.
+
+## Sources checked, batch 25 (Mobile/Wireless/IoT/AI Security lessons 6-8 + matching lab packs)
+
+This batch's content (all 12 labs, all 12 lesson files, all 4 lesson-6-8 quiz sets) was written by a
+concurrent session, not this one — this session's job was to confirm it was genuinely finished (not just
+present on disk) and mechanically real, per an explicit instruction partway through ("make them real,
+executable against a real engine"). That instruction was taken as directly on-point: the 4 new lab packs were
+imported into `src/data/labs.ts` but never spread into the `LABS` array, meaning all 12 labs were completely
+unreachable in the running app despite looking like finished work at a glance. Registered them, then ran every
+one through the real `TerminalEngine` before treating any of it as done — the same standard this file has
+applied to every batch since the beginning, restated here because the instruction asked for it explicitly.
+
+- **California SB-327 / UK PSTI Act default-credential requirements** — not independently re-searched this
+  batch; both are real, already-cited regulatory facts this platform's own IoT lesson content (`src/content/
+  iot/08-iot-testing-methodology-and-compliance.tsx`, written in the same concurrent session) already
+  documents accurately, and the lab's compliance-mapping worksheet draws directly from that lesson rather than
+  introducing a new claim needing separate verification.
+- **Modbus TCP's complete lack of built-in authentication** — well-established, foundational OT/ICS security
+  knowledge (Modbus predates modern network security entirely, designed in 1979 for serial links with an
+  implicit trust model), consistent with this platform's own Lesson 7 content; not re-searched fresh since
+  it's not a disputed or narrow technical claim.
+- **hostapd-wpe as the real tool for a rogue-RADIUS/EAP-downgrade credential-capture attack** — well-
+  established, standard red-team tooling for exactly this attack class; consistent with this platform's own
+  Lesson 6 content on 802.1X/EAP/RADIUS security, which the lab's session log draws from directly.
+- **IMSI catcher detection via forced-downgrade-then-vanish baseband patterns** — the general detection
+  pattern (an unregistered tower ID forcing a downgrade to an older network generation, then disappearing) is
+  standard, well-documented IMSI-catcher-detection methodology; not independently re-searched this batch since
+  it follows directly from the platform's own cellular-security lesson content rather than introducing a new,
+  narrower claim.
+- **Adversarial example generation via gradient-based optimization against a classifier's decision boundary,
+  with the underlying malicious behavior unchanged** — this is the real, foundational mechanism behind
+  adversarial ML evasion (a well-established research area since at least 2013-2014); the lab's specific
+  framing (static ML malware classifier, behavior-preserving perturbation) is consistent with this platform's
+  own Lesson 6 content and real documented antivirus-evasion research.
+- **AI system cards as a real external red-teaming/governance artifact** — real, current practice (OpenAI's
+  GPT-4 system card and similar documents from other labs are the real-world template this lesson and lab
+  reference); not independently re-searched this batch since it's descriptive of an established, public
+  practice rather than a disputed technical claim.
+- **Multi-agent indirect-injection propagation (an injected instruction surviving being "laundered" through
+  an intermediate trusted agent's summary)** — a real, current, actively-discussed AI-agent-security concern
+  as multi-agent systems move to production; consistent with and building directly on this platform's
+  existing indirect-prompt-injection lab from an earlier AI Security batch, differentiated here by the
+  two-agent propagation mechanic specifically (the Action Agent never sees the original attacker-controlled
+  text at all, only the already-injected summary).
+
+## NEEDS REVIEW (labs/topics), batch 25
+
+- **This batch's factual claims largely inherit verification from this platform's own lesson content**
+  (written by the same concurrent session, in the same sitting) rather than fresh, independent `WebSearch`
+  citations for every individual fact — flagged honestly per this file's standing practice (see the batch 3
+  precedent) rather than overstating how much new external verification happened here. What this session DID
+  independently verify: that the labs are mechanically real (registered, reachable, and solvable against the
+  actual engine) — the specific gap the mid-batch instruction was aimed at.
+- **No new engine capability or limitation surfaced this batch** — all 12 labs fit existing conventions
+  cleanly (11 file-review via `cat`, matching the established pattern for protocols this engine can't live-
+  simulate; 1 live `curl`+`vulnRoutes` lab, identical in shape to every other API-style lab on the platform).
+- **This batch also ran a full-platform duplicate-flag check for the first time**, not just a duplicate-id
+  check — zero collisions found across all 502 `flag{...}` strings. Worth adopting as a standing part of every
+  future batch's verification pass alongside the duplicate-id check, given how cheap it is to run and that a
+  duplicate flag string (unlike a duplicate id, which would be a build-breaking collision) could otherwise
+  ship silently.

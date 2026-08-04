@@ -1234,3 +1234,42 @@ rather than faked as a live exploit this engine genuinely cannot honestly simula
   engine change, confirmed by reading each one's actual `hints` array before concluding it wasn't a real
   regression.) `tsc -b` and `oxlint` both clean. Zero duplicate ids across all 490 registered labs. Full
   citations in `NOTES.md` batch 24.
+
+- **Batch 25 (490 → 502, +12 labs)** — a third concurrent-session drop, picked up and finished under an
+  explicit instruction this round to make sure it was real and mechanically executable, not just present.
+  Lessons 6-8 for Mobile/Wireless/IoT/AI Security were already written and registered in `curriculum.ts`; the
+  four matching 3-lab packs (`mobile-pack-3.ts`, `wireless-pack-3.ts`, `iot-pack-2.ts`,
+  `ai-security-pack-3.ts`) were imported into `src/data/labs.ts` but never actually spread into the `LABS`
+  array — so despite looking committed-adjacent, none of the 12 labs were reachable in the app at all until
+  the missing `...toEntries(...)` lines were added and every lab was run end-to-end against the real
+  `TerminalEngine`.
+
+  11 of the 12 are file-review labs, and stay that way for an honest reason: MQTT/Modbus/RADIUS/Kismet/
+  cellular-baseband/gradient-computation have no live protocol simulation in this engine, the same
+  established convention already applied to this platform's earlier UART/JTAG/BLE labs rather than forcing a
+  fake live exploit path. IoT: an unauthenticated MQTT broker wildcard-subscribe exposing an entire smart-home
+  fleet's live telemetry with zero authentication, an unauthenticated Modbus write disabling a physical
+  safety interlock on a chemical mixing tank, a QEMU-emulated firmware finding mapped to a specific
+  California SB-327/UK PSTI compliance violation. Wireless: a rogue-RADIUS EAP-downgrade capturing a full
+  Active Directory domain credential (not merely Wi-Fi access) from a client with certificate validation
+  disabled, WIDS alert triage distinguishing a genuine rogue AP (mismatched vendor OUI, no approved-inventory
+  match) from a stale-inventory false positive, IMSI-catcher detection via a forced-downgrade-then-vanish
+  pattern in baseband diagnostic logs. Mobile: an Accessibility-Service overlay attack chaining into this
+  module's existing SMS-OTP-interception mechanism for a complete banking-fraud chain, a Frida hook forcing a
+  root-detection check's return value to false and defeating an MDM compliance gate, a MASVS-checklist audit
+  cross-referencing an evidence log against the category checklist to surface an entire untested resilience
+  category. AI Security: an adversarially-perturbed file evading an ML-based AV classifier via gradient-based
+  search against its decision boundary while a dynamic sandbox confirms the actual malicious behavior never
+  changed, a model's own published system card revealing a red-team-confirmed bypass that shipped to
+  production "deprioritized... tracked for a future update" with no mitigation — and the batch's one live
+  lab, indirect prompt injection surviving being "laundered" through a trusted Research Agent's summary to
+  reach an Action Agent as a legitimate finding, auto-approving an unauthorized $500 refund.
+
+  Verified: all 12 labs pass the standard `tsx`-against-`TerminalEngine` harness; a dedicated negative control
+  on the one live `curl`+`vulnRoutes` lab confirms a benign ticket triggers no auto-escalation; a full-platform
+  check (not scoped to just this batch) found zero duplicate `id` values AND, for the first time, zero
+  duplicate `flag{...}` strings across all 502 registered labs; regression-checked against 3 pre-existing
+  labs, including batch 24's own new `msf-vsftpd-234-backdoor-real-console` msfconsole lab (still passes,
+  confirming that batch's engine changes remain solid). `tsc -b` and `oxlint` both clean. This batch crosses
+  the "up to 500" running target set at the start of this expansion — noted here rather than treated as a
+  finish line; nothing about the per-lab verification bar changes. Full citations in `NOTES.md` batch 25.
