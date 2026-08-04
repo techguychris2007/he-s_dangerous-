@@ -1307,3 +1307,29 @@ rather than faked as a live exploit this engine genuinely cannot honestly simula
   duplicate `flag{...}` strings across all 528 registered labs; regression-checked against 3 pre-existing
   labs from unrelated batches (all still pass). `tsc -b` and `oxlint` both clean. Full citations in `NOTES.md`
   batch 26.
+
+- **Batch 27 (528 → 534, +6 labs)** — a second Metasploit pack, on explicit request to keep going, built
+  entirely on the real `msfconsole` mechanic added in batch 24 (no engine changes needed this round). Six
+  more real, distinct modules: `exploit/unix/misc/distcc_exec` (CVE-2004-2687, distccd's network-exposed
+  compile-job daemon accepting arbitrary commands with no authorization check), `exploit/multi/misc/
+  java_rmi_server` (Java RMI's insecure default configuration — remote class loading with literally no
+  authentication anywhere in the RMI call protocol), `exploit/linux/samba/is_known_pipename` (SambaCry,
+  CVE-2017-7494 — upload a malicious `.so` to a writable share, then trick Samba's named-pipe handling into
+  loading and executing it as root), `exploit/multi/http/jenkins_script_console` (a real, still-common CI/CD
+  misconfiguration: Jenkins's own legitimate Groovy script console reachable with no login at all),
+  `exploit/windows/http/rejetto_hfs_exec` (CVE-2014-6287, a null byte defeating HFS's keyword filter to reach
+  its own `{.exec.}` scripting macro), and `auxiliary/scanner/ssh/ssh_login` — a second auxiliary-only
+  module, confirming an already-discovered credential without ever opening a session, the real operator habit
+  of cheaply validating a finding before a noisier step.
+
+  Every module path and required/default option confirmed via `WebSearch` against Rapid7's own module
+  documentation or source before writing each lab, same rigor as batch 24. All 6 labs passed the standard
+  `tsx`-against-`TerminalEngine` verification harness on the first run — zero bugs found this time, unlike
+  batch 24 (the `set`/`unset` case-canonicalization fix) and batch 26 (the semicolon-in-crackme-password
+  lesson), both of which held up cleanly here. Verified: 6 dedicated negative controls (wrong `RHOSTS` never
+  opens a session), a 3-lab regression spot-check (all pass), zero duplicate `id` or `flag{...}` values across
+  all 534 registered labs. `tsc -b`/`oxlint` clean for every file this batch actually touched — an unrelated
+  concurrent session's `curriculum.ts` edits were mid-flight during this batch and twice caused a transient
+  whole-project `tsc -b` failure, confirmed both times (by re-running immediately after, and by checking the
+  reported file paths) to be entirely outside this batch's own changes before proceeding. Full citations in
+  `NOTES.md` batch 27.

@@ -2150,3 +2150,52 @@ lab this session touches regardless of authorship.
 - No new engine capability or limitation surfaced this batch — every technique (CoAP-as-curl, `vulnRoutes`-
   based web labs, `cat`-based analysis, crackme-marker binaries, and one `exploit <name> <ip>` CVE lab) fits
   existing, already-established engine conventions.
+
+## Sources checked, batch 27 (Metasploit pack 2)
+
+Explicit follow-up request to keep expanding the real `msfconsole` mechanic from batch 24. Every module path
+and required/default option confirmed against Rapid7's own module documentation or source before writing.
+
+- **`exploit/unix/misc/distcc_exec` (CVE-2004-2687)** — [Rapid7: DistCC Daemon Command Execution](https://www.rapid7.com/db/modules/exploit/unix/misc/distcc_exec/).
+  Confirmed the real port (3632, the only option this module needs beyond RHOSTS) and the real mechanism:
+  distcc's protocol lets a client specify the exact compiler command to run, with the daemon trusting it
+  came from a legitimate build-farm peer — no authentication check exists at all when the daemon is
+  network-exposed with default configuration.
+- **`exploit/multi/misc/java_rmi_server`** — [Rapid7: Java RMI Server Insecure Default Configuration Java Code Execution](https://www.rapid7.com/db/modules/exploit/multi/misc/java_rmi_server/),
+  [Yeah Hub: Java RMI Exploitation with Metasploit](https://www.yeahhub.com/java-rmi-exploitation-metasploit-framework/).
+  Confirmed the real mechanism: RMI method calls carry no authentication support at all by design, and the
+  module invokes a Distributed Garbage Collector method present on effectively every RMI endpoint (not just
+  the registry) — the real, standard port 1099 default confirmed directly.
+- **`exploit/linux/samba/is_known_pipename` (SambaCry, CVE-2017-7494)** — [InfosecMatter module library entry](https://www.infosecmatter.com/metasploit-module-library/?mm=exploit/linux/samba/is_known_pipename),
+  [CIRCL TR-49: CVE-2017-7494](https://www.circl.lu/pub/tr-49/).
+  Confirmed the real required options (`SMB_SHARE_NAME`, `SMB_SHARE_BASE` — the module needs to know both the
+  share name and its real server-side filesystem path to construct the exact pipe-load path) and the real
+  precondition: a writable share plus knowledge of its server-side path, distinct from a pure authentication
+  bypass.
+- **`exploit/multi/http/jenkins_script_console`** — [Rapid7: Jenkins-CI Script-Console Java Execution](https://www.rapid7.com/db/modules/exploit/multi/http/jenkins_script_console/).
+  Confirmed USERNAME/PASSWORD are genuinely optional module options (not required) — real Jenkins instances
+  are frequently misconfigured with the script console reachable with no authentication at all, a real,
+  still-current CI/CD security finding class distinct from every other Network-category lab already on this
+  platform.
+- **`exploit/windows/http/rejetto_hfs_exec` (CVE-2014-6287)** — [InfosecMatter module library entry](https://www.infosecmatter.com/metasploit-module-library/?mm=exploit/windows/http/rejetto_hfs_exec),
+  [VK9 Security: HFS Code execution CVE-2014-6287](https://vk9-sec.com/hfs-code-execution-cve-2014-6287/).
+  Confirmed the real mechanism (a null byte inside a filtered keyword defeats HFS's regex-based script-
+  injection filter, reaching the built-in `{.exec.}` macro) and that RHOSTS/RPORT (default 80) are the only
+  options this module needs.
+- **`auxiliary/scanner/ssh/ssh_login`** — [rapid7/metasploit-framework: ssh_login.md](https://github.com/rapid7/metasploit-framework/blob/master/documentation/modules/auxiliary/scanner/ssh/ssh_login.md).
+  Confirmed the real option set (USERNAME/PASSWORD for a single candidate credential, or PASS_FILE/
+  USERPASS_FILE for wordlist-style attacks) and that this module — like `smb_version` in pack 1 — never opens
+  a session, printing a confirmed-valid/invalid result directly instead; used the single-credential-
+  confirmation shape specifically to differentiate it from pack 1's pure-fingerprinting `smb_version` lab.
+
+## NEEDS REVIEW (labs/topics), batch 27
+
+- None — all 6 labs passed mechanical verification on the first run, no bugs found or fixed this batch.
+- **An unrelated concurrent session's edits to `curriculum.ts` caused `tsc -b` to fail twice during this
+  batch**, both times for reasons entirely outside any file this batch touched (unused-import errors from a
+  different in-progress module registration) — confirmed both times by reading the reported file/line before
+  proceeding, and neither `curriculum.ts` nor any content file was staged or committed as part of this batch.
+  Worth naming explicitly since it's now a recurring pattern across batches 25-27: this repo has multiple
+  concurrent sessions writing to shared registry files, and a transient whole-project build failure doesn't
+  necessarily mean a given batch's own changes are broken — it's worth checking the specific file/line before
+  assuming so.

@@ -4,7 +4,7 @@ Running count and category breakdown for the offensive-security lab expansion. S
 full narrative detail on every batch (what was added, why, and how each one was verified); this file is
 just the running tally `NOTES.md`'s citations and the "when I'm back" summary can point at.
 
-**Total labs: 528** (204 at the start of this expansion → 528 now, +324 so far toward the "up to 500, quality
+**Total labs: 534** (204 at the start of this expansion → 534 now, +330 so far toward the "up to 500, quality
 first" target). Every count below is the actual `LABS.length` broken out by `category`, not an estimate.
 Batch 18 marked a deliberate pace change (30 labs in one batch instead of six, per explicit instruction);
 batch 19 continued it under a real tooling constraint (finalized in a later session, see its entry below);
@@ -24,7 +24,7 @@ finishes a third concurrent-session drop (12 more labs closing out Mobile/Wirele
 | Category | Count | This expansion added |
 |---|---|---|
 | Linux | 46 | +24 (Docker sudo NOPASSWD GTFOBins bind-mount privesc, GDB sudo NOPASSWD GTFOBins shell escape, plus 22 more real GTFOBins sudo/SUID escapes in batch 18: chroot, nice, setarch, sqlite3, mysql, watch, unshare, taskset, timeout, ionice, stdbuf, flock, nohup, expect, zsh, dash, screen, nano, rsync, ssh/scp ProxyCommand, busybox) |
-| Network | 63 | +38 (SMTP open relay abuse, CouchDB "Admin Party" unauthenticated access, CVE-2024-1709 ScreenConnect, CVE-2024-3400 PAN-OS GlobalProtect, CVE-2024-6387 regreSSHion, CVE-2023-46747 F5 BIG-IP AJP smuggling, CVE-2024-4577 PHP-CGI Best Fit, 13 CVEs in batch 19 (ProxyLogon, ProxyShell, Confluence OGNL injection, Spring4Shell, PaperCut auth bypass, Citrix ADC path traversal, Citrix NetScaler stack overflow, FortiOS SSL VPN OOB write, Confluence broken access control, vCenter vROps plugin upload, VMware Aria command injection, JetBrains TeamCity auth bypass, PHPUnit eval-stdin), 10 more CVEs in batch 20 (BlueKeep, SMBGhost, Follina, the XZ Utils/liblzma supply-chain backdoor, Outlook zero-click NTLM leak, Pulse Secure arbitrary file read, ProxyNotShell, Apache path traversal, WinRAR spoofed extension, FortiOS path traversal), plus 8 real `msfconsole`-workflow Metasploit labs in batch 24: vsftpd 2.3.4 backdoor, UnrealIRCd 3.2.8.1 backdoor, Tomcat Manager authenticated WAR upload, Struts2 OGNL injection (CVE-2017-5638, the Equifax-breach CVE), PHP-CGI argument injection (CVE-2012-1823), WordPress authenticated admin shell upload, credentialed Windows psexec lateral movement, and an `auxiliary/scanner/smb/smb_version` recon-only module (no session opens — the point of the lab)) |
+| Network | 69 | +6 real `msfconsole`-workflow Metasploit labs in batch 26 (distcc daemon command execution CVE-2004-2687, Java RMI registry insecure-default RCE, SambaCry CVE-2017-7494 writable-share module load, Jenkins unauthenticated Groovy script-console RCE, Rejetto HFS null-byte filter bypass CVE-2014-6287, and `auxiliary/scanner/ssh/ssh_login` confirming a discovered credential with no session opened), +38 (SMTP open relay abuse, CouchDB "Admin Party" unauthenticated access, CVE-2024-1709 ScreenConnect, CVE-2024-3400 PAN-OS GlobalProtect, CVE-2024-6387 regreSSHion, CVE-2023-46747 F5 BIG-IP AJP smuggling, CVE-2024-4577 PHP-CGI Best Fit, 13 CVEs in batch 19 (ProxyLogon, ProxyShell, Confluence OGNL injection, Spring4Shell, PaperCut auth bypass, Citrix ADC path traversal, Citrix NetScaler stack overflow, FortiOS SSL VPN OOB write, Confluence broken access control, vCenter vROps plugin upload, VMware Aria command injection, JetBrains TeamCity auth bypass, PHPUnit eval-stdin), 10 more CVEs in batch 20 (BlueKeep, SMBGhost, Follina, the XZ Utils/liblzma supply-chain backdoor, Outlook zero-click NTLM leak, Pulse Secure arbitrary file read, ProxyNotShell, Apache path traversal, WinRAR spoofed extension, FortiOS path traversal), plus 8 real `msfconsole`-workflow Metasploit labs in batch 24: vsftpd 2.3.4 backdoor, UnrealIRCd 3.2.8.1 backdoor, Tomcat Manager authenticated WAR upload, Struts2 OGNL injection (CVE-2017-5638, the Equifax-breach CVE), PHP-CGI argument injection (CVE-2012-1823), WordPress authenticated admin shell upload, credentialed Windows psexec lateral movement, and an `auxiliary/scanner/smb/smb_version` recon-only module (no session opens — the point of the lab)) |
 | Web | 50 | +10 (DNS rebinding SSRF-allowlist bypass, client-side prototype pollution, Host header password reset poisoning, missing SRI on a payment script, blind SQLi via sqlmap, SSRF via a PDF-generation service, server-side XSS in a dynamic PDF report, Node.js insecure deserialization via node-serialize, plus batch 20's XXE via a malicious SVG upload and second-order SQL injection via a stored display name) |
 | Active Directory | 27 | +12 (ADCS ESC1, RBCD abuse, Silver Ticket, Shadow Credentials, DCShadow rogue DC, GPP cpassword/MS14-025, LDAP anonymous bind disclosure, constrained delegation S4U abuse, GPO GenericWrite immediate-task abuse, DCSync rights self-granted via WriteDacl, plus batch 20's ADCS ESC8 (NTLM relay to web enrollment) and ESC4 (certificate template ACL abuse)) |
 | Bug Bounty | 25 | +5 (Certificate Transparency logs exposing a forgotten staging subdomain, exposed .env file leaking full Laravel application secrets, plus batch 21's a leaked public Postman collection exposing live API keys, broken link hijacking via a dangling social-media handle, and an exposed Firebase Realtime Database with public read/write rules) |
@@ -375,6 +375,25 @@ a GTFOBins Linux-privesc chain) confirming zero regressions. Full detail in `NOT
     plus dedicated negative controls on every live `curl`+`vulnRoutes` lab; zero duplicate ids AND zero
     duplicate flag strings across all 528 registered labs; `tsc -b`/`oxlint` clean; regression-checked
     against 3 pre-existing labs from unrelated batches (all still pass). Full citations in `NOTES.md` batch 26.
+27. **6 labs (528 → 534)**: a second Metasploit pack (`metasploit-pack-2.ts`), on explicit request to keep
+    expanding it, built entirely on the real `msfconsole` mechanic from batch 24 — no engine changes needed,
+    purely new content. Six more real, distinct modules, every path/option confirmed against Rapid7's own
+    documentation/source: `exploit/unix/misc/distcc_exec` (CVE-2004-2687, another original Metasploitable2
+    teaching target alongside vsftpd), `exploit/multi/misc/java_rmi_server` (RMI's insecure-by-design
+    default remote class-loading, no authentication anywhere in the RMI protocol), `exploit/linux/samba/
+    is_known_pipename` (SambaCry, CVE-2017-7494 — a malicious `.so` uploaded to a writable share and loaded
+    via a named-pipe-handling flaw), `exploit/multi/http/jenkins_script_console` (a real, still-common CI/CD
+    misconfiguration: Jenkins's legitimate Groovy script console left reachable with no login), `exploit/
+    windows/http/rejetto_hfs_exec` (CVE-2014-6287, a null-byte filter-bypass reaching HFS's own scripting
+    macro), and a second **auxiliary** module — `auxiliary/scanner/ssh/ssh_login` — confirming an already-
+    discovered credential with no session opened, the real operator habit of validating a finding cheaply
+    before spending a noisier step. All 6 verified end-to-end on the first run (zero bugs found this time —
+    the case-canonicalization fix from batch 24 and the semicolon lesson from batch 26 both held), plus 6
+    dedicated negative controls and a 3-lab regression check. Zero duplicate ids or flag strings across all
+    534 registered labs; `tsc -b`/`oxlint` clean (module-scoped — an unrelated concurrent session's
+    `curriculum.ts` edits were mid-flight and briefly broke the whole-project build twice during this batch,
+    confirmed both times to be outside every file this batch actually touched or committed). Full citations
+    in `NOTES.md` batch 27.
 
 ## What's explicitly NOT attempted, and why
 
