@@ -657,6 +657,60 @@ export const MODULES: ModuleMeta[] = [
       { id: 'cpy-9', slug: 'regex-concurrency-and-caching', title: 'Advanced Regex, Concurrency & Caching', summary: 'Lookaheads, asyncio.gather, and lru_cache.', minutes: 14, Content: RegexConcurrencyAndCaching },
     ],
   },
+  {
+    id: 'mobile',
+    slug: 'mobile',
+    title: 'Mobile Security',
+    subtitle: 'Android & iOS static/dynamic analysis, insecure storage, and API backends',
+    description:
+      'The mobile-native attack surface: Android/iOS app architecture, unpacking and decompiling APKs/IPAs, ' +
+      'dynamic instrumentation with Frida to bypass certificate pinning, insecure local storage and cleartext ' +
+      'communication, and how it all ties back to the API backend every mobile app ultimately depends on.',
+    status: 'available',
+    sourceBooks: ['The Mobile Application Hacker\'s Handbook', 'OWASP Mobile Application Security Testing Guide (MASTG)'],
+    icon: 'mobile',
+    lessons: [
+      { id: 'mob-1', slug: 'mobile-app-architecture-and-attack-surface', title: 'Mobile App Architecture & the Attack Surface', summary: 'APK/IPA structure, sandboxing, exported components, and the OWASP Mobile Top 10.', minutes: 12, Content: MobileAppArchitectureAndAttackSurface },
+      { id: 'mob-2', slug: 'static-analysis-of-android-apps', title: 'Static Analysis of Android Apps', summary: 'Unpacking with apktool/jadx, manifest review, and hunting hardcoded secrets.', minutes: 13, Content: StaticAnalysisOfAndroidApps },
+      { id: 'mob-3', slug: 'dynamic-analysis-and-instrumentation', title: 'Dynamic Analysis & Instrumentation', summary: 'Intercepting traffic with Burp and bypassing certificate pinning with Frida.', minutes: 13, Content: DynamicAnalysisAndInstrumentation },
+      { id: 'mob-4', slug: 'insecure-data-storage-and-communication', title: 'Insecure Data Storage & Communication', summary: 'Plaintext local storage, cleartext traffic, and WebView JavaScript bridge risks.', minutes: 13, Content: InsecureDataStorageAndCommunication },
+      {
+        id: 'mob-5', slug: 'ios-fundamentals-and-mobile-api-backends', title: 'iOS Security Fundamentals & Mobile API Backends', summary: 'IPA analysis, App Transport Security, Keychain, and closing the loop with API security testing.', minutes: 13, Content: IosFundamentalsAndMobileApiBackends,
+        quiz: [
+          { id: 'q1', prompt: 'Why is a "secret" API key found hardcoded inside a decompiled mobile app not actually secret anymore?', choices: ['It isn\'t a real risk — decompiling apps is illegal', 'The app is distributed to every user\'s device, so anyone can extract the key via static analysis', 'Hardcoded keys are automatically encrypted by the app store', 'Only iOS apps have this problem'], correctIndex: 1, explanation: 'Once a secret ships inside a client binary distributed to every user, it is effectively public — extractable with the exact static analysis workflow this module covers.' },
+          { id: 'q2', prompt: 'What does certificate pinning specifically defend against, and how is it typically bypassed for authorized testing?', choices: ['It defends against malware; bypassed by disabling Wi-Fi', 'It defends against MITM interception; bypassed by hooking the pinning check at runtime with Frida', 'It defends against reverse engineering; bypassed by using a different decompiler', 'It cannot be bypassed under any circumstances'], correctIndex: 1, explanation: 'Pinning rejects a proxy\'s CA even if the OS trusts it — Frida hooks the specific pinning-check function in the running process and forces it to pass.' },
+          { id: 'q3', prompt: 'Why is an exported Android Activity with no additional permission check a real vulnerability, even if the app\'s own UI requires a login to reach that screen?', choices: ['It isn\'t a vulnerability — exported components are always safe', 'Any other app installed on the device can launch that Activity directly via an Intent, bypassing the UI-level login entirely', 'Exported components only affect background services', 'It only matters on rooted devices'], correctIndex: 1, explanation: 'An exported component is a declared entry point any other installed app can trigger directly — a UI-level gate provides no protection if the underlying component performs the privileged action with no enforcement of its own.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'wireless',
+    slug: 'wireless',
+    title: 'Wireless & Wi-Fi Hacking',
+    subtitle: '802.11 fundamentals, WPA2/WPA3 cracking, evil twins, and Bluetooth/BLE',
+    description:
+      'The radio-frequency attack surface: 802.11 frame types and monitor mode, capturing and cracking WPA2 ' +
+      'handshakes, why WPA3\'s SAE handshake closes that door, rogue access points and evil twin attacks that ' +
+      'sidestep cryptography entirely, and the adjacent Bluetooth/BLE attack surface most devices also carry.',
+    status: 'available',
+    sourceBooks: ['Hacking Exposed Wireless', 'Red Team Field Manual (RTFM)'],
+    icon: 'wifi',
+    lessons: [
+      { id: 'wl-1', slug: '802-11-fundamentals-and-attack-surface', title: '802.11 Fundamentals & the Wireless Attack Surface', summary: 'Frame types, monitor mode, and why unauthenticated management frames matter.', minutes: 12, Content: Fundamentals80211AndAttackSurface },
+      { id: 'wl-2', slug: 'encryption-and-handshake-capture', title: 'WPA2 Encryption & Handshake Capture', summary: 'The 4-way handshake, deauth-and-capture, and the quieter PMKID technique.', minutes: 13, Content: EncryptionAndHandshakeCapture },
+      { id: 'wl-3', slug: 'cracking-handshakes-and-wpa3', title: 'Cracking Captured Handshakes & WPA3', summary: 'Dictionary/mask attacks with hashcat, and why WPA3-SAE breaks the offline-cracking model.', minutes: 13, Content: CrackingHandshakesAndWpa3 },
+      { id: 'wl-4', slug: 'rogue-aps-and-evil-twin-attacks', title: 'Rogue Access Points & Evil Twin Attacks', summary: 'Cloning trusted SSIDs, the KARMA attack, and captive portal credential phishing.', minutes: 12, Content: RogueApsAndEvilTwinAttacks },
+      {
+        id: 'wl-5', slug: 'bluetooth-and-ble-security', title: 'Bluetooth & BLE Security Basics', summary: 'Pairing trust models, GATT enumeration, and the BlueBorne case study.', minutes: 13, Content: BluetoothAndBleSecurity,
+        quiz: [
+          { id: 'q1', prompt: 'Why are 802.11 management frames (like deauthentication) exploitable by an attacker with no knowledge of the network password?', choices: ['They are encrypted, but with a weak cipher', 'They were unauthenticated and unencrypted in the original standard and WPA2, so anyone can forge them', 'They require physical access to the AP', 'Only WEP networks have this issue'], correctIndex: 1, explanation: 'Management frames being unauthenticated in 802.11/WPA2 is the root cause behind deauth attacks and evil twin attacks alike.' },
+          { id: 'q2', prompt: 'Why does WPA3\'s SAE (Dragonfly) handshake defeat the offline dictionary-cracking approach that works against WPA2-PSK?', choices: ['SAE does not use a password at all', 'Each authentication attempt requires a fresh interactive exchange with the AP, so there is no captured value to test password guesses against offline', 'SAE encrypts the password with RSA', 'It doesn\'t — WPA3 is equally vulnerable'], correctIndex: 1, explanation: 'WPA2-PSK exposes a value an attacker can verify guesses against offline, unlimited attempts; SAE forces every guess to be an online, rate-limitable attempt against the real AP.' },
+          { id: 'q3', prompt: 'What made the 2017 BlueBorne vulnerabilities especially severe compared to a typical single-product bug?', choices: ['They only affected one specific phone model', 'They lived in widely-shared Bluetooth stack code used across Android, iOS, Windows, and Linux, enabling RCE with no pairing or user interaction required', 'They required the victim to click a malicious link', 'They only allowed reading battery status'], correctIndex: 1, explanation: 'BlueBorne\'s flaws were in Bluetooth protocol stack implementations shared across nearly every major OS, estimated to affect over 5 billion devices at disclosure.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const ROADMAP: RoadmapStage[] = [
@@ -679,6 +733,8 @@ export const ROADMAP: RoadmapStage[] = [
   { title: 'Binary Analysis & Reverse Engineering', status: 'available', moduleSlug: 'binaryanalysis', sourceBooks: ['Practical Binary Analysis', 'Hacking: The Art of Exploitation'], track: 'security' },
   { title: 'Practical Malware Analysis', status: 'available', moduleSlug: 'malware', sourceBooks: ['Practical Malware Analysis'], track: 'security' },
   { title: 'Security Engineering', status: 'available', moduleSlug: 'secengineering', sourceBooks: ['Security Engineering — Ross Anderson'], track: 'security' },
+  { title: 'Mobile Security', status: 'available', moduleSlug: 'mobile', sourceBooks: ['The Mobile Application Hacker\'s Handbook', 'OWASP MASTG'], track: 'security' },
+  { title: 'Wireless & Wi-Fi Hacking', status: 'available', moduleSlug: 'wireless', sourceBooks: ['Hacking Exposed Wireless', 'RTFM'], track: 'security' },
   { title: 'Guided Hands-On Labs (142 labs)', status: 'available', href: '/labs', sourceBooks: ['Applied practice across every module above'], track: 'security' },
 
   { title: 'Code Portal: Python Fundamentals', status: 'available', moduleSlug: 'code-python-fundamentals', sourceBooks: ['Python Crash Course'], track: 'programming' },
