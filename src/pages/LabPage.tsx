@@ -6,6 +6,7 @@ import Terminal from '../components/terminal/Terminal';
 import StepChecklist from '../components/lesson/StepChecklist';
 import ShareWriteupModal from '../components/labs/ShareWriteupModal';
 import CyberLabAI from '../components/labs/CyberLabAI';
+import LabRatingWidget from '../components/labs/LabRatingWidget';
 import DifficultyPill from '../components/common/DifficultyPill';
 import { IconFlag, IconCheck } from '../components/layout/icons';
 
@@ -70,6 +71,8 @@ export default function LabPage() {
             </button>
           </div>
         )}
+
+        {done && <LabRatingWidget labId={scenario.id} />}
 
         <div className="mb-6">
           <StepChecklist steps={scenario.objectives} autoCheckedCount={autoCheckedCount} title="Lab Guide" variant="prominent" />

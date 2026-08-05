@@ -1,4 +1,5 @@
-import { IconHelp } from '../components/layout/icons';
+import { Link } from 'react-router-dom';
+import { IconHelp, IconMail } from '../components/layout/icons';
 
 const FAQS: { q: string; a: string }[] = [
   {
@@ -11,7 +12,7 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: 'Where is my progress saved?',
-    a: 'Your lesson, lab, and quiz progress is saved to your account — real Supabase Auth plus a database row that Row Level Security guarantees only you can read — so it follows you across devices as long as you\'re signed in. A few signals stay local to this specific browser instead: your streak, unlocked achievements, display name, and Code Portal learning-insight stats (hints used, attempts per solve). Clearing this browser\'s site data resets those specifically, without touching your synced progress.',
+    a: 'Everything is saved to your account — real Supabase Auth plus a database row that Row Level Security guarantees only you can read — so it follows you across devices as long as you\'re signed in: lessons, labs, quizzes, your streak, unlocked achievements, and Code Portal learning-insight stats (hints used, attempts per solve). Your display name is read straight from your account rather than stored separately.',
   },
   {
     q: 'What do the flags actually verify?',
@@ -56,6 +57,19 @@ export default function HelpFaqPage() {
             <p className="text-sm text-[var(--color-text-dim)] leading-relaxed mt-3">{item.a}</p>
           </details>
         ))}
+      </div>
+
+      <div className="mt-8 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          <div className="text-sm font-semibold text-[var(--color-heading)] mb-0.5">Didn't find your answer?</div>
+          <p className="text-xs text-[var(--color-text-dim)]">Report a bug, flag something wrong in a lesson, or suggest an improvement — it goes straight into a real inbox.</p>
+        </div>
+        <Link
+          to="/feedback"
+          className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[var(--color-accent)] text-white text-sm font-semibold hover:brightness-110 transition"
+        >
+          <IconMail className="w-4 h-4" /> Send feedback
+        </Link>
       </div>
     </div>
   );

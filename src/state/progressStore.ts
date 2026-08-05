@@ -11,17 +11,16 @@ export interface ProgressState {
   /** Code Portal practice tasks (Python/C++/JS) whose test harness has fully passed at least once. */
   completedCodeTasks: Record<string, boolean>;
   /** Local-date strings ("YYYY-MM-DD", learner's own timezone) on which at least one real learning
-   *  action happened — the raw signal streaks are computed from. Deliberately device-local only
-   *  (see SyncableProgress below): a synced streak would need a real backend clock and schema
-   *  change neither of which this device-local, best-effort sync model is built for yet. */
+   *  action happened — the raw signal streaks are computed from. Synced (see SyncableProgress below)
+   *  so a streak survives switching devices instead of silently resetting on a new browser. */
   activityDates: string[];
   /** How many "Run tests" attempts a Code Portal task has had, win or lose — the raw signal behind
-   *  "how many tries did this actually take," not just pass/fail. Device-local (see SyncableProgress). */
+   *  "how many tries did this actually take," not just pass/fail. Synced (see SyncableProgress). */
   codeTaskAttempts: Record<string, number>;
   /** The highest hint index ever revealed for a Code Portal task — a "0 hints" solve is a genuinely
-   *  different learning outcome than a "needed all 3" one. Device-local (see SyncableProgress). */
+   *  different learning outcome than a "needed all 3" one. Synced (see SyncableProgress). */
   codeTaskHintsUsed: Record<string, number>;
-  /** Whether the reference solution was ever opened for a task — device-local (see SyncableProgress). */
+  /** Whether the reference solution was ever opened for a task — synced (see SyncableProgress). */
   codeTaskSolutionRevealed: Record<string, boolean>;
   /** Consent flag: whether this account's name + score should be visible to other learners on the
    *  real cross-account leaderboard. False by default — synced (unlike the fields above) since it's
@@ -34,16 +33,12 @@ export interface ProgressState {
   lastUserId: string | null;
 }
 
-/** The subset that's actually synced to Supabase — `learnerName` stays device-local since it's
- *  redundant with the account's own name/email once real accounts exist; `activityDates` and the
- *  three `codeTask*` learning-signal fields stay device-local because they're per-device engagement
- *  telemetry, not account data a second device needs to see (and syncing any of them would need a
- *  Supabase migration this change deliberately avoids requiring). `lastUserId` is local bookkeeping
- *  only and must never sync either. */
-export type SyncableProgress = Omit<
-  ProgressState,
-  'learnerName' | 'activityDates' | 'codeTaskAttempts' | 'codeTaskHintsUsed' | 'codeTaskSolutionRevealed' | 'lastUserId'
->;
+/** The subset that's actually synced to Supabase — everything that constitutes real learning
+ *  progress. `learnerName` stays device-local since it's redundant with the account's own name/email
+ *  (SyncAuthToProgress derives it fresh from the Supabase account on every sign-in instead, which is
+ *  already correctly per-account). `lastUserId` is local bookkeeping only — it exists purely to
+ *  detect "a different account just signed in on this shared browser" and must never sync itself. */
+export type SyncableProgress = Omit<ProgressState, 'learnerName' | 'lastUserId'>;
 
 const STORAGE_KEY = 'hackerhub.progress.v1';
 const EMPTY_STATE: ProgressState = {
@@ -111,8 +106,9 @@ interface ProgressApi extends ProgressState {
   recordCodeTaskSolutionRevealed: (taskId: string) => void;
   setLeaderboardOptIn: (optIn: boolean) => void;
   /** Folds a remote snapshot into local state without ever losing progress on either side:
-   *  flags/completions/bookmarks union, quiz scores take the higher value, completion
-   *  timestamps take the earlier one. Safe to call with a partial/empty remote snapshot. */
+   *  flags/completions/bookmarks/activity-days union, quiz scores and attempt/hint counters take
+   *  the higher value, completion timestamps take the earlier one. Safe to call with a
+   *  partial/empty remote snapshot. */
   mergeFromRemote: (remote: Partial<SyncableProgress>) => void;
 }
 
@@ -173,10 +169,11 @@ export function useProgressState(): ProgressApi {
         return s.learnerName ? s : { ...s, learnerName: fallbackName.trim() };
       }
       // Either the first sign-in ever on this browser, or a genuinely different account than
-      // whichever one's local-only data is currently here (a shared-computer scenario) — either
-      // way, the device-local fields should only ever reflect this account. Synced fields aren't
-      // touched here since pullProgress()/mergeFromRemote() immediately overwrite them with this
-      // account's real data right after this runs.
+      // whichever one's data is currently sitting in this browser (a shared-computer scenario).
+      // These four are cleared as a safety net rather than left for mergeFromRemote to reconcile:
+      // mergeFromRemote unions activity days and takes the max of counters, so without this reset
+      // the previous account's streak/attempt history would permanently bleed into (and then
+      // re-sync onto) the new account's row instead of being replaced by it.
       return {
         ...s,
         lastUserId: userId,
@@ -258,12 +255,41 @@ export function useProgressState(): ProgressApi {
       const completedCodeTasks = { ...s.completedCodeTasks };
       for (const [k, v] of Object.entries(remote.completedCodeTasks ?? {})) if (v) completedCodeTasks[k] = true;
 
+      // Union of both devices' activity days, deduped and sorted — computeStreak() only cares
+      // about the set of days, so this is the streak-preserving equivalent of the map unions above.
+      const activityDates = [...new Set([...s.activityDates, ...(remote.activityDates ?? [])])].sort();
+
+      // Attempts/hints are monotonically-increasing counters pushed as a full current total (not a
+      // delta) — same reasoning as quizScores below: max is the idempotent merge, summing would
+      // double-count whatever this device already contributed to a previous push.
+      const codeTaskAttempts = { ...s.codeTaskAttempts };
+      for (const [k, v] of Object.entries(remote.codeTaskAttempts ?? {})) codeTaskAttempts[k] = Math.max(codeTaskAttempts[k] ?? 0, v);
+
+      const codeTaskHintsUsed = { ...s.codeTaskHintsUsed };
+      for (const [k, v] of Object.entries(remote.codeTaskHintsUsed ?? {})) codeTaskHintsUsed[k] = Math.max(codeTaskHintsUsed[k] ?? 0, v);
+
+      const codeTaskSolutionRevealed = { ...s.codeTaskSolutionRevealed };
+      for (const [k, v] of Object.entries(remote.codeTaskSolutionRevealed ?? {})) if (v) codeTaskSolutionRevealed[k] = true;
+
       // Not a "union" like the maps above — it's a single consent flag, so the remote (last
       // synced) value wins if present at all; a local toggle after this pull re-pushes and stays
       // authoritative from then on.
       const leaderboardOptIn = remote.leaderboardOptIn ?? s.leaderboardOptIn;
 
-      return { ...s, completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt, completedCodeTasks, leaderboardOptIn };
+      return {
+        ...s,
+        completedLessons,
+        labFlags,
+        quizScores,
+        bookmarkedLabs,
+        labCompletedAt,
+        completedCodeTasks,
+        activityDates,
+        codeTaskAttempts,
+        codeTaskHintsUsed,
+        codeTaskSolutionRevealed,
+        leaderboardOptIn,
+      };
     });
   }, []);
 

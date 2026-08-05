@@ -19,9 +19,11 @@ import {
   IconUser,
   IconShieldCheck,
   IconHelp,
+  IconMail,
   IconExternal,
   IconCode,
   IconCrown,
+  IconRoute,
 } from './icons';
 
 const navItemClass = ({ isActive }: { isActive: boolean }) =>
@@ -80,6 +82,9 @@ export default function Sidebar() {
         </NavLink>
 
         <NavSectionLabel>Track</NavSectionLabel>
+        <NavLink to="/my-learning" className={navItemClass}>
+          <IconRoute className="w-4 h-4" /> My Learning
+        </NavLink>
         <NavLink to="/tasks" className={navItemClass}>
           <IconCheck className="w-4 h-4" /> My tasks
           {tasksRemaining > 0 && (
@@ -122,6 +127,9 @@ export default function Sidebar() {
         </NavLink>
         <NavLink to="/help" className={navItemClass}>
           <IconHelp className="w-4 h-4" /> Help &amp; FAQ
+        </NavLink>
+        <NavLink to="/feedback" className={navItemClass}>
+          <IconMail className="w-4 h-4" /> Feedback
         </NavLink>
         {isInstructor(auth.user?.email) && (
           <>

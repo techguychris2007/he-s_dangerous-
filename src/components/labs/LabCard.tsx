@@ -1,10 +1,11 @@
 import { Link } from 'react-router-dom';
 import type { LabEntry } from '../../data/labs';
 import { useProgress } from '../../state/progressStore';
-import { IconBookmark, IconCertificate, IconCheck, ModuleIcon } from '../layout/icons';
+import { IconBookmark, IconCertificate, IconCheck, IconStar, ModuleIcon } from '../layout/icons';
 import ModuleBanner from '../layout/ModuleBanner';
 import DifficultyPill from '../common/DifficultyPill';
 import { getLabIconKey } from '../../data/labIcon';
+import type { LabRatingSummary } from '../../lib/labRatings';
 
 const POINTS: Record<string, number> = { Easy: 10, Medium: 20, Hard: 30 };
 
@@ -23,7 +24,17 @@ export const CATEGORY_BANNER: Record<string, string> = {
   'Security Engineering': 'secengineering',
 };
 
-export default function LabCard({ lab, variant = 'catalog' }: { lab: LabEntry; variant?: 'catalog' | 'task' }) {
+export default function LabCard({
+  lab,
+  variant = 'catalog',
+  ratingSummary,
+}: {
+  lab: LabEntry;
+  variant?: 'catalog' | 'task';
+  /** batch-fetched once by the caller (see LabsIndexPage) — omitted entirely when the rating
+   *  migration hasn't been run yet or nobody has rated this lab, rather than showing a placeholder. */
+  ratingSummary?: LabRatingSummary;
+}) {
   const progress = useProgress();
   const captured = progress.flagCount(lab.scenario.id);
   const total = lab.scenario.totalFlags;
@@ -73,6 +84,14 @@ export default function LabCard({ lab, variant = 'catalog' }: { lab: LabEntry; v
           <span className="pill bg-[var(--color-surface-2)] text-[var(--color-text-dim)]">{lab.scenario.category}</span>
           <DifficultyPill difficulty={lab.scenario.difficulty} />
           {variant === 'task' && <span className="pill bg-[var(--color-accent)]/10 text-[var(--color-accent-dim)]">Report</span>}
+          {ratingSummary && ratingSummary.ratingCount > 0 && (
+            <span
+              title={`${ratingSummary.avgRating.toFixed(1)}/5 from ${ratingSummary.ratingCount} rating${ratingSummary.ratingCount === 1 ? '' : 's'}`}
+              className="pill bg-[var(--color-gold-soft)] text-[var(--color-gold-dim)] flex items-center gap-1"
+            >
+              <IconStar className="w-3 h-3" filled /> {ratingSummary.avgRating.toFixed(1)}
+            </span>
+          )}
         </div>
 
         <Link to={labUrl} className="font-bold text-[var(--color-heading)] text-[15px] leading-snug mb-1.5 hover:text-[var(--color-accent-dim)] transition-colors">

@@ -7,6 +7,7 @@ import LessonPage from './pages/LessonPage';
 import LabPage from './pages/LabPage';
 import LabsIndexPage from './pages/LabsIndexPage';
 import RoadmapPage from './pages/RoadmapPage';
+import MyLearningPage from './pages/MyLearningPage';
 import ProgressPage from './pages/ProgressPage';
 import LoginPage from './pages/LoginPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
@@ -19,6 +20,7 @@ import AnnouncementsPage from './pages/AnnouncementsPage';
 import ProfilePage from './pages/ProfilePage';
 import SecurityPage from './pages/SecurityPage';
 import HelpFaqPage from './pages/HelpFaqPage';
+import FeedbackPage from './pages/FeedbackPage';
 import SocPortalPage from './pages/SocPortalPage';
 import SiemLabPage from './pages/SiemLabPage';
 import CodePortalPage from './pages/CodePortalPage';
@@ -107,26 +109,53 @@ function ProgressSync() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth.user]);
 
-  const { completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt, completedCodeTasks, leaderboardOptIn } = progress;
+  const {
+    completedLessons,
+    labFlags,
+    quizScores,
+    bookmarkedLabs,
+    labCompletedAt,
+    completedCodeTasks,
+    leaderboardOptIn,
+    activityDates,
+    codeTaskAttempts,
+    codeTaskHintsUsed,
+    codeTaskSolutionRevealed,
+  } = progress;
+  const syncableProgress = {
+    completedLessons,
+    labFlags,
+    quizScores,
+    bookmarkedLabs,
+    labCompletedAt,
+    completedCodeTasks,
+    leaderboardOptIn,
+    activityDates,
+    codeTaskAttempts,
+    codeTaskHintsUsed,
+    codeTaskSolutionRevealed,
+  };
   useEffect(() => {
     if (!auth.user) return;
     const userId = auth.user.id;
     if (pushTimer.current) clearTimeout(pushTimer.current);
     pushTimer.current = setTimeout(() => {
-      if (navigator.onLine) pushProgressWithRetry(userId, { completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt, completedCodeTasks, leaderboardOptIn });
+      if (navigator.onLine) pushProgressWithRetry(userId, syncableProgress);
     }, 2000);
     return () => {
       if (pushTimer.current) clearTimeout(pushTimer.current);
     };
-  }, [auth.user, completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt, completedCodeTasks, leaderboardOptIn]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auth.user, completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt, completedCodeTasks, leaderboardOptIn, activityDates, codeTaskAttempts, codeTaskHintsUsed, codeTaskSolutionRevealed]);
 
   useEffect(() => {
     if (!auth.user) return;
     const userId = auth.user.id;
-    const onOnline = () => pushProgressWithRetry(userId, { completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt, completedCodeTasks, leaderboardOptIn });
+    const onOnline = () => pushProgressWithRetry(userId, syncableProgress);
     window.addEventListener('online', onOnline);
     return () => window.removeEventListener('online', onOnline);
-  }, [auth.user, completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt, completedCodeTasks, leaderboardOptIn]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auth.user, completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt, completedCodeTasks, leaderboardOptIn, activityDates, codeTaskAttempts, codeTaskHintsUsed, codeTaskSolutionRevealed]);
 
   return null;
 }
@@ -218,6 +247,7 @@ function App() {
               }
             >
               <Route path="/" element={<HomePage />} />
+              <Route path="/my-learning" element={<MyLearningPage />} />
               <Route path="/roadmap" element={<RoadmapPage />} />
               <Route path="/progress" element={<ProgressPage />} />
               <Route path="/module/:moduleSlug" element={<ModulePage />} />
@@ -232,6 +262,7 @@ function App() {
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/security" element={<SecurityPage />} />
               <Route path="/help" element={<HelpFaqPage />} />
+              <Route path="/feedback" element={<FeedbackPage />} />
               <Route
                 path="/instructor"
                 element={

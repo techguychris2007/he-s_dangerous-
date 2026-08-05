@@ -224,6 +224,14 @@ export function IconBookmark({ className, filled }: IconProps & { filled?: boole
   );
 }
 
+export function IconStar({ className, filled }: IconProps & { filled?: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" className={className}>
+      <path strokeLinejoin="round" d="M12 3.5l2.72 5.51 6.08.88-4.4 4.29 1.04 6.06L12 17.27l-5.44 2.97 1.04-6.06-4.4-4.29 6.08-.88L12 3.5Z" />
+    </svg>
+  );
+}
+
 export function IconBell({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
@@ -446,6 +454,26 @@ export function IconCopy({ className }: IconProps) {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
       <rect x="9" y="9" width="12" height="12" rx="2" />
       <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1" />
+    </svg>
+  );
+}
+
+export function IconChest({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
+      <path d="M4 10a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7Z" />
+      <path d="M4 10c0-3.3 3.6-6 8-6s8 2.7 8 6" />
+      <path d="M4 13h16M10.5 13v2a1.5 1.5 0 0 0 3 0v-2" />
+    </svg>
+  );
+}
+
+export function IconRoute({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
+      <circle cx="5.5" cy="18.5" r="2.2" />
+      <circle cx="18.5" cy="5.5" r="2.2" />
+      <path d="M7.4 17.2C12 13 8 9 12 6.5c1.7-1 3-1 4.2-.5" strokeLinecap="round" />
     </svg>
   );
 }
