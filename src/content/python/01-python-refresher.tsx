@@ -87,6 +87,24 @@ with open("targets.txt") as f:
         network latency, not CPU, so threading was the correct tool for the job.
       </p>
 
+      <h2>Type hints: cheap documentation that catches real bugs</h2>
+      <p>
+        Modern offensive Python (and most public tools/PoCs you'll read on GitHub today) annotates function
+        signatures with types. Python never enforces these at runtime — they're purely advisory — but a
+        static checker like <code>mypy</code>, or just your editor's inline hints, catches an entire class of
+        "I passed a string where this expected an int" bugs before you ever run the tool against a real
+        target:
+      </p>
+      <CodeBlock label="the same is_alive function, with type hints">{`def is_alive(host: str, port: int, timeout: float = 1.0) -> bool:
+    ...
+
+results: dict[str, list[str]] = {}   # a dict mapping hostname -> list of "port/service" strings`}</CodeBlock>
+      <p>
+        Worth adopting early: it costs nothing to write, and reading someone else's typed function signature
+        tells you exactly what to pass in without opening the implementation at all — genuinely useful when
+        skimming an unfamiliar exploit script mid-engagement.
+      </p>
+
       <h2>Virtual environments (so your tools don't fight each other)</h2>
       <CodeBlock>{`python3 -m venv venv
 source venv/bin/activate

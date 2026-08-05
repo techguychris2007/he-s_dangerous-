@@ -119,6 +119,24 @@ tmux ls                        # list all running sessions`}</CodeBlock>
         connection has already dropped and killed your progress.
       </p>
 
+      <h2>Shell startup files: a lightweight persistence spot</h2>
+      <p>
+        Beyond systemd units and cron, a user's shell startup files are a quieter persistence location
+        precisely because they trigger on ordinary, everyday behavior rather than a scheduled trigger someone
+        might be watching for — anything appended to them runs silently the next time that user (or root)
+        opens a shell at all.
+      </p>
+      <CodeBlock label="startup files worth reviewing for unexpected additions">{`~/.bashrc            # runs on every new interactive shell for that user
+~/.bash_profile        # runs on login shells specifically
+/etc/profile.d/*.sh      # system-wide, runs for every user's login shell — a favorite spot for a root-level
+                            # implant, since a single writable script here affects every user who logs in`}</CodeBlock>
+      <p>
+        The enumeration habit this implies: a writable file under <code>/etc/profile.d/</code>, or a
+        surprising line at the bottom of root's <code>.bashrc</code>, is worth exactly the same suspicion as
+        a writable cron entry — it's the same "something runs automatically, and I can control what" pattern,
+        just triggered by a login instead of a clock.
+      </p>
+
       <h2>User &amp; SSH key management for engagements</h2>
       <CodeBlock>{`ssh-keygen -t ed25519 -f ~/.ssh/engagement_key   # generate a keypair
 ssh-copy-id -i ~/.ssh/engagement_key.pub user@target   # deploy your public key (authorized use only)

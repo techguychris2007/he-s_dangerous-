@@ -9,6 +9,10 @@ interface UserProgressRow {
   lab_completed_at: Record<string, number>;
   completed_code_tasks: Record<string, boolean>;
   leaderboard_opt_in: boolean;
+  activity_dates: string[];
+  code_task_attempts: Record<string, number>;
+  code_task_hints_used: Record<string, number>;
+  code_task_solution_revealed: Record<string, boolean>;
 }
 
 /** Fetches the account's remote progress snapshot. Returns null on any failure (offline, table not
@@ -16,7 +20,9 @@ interface UserProgressRow {
 export async function pullProgress(userId: string): Promise<Partial<SyncableProgress> | null> {
   const { data, error } = await supabase
     .from('user_progress')
-    .select('completed_lessons, lab_flags, quiz_scores, bookmarked_labs, lab_completed_at, completed_code_tasks, leaderboard_opt_in')
+    .select(
+      'completed_lessons, lab_flags, quiz_scores, bookmarked_labs, lab_completed_at, completed_code_tasks, leaderboard_opt_in, activity_dates, code_task_attempts, code_task_hints_used, code_task_solution_revealed',
+    )
     .eq('user_id', userId)
     .maybeSingle<UserProgressRow>();
 
@@ -29,6 +35,10 @@ export async function pullProgress(userId: string): Promise<Partial<SyncableProg
     labCompletedAt: data.lab_completed_at ?? {},
     completedCodeTasks: data.completed_code_tasks ?? {},
     leaderboardOptIn: data.leaderboard_opt_in ?? false,
+    activityDates: data.activity_dates ?? [],
+    codeTaskAttempts: data.code_task_attempts ?? {},
+    codeTaskHintsUsed: data.code_task_hints_used ?? {},
+    codeTaskSolutionRevealed: data.code_task_solution_revealed ?? {},
   };
 }
 
@@ -44,6 +54,10 @@ export async function pushProgress(userId: string, progress: SyncableProgress): 
     lab_completed_at: progress.labCompletedAt,
     completed_code_tasks: progress.completedCodeTasks,
     leaderboard_opt_in: progress.leaderboardOptIn,
+    activity_dates: progress.activityDates,
+    code_task_attempts: progress.codeTaskAttempts,
+    code_task_hints_used: progress.codeTaskHintsUsed,
+    code_task_solution_revealed: progress.codeTaskSolutionRevealed,
     updated_at: new Date().toISOString(),
   });
   return !error;

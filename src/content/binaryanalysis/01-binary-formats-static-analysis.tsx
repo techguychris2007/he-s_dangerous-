@@ -70,6 +70,31 @@ GLIBC_2.2.5`}</CodeBlock>
         to read every instruction fluently yet; the next lesson builds exactly that skill.
       </p>
 
+      <h2>YARA: pattern-matching across many binaries at once</h2>
+      <p>
+        <code>strings</code> and hashing both work on one file at a time. <strong>YARA</strong> generalizes
+        the idea into a real rule language — describe a pattern once (a byte sequence, a string, a
+        combination of conditions) and scan an entire directory, or an entire malware corpus, for anything
+        matching it. It's the standard tool for turning "I found one interesting string in this sample" into
+        "let me check every other file I have for the same signature."
+      </p>
+      <CodeBlock label="a minimal YARA rule">{`rule suspicious_password_check
+{
+    strings:
+        $s1 = "Enter password:" ascii
+        $s2 = { 55 48 89 E5 }   // a raw byte pattern — the push rbp; mov rbp,rsp prologue, in hex
+    condition:
+        all of them
+}`}</CodeBlock>
+      <CodeBlock label="scanning with it">{`yara suspicious_password_check.yar /path/to/samples/ -r
+# -r recurses into subdirectories, flagging every file that matches the rule's condition`}</CodeBlock>
+      <p>
+        This is exactly the mechanism behind most antivirus/EDR signature detection and the malware-family
+        classification rules threat intel teams share with each other — a well-written YARA rule is a
+        portable, shareable definition of "this specific thing," reused directly in the Malware Analysis
+        module ahead.
+      </p>
+
       <h2>Hashing for identification and threat intel correlation</h2>
       <CodeBlock>{`md5sum suspicious_binary       # legacy but still widely used for quick lookups
 sha256sum suspicious_binary     # the modern standard for integrity/identification

@@ -133,6 +133,19 @@ censys search 'services.tls.certificates.leaf_data.subject.organization: "target
         </p>
       </Callout>
 
+      <h2>The Wayback Machine: recon against history, not just the present</h2>
+      <p>
+        Everything above queries what a target looks like <em>right now</em>. The Internet Archive's Wayback
+        Machine (web.archive.org) has been snapshotting public web pages since 1996 — which means it often
+        still holds pages, comments, or endpoints an organization removed years ago but never actually
+        secured, just hid. An old staging subdomain, a decommissioned admin panel, an API endpoint mentioned
+        in a since-deleted developer blog post — all recoverable from a source that never touches the
+        target's live infrastructure at all.
+      </p>
+      <CodeBlock label="pulling every archived URL for a domain in one shot">{`curl -s "http://web.archive.org/cdx/search/cdx?url=target.com/*&output=text&fl=original&collapse=urlkey"
+# lists every URL path the Wayback Machine has ever archived for the domain —
+# a genuinely different attack surface than what a live crawl of the current site would find`}</CodeBlock>
+
       <h2>Turning recon into a target list</h2>
       <p>
         By the end of passive recon you should have: a list of in-scope domains/subdomains, an IP range,

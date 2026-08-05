@@ -167,6 +167,54 @@ body {
   color: #fff;
 }
 
+/* Baseline smooth hover for every interactive element. A large share of buttons/links/table-rows
+   across the app set a `hover:bg-*`/`hover:text-*`/`hover:border-*` Tailwind class without also
+   remembering `transition-colors`, which makes the color snap instantly instead of easing — this one
+   rule fixes that everywhere at once instead of hunting down every individual className. Anything
+   that already declares its own `transition-*` utility is unaffected (that utility simply wins). */
+:where(a, button, summary, tr, [role='button']) {
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  :where(a, button, summary, tr, [role='button']) {
+    transition: none;
+  }
+}
+
+/* Global keyboard-focus ring. `:where(...)` keeps this at zero specificity, so any element that
+   already sets its own focus treatment (Tailwind's `outline-none` + a custom `focus-visible:ring-*`,
+   e.g. the terminal input or the feedback textarea) trivially wins over it — this only fills the gap
+   for the many buttons/links/cards that currently fall back to inconsistent browser defaults. Never
+   fires on a plain mouse click, only on real keyboard/switch-device focus. */
+:where(a, button, input, textarea, select, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Route-level page transition: a short, subtle fade+rise applied to whichever page just mounted
+   inside <main>, keyed by pathname (see AppLayout). Deliberately quicker than `.reveal` above
+   (that one's a one-time cinematic entrance for hero/login content; this one repeats on every single
+   navigation, so it needs to read as "snappy," not "cinematic"). */
+@keyframes page-transition-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.page-transition {
+  animation: page-transition-in 0.22s ease-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .page-transition {
+    animation: none;
+  }
+}
+
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--color-border) transparent;
@@ -238,7 +286,7 @@ main h1, .page-title {
 .pill {
   font-family: var(--font-mono);
   font-size: 0.7rem;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.02em;
   padding: 0.2rem 0.55rem;
@@ -262,6 +310,20 @@ main h1, .page-title {
 .here-pulse-ring { animation: here-pulse 2.2s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) {
   .here-pulse-ring { animation: none; }
+}
+
+/* My Learning path: decorative binary-digit columns and floating module glyphs in the page
+   margins, plus a slow bob so the path reads as alive rather than a static screenshot. Purely
+   ambient — hidden entirely under reduced-motion and already display:none below the md breakpoint
+   via Tailwind classes at the call site, so this never competes with the real content. */
+@keyframes my-learning-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.my-learning-float { animation: my-learning-bob 5s ease-in-out infinite; }
+.my-learning-float-slow { animation: my-learning-bob 7s ease-in-out infinite; animation-delay: -2.5s; }
+@media (prefers-reduced-motion: reduce) {
+  .my-learning-float, .my-learning-float-slow { animation: none; }
 }
 
 /* Progress page module/lesson accordions (<details>): hide the native disclosure marker so the

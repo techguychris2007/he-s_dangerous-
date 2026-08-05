@@ -49,6 +49,28 @@ STRONG: "Any authenticated user can access this endpoint with an arbitrary ID pa
         rating in most triage rubrics.
       </p>
 
+      <h2>CVSS: the framework behind "Medium vs. Critical"</h2>
+      <p>
+        Triage rubrics don't assign severity on gut feel — most map to the <strong>Common Vulnerability
+        Scoring System (CVSS)</strong>, an industry-standard formula that converts a handful of yes/no
+        technical questions into a 0-10 score. Knowing the actual components lets you write an impact section
+        that pre-answers the questions a triager is about to ask anyway:
+      </p>
+      <CodeBlock label="the CVSS base metrics that actually move the score">{`Attack Vector       Network / Adjacent / Local / Physical  -> remote-exploitable scores higher
+Attack Complexity    Low / High                              -> no special conditions needed scores higher
+Privileges Required  None / Low / High                        -> unauthenticated scores higher
+User Interaction      None / Required                          -> no victim click needed scores higher
+Scope                  Unchanged / Changed                       -> impact spreading beyond the vulnerable
+                                                                     component itself scores higher
+Confidentiality/Integrity/Availability   each: None / Low / High`}</CodeBlock>
+      <p>
+        This is exactly why an unauthenticated IDOR that leaks every customer's data (Network, Low
+        complexity, no privileges, no user interaction, high confidentiality impact) lands as Critical, while
+        a functionally similar bug requiring an authenticated admin session to trigger scores meaningfully
+        lower — the report should make each of these factors explicit rather than leaving the triager to
+        infer them.
+      </p>
+
       <h2>Reading disclosed reports to calibrate your own</h2>
       <p>
         HackerOne's public disclosure database (reports companies have agreed to make public) is the best

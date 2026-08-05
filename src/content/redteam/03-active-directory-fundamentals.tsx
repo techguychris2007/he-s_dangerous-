@@ -86,6 +86,26 @@ SharpHound.exe -c All
         understand why "no critical CVEs" and "actually secure" are not the same thing in AD environments.
       </p>
 
+      <h2>When BloodHound isn't available: raw LDAP enumeration</h2>
+      <p>
+        BloodHound needs its collector to actually run, and some engagements (a heavily monitored host, a
+        restricted foothold) make that too risky. Active Directory is fundamentally an LDAP directory
+        underneath its Windows-specific tooling, which means the same data is reachable with nothing more
+        than a standard LDAP query — slower to work with than a graph, but works from any host with network
+        reach to a Domain Controller and zero special tooling installed:
+      </p>
+      <CodeBlock label="ldapsearch — the manual, no-special-tools alternative">{`ldapsearch -x -H ldap://10.10.40.5 -D "jdoe@corp.local" -w 'Password123!' \\
+  -b "DC=corp,DC=local" "(objectClass=user)" sAMAccountName memberOf
+# -b sets the search base (the domain's distinguished name); the filter pulls every user
+# object and prints their username plus group memberships — the same raw data
+# SharpHound collects, just queried directly instead of through a purpose-built collector`}</CodeBlock>
+      <p>
+        Knowing this fallback exists matters beyond just OPSEC caution: it's also the technique that works
+        from a non-Windows attack box with no BloodHound/SharpHound setup at all, and it's a useful sanity
+        check to confirm what a domain account can actually see before trusting a GUI tool's interpretation
+        of it.
+      </p>
+
       <h2>Common AD misconfigurations to always check</h2>
       <ul>
         <li>Overly-permissive group nesting (a "low privilege" group nested inside a high-privilege one)</li>

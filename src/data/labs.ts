@@ -59,6 +59,51 @@ import { batch16MixedLabs } from '../labs/scenarios/batch16-mixed-pack';
 import { batch17MixedLabs } from '../labs/scenarios/batch17-mixed-pack';
 import { batch18GtfobinsLabs } from '../labs/scenarios/batch18-gtfobins-pack';
 import { batch18MixedLabs } from '../labs/scenarios/batch18-mixed-pack';
+import { batch19NetworkLabs } from '../labs/scenarios/batch19-network-pack';
+import { batch19MixedLabs } from '../labs/scenarios/batch19-mixed-pack';
+import { batch20CloudLabs } from '../labs/scenarios/batch20-cloud-pack';
+import { batch20ForensicsLabs } from '../labs/scenarios/batch20-forensics-pack';
+import { batch20MixedLabsA } from '../labs/scenarios/batch20-mixed-pack-a';
+import { batch20NetworkLabs } from '../labs/scenarios/batch20-network-pack';
+import { batch20SocLabs } from '../labs/scenarios/batch20-soc-pack';
+import { batch20WebMalwareLabs } from '../labs/scenarios/batch20-web-malware-pack';
+import { batch21CryptoApiLabs } from '../labs/scenarios/batch21-crypto-api-pack';
+import { batch21SecplusSecengineeringLabs } from '../labs/scenarios/batch21-secplus-secengineering-pack';
+import { batch21BinaryBugbountyLabs } from '../labs/scenarios/batch21-binary-bugbounty-pack';
+import { mobileLabs } from '../labs/scenarios/mobile-pack';
+import { wirelessLabs } from '../labs/scenarios/wireless-pack';
+import { iotLabs } from '../labs/scenarios/iot-pack';
+import { mobileLabs2 } from '../labs/scenarios/mobile-pack-2';
+import { wirelessLabs2 } from '../labs/scenarios/wireless-pack-2';
+import { aiSecurityLabs } from '../labs/scenarios/ai-security-pack';
+import { aiSecurityLabs2 } from '../labs/scenarios/ai-security-pack-2';
+import { mobileLabs3 } from '../labs/scenarios/mobile-pack-3';
+import { wirelessLabs3 } from '../labs/scenarios/wireless-pack-3';
+import { iotLabs2 } from '../labs/scenarios/iot-pack-2';
+import { iotLabs3 } from '../labs/scenarios/iot-pack-3';
+import { aiSecurityLabs3 } from '../labs/scenarios/ai-security-pack-3';
+import { metasploitLabs } from '../labs/scenarios/metasploit-pack';
+import { batch26MixedLabs } from '../labs/scenarios/batch26-mixed-pack';
+import { metasploitLabs2 } from '../labs/scenarios/metasploit-pack-2';
+import { metasploitLabs3 } from '../labs/scenarios/metasploit-pack-3';
+import { malwareCapstoneLabs } from '../labs/scenarios/malware-capstone-pack';
+import { linuxCapstoneLabs } from '../labs/scenarios/capstone-linux-pack';
+import { networkCapstoneLabs } from '../labs/scenarios/capstone-network-pack';
+import { webCapstoneLabs } from '../labs/scenarios/capstone-web-pack';
+import { adCapstoneLabs } from '../labs/scenarios/capstone-ad-pack';
+import { bugBountyCapstoneLabs } from '../labs/scenarios/capstone-bugbounty-pack';
+import { cloudCapstoneLabs } from '../labs/scenarios/capstone-cloud-pack';
+import { socCapstoneLabs } from '../labs/scenarios/capstone-soc-pack';
+import { forensicsCapstoneLabs } from '../labs/scenarios/capstone-forensics-pack';
+import { securityPlusCapstoneLabs } from '../labs/scenarios/capstone-securityplus-pack';
+import { binaryAnalysisCapstoneLabs } from '../labs/scenarios/capstone-binaryanalysis-pack';
+import { secEngineeringCapstoneLabs } from '../labs/scenarios/capstone-secengineering-pack';
+import { apiCapstoneLabs } from '../labs/scenarios/capstone-api-pack';
+import { cryptoCapstoneLabs } from '../labs/scenarios/capstone-crypto-pack';
+import { mobileCapstoneLabs } from '../labs/scenarios/capstone-mobile-pack';
+import { wirelessCapstoneLabs } from '../labs/scenarios/capstone-wireless-pack';
+import { iotCapstoneLabs } from '../labs/scenarios/capstone-iot-pack';
+import { aiSecurityCapstoneLabs } from '../labs/scenarios/capstone-aisecurity-pack';
 import type { LabScenario } from '../labs/types';
 
 export interface LabEntry {
@@ -129,6 +174,51 @@ export const LABS: LabEntry[] = [
   ...toEntries(batch17MixedLabs),
   ...toEntries(batch18GtfobinsLabs),
   ...toEntries(batch18MixedLabs),
+  ...toEntries(batch19NetworkLabs),
+  ...toEntries(batch19MixedLabs),
+  ...toEntries(batch20CloudLabs),
+  ...toEntries(batch20ForensicsLabs),
+  ...toEntries(batch20MixedLabsA),
+  ...toEntries(batch20NetworkLabs),
+  ...toEntries(batch20SocLabs),
+  ...toEntries(batch20WebMalwareLabs),
+  ...toEntries(batch21CryptoApiLabs),
+  ...toEntries(batch21SecplusSecengineeringLabs),
+  ...toEntries(batch21BinaryBugbountyLabs),
+  ...toEntries(mobileLabs),
+  ...toEntries(wirelessLabs),
+  ...toEntries(iotLabs),
+  ...toEntries(mobileLabs2),
+  ...toEntries(wirelessLabs2),
+  ...toEntries(aiSecurityLabs),
+  ...toEntries(aiSecurityLabs2),
+  ...toEntries(metasploitLabs),
+  ...toEntries(mobileLabs3),
+  ...toEntries(wirelessLabs3),
+  ...toEntries(iotLabs2),
+  ...toEntries(iotLabs3),
+  ...toEntries(aiSecurityLabs3),
+  ...toEntries(batch26MixedLabs),
+  ...toEntries(metasploitLabs2),
+  ...toEntries(metasploitLabs3),
+  ...toEntries(malwareCapstoneLabs),
+  ...toEntries(linuxCapstoneLabs),
+  ...toEntries(networkCapstoneLabs),
+  ...toEntries(webCapstoneLabs),
+  ...toEntries(adCapstoneLabs),
+  ...toEntries(bugBountyCapstoneLabs),
+  ...toEntries(cloudCapstoneLabs),
+  ...toEntries(socCapstoneLabs),
+  ...toEntries(forensicsCapstoneLabs),
+  ...toEntries(securityPlusCapstoneLabs),
+  ...toEntries(binaryAnalysisCapstoneLabs),
+  ...toEntries(secEngineeringCapstoneLabs),
+  ...toEntries(apiCapstoneLabs),
+  ...toEntries(cryptoCapstoneLabs),
+  ...toEntries(mobileCapstoneLabs),
+  ...toEntries(wirelessCapstoneLabs),
+  ...toEntries(iotCapstoneLabs),
+  ...toEntries(aiSecurityCapstoneLabs),
 ];
 
 /** Ordered to match the roadmap's actual teaching sequence (see curriculum.ts's MODULES order). */
@@ -147,6 +237,10 @@ export const LAB_CATEGORIES = [
   'Security Engineering',
   'API',
   'Cryptography',
+  'Mobile',
+  'Wireless',
+  'IoT',
+  'AI Security',
 ] as const;
 
 /** Maps a teaching module slug to the lab category whose labs should appear on that module's page. */
@@ -168,6 +262,10 @@ export const MODULE_TO_LAB_CATEGORY: Record<string, (typeof LAB_CATEGORIES)[numb
   secengineering: 'Security Engineering',
   'api-security': 'API',
   'crypto-attacks': 'Cryptography',
+  mobile: 'Mobile',
+  wireless: 'Wireless',
+  iot: 'IoT',
+  'ai-security': 'AI Security',
 };
 
 export function findLab(slug?: string): LabEntry | undefined {

@@ -107,6 +107,23 @@ sudo -l                    # list what the current user is allowed to run as roo
         it offline with a tool like Hashcat or John the Ripper, completely outside any online lockout policy.
       </p>
 
+      <h2>Linux capabilities: root's privileges, unbundled</h2>
+      <p>
+        SUID answers "run as root or not" with a single yes/no switch — capabilities split root's power into
+        dozens of individually-grantable permissions, so a binary can get exactly the privileged operation it
+        needs without full root. That precision is the intent; in practice, capabilities are checked far less
+        often during enumeration than SUID bits, which makes them a genuinely under-tested privesc surface.
+      </p>
+      <CodeBlock label="finding binaries with capabilities set">{`getcap -r / 2>/dev/null
+/usr/bin/python3.9 = cap_setuid+ep     # this binary can set its own UID to anything, including 0`}</CodeBlock>
+      <p>
+        A binary holding <code>cap_setuid</code> can call <code>setuid(0)</code> on itself and become root
+        outright — for an interpreter like Python, that's a one-liner: <code>python3.9 -c
+        'import os; os.setuid(0); os.system("/bin/bash")'</code>. Exactly like GTFOBins for SUID, GTFOBins
+        also documents which capability on which binary translates to a root shell — the mental model is
+        identical, just checked with <code>getcap</code> instead of <code>find -perm -4000</code>.
+      </p>
+
       <h2>sudo: the other half of the privilege story</h2>
       <p>
         <code>/etc/sudoers</code> (edited safely via <code>visudo</code>) controls exactly what commands a

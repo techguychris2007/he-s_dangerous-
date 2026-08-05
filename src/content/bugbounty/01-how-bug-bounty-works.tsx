@@ -40,6 +40,17 @@ export default function HowBugBountyWorks() {
         "managed bug bounty" retainer paid to the platform itself rather than the researcher.
       </p>
 
+      <h2>VDPs: the unpaid cousin of a bounty program</h2>
+      <p>
+        Not every program pays cash. A <strong>Vulnerability Disclosure Program (VDP)</strong> commits to
+        accepting and acting on reports — often required by policy for government contractors, or run by
+        organizations that want a legal safe harbor for researchers without budgeting for bounties — but
+        offers recognition (a hall-of-fame listing, a thank-you) instead of money. Worth knowing the
+        distinction going in: a VDP is real, legitimate, authorized testing with the same legal protection a
+        paid program offers, just without the payout — valuable for building a public reputation and
+        disclosed-report portfolio early on, even though it won't pay the bills on its own.
+      </p>
+
       <h2>Public vs. private programs</h2>
       <p>
         Public programs are open to any registered researcher — high competition, but no application

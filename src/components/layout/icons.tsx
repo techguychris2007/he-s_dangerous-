@@ -63,6 +63,15 @@ export function IconCheck({ className }: IconProps) {
   );
 }
 
+export function IconDownload({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
+      <path d="M12 3v12m0 0-4-4m4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function IconX({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={className}>
@@ -211,6 +220,22 @@ export function IconBookmark({ className, filled }: IconProps & { filled?: boole
   return (
     <svg viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" className={className}>
       <path d="M6 3.5h12a1 1 0 0 1 1 1V21l-7-4-7 4V4.5a1 1 0 0 1 1-1Z" />
+    </svg>
+  );
+}
+
+export function IconStar({ className, filled }: IconProps & { filled?: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" className={className}>
+      <path strokeLinejoin="round" d="M12 3.5l2.72 5.51 6.08.88-4.4 4.29 1.04 6.06L12 17.27l-5.44 2.97 1.04-6.06-4.4-4.29 6.08-.88L12 3.5Z" />
+    </svg>
+  );
+}
+
+export function IconMessage({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
+      <path strokeLinejoin="round" d="M4 5h16v11H8l-4 4V5Z" />
     </svg>
   );
 }
@@ -398,6 +423,32 @@ export function IconCrosshair({ className }: IconProps) {
   );
 }
 
+export function IconMobile({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
+      <rect x="7" y="2" width="10" height="20" rx="2" />
+      <path d="M11 18h2" />
+    </svg>
+  );
+}
+
+export function IconChip({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
+      <rect x="6" y="6" width="12" height="12" rx="1.5" />
+      <path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function IconBrain({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
+      <path d="M9 4a3 3 0 0 0-3 3 3 3 0 0 0-2 2.8V12a3 3 0 0 0 1 5.6V19a2 2 0 0 0 2 2h1M15 4a3 3 0 0 1 3 3 3 3 0 0 1 2 2.8V12a3 3 0 0 1-1 5.6V19a2 2 0 0 1-2 2h-1M9 4a3 3 0 0 1 3-2 3 3 0 0 1 3 2M9 4v16M15 4v16" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function IconCode({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
@@ -411,6 +462,26 @@ export function IconCopy({ className }: IconProps) {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
       <rect x="9" y="9" width="12" height="12" rx="2" />
       <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1" />
+    </svg>
+  );
+}
+
+export function IconChest({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
+      <path d="M4 10a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7Z" />
+      <path d="M4 10c0-3.3 3.6-6 8-6s8 2.7 8 6" />
+      <path d="M4 13h16M10.5 13v2a1.5 1.5 0 0 0 3 0v-2" />
+    </svg>
+  );
+}
+
+export function IconRoute({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
+      <circle cx="5.5" cy="18.5" r="2.2" />
+      <circle cx="18.5" cy="5.5" r="2.2" />
+      <path d="M7.4 17.2C12 13 8 9 12 6.5c1.7-1 3-1 4.2-.5" strokeLinecap="round" />
     </svg>
   );
 }
@@ -449,6 +520,9 @@ const ICONS: Record<string, (p: IconProps) => ReactElement> = {
   lightning: IconLightning,
   crosshair: IconCrosshair,
   code: IconCode,
+  mobile: IconMobile,
+  chip: IconChip,
+  brain: IconBrain,
 };
 
 export function ModuleIcon({ icon, className }: { icon: string; className?: string }) {

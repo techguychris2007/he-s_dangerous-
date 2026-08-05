@@ -122,6 +122,28 @@ sqlmap -u "https://target.com/product?id=1" --batch --dump -T users`}</CodeBlock
         </p>
       </Callout>
 
+      <h2>NoSQL injection: the same root cause, a different query language</h2>
+      <p>
+        Everything above assumes a relational database with SQL syntax to break out of. NoSQL databases like
+        MongoDB aren't immune to injection — they're vulnerable to the same underlying mistake (trusting
+        user input as part of a query structure) expressed through JSON operators instead of SQL syntax. If
+        an API endpoint passes a JSON request body's fields directly into a MongoDB query without validating
+        their type, a client can submit an <em>operator</em> where the app expected a plain string:
+      </p>
+      <CodeBlock label="a login check that trusts the shape of the input">{`// intended request:  {"username": "alice", "password": "hunter2"}
+// db.users.findOne({ username: "alice", password: "hunter2" })
+
+// attacker-supplied request instead:
+{"username": "alice", "password": {"$ne": null}}
+// db.users.findOne({ username: "alice", password: { $ne: null } })
+// $ne (not-equal) matches ANY non-null password — authentication bypassed with no password guessed at all`}</CodeBlock>
+      <p>
+        The fix mirrors parameterized queries conceptually even though the mechanism differs: strictly
+        validate that fields like <code>password</code> are the expected primitive type (a string) and
+        reject anything else — most NoSQL injection is really "we forgot to check the input wasn't itself a
+        query operator," the JSON-native sibling of the classic concatenation mistake this lesson opened with.
+      </p>
+
       <h2>The only real fix</h2>
       <p>
         Parameterized queries (prepared statements) — where user input is passed as a bound parameter, never

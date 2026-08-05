@@ -53,6 +53,28 @@ export default function C2Detection() {
         isolation — this is a volume-and-pattern detection, the same class of problem as beacon timing above.
       </p>
 
+      <h2>JA3/JA3S: fingerprinting the TLS handshake itself</h2>
+      <p>
+        Beaconing detection above relies on timing across many connections. A complementary technique works
+        on a SINGLE connection, before any pattern of repeats is even visible: <strong>JA3</strong>{' '}
+        fingerprints the client side of a TLS handshake (the specific cipher suites, extensions, and elliptic
+        curves a client offers, hashed into one short string) and <strong>JA3S</strong> does the same for the
+        server's response. Because most C2 frameworks use a specific, often outdated or distinctively
+        configured TLS library rather than a real browser's, they produce a JA3 hash that never matches any
+        legitimate browser's fingerprint — flagging the very FIRST connection a beacon makes, not just the
+        pattern across its later check-ins.
+      </p>
+      <CodeBlock label="the same destination, distinguished by TLS fingerprint alone">{`Chrome on Windows connecting to google.com:      JA3 = 769,47-53-5-10-49161...  (matches millions of
+                                                   other real Chrome sessions — completely unremarkable)
+Cobalt Strike beacon connecting to 91.203.5.44:    JA3 = e7d705a3286e19ea42f587b344ee6865  (matches a
+                                                   known, published Cobalt Strike default JA3 hash —
+                                                   flagged instantly, before any timing pattern exists)`}</CodeBlock>
+      <p>
+        Public JA3 hash databases track known-malicious fingerprints the same way YARA rules track known
+        malware samples — a real, if imperfect, detection layer that catches a beacon's very first packet
+        rather than waiting to accumulate enough connections to see a timing pattern emerge.
+      </p>
+
       <h2>LOLBins: hiding inside binaries the OS already trusts</h2>
       <p>
         "Living off the land" means using legitimate, pre-installed, digitally-signed system tools to do

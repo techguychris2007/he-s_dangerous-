@@ -93,6 +93,22 @@ shared = blocklist_a & blocklist_b       # intersection: only IPs in BOTH lists`
         blocklists, are both one-line set operations instead of manual loops.
       </p>
 
+      <h2>Tuples — like lists, but locked</h2>
+      <CodeBlock label="tuples">{`coords = (10, 20)                # parentheses, not brackets
+host_port = ("10.0.0.5", 443)
+
+host, port = host_port            # unpacking — pulls both values into named variables at once
+print(host)                        # "10.0.0.5"
+
+# host_port.append(21)             # AttributeError — tuples have no append; they can't grow or change
+# host_port[0] = "10.0.0.9"         # TypeError — tuples are immutable, this line would crash`}</CodeBlock>
+      <p>
+        Reach for a tuple instead of a list specifically when the collection represents a fixed,
+        never-changing group of values — a coordinate pair, a (host, port) combination — rather than a
+        growing collection of similar items. The immutability is the whole point: it's a signal, both to
+        Python and to anyone reading your code, that this value is never meant to be modified after creation.
+      </p>
+
       <h2>Control flow — if/elif/else and loops</h2>
       <CodeBlock label="control flow">{`def classify_port(port):
     if port in (80, 443):

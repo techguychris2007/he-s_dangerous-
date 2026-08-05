@@ -18,7 +18,9 @@ export type VulnKind =
   | 'path-traversal'
   | 'cors-misconfig'
   | 'cache-deception'
-  | 'hpp';
+  | 'hpp'
+  | 'prompt-injection'
+  | 'excessive-agency';
 
 export interface VulnRoute {
   kind: VulnKind;
@@ -97,6 +99,39 @@ export interface AwsAccountDef {
   credentials: AwsCredential[];
 }
 
+export interface WifiNetworkDef {
+  ssid: string;
+  bssid: string;
+  channel: number;
+  /** free-text encryption label as `airodump-ng`'s ENC column would show it, e.g. 'WPA2', 'WPA3-SAE', 'WEP', 'OPEN' */
+  encryption: string;
+  /** pre-formatted `#HASHCAT_HASH:`/`#HASHCAT_PLAINTEXT:`/`#HASHCAT_FLAG:` marker content (the exact same
+   *  convention `hashcat`/`john` already read elsewhere in this engine) that `airodump-ng -w <prefix>`
+   *  "writes" into a capture file once a handshake/PMKID has been captured against this network — so
+   *  cracking it needs zero new engine code, just the existing `hashcat -m 22000` step. Omit for a network
+   *  that's still just visible in a scan (no capture available yet). */
+  captureFile?: string;
+}
+
+/** A real Metasploit module, keyed by its real `msfconsole` module path (e.g.
+ *  `exploit/multi/samba/usermap_script` or `auxiliary/scanner/smb/smb_version`), read by the engine's
+ *  `msfconsole` sub-shell simulation — distinct from `HostDef.exploitableAs`/the one-line `exploit <name>
+ *  <ip>` shortcut, which stays untouched for the platform's existing CVE-RCE labs. */
+export interface MsfModuleDef {
+  /** the exact string a learner must `use` in msfconsole, e.g. 'exploit/unix/ftp/vsftpd_234_backdoor' */
+  path: string;
+  /** option names (uppercase, e.g. 'RHOSTS') that must be `set` to a non-empty value before `run`/`exploit`
+   *  succeeds — RHOSTS is implicit and always required, list only the module's OTHER required options here */
+  requiredOptions: string[];
+  /** pre-filled values shown by `show options` immediately after `use`, exactly like a real module's
+   *  built-in defaults (e.g. a real default RPORT) — a learner can `set` over any of these */
+  defaultOptions?: Record<string, string>;
+  /** for an `auxiliary/...` module only (exploit modules ignore this and open a session instead, via
+   *  `HostDef.metasploitModule` matching + the shared session-grant path): the lines printed on a
+   *  successful `run`, scanned for an embedded `flag{...}` the same way every other command's output is */
+  scanOutput?: string;
+}
+
 export interface HostDef {
   hostname: string;
   ip: string;
@@ -112,6 +147,14 @@ export interface HostDef {
   ntdsHashes?: string;
   /** the AWS account this host represents/fronts — real `aws s3`/`aws sts`/`aws iam`/`aws ec2` commands operate against this */
   awsAccount?: AwsAccountDef;
+  /** models this "host" as a wireless AP/network instead of (or alongside) an IP-reachable service —
+   *  read by `airodump-ng`/`aireplay-ng`. The host's existing `ip` is still used for any wired-side
+   *  services it also exposes (e.g. a captive portal or a rogue RADIUS endpoint over `curl`). */
+  wifiNetwork?: WifiNetworkDef;
+  /** the real Metasploit module this host is vulnerable to, read by the `msfconsole` sub-shell simulation
+   *  (`use`/`set`/`run`) — a genuinely different, multi-step, realistic path to the same kind of outcome
+   *  `exploitableAs` grants via its one-line shortcut. A host may define either, both, or neither. */
+  metasploitModule?: MsfModuleDef;
 }
 
 export interface AttackerBox {
@@ -147,7 +190,11 @@ export interface LabScenario {
     | 'Malware'
     | 'Security Engineering'
     | 'API'
-    | 'Cryptography';
+    | 'Cryptography'
+    | 'Mobile'
+    | 'Wireless'
+    | 'IoT'
+    | 'AI Security';
   briefing: string;
   objectives: (string | ObjectiveStep)[];
   hints: string[];

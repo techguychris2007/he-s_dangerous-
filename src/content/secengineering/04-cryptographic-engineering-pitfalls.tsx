@@ -25,6 +25,32 @@ export default function CryptographicEngineeringPitfalls() {
 - Reused keys/IVs across multiple messages (catastrophic for several encryption modes — see below)
 - Keys stored alongside the data they protect (defeats the purpose entirely if both are stolen together)`}</CodeBlock>
 
+      <h2>Key derivation: turning one secret into many, safely</h2>
+      <p>
+        A real system rarely needs just one key — encryption, authentication (a MAC key), and different
+        subsystems often each want their own. The unsafe shortcut is reusing the same master key directly for
+        multiple purposes, or deriving related keys through an ad hoc method (like simple concatenation or a
+        single hash). A <strong>KDF (Key Derivation Function)</strong> — HKDF being the modern standard —
+        exists specifically to take one high-entropy master secret and derive as many independent,
+        cryptographically separated keys as needed, each provably unrelated to the others even though they
+        all trace back to the same root secret.
+      </p>
+      <CodeBlock label="the pattern HKDF replaces, and why it matters">{`UNSAFE:  encryption_key = master_secret
+         mac_key        = master_secret          # same key reused for two DIFFERENT purposes —
+                                                    # a break in one context can leak information
+                                                    # useful against the other
+
+SAFE:    encryption_key = HKDF(master_secret, info="encryption")
+         mac_key        = HKDF(master_secret, info="authentication")
+         # the "info" parameter cryptographically separates the outputs — knowing one
+         # derived key reveals nothing about the other, even though both trace to the
+         # same master secret`}</CodeBlock>
+      <p>
+        This is exactly the mechanism TLS 1.3 uses internally to derive its many separate traffic keys from
+        a single handshake secret — the same "one root secret, many safely-separated derived keys" pattern,
+        just applied at the scale of an entire protocol rather than one application's key management.
+      </p>
+
       <h2>IV/nonce reuse — a small mistake with a total-break consequence</h2>
       <p>
         Many encryption modes (like AES-CTR, or the keystream generation in stream ciphers) require a

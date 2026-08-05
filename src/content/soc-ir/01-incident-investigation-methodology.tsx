@@ -82,6 +82,54 @@ HOW               did the initial access happen — the root cause, not just the
         </p>
       </Callout>
 
+      <h2>Where this methodology sits inside NIST SP 800-61</h2>
+      <p>
+        Everything above is not an ad-hoc process — it maps directly onto NIST SP 800-61, the standard
+        incident-handling framework most SOCs structure their playbooks around. Revision 3, finalized April
+        2025, restates it as four phases, and this lesson's methodology lives almost entirely inside the
+        second one.
+      </p>
+      <CodeBlock label="the NIST SP 800-61 lifecycle, mapped onto this lesson's methodology">{`1. PREPARATION                          -> tooling, logging coverage, and playbooks built BEFORE
+                                            an incident (covered implicitly by every prior SOC lesson)
+2. DETECTION & ANALYSIS                  -> the WHO/FROM WHERE/WHEN/WHAT/HOW questions, the timeline,
+                                            and scoping — everything covered above happens in this phase
+3. CONTAINMENT, ERADICATION & RECOVERY   -> stopping the threat, removing it, restoring normal operation
+                                            (the subject of the next lesson: SOAR-driven response)
+4. POST-INCIDENT ACTIVITY                -> root cause analysis and the "why did this work" discipline
+                                            covered just above — then feeds back into Preparation`}</CodeBlock>
+      <p>
+        Notice the loop: phase 4 feeds back into phase 1, which is exactly why root cause analysis matters as
+        much as it does — an incident that closes without updating preparation (patching the gap, adding the
+        missing detection rule) guarantees the cycle repeats.
+      </p>
+
+      <h2>A different shape of investigation: the insider threat</h2>
+      <p>
+        Every example so far has been an external attacker — phishing, a missing MFA rollout, a legacy VPN
+        account. Insider incidents (a current employee misusing legitimate access) follow the same WHO/WHAT/
+        WHEN/HOW methodology, but the "WHO" step is often trivial — you already know the account — while
+        everything else gets harder: the activity uses fully legitimate credentials, and "HOW did this
+        happen" is rarely a technical vulnerability at all.
+      </p>
+      <CodeBlock label="Ponemon Institute's 2025/2026 Cost of Insider Risks research">{`Root cause breakdown of insider incidents:
+  53%  negligent employees   (avg. cost per incident: ~$747,000)
+  27%  malicious insiders     (avg. cost per incident: ~$742,000)
+  20%  credential theft        (avg. cost per incident: ~$842,000)
+
+Containment speed changes the outcome dramatically:
+  contained in under 30 days  -> ~$14.2M average annual cost
+  taking longer than 90 days  -> ~$21.9M average annual cost`}</CodeBlock>
+      <Callout variant="warn">
+        <p>
+          That negligent-vs-malicious split matters for scoping: the majority of insider incidents are not a
+          rogue employee stealing data on purpose — they're a well-meaning one misusing access, misconfiguring
+          a share, or falling for the same phishing an external attacker would use. The investigation still
+          has to determine intent before deciding whether this is a training gap or an HR/legal matter, and
+          evidence handling for a currently-employed subject carries chain-of-custody and legal-privilege
+          considerations a purely external-attacker case usually doesn't.
+        </p>
+      </Callout>
+
       <p>
         With investigation methodology covered, the next lesson turns to acting on a confirmed finding
         immediately and consistently, every time — SOAR, the automation layer that turns a documented response

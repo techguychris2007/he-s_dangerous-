@@ -57,6 +57,27 @@ AFTER vendor update:   src_ip=(empty)      user=jsmith action=denied
         because of a parser break nobody has connected to that specific rule yet.
       </p>
 
+      <h2>OpenTelemetry: a vendor-neutral answer to step 2</h2>
+      <p>
+        The "configure a forwarder/agent" step above has historically meant picking a vendor-specific agent
+        (Splunk's Universal Forwarder, Elastic's Beats) tied to wherever that data ultimately lands.{' '}
+        <strong>OpenTelemetry (OTel)</strong> — now a CNCF-graduated, industry-backed standard — offers a
+        vendor-neutral alternative: a single collector and instrumentation standard for logs, metrics, and
+        traces that can fan the same collected data out to multiple destinations (a SIEM, a separate
+        observability platform, cold storage) at once, without instrumenting the source application
+        differently for each one.
+      </p>
+      <CodeBlock label="why this matters for the vendor-migration problem specifically">{`WITHOUT OTel:  switching SIEM vendors means re-instrumenting every application's logging
+                 agent to point at the new vendor's proprietary forwarder
+WITH OTel:      applications emit data in one standard format to an OTel Collector once;
+                 changing SIEM vendors is a routing config change in the collector, not a
+                 re-instrumentation project touching every single application`}</CodeBlock>
+      <p>
+        This is the log-collection-layer version of exactly the problem Sigma (covered in the next module)
+        solves for detection rules — decoupling "how do we collect/describe this" from "which specific
+        vendor product consumes it this year."
+      </p>
+
       <h2>Data volume and cost: why "ingest everything" doesn't survive contact with a bill</h2>
       <p>
         Most commercial SIEM licensing is priced by ingested data volume — dollars per gigabyte-per-day, or

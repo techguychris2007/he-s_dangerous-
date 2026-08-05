@@ -112,6 +112,17 @@ curl -sI https://example.com  # L7 — an actual application-layer request/respo
           three layers, three completely different techniques working together.
         </p>
       </Callout>
+      <h3>When the model itself gets blurry: QUIC and HTTP/3</h3>
+      <p>
+        The clean "L4 is transport, L7 is application" split gets genuinely muddy with QUIC, the transport
+        protocol underneath HTTP/3. QUIC runs over UDP rather than TCP, but implements its own reliability,
+        ordering, and congestion control INSIDE that UDP stream — reliability logic that used to live
+        squarely at L4 now runs partly inside what the OSI model would call an application-layer payload.
+        Practically: a plain <code>nmap -sS</code> SYN scan tells you nothing about an HTTP/3 service, since
+        there's no TCP handshake to see at all — you'd need a UDP-aware probe that understands QUIC's own
+        handshake to even confirm it's there.
+      </p>
+
       <p>
         In the next lesson we'll get concrete about Layer 3 — IP addressing and subnetting — because you
         cannot scope a network, plan lateral movement, or read a <code>nmap</code> output confidently

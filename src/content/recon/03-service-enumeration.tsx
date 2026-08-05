@@ -82,6 +82,22 @@ crackmapexec smb 10.10.10.0/24           # sweep a whole subnet for SMB info + a
         </p>
       </Callout>
 
+      <h2>SNMP enumeration: the UDP service everyone forgets</h2>
+      <p>
+        SNMP (UDP/161, flagged back in the ports lesson) is a recurring information-disclosure goldmine
+        precisely because it's UDP and easy to skip under time pressure. Devices — routers, switches,
+        printers, sometimes entire server fleets — expose their full configuration to anyone who can guess
+        the "community string," which functions as SNMP's password. The default has been publicly documented
+        for decades and is still found unchanged constantly:
+      </p>
+      <CodeBlock label="snmpwalk — dumping everything a device is willing to share">{`snmpwalk -v2c -c public 10.10.10.5           # 'public' is the default read-only community string
+onesixtyone -c community-strings.txt 10.10.10.0/24   # sweep a whole subnet for guessable community strings`}</CodeBlock>
+      <p>
+        A successful <code>snmpwalk</code> against a default community string can return running processes,
+        installed software, network interfaces and routing tables, and sometimes even local usernames — an
+        entire device profile handed over for the cost of guessing one unchanged default word.
+      </p>
+
       <h2>The enumeration mindset</h2>
       <p>
         For every open port: identify the exact version → check for known CVEs → check for default/anon

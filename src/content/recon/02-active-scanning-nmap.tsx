@@ -54,6 +54,26 @@ nmap --script vuln 10.10.10.5   # run the vuln-detection NSE script category`}</
         </p>
       </Callout>
 
+      <h2>NSE categories: <code>--script vuln</code> is one of several</h2>
+      <p>
+        The Nmap Scripting Engine ships with over 600 scripts organized into categories — <code>vuln</code>{' '}
+        (used above) is just the one most people learn first. Knowing the others changes what you reach for
+        and when:
+      </p>
+      <CodeBlock label="NSE categories worth knowing by name">{`--script discovery   broader host/service info gathering beyond the default probes
+--script auth        checks for default credentials and weak auth configs
+--script brute        runs a brute-force attempt directly through NSE (no separate hydra call needed)
+--script exploit       actively attempts to exploit a found vulnerability, not just detect it
+--script safe           read-only, non-intrusive scripts — the category "safe" for production targets
+--script intrusive       may crash a service or trigger real changes — never run without explicit authorization`}</CodeBlock>
+      <p>
+        <code>-sC</code> (used in the stage-3 workflow above) is shorthand for exactly one category:{' '}
+        <code>--script default</code>, a curated subset of <code>safe</code> scripts nmap's authors judged
+        useful enough to run automatically. Reaching for a named category directly (<code>--script
+        auth,discovery</code>) is how you go beyond that default set deliberately, instead of hoping{' '}
+        <code>-sC</code> happened to cover what you actually need.
+      </p>
+
       <h2>When nmap is too slow: Masscan &amp; RustScan</h2>
       <p>
         Nmap's port-scan engine is thorough but stateful and comparatively slow — scanning a /8 (16 million

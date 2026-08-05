@@ -97,6 +97,24 @@ nmap --help          # quick usage summary
 whatis nmap          # one-line description
 tldr nmap            # community-maintained practical examples (if installed)`}</CodeBlock>
 
+      <h2>Dotfiles: the hidden files worth checking first</h2>
+      <p>
+        Any filename starting with <code>.</code> is hidden from a plain <code>ls</code> (which is why{' '}
+        <code>-a</code> in <code>ls -la</code> matters so much) — and a user's home directory is full of
+        them, several of which are routine loot on any box you land on.
+      </p>
+      <CodeBlock label="dotfiles worth checking on every new foothold">{`~/.bash_history       # every command the user has typed — often contains passwords typed by mistake
+~/.ssh/id_rsa           # a private key, if one exists and is readable — instant lateral movement
+~/.ssh/known_hosts       # reveals other hosts this user has connected to before
+~/.bashrc / ~/.profile    # startup scripts — a common, easy-to-overlook persistence location
+~/.aws/credentials          # cloud credentials, if this box does any AWS work at all`}</CodeBlock>
+      <p>
+        None of these show up in a default <code>ls</code>, which is exactly why checking dotfiles is a
+        standing habit rather than something you remember to do only occasionally — a real engagement
+        checklist always includes a pass over the current user's home directory with <code>-a</code> before
+        moving on to system-wide enumeration.
+      </p>
+
       <p>
         In the hands-on lab at the end of this module, you'll use exactly these commands — navigation,
         <code>cat</code>, <code>find</code>, <code>grep</code> — to locate a hidden flag file buried in a

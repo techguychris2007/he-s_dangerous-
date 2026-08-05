@@ -36,6 +36,25 @@ host, port = parse_host_port("10.0.0.5:8080")
 print(host)  # "10.0.0.5"
 print(port)  # 8080 (an int, not a string)`}</CodeBlock>
 
+      <h2>*args and **kwargs — functions that accept "however many" arguments</h2>
+      <p>
+        Sometimes you don't know in advance how many arguments a function needs to accept. <code>*args</code>{' '}
+        collects any number of positional arguments into a tuple; <code>**kwargs</code> does the same for
+        named/keyword arguments, collecting them into a dict:
+      </p>
+      <CodeBlock label="variadic arguments">{`def log_finding(*hosts, **details):
+    print(f"Affected hosts: {hosts}")     # a tuple: every positional argument passed in
+    print(f"Details: {details}")           # a dict: every keyword argument passed in
+
+log_finding("10.0.0.5", "10.0.0.9", severity="high", cve="CVE-2024-1234")
+# Affected hosts: ('10.0.0.5', '10.0.0.9')
+# Details: {'severity': 'high', 'cve': 'CVE-2024-1234'}`}</CodeBlock>
+      <p>
+        The names <code>args</code>/<code>kwargs</code> are just convention (the <code>*</code>/{' '}
+        <code>**</code> is what actually matters) — you'll see this pattern constantly in real tools that
+        wrap another function and need to pass an unknown set of arguments straight through to it unchanged.
+      </p>
+
       <h2>Exceptions — expect the input to be wrong sometimes</h2>
       <p>
         Real-world input is messy: a config file has a typo, a user pastes in a malformed IP, a network

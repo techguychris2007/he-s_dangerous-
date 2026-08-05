@@ -68,6 +68,17 @@ Low            Low risk        Low risk         Medium risk
 Medium         Low risk        Medium risk      High risk
 High           Medium risk     High risk        Critical risk`}</CodeBlock>
 
+      <h2>Putting a real number on the ALE math</h2>
+      <p>
+        The SLE/ARO/ALE formulas above read as an academic exercise until they're grounded in real industry
+        figures. IBM's annual <em>Cost of a Data Breach</em> report has consistently placed the GLOBAL AVERAGE
+        cost of a single data breach in the range of $4-4.5 million in recent years — a number organizations
+        routinely plug directly into their own ALE calculations as a starting Asset Value/Exposure Factor
+        estimate when they don't yet have better internal data. It's also the exact justification behind the
+        "Transfer" risk treatment option: cyber insurance premiums are priced against exactly this kind of
+        industry-wide loss data, not a guess.
+      </p>
+
       <h2>Third-party and vendor risk management</h2>
       <p>
         An organization's own controls are only half the picture — every vendor, SaaS integration, and

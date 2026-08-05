@@ -114,6 +114,31 @@ print(r.exposure_ratio)  # 0.003 — no parentheses needed, reads like an attrib
         often it runs.
       </p>
 
+      <h2>__slots__ — trading flexibility for memory</h2>
+      <p>
+        By default, every instance gets a hidden dictionary (<code>__dict__</code>) to hold its attributes,
+        which is what lets you add new attributes to an object at any time — convenient, but it costs real
+        memory per instance. <code>__slots__</code> tells Python exactly which attributes a class will ever
+        have, skipping that per-instance dictionary entirely:
+      </p>
+      <CodeBlock label="__slots__ — meaningful once you're creating thousands of instances">{`class ScanResult:
+    __slots__ = ("ip", "port", "is_open")   # ONLY these attributes will ever exist on instances
+
+    def __init__(self, ip, port, is_open):
+        self.ip = ip
+        self.port = port
+        self.is_open = is_open
+
+r = ScanResult("10.0.0.5", 443, True)
+# r.banner = "nginx"   # AttributeError — banner isn't declared in __slots__, can't be added`}</CodeBlock>
+      <p>
+        This is exactly the kind of optimization worth knowing exists but reaching for selectively — a
+        <code> ScanResult</code> class holding results from a 65,535-port scan is precisely the case where
+        the memory savings across tens of thousands of instances are real; a class you'll only ever
+        instantiate a handful of times gets no meaningful benefit and loses the flexibility to add attributes
+        dynamically later.
+      </p>
+
       <PracticeTasksCallout
         tasks={[
           { id: 'py-oop-01', title: 'A User Class With an Encapsulated, Hashed Password' },

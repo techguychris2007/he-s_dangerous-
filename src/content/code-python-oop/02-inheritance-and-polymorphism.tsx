@@ -89,6 +89,29 @@ print(summarize(alerts))`}</CodeBlock>
         </p>
       </Callout>
 
+      <h2>Duck typing: polymorphism without even sharing a base class</h2>
+      <p>
+        The <code>summarize()</code> function above never checks that its arguments inherit from{' '}
+        <code>Alert</code> — it just calls <code>.describe()</code> and trusts it exists. Python takes this
+        further than languages that require a formal shared interface: <strong>"if it walks like a duck and
+        quacks like a duck"</strong> — any object with a matching method works, inheritance relationship or
+        not.
+      </p>
+      <CodeBlock label="an unrelated class, no shared base, works anyway">{`class ThirdPartyFinding:      # doesn't inherit from Alert at all
+    def __init__(self, note):
+        self.note = note
+    def describe(self):
+        return f"External finding: {self.note}"
+
+mixed = [BruteForceAlert("10.0.0.5"), ThirdPartyFinding("leaked API key")]
+print(summarize(mixed))   # works fine — summarize() never cared about the class hierarchy, only the method`}</CodeBlock>
+      <p>
+        This is why Python's built-in <code>isinstance()</code> checks are used far more sparingly than in
+        strictly-typed languages — most Python code is written to trust behavior (does it have the method I
+        need?) over identity (is it officially the right type?), a philosophy usually summarized as{' '}
+        <strong>"ask forgiveness, not permission."</strong>
+      </p>
+
       <h2>Composition — when inheritance is the wrong tool</h2>
       <p>
         Inheritance models "IS-A" relationships (a PortScanner <em>is a</em> Scanner). But not everything

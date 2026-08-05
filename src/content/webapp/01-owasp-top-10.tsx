@@ -91,6 +91,18 @@ A10 Server-Side Request Forgery (SSRF) — tricking the server into making reque
         the interesting findings by hand.
       </p>
 
+      <h2>One list among several: OWASP's other Top 10s</h2>
+      <p>
+        The general Top 10 covers traditional web apps, but OWASP maintains separate, purpose-built lists for
+        adjacent surfaces with genuinely different risk profiles — worth knowing they exist by name so you
+        reach for the right lens on the right target. The <strong>OWASP API Security Top 10</strong> (its own
+        dedicated list, covered directly in this course's API Security module) reflects that APIs fail
+        differently than rendered web pages — object-level and function-level authorization bugs dominate
+        there in a way the general list doesn't fully capture. There's also a <strong>Mobile Top 10</strong>{' '}
+        and, reflecting how fast the field is moving, a newer <strong>OWASP Top 10 for LLM Applications</strong>{' '}
+        covering risks like prompt injection and insecure output handling in AI-integrated apps.
+      </p>
+
       <h2>What's ahead in this module</h2>
       <p>
         The next three lessons go deep on the categories with the highest real-world hit rate: Injection

@@ -79,6 +79,19 @@ ORDER BY event_count DESC`}</CodeBlock>
       </p>
       <CodeBlock label="a representative UDM search">{`target.ip = "185.220.101.7" AND metadata.event_type = "NETWORK_CONNECTION"`}</CodeBlock>
 
+      <h2>The newer trend: decoupling storage from the analytics layer</h2>
+      <p>
+        All five platforms above traditionally bundle two jobs into one product: storing the data, and
+        running search/correlation against it. A growing "security data lake" pattern splits them apart —
+        land raw logs in cheap, vendor-neutral object storage first (commonly an open table format like
+        Apache Iceberg on S3-compatible storage), then point whichever SIEM's analytics engine you actually
+        want at that data, without needing to physically re-ingest it into that vendor's own proprietary
+        storage first. Several of the platforms above have begun supporting exactly this model as an option,
+        precisely because it directly answers the volume/cost economics tension the next lesson covers: the
+        expensive part (a vendor's per-GB SIEM pricing) no longer has to apply to data sitting in that lake
+        merely because it might someday need querying.
+      </p>
+
       <h2>What actually differs, and what doesn't</h2>
       <CodeBlock label="same concept, five different surfaces">{`Splunk    -> pipeline-style SPL, "events" as the base unit
 Sentinel  -> KQL, findings grouped into "Incidents"

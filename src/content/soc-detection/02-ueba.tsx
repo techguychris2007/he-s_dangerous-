@@ -66,6 +66,27 @@ Fastest theoretically possible travel in 18 minutes: not even close.
         every account regardless of that account's actual normal schedule.</li>
       </ul>
 
+      <h2>The math underneath "normal," briefly</h2>
+      <p>
+        "Deviation from baseline" isn't just a phrase — it's usually a real statistical measure. A common
+        approach scores how many standard deviations a new observation sits from that entity's established
+        mean (its z-score): a login volume, a data-access count, or a login-hour distribution that's several
+        standard deviations outside the historical norm scores as anomalous, while ordinary day-to-day
+        variation stays well within a normal range and never fires at all.
+      </p>
+      <CodeBlock label="the core idea, simplified">{`baseline: this user's average daily file access = 40, standard deviation = 12
+
+today's access count = 340
+
+z-score = (340 - 40) / 12 = 25 standard deviations from normal
+-> statistically, this isn't "a busy day" — it's a different category of behavior entirely`}</CodeBlock>
+      <p>
+        Real UEBA engines layer machine-learning models on top of this basic idea (accounting for
+        day-of-week patterns, seasonal trends, peer-group comparisons all at once), but the core intuition —
+        "how many standard deviations from this entity's own normal is this" — is the same statistical
+        primitive underneath even the most sophisticated commercial implementation.
+      </p>
+
       <h2>Why UEBA complements rules instead of replacing them</h2>
       <p>
         A written detection rule is precise but only catches what someone already thought to write it for.

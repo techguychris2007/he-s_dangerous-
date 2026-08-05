@@ -72,6 +72,24 @@ $1 = "sup3rs3cr3t_2026"       <- there's the real password, straight from memory
         committing to a permanent patch.
       </p>
 
+      <h2>Postmortem debugging: analyzing a crash after the fact</h2>
+      <p>
+        Everything above assumes you're present, running the program live under GDB. Real crashes — a
+        production service that died overnight, a fuzzer's crashing test case found hours after the fuzzer
+        moved on — often need to be analyzed after the process is long gone. A core dump (a snapshot of the
+        process's entire memory at the moment it crashed) makes that possible:
+      </p>
+      <CodeBlock label="loading a crash after the fact, no live process required">{`ulimit -c unlimited          # enable core dumps for the current shell (often disabled by default)
+./vulnerable_binary            # crashes, and now writes a core file (e.g. core.12345) to disk
+gdb ./vulnerable_binary core.12345
+(gdb) bt                          # backtrace works exactly the same as a live session —
+                                    # shows the full call stack at the exact moment of the crash`}</CodeBlock>
+      <p>
+        Once loaded, a core dump behaves like a frozen live session for inspection purposes — <code>bt</code>,
+        <code> x</code>, and <code>info registers</code> all work identically, just against memory as it
+        existed at the instant of the crash rather than a process you can single-step further.
+      </p>
+
       <h2>GEF / PEDA / pwndbg — why nobody uses raw GDB for exploit dev</h2>
       <p>
         In practice, security researchers layer a GDB plugin (GEF, PEDA, or pwndbg being the most common)

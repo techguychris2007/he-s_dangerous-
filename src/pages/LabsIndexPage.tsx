@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { LABS, LAB_CATEGORIES, LABS_IN_ROADMAP_ORDER } from '../data/labs';
 import { OSINT_LABS } from '../labs/osintScenarios';
 import { useProgress } from '../state/progressStore';
 import LabCard from '../components/labs/LabCard';
 import SiemLabCard from '../components/siem/SiemLabCard';
+import { fetchLabRatingSummaries, type LabRatingSummary } from '../lib/labRatings';
 import { IconRadar, IconSearch, IconX } from '../components/layout/icons';
 
 const DIFFICULTIES = ['Easy', 'Medium', 'Hard'];
@@ -24,6 +25,12 @@ export default function LabsIndexPage() {
   const [filter, setFilter] = useState<string>(initialCategory);
   const [difficultyFilter, setDifficultyFilter] = useState<string>('All');
   const [search, setSearch] = useState('');
+  // One batch call for the whole catalog rather than one per card — null (migration not run yet,
+  // offline) just means every card renders with no rating badge, never an error.
+  const [ratingSummaries, setRatingSummaries] = useState<Record<string, LabRatingSummary> | null>(null);
+  useEffect(() => {
+    fetchLabRatingSummaries().then(setRatingSummaries);
+  }, []);
 
   const totalDone = LABS.filter((l) => progress.flagCount(l.scenario.id) >= l.scenario.totalFlags).length;
   const osintDone = OSINT_LABS.filter((l) => progress.flagCount(l.id) >= l.totalFlags).length;
@@ -45,7 +52,7 @@ export default function LabsIndexPage() {
   return (
     <div className="max-w-5xl mx-auto px-8 py-14">
       <div className="gold-eyebrow mb-2">// hands-on</div>
-      <h1 className="text-3xl font-bold text-[var(--color-heading)] mb-3">Lab Catalog</h1>
+      <h1 className="text-3xl font-extrabold tracking-tight text-[var(--color-heading)] mb-3">Lab Catalog</h1>
       <p className="text-[var(--color-text-dim)] mb-4 leading-relaxed max-w-2xl">
         {LABS.length} fully interactive, guided labs across Linux privilege escalation, network service
         exploitation, web application vulnerabilities, Active Directory, cloud security, SOC &amp; threat
@@ -132,7 +139,7 @@ export default function LabsIndexPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {filtered.map((lab) => (
-            <LabCard key={lab.slug} lab={lab} variant="catalog" />
+            <LabCard key={lab.slug} lab={lab} variant="catalog" ratingSummary={ratingSummaries?.[lab.scenario.id]} />
           ))}
         </div>
       )}

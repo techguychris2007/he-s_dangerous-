@@ -5,18 +5,27 @@ import IpSubnetting from '../content/networking/02-ip-subnetting';
 import TcpUdpHandshake from '../content/networking/03-tcp-udp-handshake';
 import PortsServices from '../content/networking/04-ports-services';
 import DnsHttpTraffic from '../content/networking/05-dns-http-traffic';
+import Ipv6FundamentalsAndTransition from '../content/networking/06-ipv6-fundamentals-and-transition';
+import NetworkSegmentationVlansAndFirewalls from '../content/networking/07-network-segmentation-vlans-and-firewalls';
+import RoutingFundamentalsAndAttacks from '../content/networking/08-routing-fundamentals-and-attacks';
 
 import FilesystemNavigation from '../content/linux/01-filesystem-navigation';
 import UsersPermissions from '../content/linux/02-users-permissions';
 import ProcessesNetworkingCli from '../content/linux/03-processes-networking-cli';
 import BashScripting from '../content/linux/04-bash-scripting';
 import AttackOpsManagement from '../content/linux/05-attack-ops-management';
+import LinuxLoggingAndAuditing from '../content/linux/06-linux-logging-and-auditing';
+import KernelExploitationAndPrivescDeepDive from '../content/linux/07-kernel-exploitation-and-privesc-deep-dive';
+import LinuxHardeningAndDefenseInDepth from '../content/linux/08-linux-hardening-and-defense-in-depth';
 
 import PassiveReconOsint from '../content/recon/01-passive-recon-osint';
 import ActiveScanningNmap from '../content/recon/02-active-scanning-nmap';
 import ServiceEnumeration from '../content/recon/03-service-enumeration';
 import CredentialAttacks from '../content/recon/04-credential-attacks';
 import EnumerationMethodology from '../content/recon/05-enumeration-methodology';
+import WebReconAndSubdomainEnumerationAtScale from '../content/recon/06-web-recon-and-subdomain-enumeration-at-scale';
+import CloudAssetDiscoveryAndAttackSurfaceMapping from '../content/recon/07-cloud-asset-discovery-and-attack-surface-mapping';
+import ReconAutomationAndReporting from '../content/recon/08-recon-automation-and-reporting';
 
 import PythonRefresher from '../content/python/01-python-refresher';
 import PortScanner from '../content/python/02-port-scanner';
@@ -75,10 +84,16 @@ import LandmarkIncidentCaseStudies from '../content/soc-ir/04-landmark-incident-
 import ForensicsFundamentals from '../content/forensics/01-forensics-fundamentals';
 import MemoryArtifactAnalysis from '../content/forensics/02-memory-artifact-analysis';
 import LogsAndNetworkArtifacts from '../content/forensics/03-logs-and-network-artifacts';
+import DiskForensicsAndFileSystemAnalysis from '../content/forensics/04-disk-forensics-and-file-system-analysis';
+import MemoryForensicsWithVolatility from '../content/forensics/05-memory-forensics-with-volatility';
+import ForensicReportingLegalAndCaseStudies from '../content/forensics/06-forensic-reporting-legal-and-case-studies';
 
 import CloudSecurityFundamentals from '../content/cloud/01-cloud-security-fundamentals';
 import IamAndMisconfiguration from '../content/cloud/02-iam-and-misconfiguration';
 import ContainersAndIacSecrets from '../content/cloud/03-containers-and-iac-secrets';
+import IdentityFederationAndCrossAccountAttacks from '../content/cloud/04-identity-federation-and-cross-account-attacks';
+import CloudNativeDetectionAndLogging from '../content/cloud/05-cloud-native-detection-and-logging';
+import CspmAndClosingCaseStudies from '../content/cloud/06-cspm-and-closing-case-studies';
 
 import GrcFundamentals from '../content/securityplus/01-grc-fundamentals';
 import CryptographyFundamentals from '../content/securityplus/02-cryptography-fundamentals';
@@ -110,6 +125,42 @@ import DecoratorsAndClosures from '../content/code-python-advanced/01-decorators
 import GeneratorsAndContextManagers from '../content/code-python-advanced/02-generators-and-context-managers';
 import RegexConcurrencyAndCaching from '../content/code-python-advanced/03-regex-concurrency-and-caching';
 
+import MobileAppArchitectureAndAttackSurface from '../content/mobile/01-mobile-app-architecture-and-attack-surface';
+import StaticAnalysisOfAndroidApps from '../content/mobile/02-static-analysis-of-android-apps';
+import DynamicAnalysisAndInstrumentation from '../content/mobile/03-dynamic-analysis-and-instrumentation';
+import InsecureDataStorageAndCommunication from '../content/mobile/04-insecure-data-storage-and-communication';
+import IosFundamentalsAndMobileApiBackends from '../content/mobile/05-ios-fundamentals-and-mobile-api-backends';
+import MobileMalwareAndBankingTrojans from '../content/mobile/06-mobile-malware-and-banking-trojans';
+import MobileDeviceManagementAndEnterpriseSecurity from '../content/mobile/07-mobile-device-management-and-enterprise-security';
+import MobilePentestMethodologyAndReporting from '../content/mobile/08-mobile-pentest-methodology-and-reporting';
+
+import Fundamentals80211AndAttackSurface from '../content/wireless/01-802-11-fundamentals-and-attack-surface';
+import EncryptionAndHandshakeCapture from '../content/wireless/02-encryption-and-handshake-capture';
+import CrackingHandshakesAndWpa3 from '../content/wireless/03-cracking-handshakes-and-wpa3';
+import RogueApsAndEvilTwinAttacks from '../content/wireless/04-rogue-aps-and-evil-twin-attacks';
+import BluetoothAndBleSecurity from '../content/wireless/05-bluetooth-and-ble-security';
+import EnterpriseWireless8021xEapRadius from '../content/wireless/06-enterprise-wireless-802-1x-eap-radius';
+import WirelessIdsAndDefensiveMonitoring from '../content/wireless/07-wireless-ids-and-defensive-monitoring';
+import CellularSecurityFundamentalsAndSynthesis from '../content/wireless/08-cellular-security-fundamentals-and-synthesis';
+
+import IotArchitectureAndAttackSurface from '../content/iot/01-iot-architecture-and-attack-surface';
+import FirmwareExtractionAndStaticAnalysis from '../content/iot/02-firmware-extraction-and-static-analysis';
+import HardwareHackingUartJtagSpi from '../content/iot/03-hardware-hacking-uart-jtag-spi';
+import EmbeddedWebInterfacesAndCommonVulns from '../content/iot/04-embedded-web-interfaces-and-common-vulns';
+import IotBotnetsMiraiAndBeyond from '../content/iot/05-iot-botnets-mirai-and-beyond';
+import IotProtocolsZigbeeZwaveMqtt from '../content/iot/06-iot-protocols-zigbee-zwave-mqtt';
+import IndustrialControlSystemsAndScadaSecurity from '../content/iot/07-industrial-control-systems-and-scada-security';
+import IotTestingMethodologyAndCompliance from '../content/iot/08-iot-testing-methodology-and-compliance';
+
+import AiSecurityFundamentalsOwaspLlmTop10 from '../content/ai-security/01-ai-security-fundamentals-owasp-llm-top-10';
+import PromptInjectionAndJailbreaking from '../content/ai-security/02-prompt-injection-and-jailbreaking';
+import InsecureOutputHandlingAndExcessiveAgency from '../content/ai-security/03-insecure-output-handling-and-excessive-agency';
+import TrainingDataPoisoningModelTheftSupplyChain from '../content/ai-security/04-training-data-poisoning-model-theft-supply-chain';
+import SensitiveInfoDisclosureRagSecurityCaseStudies from '../content/ai-security/05-sensitive-info-disclosure-rag-security-case-studies';
+import AdversarialMachineLearningEvasion from '../content/ai-security/06-adversarial-machine-learning-evasion';
+import AiGovernanceRedTeamingSafetyEvaluation from '../content/ai-security/07-ai-governance-red-teaming-safety-evaluation';
+import SecuringAiAgentsMultiAgentSystems from '../content/ai-security/08-securing-ai-agents-multi-agent-systems';
+
 import SecurityEconomics from '../content/secengineering/01-security-economics';
 import SecureDesignPrinciples from '../content/secengineering/02-secure-design-principles';
 import ThreatModeling from '../content/secengineering/03-threat-modeling';
@@ -132,12 +183,15 @@ export const MODULES: ModuleMeta[] = [
       { id: 'net-2', slug: 'ip-subnetting', title: 'IP Addressing & Subnetting', summary: 'CIDR notation, fast subnet math, and RFC1918 ranges.', minutes: 14, Content: IpSubnetting },
       { id: 'net-3', slug: 'tcp-udp-handshake', title: 'TCP, UDP, and the Three-Way Handshake', summary: 'Why nmap scan types behave the way they do.', minutes: 10, Content: TcpUdpHandshake },
       { id: 'net-4', slug: 'ports-services', title: 'Ports, Services & Protocols You Must Know', summary: 'The port list every pentester has memorized.', minutes: 13, Content: PortsServices },
+      { id: 'net-5', slug: 'dns-http-traffic', title: 'DNS, HTTP/HTTPS & Traffic Basics', summary: 'Zone transfers, HTTP methods/status codes, and TLS in brief.', minutes: 12, Content: DnsHttpTraffic },
+      { id: 'net-6', slug: 'ipv6-fundamentals-and-transition', title: 'IPv6 Fundamentals & Transition Mechanisms', summary: 'Address structure, SLAAC/NDP trust gaps, and transition-era firewall blind spots.', minutes: 13, Content: Ipv6FundamentalsAndTransition },
+      { id: 'net-7', slug: 'network-segmentation-vlans-and-firewalls', title: 'Network Segmentation, VLANs & Firewalls', summary: 'VLAN hopping, stateful vs. stateless filtering, and default-deny vs. default-allow.', minutes: 13, Content: NetworkSegmentationVlansAndFirewalls },
       {
-        id: 'net-5', slug: 'dns-http-traffic', title: 'DNS, HTTP/HTTPS & Traffic Basics', summary: 'Zone transfers, HTTP methods/status codes, and TLS in brief.', minutes: 12, Content: DnsHttpTraffic,
+        id: 'net-8', slug: 'routing-fundamentals-and-attacks', title: 'Routing Fundamentals & Common Routing Attacks', summary: 'ARP spoofing, rogue DHCP, and the 2018 MyEtherWallet BGP hijack.', minutes: 13, Content: RoutingFundamentalsAndAttacks,
         quiz: [
           { id: 'q1', prompt: 'Which layer of the OSI model do TCP and UDP operate at?', choices: ['Layer 3 (Network)', 'Layer 4 (Transport)', 'Layer 7 (Application)', 'Layer 2 (Data Link)'], correctIndex: 1, explanation: 'TCP and UDP are transport-layer protocols — ports live here.' },
           { id: 'q2', prompt: 'A /27 subnet provides how many usable host addresses?', choices: ['14', '30', '62', '126'], correctIndex: 1, explanation: '/27 = 255.255.255.224, giving 2^5 - 2 = 30 usable hosts.' },
-          { id: 'q3', prompt: 'Which nmap scan type completes the full TCP three-way handshake?', choices: ['-sS (SYN scan)', '-sT (connect scan)', '-sU (UDP scan)', '-sA (ACK scan)'], correctIndex: 1, explanation: '-sT uses the OS connect() call, completing the full handshake — noisier but doesn\'t need raw socket privileges.' },
+          { id: 'q3', prompt: 'Why is IPv6\'s SLAAC/Router Advertisement mechanism vulnerable to the same class of attack as ARP spoofing?', choices: ['They use completely unrelated, unrelated mechanisms', 'Both rely on unauthenticated local announcements that devices trust implicitly, letting an attacker redirect traffic by impersonating the gateway/router', 'IPv6 does not support any form of local network attack', 'SLAAC requires a password by default'], correctIndex: 1, explanation: 'Router Advertisements are no more authenticated than ARP replies by default — an attacker can send rogue RAs to redirect traffic exactly like ARP spoofing.' },
           { id: 'q4', prompt: 'A misconfigured DNS server allowing AXFR to anyone exposes what?', choices: ['Only the MX record', 'The entire zone file (all records)', 'Nothing, AXFR is always safe', 'Only NS records'], correctIndex: 1, explanation: 'AXFR transfers the whole zone — every record type for every host in that zone.' },
         ],
       },
@@ -158,12 +212,15 @@ export const MODULES: ModuleMeta[] = [
       { id: 'lin-2', slug: 'users-permissions', title: 'Users, Groups & Permissions', summary: 'chmod, SUID/SGID/sticky bits, and reading sudoers correctly.', minutes: 15, Content: UsersPermissions },
       { id: 'lin-3', slug: 'processes-networking-cli', title: 'Package Mgmt, Processes & Networking Commands', summary: 'ps, netstat/ss, netcat, and the redirection glue that ties it together.', minutes: 13, Content: ProcessesNetworkingCli },
       { id: 'lin-4', slug: 'bash-scripting', title: 'Bash Scripting for Automation', summary: 'Loops, functions, and parsing tool output at scale.', minutes: 14, Content: BashScripting },
+      { id: 'lin-5', slug: 'attack-ops-management', title: 'Managing Users & Services for Attack Ops', summary: 'systemd, cron privesc paths, listeners, and log awareness.', minutes: 13, Content: AttackOpsManagement },
+      { id: 'lin-6', slug: 'linux-logging-and-auditing', title: 'Linux Logging & Auditing', summary: 'syslog/journald, auditd rules, and why a missing bash_history is itself a signal.', minutes: 12, Content: LinuxLoggingAndAuditing },
+      { id: 'lin-7', slug: 'kernel-exploitation-and-privesc-deep-dive', title: 'Linux Kernel Exploitation & Privilege Escalation Deep Dive', summary: 'Dirty COW, Dirty Pipe, and why kernel exploits are a distinct, higher-risk category.', minutes: 13, Content: KernelExploitationAndPrivescDeepDive },
       {
-        id: 'lin-5', slug: 'attack-ops-management', title: 'Managing Users & Services for Attack Ops', summary: 'systemd, cron privesc paths, listeners, and log awareness.', minutes: 13, Content: AttackOpsManagement,
+        id: 'lin-8', slug: 'linux-hardening-and-defense-in-depth', title: 'Linux Hardening & Defense-in-Depth', summary: 'SELinux/AppArmor mandatory access control, and kernel hardening sysctls.', minutes: 13, Content: LinuxHardeningAndDefenseInDepth,
         quiz: [
           { id: 'q1', prompt: 'A SUID binary owned by root is dangerous because:', choices: ['It always deletes files', 'It runs with the file owner\'s (root) privileges regardless of who executes it', 'It disables logging', 'It only affects the /tmp directory'], correctIndex: 1, explanation: 'SUID makes the binary execute with the owner\'s privileges — if that owner is root, careless binaries become privesc paths.' },
           { id: 'q2', prompt: 'chmod 754 on a file grants which permission set?', choices: ['rwxr-xr--', 'rwxrwxrwx', 'rw-r--r--', 'rwxr--r--'], correctIndex: 0, explanation: '7=rwx (owner), 5=r-x (group), 4=r-- (other) => rwxr-xr--.' },
-          { id: 'q3', prompt: 'A root-owned cron job that executes a world-writable script is risky because:', choices: ['Cron jobs cannot be edited', 'An attacker can overwrite the script and have it run as root on the next schedule', 'It slows down the system', 'It only affects non-root users'], correctIndex: 1, explanation: 'Overwriting the writable script content means it executes attacker-controlled code with root\'s privileges next run.' },
+          { id: 'q3', prompt: 'Why can SELinux/AppArmor still confine a process even after it has been fully compromised and escalated to root?', choices: ['They cannot — root always bypasses every control', 'They enforce a mandatory access control policy independent of standard Unix ownership/permissions, which even root does not automatically bypass', 'They only work on non-root processes', 'They replace the need for permissions entirely'], correctIndex: 1, explanation: 'MAC frameworks add a policy-enforced layer on top of standard discretionary permissions — a compromised root process is still confined to its defined policy.' },
         ],
       },
     ],
@@ -183,12 +240,15 @@ export const MODULES: ModuleMeta[] = [
       { id: 'rec-2', slug: 'active-scanning-nmap', title: 'Active Scanning with Nmap', summary: 'The scan workflow and flags you\'ll use on every engagement.', minutes: 15, Content: ActiveScanningNmap },
       { id: 'rec-3', slug: 'service-enumeration', title: 'Service Enumeration: HTTP, FTP, SSH, SMB', summary: 'Turning open ports into footholds.', minutes: 16, Content: ServiceEnumeration },
       { id: 'rec-4', slug: 'credential-attacks', title: 'Credential Attacks: Wordlists & Brute Forcing', summary: 'rockyou, hydra, spraying, and knowing when to stop.', minutes: 13, Content: CredentialAttacks },
+      { id: 'rec-5', slug: 'enumeration-methodology', title: 'Putting It Together: The Enumeration Methodology', summary: 'Recon -> foothold -> privesc -> report, as one repeatable loop.', minutes: 10, Content: EnumerationMethodology },
+      { id: 'rec-6', slug: 'web-recon-and-subdomain-enumeration-at-scale', title: 'Web Reconnaissance & Subdomain Enumeration at Scale', summary: 'Certificate transparency, DNS permutation, and screenshot-based triage across thousands of hosts.', minutes: 13, Content: WebReconAndSubdomainEnumerationAtScale },
+      { id: 'rec-7', slug: 'cloud-asset-discovery-and-attack-surface-mapping', title: 'Cloud Asset Discovery & Attack Surface Mapping', summary: 'Bucket name-guessing, leaked cloud credentials on GitHub, and anonymous S3 access checks.', minutes: 13, Content: CloudAssetDiscoveryAndAttackSurfaceMapping },
       {
-        id: 'rec-5', slug: 'enumeration-methodology', title: 'Putting It Together: The Enumeration Methodology', summary: 'Recon -> foothold -> privesc -> report, as one repeatable loop.', minutes: 10, Content: EnumerationMethodology,
+        id: 'rec-8', slug: 'recon-automation-and-reporting', title: 'Recon Automation & Reporting', summary: 'Chaining this module\'s techniques into one pipeline, and subdomain-takeover reporting.', minutes: 13, Content: ReconAutomationAndReporting,
         quiz: [
           { id: 'q1', prompt: 'Why check robots.txt during web enumeration?', choices: ['It always contains the admin password', 'It lists paths admins didn\'t want search engines indexing — often sensitive', 'It is required for HTTPS to work', 'It lists open ports'], correctIndex: 1, explanation: 'robots.txt is a voluntary disclosure of paths considered worth hiding from crawlers — frequently useful recon.' },
-          { id: 'q2', prompt: 'Password spraying is preferred over per-account brute force when:', choices: ['You want to trigger account lockouts on purpose', 'You have many usernames and want to avoid lockout thresholds', 'The target has no lockout policy at all', 'You only have one username'], correctIndex: 1, explanation: 'Spraying tries one password across many accounts, staying under per-account lockout thresholds.' },
-          { id: 'q3', prompt: 'In the standard methodology, what comes immediately after gaining initial access?', choices: ['Passive recon', 'Privilege escalation', 'WHOIS lookup', 'DNS zone transfer'], correctIndex: 1, explanation: 'After a foothold, the next phase is escalating privileges toward root/SYSTEM.' },
+          { id: 'q2', prompt: 'Why does cloud storage bucket discovery require a fundamentally different technique than DNS-based subdomain enumeration?', choices: ['It does not — they use the exact same technique', 'A bucket needs no DNS record to be reachable, so it must be found by guessing plausible NAMES against a predictable cloud-provider URL pattern, not by enumerating DNS', 'Cloud buckets cannot be discovered at all', 'DNS enumeration always finds every cloud resource automatically'], correctIndex: 1, explanation: 'Cloud storage buckets are reachable at a predictable URL based purely on their name, with no DNS record required — discovery is closer to a namespace dictionary attack than DNS enumeration.' },
+          { id: 'q3', prompt: 'Why is a subdomain takeover (a CNAME pointing at a deprovisioned cloud resource) considered a high-priority recon finding?', choices: ['It has no real security impact', 'Re-claiming the same resource name under an attacker\'s account grants control of content served under the target\'s own trusted domain, with very little further work required', 'It can only be exploited by the original resource owner', 'It only affects DNS resolution speed'], correctIndex: 1, explanation: 'An unclaimed cloud resource still referenced by a target\'s DNS record can be re-registered by an attacker, who then serves content under the victim\'s own trusted domain name.' },
         ],
       },
     ],
@@ -458,12 +518,15 @@ export const MODULES: ModuleMeta[] = [
     lessons: [
       { id: 'for-1', slug: 'forensics-fundamentals', title: 'Digital Forensics Fundamentals', summary: 'Chain of custody, the three artifact categories, and timeline analysis.', minutes: 12, Content: ForensicsFundamentals },
       { id: 'for-2', slug: 'memory-artifact-analysis', title: 'Memory & Artifact Analysis', summary: 'Strings extraction, C2 beacon indicators, and deleted-file recovery.', minutes: 13, Content: MemoryArtifactAnalysis },
+      { id: 'for-3', slug: 'logs-and-network-artifacts', title: 'Windows Event Logs, Browser History & Web Shell Artifacts', summary: 'Security Event IDs, USB device history, and finding what an attacker left behind.', minutes: 13, Content: LogsAndNetworkArtifacts },
+      { id: 'for-4', slug: 'disk-forensics-and-file-system-analysis', title: 'Disk Forensics & File System Analysis', summary: 'NTFS\'s $MFT structure, why "deleted" doesn\'t mean erased, and file carving with foremost.', minutes: 13, Content: DiskForensicsAndFileSystemAnalysis },
+      { id: 'for-5', slug: 'memory-forensics-with-volatility', title: 'Memory Forensics Deep Dive with Volatility', summary: 'Process-tree analysis, malfind injection detection, and extracting credentials from RAM.', minutes: 13, Content: MemoryForensicsWithVolatility },
       {
-        id: 'for-3', slug: 'logs-and-network-artifacts', title: 'Windows Event Logs, Browser History & Web Shell Artifacts', summary: 'Security Event IDs, USB device history, and finding what an attacker left behind.', minutes: 13, Content: LogsAndNetworkArtifacts,
+        id: 'for-6', slug: 'forensic-reporting-legal-and-case-studies', title: 'Forensic Reporting, Legal Considerations & Closing Case Studies', summary: 'Defensible chain of custody, expert-witness writing, the BTK Killer and Silk Road cases.', minutes: 13, Content: ForensicReportingLegalAndCaseStudies,
         quiz: [
           { id: 'q1', prompt: 'What logon type in a Windows Security Event Log is most associated with pass-the-hash / lateral movement?', choices: ['Type 2 (Interactive)', 'Type 3 (Network)', 'Type 10 (RemoteInteractive)', 'There is no meaningful difference between logon types'], correctIndex: 1, explanation: 'Type 3 (Network) logons are what pass-the-hash and most lateral movement techniques produce — a privileged account showing only Type 3 bursts is a strong indicator.' },
-          { id: 'q2', prompt: 'Why is browser history still useful evidence even after a user clears it from the browser UI?', choices: ['Browsers cannot actually clear history', 'The underlying local database file is rarely actually wiped, just hidden from the UI', 'Clearing history requires admin rights', 'It is not useful — cleared history is gone'], correctIndex: 1, explanation: 'Clearing history in the browser UI typically does not securely wipe the underlying SQLite database file, which can still be read directly.' },
-          { id: 'q3', prompt: 'Why does the USB device history in the Windows registry record a serial number?', choices: ['It is required for the USB port to function', 'It lets an examiner identify that exact physical device, not just "a USB drive"', 'It has no forensic value', 'It only applies to USB keyboards/mice'], correctIndex: 1, explanation: 'The recorded serial number is specific enough to correlate the exact same physical device across multiple machines in a wider investigation.' },
+          { id: 'q2', prompt: 'Why does deleting a file rarely actually erase its underlying data?', choices: ['Deletion always overwrites the data immediately', 'The file system typically just marks the space as available for reuse, leaving the actual data blocks intact until something else overwrites them', 'Deleted files are moved to an encrypted archive automatically', 'This is only true for very old file systems'], correctIndex: 1, explanation: 'On nearly every mainstream file system, deletion frees the space for reuse without immediately overwriting the underlying data — full recovery is often possible until that space is reused.' },
+          { id: 'q3', prompt: 'Why did investigators seize the Ross Ulbricht (Silk Road) laptop while it was still powered on and unlocked, rather than shutting it down first?', choices: ['To save battery life', 'To preserve the live memory and active session state, avoiding the need to break disk encryption and preventing the loss of evidence that only exists in RAM', 'Shutting down was not technically possible', 'It had no effect on the investigation either way'], correctIndex: 1, explanation: 'This is the order-of-volatility principle in a real, high-stakes application — powering down would have lost the live session and any RAM-resident evidence permanently, and risked triggering disk encryption.' },
         ],
       },
     ],
@@ -483,10 +546,15 @@ export const MODULES: ModuleMeta[] = [
       { id: 'cloud-2', slug: 'iam-and-misconfiguration', title: 'IAM & Common Cloud Misconfigurations', summary: 'Least privilege, instance roles, and the cloud misconfiguration checklist.', minutes: 12, Content: IamAndMisconfiguration },
       {
         id: 'cloud-3', slug: 'containers-and-iac-secrets', title: 'Container, Kubernetes & Infrastructure-as-Code Security', summary: 'Exposed Docker/Kubernetes APIs, Terraform state secrets, and serverless least privilege.', minutes: 13, Content: ContainersAndIacSecrets,
+      },
+      { id: 'cloud-4', slug: 'identity-federation-and-cross-account-attacks', title: 'Multi-Cloud Identity Federation & Cross-Account Attacks', summary: 'AssumeRole trust policies, the Rhino Security Labs IAM privesc research, and the Storm-0558 Azure breach.', minutes: 13, Content: IdentityFederationAndCrossAccountAttacks },
+      { id: 'cloud-5', slug: 'cloud-native-detection-and-logging', title: 'Cloud-Native Detection & Logging', summary: 'CloudTrail control-plane events, GuardDuty findings, and the retention gap that defeats investigations.', minutes: 13, Content: CloudNativeDetectionAndLogging },
+      {
+        id: 'cloud-6', slug: 'cspm-and-closing-case-studies', title: 'Cloud Security Posture Management & Closing Case Studies', summary: 'Automating this module\'s checklist, triage prioritization, and the Verizon/NICE 14-million-record exposure.', minutes: 13, Content: CspmAndClosingCaseStudies,
         quiz: [
           { id: 'q1', prompt: 'Why does an unauthenticated Docker API on a host lead to full host compromise, not just "container access"?', choices: ['It does not — access is limited to containers only', 'A new container can be started with the host filesystem mounted inside it', 'Docker containers always run as a separate physical machine', 'The Docker API cannot create new containers'], correctIndex: 1, explanation: 'Starting a container with the host\'s root filesystem bind-mounted inside it gives read/write access to the real host, not just container-scoped access.' },
           { id: 'q2', prompt: 'Are Kubernetes Secrets encrypted by default?', choices: ['Yes, always encrypted at rest and in transit', 'No — they are only base64-encoded, which is trivially reversible', 'Only if the cluster has more than one node', 'Kubernetes does not support storing secrets'], correctIndex: 1, explanation: 'Kubernetes Secrets are base64-encoded, not encrypted — the same false-sense-of-security mistake as treating HTTP Basic Auth as protection.' },
-          { id: 'q3', prompt: 'Why can a Terraform state file leak a secret even when the .tf template itself looks clean (using a variable, not a hardcoded value)?', choices: ['State files are always encrypted so this cannot happen', 'The state file stores the fully resolved value of every deployed attribute in plaintext JSON', 'Terraform never actually deploys real secrets', 'Only CloudFormation has this issue, not Terraform'], correctIndex: 1, explanation: 'Terraform state tracks the actual deployed values, including resolved secrets, in plaintext JSON — regardless of how "clean" the source template looks.' },
+          { id: 'q3', prompt: 'Why is an IAM trust policy scoped to another account\'s "root" principal a scoping mistake?', choices: ['It is not a mistake — this is the recommended configuration', 'It grants trust to EVERY identity in that other account, not just one specific intended role or user', 'Root principals cannot assume roles at all', 'It only affects billing, not access'], correctIndex: 1, explanation: 'A trust policy scoped to an account\'s root principal effectively trusts every identity in that account, far broader than intended in most real cross-account access designs.' },
         ],
       },
     ],
@@ -645,6 +713,129 @@ export const MODULES: ModuleMeta[] = [
       { id: 'cpy-9', slug: 'regex-concurrency-and-caching', title: 'Advanced Regex, Concurrency & Caching', summary: 'Lookaheads, asyncio.gather, and lru_cache.', minutes: 14, Content: RegexConcurrencyAndCaching },
     ],
   },
+  {
+    id: 'mobile',
+    slug: 'mobile',
+    title: 'Mobile Security',
+    subtitle: 'Android & iOS static/dynamic analysis, insecure storage, and API backends',
+    description:
+      'The mobile-native attack surface: Android/iOS app architecture, unpacking and decompiling APKs/IPAs, ' +
+      'dynamic instrumentation with Frida to bypass certificate pinning, insecure local storage and cleartext ' +
+      'communication, and how it all ties back to the API backend every mobile app ultimately depends on.',
+    status: 'available',
+    sourceBooks: ['The Mobile Application Hacker\'s Handbook', 'OWASP Mobile Application Security Testing Guide (MASTG)'],
+    icon: 'mobile',
+    lessons: [
+      { id: 'mob-1', slug: 'mobile-app-architecture-and-attack-surface', title: 'Mobile App Architecture & the Attack Surface', summary: 'APK/IPA structure, sandboxing, exported components, and the OWASP Mobile Top 10.', minutes: 12, Content: MobileAppArchitectureAndAttackSurface },
+      { id: 'mob-2', slug: 'static-analysis-of-android-apps', title: 'Static Analysis of Android Apps', summary: 'Unpacking with apktool/jadx, manifest review, and hunting hardcoded secrets.', minutes: 13, Content: StaticAnalysisOfAndroidApps },
+      { id: 'mob-3', slug: 'dynamic-analysis-and-instrumentation', title: 'Dynamic Analysis & Instrumentation', summary: 'Intercepting traffic with Burp and bypassing certificate pinning with Frida.', minutes: 13, Content: DynamicAnalysisAndInstrumentation },
+      { id: 'mob-4', slug: 'insecure-data-storage-and-communication', title: 'Insecure Data Storage & Communication', summary: 'Plaintext local storage, cleartext traffic, and WebView JavaScript bridge risks.', minutes: 13, Content: InsecureDataStorageAndCommunication },
+      { id: 'mob-5', slug: 'ios-fundamentals-and-mobile-api-backends', title: 'iOS Security Fundamentals & Mobile API Backends', summary: 'IPA analysis, App Transport Security, Keychain, and closing the loop with API security testing.', minutes: 13, Content: IosFundamentalsAndMobileApiBackends },
+      { id: 'mob-6', slug: 'mobile-malware-and-banking-trojans', title: 'Mobile Malware & Banking Trojans', summary: 'Accessibility Service abuse, overlay attacks, and the TeaBot/Anatsa case study.', minutes: 13, Content: MobileMalwareAndBankingTrojans },
+      { id: 'mob-7', slug: 'mobile-device-management-and-enterprise-security', title: 'Mobile Device Management (MDM) & Enterprise Security', summary: 'Work-profile isolation, root detection bypass, and where MDM provides real value.', minutes: 12, Content: MobileDeviceManagementAndEnterpriseSecurity },
+      {
+        id: 'mob-8', slug: 'mobile-pentest-methodology-and-reporting', title: 'Mobile Penetration Testing Methodology & Reporting', summary: 'The OWASP MASVS/MASTG checklist, assessment ordering, and writing up findings.', minutes: 13, Content: MobilePentestMethodologyAndReporting,
+        quiz: [
+          { id: 'q1', prompt: 'Why is a "secret" API key found hardcoded inside a decompiled mobile app not actually secret anymore?', choices: ['It isn\'t a real risk — decompiling apps is illegal', 'The app is distributed to every user\'s device, so anyone can extract the key via static analysis', 'Hardcoded keys are automatically encrypted by the app store', 'Only iOS apps have this problem'], correctIndex: 1, explanation: 'Once a secret ships inside a client binary distributed to every user, it is effectively public — extractable with the exact static analysis workflow this module covers.' },
+          { id: 'q2', prompt: 'Why does Android\'s Accessibility Service enable such effective banking trojans?', choices: ['It only works on rooted devices', 'It legitimately allows reading on-screen text and injecting taps across every app, which malware abuses to draw fake login overlays and steal credentials', 'It requires server-side compromise of the bank', 'It was deprecated and no longer works'], correctIndex: 1, explanation: 'Accessibility Service is a legitimate, powerful capability — banking trojans like TeaBot abuse the exact same permission a screen reader uses, to read screens and inject taps on the user\'s behalf.' },
+          { id: 'q3', prompt: 'Why can\'t a jailbreak/root detection check ever be a fully reliable security boundary?', choices: ['It always works perfectly on all devices', 'It is a client-side check running on a device the attacker already has full control over, so its return value can be hooked and overridden with Frida', 'Jailbreak detection is illegal to bypass', 'It only matters for iOS, not Android'], correctIndex: 1, explanation: 'Once a device is rooted/jailbroken, any client-side check — including the check for root/jailbreak itself — is just a function whose result can be intercepted and forced to lie.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'wireless',
+    slug: 'wireless',
+    title: 'Wireless & Wi-Fi Hacking',
+    subtitle: '802.11 fundamentals, WPA2/WPA3 cracking, evil twins, and Bluetooth/BLE',
+    description:
+      'The radio-frequency attack surface: 802.11 frame types and monitor mode, capturing and cracking WPA2 ' +
+      'handshakes, why WPA3\'s SAE handshake closes that door, rogue access points and evil twin attacks that ' +
+      'sidestep cryptography entirely, and the adjacent Bluetooth/BLE attack surface most devices also carry.',
+    status: 'available',
+    sourceBooks: ['Hacking Exposed Wireless', 'Red Team Field Manual (RTFM)'],
+    icon: 'wifi',
+    lessons: [
+      { id: 'wl-1', slug: '802-11-fundamentals-and-attack-surface', title: '802.11 Fundamentals & the Wireless Attack Surface', summary: 'Frame types, monitor mode, and why unauthenticated management frames matter.', minutes: 12, Content: Fundamentals80211AndAttackSurface },
+      { id: 'wl-2', slug: 'encryption-and-handshake-capture', title: 'WPA2 Encryption & Handshake Capture', summary: 'The 4-way handshake, deauth-and-capture, and the quieter PMKID technique.', minutes: 13, Content: EncryptionAndHandshakeCapture },
+      { id: 'wl-3', slug: 'cracking-handshakes-and-wpa3', title: 'Cracking Captured Handshakes & WPA3', summary: 'Dictionary/mask attacks with hashcat, and why WPA3-SAE breaks the offline-cracking model.', minutes: 13, Content: CrackingHandshakesAndWpa3 },
+      { id: 'wl-4', slug: 'rogue-aps-and-evil-twin-attacks', title: 'Rogue Access Points & Evil Twin Attacks', summary: 'Cloning trusted SSIDs, the KARMA attack, and captive portal credential phishing.', minutes: 12, Content: RogueApsAndEvilTwinAttacks },
+      { id: 'wl-5', slug: 'bluetooth-and-ble-security', title: 'Bluetooth & BLE Security Basics', summary: 'Pairing trust models, GATT enumeration, and the BlueBorne case study.', minutes: 13, Content: BluetoothAndBleSecurity },
+      { id: 'wl-6', slug: 'enterprise-wireless-802-1x-eap-radius', title: 'Enterprise Wireless: 802.1X/EAP & RADIUS Security', summary: 'Supplicant/authenticator/RADIUS, EAP method strength, and rogue-RADIUS credential theft.', minutes: 13, Content: EnterpriseWireless8021xEapRadius },
+      { id: 'wl-7', slug: 'wireless-ids-and-defensive-monitoring', title: 'Wireless IDS/IPS & Defensive Monitoring', summary: 'Kismet, deauth-rate alerting, and how a WIDS detects this module\'s own attacks.', minutes: 12, Content: WirelessIdsAndDefensiveMonitoring },
+      {
+        id: 'wl-8', slug: 'cellular-security-fundamentals-and-synthesis', title: '5G/Cellular Security Fundamentals & Closing Synthesis', summary: 'IMSI catchers, SS7/Diameter, 5G downgrade attacks, and the module\'s throughline.', minutes: 13, Content: CellularSecurityFundamentalsAndSynthesis,
+        quiz: [
+          { id: 'q1', prompt: 'Why are 802.11 management frames (like deauthentication) exploitable by an attacker with no knowledge of the network password?', choices: ['They are encrypted, but with a weak cipher', 'They were unauthenticated and unencrypted in the original standard and WPA2, so anyone can forge them', 'They require physical access to the AP', 'Only WEP networks have this issue'], correctIndex: 1, explanation: 'Management frames being unauthenticated in 802.11/WPA2 is the root cause behind deauth attacks and evil twin attacks alike.' },
+          { id: 'q2', prompt: 'In an enterprise 802.1X/EAP deployment, what does the access point (the "authenticator") actually verify about the client\'s credentials?', choices: ['It independently validates them against Active Directory itself', 'Nothing directly — it relays the exchange to a RADIUS server and simply honors whatever accept/reject decision comes back', 'It only checks the device\'s MAC address', 'It requires no credential exchange at all'], correctIndex: 1, explanation: 'The AP is just an authenticator that forwards the conversation to a trusted RADIUS server — the actual identity check happens at the RADIUS/AD backend, not the AP itself.' },
+          { id: 'q3', prompt: 'What do 802.11 evil twins, rogue RADIUS servers, and cellular IMSI catchers all fundamentally exploit?', choices: ['A single shared cryptographic flaw across all three', 'A device\'s willingness to trust whichever nearby transmitter broadcasts a familiar identity, with no cryptographic way to verify which physical source is genuine', 'They exploit completely unrelated vulnerabilities with no common pattern', 'Weak passwords in every case'], correctIndex: 1, explanation: 'The module\'s closing synthesis: Wi-Fi SSIDs, RADIUS servers, and cellular tower identities are all broadcast identities a device trusts by default, with no built-in way to verify which physical transmitter is actually behind them.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'iot',
+    slug: 'iot',
+    title: 'IoT & Embedded Security',
+    subtitle: 'Firmware analysis, UART/JTAG hardware hacking, embedded web UIs, and the Mirai botnet',
+    description:
+      'The physically-accessible attack surface: extracting and statically analyzing firmware with binwalk, ' +
+      'hardware debug interfaces (UART/JTAG/SPI flash) that often hand over a root shell to anyone holding ' +
+      'the device, recurring embedded web-UI vulnerability patterns, and the Mirai botnet\'s full lifecycle ' +
+      'as a case study in what happens when these findings repeat across an entire industry at scale.',
+    status: 'available',
+    sourceBooks: ['The Hardware Hacking Handbook', 'Practical IoT Hacking'],
+    icon: 'chip',
+    lessons: [
+      { id: 'iot-1', slug: 'iot-architecture-and-attack-surface', title: 'IoT Architecture & the Embedded Attack Surface', summary: 'The four-layer model, embedded Linux vs. RTOS, and the OWASP IoT Top 10.', minutes: 12, Content: IotArchitectureAndAttackSurface },
+      { id: 'iot-2', slug: 'firmware-extraction-and-static-analysis', title: 'Firmware Extraction & Static Analysis', summary: 'binwalk, SquashFS extraction, and hunting hardcoded credentials in /etc/shadow.', minutes: 13, Content: FirmwareExtractionAndStaticAnalysis },
+      { id: 'iot-3', slug: 'hardware-hacking-uart-jtag-spi', title: 'Hardware Hacking Fundamentals: UART, JTAG & SPI', summary: 'Serial console root shells, JTAG debug access, and dumping SPI flash directly.', minutes: 13, Content: HardwareHackingUartJtagSpi },
+      { id: 'iot-4', slug: 'embedded-web-interfaces-and-common-vulns', title: 'Embedded Web Interfaces & Common IoT Vulnerabilities', summary: 'Default credentials, command injection in diagnostic tools, and insecure OTA updates.', minutes: 12, Content: EmbeddedWebInterfacesAndCommonVulns },
+      { id: 'iot-5', slug: 'iot-botnets-mirai-and-beyond', title: 'IoT Botnets & the Broader Ecosystem: Mirai and Beyond', summary: 'Mirai\'s full attack chain, its source leak, the botnets that followed, and the regulation it triggered.', minutes: 13, Content: IotBotnetsMiraiAndBeyond },
+      { id: 'iot-6', slug: 'iot-protocols-zigbee-zwave-mqtt', title: 'IoT Communication Protocols: Zigbee, Z-Wave & MQTT Security', summary: 'The default Trust Center link key, Z-Wave S2 downgrades, and wide-open MQTT brokers.', minutes: 13, Content: IotProtocolsZigbeeZwaveMqtt },
+      { id: 'iot-7', slug: 'industrial-control-systems-and-scada-security', title: 'Industrial Control Systems & SCADA Security', summary: 'OT\'s inverted CIA priorities, unauthenticated Modbus, the Purdue Model, and Stuxnet.', minutes: 13, Content: IndustrialControlSystemsAndScadaSecurity },
+      {
+        id: 'iot-8', slug: 'iot-testing-methodology-and-compliance', title: 'IoT Security Testing Methodology & Regulatory Compliance', summary: 'The OWASP FSTM nine-stage framework, and mapping findings to SB-327/PSTI/CRA.', minutes: 13, Content: IotTestingMethodologyAndCompliance,
+        quiz: [
+          { id: 'q1', prompt: 'Why was Mirai able to compromise hundreds of thousands of devices using only around 60 credential pairs?', choices: ['It exploited a single zero-day vulnerability', 'Many IoT vendors shipped devices with hardcoded default credentials that users had no way to change', 'It used a novel cryptographic attack', 'It required physical access to each device'], correctIndex: 1, explanation: 'Mirai\'s success came from I1 (weak/hardcoded credentials) repeated across an entire industry, not from any single sophisticated exploit.' },
+          { id: 'q2', prompt: 'Why does JTAG access effectively bypass every software-level security control on a device?', choices: ['JTAG requires the same password as the web UI', 'JTAG halts the CPU directly and allows raw memory read/write, with no OS-level access control running while the CPU is halted', 'JTAG only works over the network', 'It doesn\'t — JTAG is fully sandboxed by the OS'], correctIndex: 1, explanation: 'JTAG operates below the software layer entirely — with the CPU halted via the debug interface, there is no running OS to enforce any access control at all.' },
+          { id: 'q3', prompt: 'Why does ICS/SCADA security typically prioritize Availability above Confidentiality, unlike most IT systems?', choices: ['Confidentiality does not matter for industrial systems', 'An unplanned outage in a system controlling a physical process (like water treatment) can have direct physical/safety consequences, making patching and downtime a much higher-stakes decision', 'ICS systems are never connected to networks at all', 'This is a documentation error — the priorities are actually identical to IT'], correctIndex: 1, explanation: 'OT environments reorder the CIA triad because an availability failure in a system controlling a physical process can cause real-world physical harm, unlike most IT systems.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'ai-security',
+    slug: 'ai-security',
+    title: 'AI & LLM Security',
+    subtitle: 'Prompt injection, jailbreaking, insecure output handling, and the OWASP Top 10 for LLMs',
+    description:
+      'Natural language as a new, largely unsolved attack surface: prompt injection and jailbreaking, ' +
+      'insecure output handling and excessive agency in AI agents, training data poisoning and model-supply-' +
+      'chain risks (malicious pickle files, model theft), and sensitive information disclosure through ' +
+      'memorized training data, careless human input, and unscoped RAG retrieval — grounded throughout in ' +
+      'real, publicly documented incidents.',
+    status: 'available',
+    sourceBooks: ['OWASP Top 10 for Large Language Model Applications', 'NIST AI Risk Management Framework'],
+    icon: 'brain',
+    lessons: [
+      { id: 'ai-1', slug: 'ai-security-fundamentals-owasp-llm-top-10', title: 'AI/LLM Security Fundamentals & the OWASP Top 10 for LLMs', summary: 'Why natural language is a genuinely new untrusted input channel, and the OWASP LLM Top 10 as a working map.', minutes: 12, Content: AiSecurityFundamentalsOwaspLlmTop10 },
+      { id: 'ai-2', slug: 'prompt-injection-and-jailbreaking', title: 'Prompt Injection & Jailbreaking', summary: 'Direct and indirect prompt injection, jailbreak techniques, and the Chevrolet chatbot incident.', minutes: 13, Content: PromptInjectionAndJailbreaking },
+      { id: 'ai-3', slug: 'insecure-output-handling-and-excessive-agency', title: 'Insecure Output Handling & Excessive Agency', summary: 'LLM-mediated XSS/SSRF, agentic tool misuse, and the Air Canada chatbot liability ruling.', minutes: 13, Content: InsecureOutputHandlingAndExcessiveAgency },
+      { id: 'ai-4', slug: 'training-data-poisoning-model-theft-supply-chain', title: 'Training Data Poisoning, Model Theft & Supply Chain', summary: 'Backdoor triggers, malicious pickle model files, and model extraction via repeated queries.', minutes: 13, Content: TrainingDataPoisoningModelTheftSupplyChain },
+      { id: 'ai-5', slug: 'sensitive-info-disclosure-rag-security-case-studies', title: 'Sensitive Information Disclosure, RAG Security & Case Studies', summary: 'Training data memorization, the Samsung ChatGPT incident, and cross-tenant RAG data leakage.', minutes: 13, Content: SensitiveInfoDisclosureRagSecurityCaseStudies },
+      { id: 'ai-6', slug: 'adversarial-machine-learning-evasion', title: 'Adversarial Machine Learning: Evasion & Adversarial Examples', summary: 'Gradient-based evasion attacks, the physical-world stop-sign study, and malware-classifier evasion.', minutes: 13, Content: AdversarialMachineLearningEvasion },
+      { id: 'ai-7', slug: 'ai-governance-red-teaming-safety-evaluation', title: 'AI Governance, Red Teaming & Safety Evaluation', summary: 'AI red teaming methodology, the NIST AI RMF, and the EU AI Act.', minutes: 13, Content: AiGovernanceRedTeamingSafetyEvaluation },
+      {
+        id: 'ai-8', slug: 'securing-ai-agents-multi-agent-systems', title: 'Securing AI Agents & Multi-Agent Systems in Production', summary: 'Agent-to-agent trust, MCP/tool-calling risks, and this module\'s closing synthesis.', minutes: 13, Content: SecuringAiAgentsMultiAgentSystems,
+        quiz: [
+          { id: 'q1', prompt: 'Why can\'t an LLM reliably distinguish a developer\'s system prompt from an attacker\'s injected instruction?', choices: ['LLMs are not trained on any instructions at all', 'Both are just concatenated text handed to the model with no cryptographic separation marking one as more authoritative', 'System prompts are always encrypted', 'This is only a problem for older models'], correctIndex: 1, explanation: 'This is the root cause behind prompt injection: system prompt, retrieved context, and user input are all just text with no enforced trust boundary between them.' },
+          { id: 'q2', prompt: 'How does a classic adversarial example (like the stop-sign sticker attack) differ from a prompt injection attack?', choices: ['They are the same technique with a different name', 'An adversarial example exploits the mathematical structure of a model\'s decision boundary with a crafted input perturbation, rather than exploiting the model\'s natural-language instruction-following', 'Adversarial examples only work on LLMs', 'Adversarial examples require no computation to create'], correctIndex: 1, explanation: 'Adversarial examples are a gradient-based mathematical attack against any classifier\'s decision boundary — a distinct, older attack class from prompt injection\'s language-based instruction override.' },
+          { id: 'q3', prompt: 'In a multi-agent AI system, why is one agent trusting another agent\'s output a security risk?', choices: ['It is not a risk — agent-to-agent communication is inherently safe', 'An upstream agent may have already been successfully prompt-injected, and that injection can propagate silently to every downstream agent that trusts its output as legitimate', 'Agents cannot communicate with each other at all', 'This only matters if the agents are made by different companies'], correctIndex: 1, explanation: 'This is the module\'s compounding excessive-agency risk: a downstream agent trusting another agent\'s output as inherently authoritative lets an upstream injection propagate through the entire chain.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const ROADMAP: RoadmapStage[] = [
@@ -667,6 +858,10 @@ export const ROADMAP: RoadmapStage[] = [
   { title: 'Binary Analysis & Reverse Engineering', status: 'available', moduleSlug: 'binaryanalysis', sourceBooks: ['Practical Binary Analysis', 'Hacking: The Art of Exploitation'], track: 'security' },
   { title: 'Practical Malware Analysis', status: 'available', moduleSlug: 'malware', sourceBooks: ['Practical Malware Analysis'], track: 'security' },
   { title: 'Security Engineering', status: 'available', moduleSlug: 'secengineering', sourceBooks: ['Security Engineering — Ross Anderson'], track: 'security' },
+  { title: 'Mobile Security', status: 'available', moduleSlug: 'mobile', sourceBooks: ['The Mobile Application Hacker\'s Handbook', 'OWASP MASTG'], track: 'security' },
+  { title: 'Wireless & Wi-Fi Hacking', status: 'available', moduleSlug: 'wireless', sourceBooks: ['Hacking Exposed Wireless', 'RTFM'], track: 'security' },
+  { title: 'IoT & Embedded Security', status: 'available', moduleSlug: 'iot', sourceBooks: ['The Hardware Hacking Handbook', 'Practical IoT Hacking'], track: 'security' },
+  { title: 'AI & LLM Security', status: 'available', moduleSlug: 'ai-security', sourceBooks: ['OWASP Top 10 for LLM Applications', 'NIST AI RMF'], track: 'security' },
   { title: 'Guided Hands-On Labs (142 labs)', status: 'available', href: '/labs', sourceBooks: ['Applied practice across every module above'], track: 'security' },
 
   { title: 'Code Portal: Python Fundamentals', status: 'available', moduleSlug: 'code-python-fundamentals', sourceBooks: ['Python Crash Course'], track: 'programming' },

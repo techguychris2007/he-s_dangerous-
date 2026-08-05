@@ -90,6 +90,27 @@ dirsearch -u https://target.com -e php`}</CodeBlock>
         </p>
       </Callout>
 
+      <h2>Race conditions, mechanically: why "redeem twice" actually works</h2>
+      <p>
+        The gift-card race condition above isn't just "send it fast twice" luck — it's a specific,
+        well-understood bug class called <strong>TOCTOU (Time-Of-Check to Time-Of-Use)</strong>. Almost every
+        balance-check operation is really two separate steps: read the current balance, then write the
+        updated one. If two requests both complete step one (read: "balance is $50, not yet redeemed") before
+        either completes step two, both proceed as if they were first — the check and the use are separated
+        by a gap wide enough for a second request to slip through unnoticed.
+      </p>
+      <CodeBlock label="the race, made explicit">{`Request A: read balance ($50) -> not yet marked redeemed -> proceed
+Request B: read balance ($50) -> not yet marked redeemed -> proceed   (arrives before A writes anything)
+Request A: mark redeemed, grant $50
+Request B: mark redeemed, grant $50
+# total granted: $100, from a single $50 gift card`}</CodeBlock>
+      <p>
+        The practical test: fire the same sensitive request (redeem, transfer, apply-coupon) multiple times
+        <em>concurrently</em>, not sequentially — tools like Burp Suite's Turbo Intruder exist specifically to
+        send a burst of near-simultaneous requests tight enough to land inside that race window, since a
+        normal sequential test would never expose the gap at all.
+      </p>
+
       <h2>Practicing IDOR in the lab</h2>
       <p>
         This module's lab has you enumerate a simple invoice API and confirm IDOR exactly the way shown

@@ -108,6 +108,29 @@ print(v == v2)             # True — auto-generated __eq__ compares all fields`
         behavior.
       </p>
 
+      <h2>Frozen dataclasses: immutability, without writing __hash__ by hand</h2>
+      <p>
+        The <code>Vulnerability</code> dataclass above is still mutable — nothing stops{' '}
+        <code>v.severity = "Low"</code> from silently rewriting it after creation. Passing{' '}
+        <code>frozen=True</code> makes every field read-only after <code>__init__</code>, and as a bonus
+        automatically generates a correct <code>__hash__</code> based on the fields — the exact pairing the{' '}
+        <code>Fingerprint</code> class above had to write by hand:
+      </p>
+      <CodeBlock label="frozen=True — immutable, hashable, for free">{`@dataclass(frozen=True)
+class Vulnerability:
+    cve_id: str
+    severity: str
+    cvss_score: float
+
+v = Vulnerability("CVE-2024-1234", "Critical", 9.8)
+# v.severity = "Low"          # FrozenInstanceError — frozen instances reject attribute assignment
+seen: set[Vulnerability] = {v}   # works — frozen dataclasses are hashable automatically`}</CodeBlock>
+      <p>
+        Reach for <code>frozen=True</code> any time a value object shouldn't change after creation — a
+        finding, a fingerprint, a config snapshot — the same reasoning the earlier lesson gave for choosing a
+        tuple over a list, applied to a full class instead of a plain sequence of values.
+      </p>
+
       <h2>Abstract base classes — enforcing an interface</h2>
       <CodeBlock label="abc.ABC and @abstractmethod">{`from abc import ABC, abstractmethod
 

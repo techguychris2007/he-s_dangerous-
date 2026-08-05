@@ -67,6 +67,18 @@ export default function EnumerationMethodology() {
         </p>
       </Callout>
 
+      <h2>This loop has a name: PTES</h2>
+      <p>
+        The methodology above isn't something this course invented — it's a compressed version of the{' '}
+        <strong>Penetration Testing Execution Standard (PTES)</strong>, the widely-referenced framework the
+        industry uses to structure engagements: Pre-engagement, Intelligence Gathering, Threat Modeling,
+        Vulnerability Analysis, Exploitation, Post-Exploitation, and Reporting. This lesson's five-step loop
+        maps directly onto PTES's middle five phases; the two PTES adds on either end (formal
+        pre-engagement scoping, and reporting as a fully separate discipline) are exactly why later modules
+        in this course cover rules-of-engagement discipline and report writing as distinct skills in their
+        own right, not just an afterthought tacked onto exploitation.
+      </p>
+
       <h2>You're ready for the labs</h2>
       <p>
         You now have the full foundation: networking (Module 1), Linux (Module 2), and the recon/

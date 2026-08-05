@@ -72,6 +72,16 @@ cewl http://target.com -w custom-wordlist.txt   # generate a wordlist from a web
         </p>
       </Callout>
 
+      <h2>Why password spraying specifically targets MFA-less accounts</h2>
+      <p>
+        Multi-factor authentication is the real reason password spraying (rather than classic brute force)
+        became the dominant real-world credential attack: a correct password against an account with MFA
+        enabled still doesn't grant access, which makes MFA coverage gaps — a shared service account, a
+        legacy application that was never onboarded, a break-glass admin account exempted "temporarily" — the
+        actual target. Spraying one weak, plausible password across every username in an organization is
+        precisely how an attacker finds that one account nobody remembered to enroll.
+      </p>
+
       <h2>Beyond brute force</h2>
       <p>
         Default credentials (admin:admin, root:toor), credentials found in config files during earlier

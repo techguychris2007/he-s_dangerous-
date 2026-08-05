@@ -65,6 +65,29 @@ print(first_five)   # ['INC-1', 'INC-2', 'INC-3', 'INC-4', 'INC-5']`}</CodeBlock
         </p>
       </Callout>
 
+      <h2>yield from — delegating to another generator</h2>
+      <p>
+        Once one generator needs to hand off part of its work to another generator, <code>yield from</code>{' '}
+        flattens the delegation automatically instead of you writing a manual inner loop:
+      </p>
+      <CodeBlock label="combining several log sources into one stream">{`def read_matches(filename, keyword):
+    with open(filename) as f:
+        for line in f:
+            if keyword in line:
+                yield line
+
+def all_matches(filenames, keyword):
+    for filename in filenames:
+        yield from read_matches(filename, keyword)   # re-yields everything read_matches produces
+
+for line in all_matches(["auth.log", "access.log"], "FAILED"):
+    print(line)`}</CodeBlock>
+      <p>
+        Without <code>yield from</code>, the equivalent would be an inner <code>for item in
+        read_matches(...): yield item</code> loop — functionally identical, but <code>yield from</code> makes
+        the delegation explicit and is the idiomatic way to compose generators out of smaller generators.
+      </p>
+
       <h2>Context managers — guaranteed cleanup with the with statement</h2>
       <p>
         You've already used context managers constantly: <code>with open(file) as f:</code> guarantees the

@@ -278,8 +278,8 @@ export default function ProgressPage() {
       )}
 
       <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 text-sm text-[var(--color-text-dim)] leading-relaxed">
-        Lesson, lab, and quiz progress sync to your account across devices. Your streak, activity history, and
-        achievements stay local to this browser — see your{' '}
+        Lessons, labs, quizzes, your streak, activity history, and achievements all sync to your account
+        across devices — see your{' '}
         <Link to="/profile" className="text-[var(--color-accent)] hover:underline">
           profile
         </Link>{' '}

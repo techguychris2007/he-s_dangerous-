@@ -14,19 +14,51 @@ export default function ComplianceReporting() {
 
       <h2>The frameworks and what each one actually cares about</h2>
       <CodeBlock label="the major frameworks a SOC commonly reports against">{`PCI-DSS   — payment card data. Requirement 10.6 specifically mandates DAILY log review
-             for systems in the cardholder data environment.
+             for systems in the cardholder data environment. Minimum 1-year log retention.
 HIPAA      — protected health information. Requires access logging and periodic review
-             for any system touching patient records.
+             for any system touching patient records. ~6-year retention is standard practice.
 SOC 2       — a broader trust-services audit (security, availability, confidentiality)
               that most B2B SaaS vendors are asked for by their own enterprise customers.
+              No fixed retention mandate — auditors check that your OWN stated policy
+              (commonly 1-3 years) is actually followed, not a specific number.
 ISO 27001    — an international information-security management standard, audited
-               against a documented set of controls an organization commits to maintaining.`}</CodeBlock>
+               against a documented set of controls an organization commits to maintaining.
+               No hard-coded retention period either, but 12 months is the commonly-cited
+               practical minimum to support incident response and management review.
+GDPR          — EU personal data protection. Doesn't mandate periodic review like the
+               others — it mandates something sharper: notifying regulators within
+               72 HOURS of becoming aware of a breach likely to risk individuals' rights.`}</CodeBlock>
       <p>
         Notice the common thread: every one of these asks for the SAME underlying evidence — logs were
         collected, they were actually reviewed (not just stored), and any anomaly found during that review was
         followed up on and documented. A SIEM is the tool that makes generating that evidence a query instead
         of a weeks-long manual archaeology project.
       </p>
+
+      <h2>GDPR: a fundamentally different kind of reporting requirement</h2>
+      <p>
+        Every framework above is about proving <em>ongoing</em>, routine review happened. GDPR's Article 33 is
+        different in kind: it's not a periodic-review requirement at all, but an incident-triggered one — once
+        an organization becomes aware that a breach has occurred and it's likely to risk individuals' rights
+        and freedoms, the clock starts on a 72-hour deadline to notify the relevant supervisory authority, even
+        if full details aren't yet known.
+      </p>
+      <CodeBlock label="how a real GDPR notification timeline actually plays out">{`T+0h    Awareness confirmed: reasonable certainty personal data was compromised
+T+72h   DEADLINE — initial notification filed with the supervisory authority,
+         stating what IS known even if the full scope isn't yet
+T+later Supplementary notification filed once more information is available
+         (explicitly permitted — GDPR does not require a complete picture in 72 hours,
+         only a documented, timely start)`}</CodeBlock>
+      <Callout variant="warn">
+        <p>
+          The 72 hours starts at <strong>awareness</strong>, not at the moment the breach actually occurred —
+          which is exactly why this lesson's earlier point about timelines and scoping matters so much here: an
+          organization that can't quickly reconstruct when it became aware, and what it knew at each point, has
+          no reliable way to prove it met the deadline at all. Missing this notification is its own separate
+          violation, independent of the breach itself, carrying fines of up to €10 million or 2% of global
+          annual turnover — whichever is higher.
+        </p>
+      </Callout>
 
       <h2>What a real compliance report actually contains</h2>
       <CodeBlock label="the shape of a PCI-DSS Requirement 10.6 report, the exact one the Elastic compliance lab has you find">{`PCI-DSS COMPLIANCE REPORT (Requirement 10.6 — daily log review, aggregated quarterly)

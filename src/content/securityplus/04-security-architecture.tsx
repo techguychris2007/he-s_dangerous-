@@ -61,6 +61,27 @@ export default function SecurityArchitecture() {
         </p>
       </Callout>
 
+      <h2>SASE: zero trust, delivered as a cloud service</h2>
+      <p>
+        Zero trust above is a principle; <strong>SASE (Secure Access Service Edge)</strong> is the
+        architectural pattern that delivers it operationally for a modern, largely remote/cloud-first
+        workforce. It converges networking and security functions that used to live as separate on-premises
+        appliances — VPN concentrators, firewalls, secure web gateways, CASB (Cloud Access Security Broker)
+        — into a single, cloud-delivered service that every user's traffic routes through regardless of
+        physical location, applying consistent zero-trust policy at the network edge closest to the user
+        rather than backhauling all traffic through a central corporate data center first.
+      </p>
+      <CodeBlock label="the shift SASE represents">{`OLD MODEL:  remote user -> VPN back to corporate HQ -> THEN through security appliances -> internet
+             (every remote connection pays a latency penalty routing through one physical location)
+
+SASE MODEL:  remote user -> nearest cloud SASE edge node (security policy applied here) -> internet
+              (policy enforcement happens close to the user, not funneled through one central choke point)`}</CodeBlock>
+      <p>
+        This is precisely why SASE adoption accelerated alongside widespread remote work — the old
+        "VPN back to headquarters" model assumes a workforce that's mostly on-site, and stops scaling
+        gracefully the moment most connections are remote by default rather than the exception.
+      </p>
+
       <h2>High availability &amp; redundancy</h2>
       <CodeBlock label="patterns for eliminating single points of failure">{`Active-Active  — multiple systems handle load simultaneously; if one fails, others absorb the traffic
 Active-Passive — a standby system takes over only if the primary fails

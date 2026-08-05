@@ -142,9 +142,9 @@ export default function ProfilePage() {
       </div>
 
       <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 text-sm text-[var(--color-text-dim)] leading-relaxed">
-        Your lesson/lab/quiz progress syncs to your account so it follows you across devices. Your streak,
-        achievements, learning-insight stats, and display name shown here stay local to this browser only —
-        clearing your browser data resets those (but not your synced progress) completely.
+        Everything here — lessons, labs, quizzes, your streak, achievements, and Code Portal learning-insight
+        stats — syncs to your account, so it follows you across devices as long as you're signed in. Your
+        display name is taken straight from your account rather than stored separately.
       </div>
     </div>
   );

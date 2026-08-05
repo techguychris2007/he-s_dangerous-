@@ -70,6 +70,28 @@ Is every failed/successful login attempt logged (repudiation)?`}</CodeBlock>
         </p>
       </Callout>
 
+      <h2>PASTA: a risk-centric alternative to STRIDE</h2>
+      <p>
+        STRIDE is a category checklist — fast, memorable, and developer-friendly, which is exactly why this
+        lesson leads with it. <strong>PASTA</strong> (Process for Attack Simulation and Threat Analysis) is a
+        heavier, seven-stage methodology built for a different audience: it explicitly starts from business
+        objectives and asset value BEFORE any technical threat enumeration, and ends with a formal
+        risk-and-impact analysis tied back to those business objectives — designed for organizations that
+        need threat modeling to produce a business-risk artifact executives can act on, not just an
+        engineering checklist.
+      </p>
+      <CodeBlock label="PASTA's seven stages, at a glance">{`1. Define business objectives          5. Vulnerability & weakness analysis
+2. Define technical scope                6. Attack modeling (the attack-tree work covered below)
+3. Application decomposition               7. Risk & impact analysis, tied back to stage 1's objectives
+4. Threat analysis`}</CodeBlock>
+      <p>
+        The practical choice between them: STRIDE fits well as something a development team runs quickly
+        during design review, integrated into the same workflow as the checklist in the previous lesson;
+        PASTA fits better as a formal, periodic exercise for a high-value system where leadership needs the
+        output framed in business-risk terms from the start, not translated into that language after the
+        fact.
+      </p>
+
       <h2>DREAD: scoring threats once you've found them</h2>
       <CodeBlock label="a simple 1-10 scoring model for prioritization">{`Damage           — how bad is the impact if this is exploited?
 Reproducibility   — how reliably can it be triggered?

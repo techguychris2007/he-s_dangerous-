@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
 import Companion from '../companion/Companion';
 
 export default function AppLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { pathname } = useLocation();
 
   useEffect(() => {
     if (!mobileOpen) return;
@@ -15,6 +16,13 @@ export default function AppLayout() {
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [mobileOpen]);
+
+  // <main> owns its own scroll (overflow-y-auto below), so the browser's native scroll restoration
+  // never touches it — without this, navigating away from a page scrolled halfway down (a long
+  // lesson, the lab catalog) lands the next page already scrolled to that same offset.
+  useEffect(() => {
+    document.getElementById('main-content')?.scrollTo(0, 0);
+  }, [pathname]);
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[var(--color-bg)]">
@@ -41,7 +49,11 @@ export default function AppLayout() {
       <div className="flex-1 flex flex-col min-w-0">
         <TopBar onMenuClick={() => setMobileOpen((o) => !o)} />
         <main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto">
-          <Outlet />
+          {/* h-full passes main's height through to pages like LabPage/CodeTaskPage that render
+              their own `h-full flex` workspace layout and need a definite height to fill. */}
+          <div key={pathname} className="page-transition h-full">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

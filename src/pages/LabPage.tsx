@@ -6,6 +6,8 @@ import Terminal from '../components/terminal/Terminal';
 import StepChecklist from '../components/lesson/StepChecklist';
 import ShareWriteupModal from '../components/labs/ShareWriteupModal';
 import CyberLabAI from '../components/labs/CyberLabAI';
+import LabRatingWidget from '../components/labs/LabRatingWidget';
+import LabComments from '../components/labs/LabComments';
 import DifficultyPill from '../components/common/DifficultyPill';
 import { IconFlag, IconCheck } from '../components/layout/icons';
 
@@ -49,7 +51,7 @@ export default function LabPage() {
             style={{ width: `${Math.round((100 * captured) / scenario.totalFlags)}%` }}
           />
         </div>
-        <h1 className="text-2xl font-bold text-[var(--color-heading)] mb-3">{scenario.title}</h1>
+        <h1 className="text-2xl font-extrabold tracking-tight leading-tight text-[var(--color-heading)] mb-3">{scenario.title}</h1>
         <p className="text-sm text-[var(--color-text-dim)] leading-relaxed mb-5">{scenario.briefing}</p>
 
         {/* The single most important thing to see the moment the last flag lands — placed before the
@@ -71,6 +73,8 @@ export default function LabPage() {
           </div>
         )}
 
+        {done && <LabRatingWidget labId={scenario.id} />}
+
         <div className="mb-6">
           <StepChecklist steps={scenario.objectives} autoCheckedCount={autoCheckedCount} title="Lab Guide" variant="prominent" />
         </div>
@@ -83,6 +87,8 @@ export default function LabPage() {
             command list.
           </div>
         )}
+
+        <LabComments labId={scenario.id} />
       </div>
 
       <div className="flex-1 min-h-[420px] p-4">

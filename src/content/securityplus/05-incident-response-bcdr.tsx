@@ -104,6 +104,25 @@ john --show hashes.txt
         </p>
       </Callout>
 
+      <h2>Cyber insurance: the "Transfer" risk treatment, in practice during IR</h2>
+      <p>
+        The GRC lesson's four risk-treatment options included "Transfer" — shifting financial impact via
+        insurance. During an actual incident, that policy stops being a line item and starts actively shaping
+        the response: most cyber insurance policies require notifying the insurer within a specific window of
+        discovery, often BEFORE full scoping is complete, and frequently mandate using a pre-approved panel of
+        forensics firms and outside breach counsel rather than whichever incident response team the
+        organization would otherwise choose. Skipping this step, or bringing in an outside IR firm not on the
+        insurer's approved list, can void coverage for the exact incident the policy exists to cover.
+      </p>
+      <Callout variant="warn">
+        <p>
+          A practical consequence Security+ expects you to recognize: "call the cyber insurer" belongs
+          alongside "call legal" as one of the very first Preparation-phase contacts in an incident response
+          plan, not a step that happens once the technical investigation wraps up — treating it as an
+          afterthought is a common, costly real-world mistake.
+        </p>
+      </Callout>
+
       <h2>Business Continuity Planning (BCP) vs. Disaster Recovery Planning (DRP)</h2>
       <CodeBlock>{`BCP — how the BUSINESS keeps operating during a disruption (alternate processes, alternate locations)
 DRP — how IT SYSTEMS specifically get restored (the technical recovery procedures, RTO/RPO targets)

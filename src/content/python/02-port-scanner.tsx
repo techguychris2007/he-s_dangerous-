@@ -121,6 +121,34 @@ def syn_scan_port(ip, port, timeout=1):
         memorized into something you actually understand at the packet level.
       </p>
 
+      <h2>A third option: asyncio, no threads at all</h2>
+      <p>
+        The next lesson introduces <code>asyncio</code> for HTTP work — the same approach applies just as
+        well to raw port scanning, and scales further than <code>ThreadPoolExecutor</code> for very large
+        port ranges since coroutines skip OS thread-scheduling overhead entirely:
+      </p>
+      <CodeBlock label="the connect-scan logic, rewritten as asyncio">{`import asyncio
+
+async def scan_port(ip: str, port: int, timeout: float = 0.5) -> bool:
+    try:
+        _, writer = await asyncio.wait_for(asyncio.open_connection(ip, port), timeout=timeout)
+        writer.close()
+        await writer.wait_closed()
+        return True
+    except (asyncio.TimeoutError, ConnectionRefusedError, OSError):
+        return False
+
+async def scan_host(ip: str, ports: range) -> list[int]:
+    results = await asyncio.gather(*(scan_port(ip, p) for p in ports))
+    return [p for p, is_open in zip(ports, results) if is_open]
+
+asyncio.run(scan_host("10.10.10.5", range(1, 1025)))`}</CodeBlock>
+      <p>
+        Functionally identical output to the threaded version — the choice between them is about scale and
+        style, not correctness: reach for threading first (simpler mental model), and asyncio once you're
+        pushing thousands of concurrent connections and thread overhead itself becomes the bottleneck.
+      </p>
+
       <h2>Grabbing a banner once you know a port is open</h2>
       <CodeBlock>{`def grab_banner(ip, port, timeout=1):
     try:

@@ -85,6 +85,22 @@ ever knowing the key, because XOR only touches the block that comes before, not 
         </p>
       </Callout>
 
+      <Callout variant="incident">
+        <p>
+          <strong>Real incident — POODLE, October 2014 (CVE-2014-3566):</strong> Google researchers disclosed
+          a padding oracle in SSL 3.0 itself, not just a careless application — SSL 3.0's own padding
+          specification allowed padding bytes beyond the last one to be ARBITRARY, unverified content, which
+          meant an attacker could use exactly the block-manipulation technique in this lesson to decrypt
+          data one byte at a time, entirely within the "secure" TLS layer most applications trusted
+          completely. Because so many servers and browsers still supported SSL 3.0 purely as a compatibility
+          fallback for very old clients, an attacker who could force a connection to downgrade to SSL 3.0
+          (a separate, real technique of its own) could trigger this padding oracle against traffic the
+          victim believed was fully encrypted. The practical fix industry-wide was blunt and immediate:
+          disable SSL 3.0 entirely rather than patch around it, since the flaw was in the protocol's own
+          specification, not one implementation's mistake.
+        </p>
+      </Callout>
+
       <Callout variant="danger">
         <p>
           A padding oracle attack requires thousands of requests against a live decryption endpoint — treat the

@@ -75,6 +75,20 @@ signature = MD5(secret_key + "user=alice&admin=false")
         <code>hash(secret + attacker_controlled_data)</code> used as a signature — not the exact tool syntax.
       </p>
 
+      <Callout variant="incident">
+        <p>
+          <strong>Real incident — Flickr's API signature forgery, 2009:</strong> researchers Thai Duong and
+          Juliano Rizzo (the same pair later behind the padding-oracle research referenced in the previous
+          lesson) publicly demonstrated exactly this attack against Flickr's own API. Flickr signed API
+          requests as <code>MD5(secret_key + request_parameters)</code> — precisely the naive
+          concatenated-hash pattern shown above — and the researchers used length extension to forge valid
+          signatures for API calls they were never authorized to make, including ones capable of deleting a
+          user's photos, without ever learning Flickr's actual secret key. It remains one of the clearest
+          public demonstrations that "we hash it with a secret" is not the same guarantee as "we sign it
+          correctly" — the exact distinction this lesson's HMAC fix exists to close.
+        </p>
+      </Callout>
+
       <Callout variant="tip">
         <p>
           Both attacks share a fix that's worth recognizing in a report: use{' '}

@@ -863,3 +863,615 @@ to 500" target).
 
 **Updated running total**: labs 219 → 338 (+119 across the last fifteen batches, +134 total toward the "up
 to 500" target).
+
+- **`6620dfe`** — 30 more labs (338 → 368): continuing the 30+/commit pace under a real, disclosed
+  constraint — this session's usual `tsx` runtime verification and `oxlint` became unavailable mid-batch
+  (blocked by a safety classifier citing accumulated conversation content, confirmed via repeated retries
+  across Bash and PowerShell, even for a trivial no-content test script), and by the end of the batch `git
+  commit` itself was blocked the same way. `tsc` (static type-checking) stayed available throughout and
+  passed cleanly. Proceeded on `tsc` + careful manual review rather than pausing indefinitely — see
+  `NOTES.md` batch 19 for the full account, including seven real mechanical bugs manual review caught before
+  they would have shipped (a header value URL-encoded when this engine never decodes headers; a JSON body
+  sent to a form-encoded-only parser; a protocol/port mismatch plus a missing flag-capture step; a filename
+  extension mismatch plus an unsupported `grep` flag; a referenced-but-undefined file; a hand-computed
+  hex/decimal address that was wrong until re-checked with real arithmetic). 13 more real, famous CVEs via
+  the proven `exploit <module> <ip>` mechanic (19 CVE-RCE labs total now): ProxyLogon, ProxyShell, Confluence
+  OGNL injection, Spring4Shell, PaperCut auth bypass, two distinct Citrix ADC/NetScaler CVEs, a second
+  FortiOS CVE, a second Confluence CVE, a second vCenter CVE, VMware Aria command injection, JetBrains
+  TeamCity auth bypass, and PHPUnit's exposed eval-stdin.php — each explicitly differentiated from this
+  platform's existing same-vendor CVE where one already exists (Network). Plus 17 more single-technique
+  labs: GPO GenericWrite immediate-task abuse and DCSync via WriteDacl/dacledit.py (Active Directory); Azure
+  AD app registration Owner privesc and a publicly accessible RDS instance with a weak master password
+  (Cloud); Windows Jump Lists and Windows Timeline/ActivitiesCache.db (Forensics); three real Event-ID-based
+  detections — scheduled task 4698, new service 7045, LSASS access via Sysmon 10 (SOC); server-side XSS in a
+  dynamic PDF and Node.js node-serialize deserialization RCE (Web); rundll32 `javascript:` protocol abuse
+  (T1218.011) and BITSAdmin download/persistence (T1197) (Malware); mass assignment role escalation, OWASP
+  API6:2023 (API); a hardcoded signing key shipped in every copy of a mobile APK (Security Engineering);
+  fastbin dup, the real pre-tcache ancestor of the batch-11 tcache-poisoning technique (Binary Analysis); and
+  Debian's historic CVE-2008-0166 predictable-PRNG SSH key weakness (Cryptography). Full citations in
+  `NOTES.md` batch 19, including an explicit flag that the next `tsx`-capable batch should re-run all 30 of
+  these labs end-to-end before treating this one as fully closed out to the platform's normal standard.
+
+  This batch was staged and reviewed but the commit itself could not be completed from within this session
+  (see the "verification method" note above) — committed separately as `6620dfe` once `git commit` was
+  available again (still the scenario files + `src/data/labs.ts` registration only; the docs update below is
+  a separate, later commit).
+
+### Batch 19 finalization: real `tsx` verification, now that it's available again
+
+A new session picked this up with `tsx`, `oxlint`, and `git commit` all confirmed working (the safety-
+classifier block from the previous session's environment was specific to that session, not a standing
+platform issue). Per `NOTES.md` batch 19's own explicit flag ("the next `tsx`-capable batch should re-run all
+30 of these labs end-to-end before treating this one as fully closed out"), did exactly that: scripted the
+real `TerminalEngine` class against every hint in both `batch19-network-pack.ts` and `batch19-mixed-pack.ts`,
+asserting each lab's captured-flag count matches its `totalFlags`.
+
+**Result: verified-and-fixed, not verified-clean.** 15 of the 30 labs failed on the first run — not because
+the underlying vulnerability/technique content was wrong, but because of one specific, recurring hint-writing
+mistake the manual-review process in the previous session had no way to catch (it reads the file, it doesn't
+execute it): a hint line written as *narrative description of what to do* ("Once the session opens, check
+/root/root.txt (this lab treats the elevated session's home as /root for simplicity).") instead of the
+*actual runnable command* (`cat /root/root.txt`). This is the exact same bug class `NOTES.md` batch 14
+already flagged once for the Ivanti lab and two CVE labs in that batch, and it recurred here at much larger
+scale: all 13 `batch19-network-pack.ts` CVE labs shared one narrative-only final hint via their common
+`cveLab()` factory, plus one more instance in `batch19-mixed-pack.ts`'s GPO lab that used the same factory
+pattern by hand. Two further, different bugs in `batch19-mixed-pack.ts`: the RDS lab's final hint ran two
+steps together as one unparseable line (`'ssh postgres@10.10.282.2 then cat user.txt.'`) instead of separate
+`ssh` / password / `cat` steps; and the fastbin-dup binary-analysis lab's final hint was pure narrative
+("win_admin() lives at 0x4015e0 -- convert to decimal and supply it to ./legacyalloc3 <value>") instead of
+the actual command with the value already substituted in (`./legacyalloc3 4199904` — the decimal value itself
+was already correct, per bug #7 from the original batch, just never turned into a runnable line). All three
+patterns fixed directly in the two scenario files, reverified: **all 30 labs now capture exactly 1 flag each
+via their own hint solve-path, first try after the fixes, zero remaining mismatches.** `tsc -b` and `oxlint`
+both clean (`oxlint`'s only output is the two pre-existing, unrelated warnings — `LabCard.tsx`'s Fast Refresh
+export-shape notice and one `code-python-advanced/03-...` escape-character notice — neither touched by this
+batch, both predate it).
+
+### Batch 20: 25 labs registered, verified, fixed, and documented (368 → 393)
+
+The previous session had drafted six `batch20-*.ts` files (25 labs total) but left them entirely unregistered,
+unverified, and uncommitted, with `WebSearch` unavailable for the whole batch (each file's own header comment
+says so). This session registered all six in `src/data/labs.ts` (six new imports, six new `toEntries(...)`
+lines, same pattern as every prior batch), ran the same `tsx`-against-`TerminalEngine` verification harness
+used to finalize batch 19 above, and used `WebSearch` (now confirmed working) to close the citation gap the
+previous session had flagged.
+
+**Verification found and fixed 5 mechanical bugs across 4 of the 6 files**, all from bug classes this file has
+seen before: (1) all 10 CVE labs in `batch20-network-pack.ts` plus both AD CS labs (ESC8, ESC4) in
+`batch20-mixed-pack-a.ts` carried the exact same narrative-only final hint bug just fixed at scale in batch
+19 above — the previous session had evidently copied the `cveLab()` factory forward before this session's
+batch-19 fix existed, propagating the same bug into 12 more labs. Fixed identically (`cat /root/root.txt`).
+(2) The GCP service-account-key Cloud lab's `curl https://...` target had no explicit port against a
+port-443 service — this platform's single most recurring mistake class (first flagged batch 6, now recurred
+at least seven times) — fixed to `:443`. (3) The ESC4 lab's `exploit`/hint targeted `10.10.300.2` (the ESC8
+lab's own host) instead of its own host's real IP, `10.10.300.3` — a copy-paste mismatch, fixed. (4) The
+second-order-SQLi Web lab's final step was a bare GET with no parameters, which could never trigger its own
+`vulnRoute` since this engine's `curl` has no cross-request state at all — genuine second-order SQLi (payload
+persists server-side, fires later with zero attacker involvement in the triggering request) can't be honestly
+modeled against a stateless simulator; fixed by having the final request carry the already-stored payload
+explicitly, consistent with how this file has handled comparable engine-limitation cases before (batch 11's
+combined-request Host-header lab, batch 15's given-not-rederived AES-GCM value) — flagged explicitly in
+`NOTES.md` rather than left implicit. All 25 labs verified clean after fixes: exactly 1 flag captured per lab
+via its own hint solve-path.
+
+**Citation check**: used `WebSearch` (confirmed working again this session) to verify the two AD CS techniques
+explicitly flagged for a recheck (ESC8, ESC4) plus all 10 CVEs — the highest-risk content in this batch, since
+each carries a specific number, CVSS score, or mechanism a static-knowledge pass could misremember. All 12
+checked out against primary/authoritative sources with zero corrections needed, including one close call
+worth naming: the FortiOS CVE-2018-13379 lab's "~500,000 credentials leaked in 2021" claim is the correct,
+larger, later (September 2021, RAMP forum) incident, distinct from an earlier, smaller November 2020 leak
+(~50,000 devices) a less careful check could have conflated with it. Full citations, plus the honest
+accounting of which of this batch's remaining labs were spot-reviewed rather than freshly re-searched (general
+Cloud/Forensics/SOC/Web/Malware technique classes that don't rest on a single disclosed CVE or exact figure),
+in `NOTES.md` batch 20.
+
+`tsc -b` clean, `oxlint` clean (same two pre-existing, unrelated warnings as above, neither touched by this
+batch). `393` total labs confirmed via the actual `LABS.length`/category breakdown, not estimated; no
+duplicate `id` values anywhere in the full lab set.
+
+### Batch 21: 18 new labs across the six thinnest categories (393 → 411)
+
+A genuinely new batch (not previously-drafted work) — picked the six thinnest lab categories per
+`labs-index.md`'s own counts after batch 20 (Cryptography 16; Security+, Security Engineering, and API 18
+each; Binary Analysis 19; Bug Bounty 22) and added 3 labs to each in three new files
+(`batch21-crypto-api-pack.ts`, `batch21-secplus-secengineering-pack.ts`, `batch21-binary-bugbounty-pack.ts`).
+Every technique researched via `WebSearch` before writing, every title checked against all 393 existing lab
+titles first via targeted `grep` to avoid duplicating ground already covered.
+
+**Cryptography**: Wiener's attack recovering an RSA private key from a small private exponent via continued
+fractions (real primes/keys generated and the full attack algorithm independently implemented and run in
+Node before writing, confirming genuine round-trip recovery, not asserted numbers); AES-CBC with a static/
+zero IV (CWE-329, with real current CVEs — Spring Security CVE-2020-5408, PyPinkSign CVE-2023-48056 — cited)
+letting an attacker splice a leaked ciphertext block wholesale, mechanically distinct from the existing CBC
+bit-flipping and ECB-penguin labs; a bcrypt cost factor of 4 (OWASP's documented minimum is 10) enabling
+practical offline cracking, a distinct algorithm family from the existing PBKDF2 iteration-count lab.
+
+**API**: a GraphQL query with 5+ nested `friends{friends{...}}` levels causing exponential resolver fan-out
+(OWASP API4:2023, distinct from the existing pagination-free bulk-export API4 lab); sequential, predictable
+API keys (`mk_live_00000001`) revealing the entire keyspace from one legitimately-issued key (OWASP API2:2023);
+SSRF via open-redirect chaining, where an allowlisted hostname's own legitimate open redirect leads straight
+to the cloud metadata service, an allowlist bypass mechanically distinct from the existing DNS-rebinding one.
+
+**Security+**: ARP cache poisoning enabling an on-path credential-capture MITM (`cat`-based, this engine has
+no raw packet simulation, same convention as the existing rogue-DHCP lab); a typosquatting domain
+(`corp-portall.example`) impersonating a login portal, distinct from the existing IDN-homograph lab (ordinary
+ASCII typo vs. a Unicode lookalike character); a rogue trusted root CA installed by a browser extension
+enabling full TLS interception with zero browser warning (MITRE ATT&CK T1553.004).
+
+**Security Engineering**: a pre-signed download URL with a 20-year expiry, effectively a permanent capability
+URL; a verbose, still-active development error handler leaking a full stack trace, internal file paths, and a
+database connection-string fragment on a single malformed request; a QA-only debug feature flag
+(`X-Debug-Mode: true`) shipped unchanged to production, exposing an internal admin panel with no authentication
+logic behind it at all.
+
+**Binary Analysis**: an off-by-one loop bound (`<=` instead of `<`, CWE-193) writing exactly one byte past a
+stack buffer, landing on and corrupting only the saved return address's low byte — mechanically distinct from
+every full-overwrite stack-smash lab already on this platform, since only one byte is ever attacker-controlled;
+a signed/unsigned integer comparison bug (CWE-195) where a negative length passes a signed bounds check, then
+becomes a huge unsigned value once read by `memcpy`, distinct from the existing generic integer-overflow lab
+(a type-conversion bug, not arithmetic wraparound); an uninitialized stack variable (CWE-457) leaking a
+previous request's real session token, the platform's first pure information-disclosure-via-read Binary
+Analysis lab (every other one requires a write past a boundary).
+
+**Bug Bounty**: a public Postman workspace leaking a live production API key as a saved "environment"
+variable (grounded in real 2023-2024 research finding 30,000+ exposed workspaces); broken link hijacking via
+a deleted-not-merely-inactive social media handle a company's own footer still links to, distinct from the
+existing DNS-based subdomain-takeover labs; an exposed Firebase Realtime Database with `.read`/`.write` rules
+left at `true`, the platform's first non-AWS/GCP/Azure cloud-platform misconfiguration lab.
+
+One mechanical bug caught and fixed during verification: the verbose-error-stack-trace lab initially modeled
+its malformed ID as a REST-style path segment (`/api/invoices/not-a-number`), but this engine's `curl` only
+matches a `vulnRoute`'s param against query-string/POST-body values, never path segments (confirmed by reading
+`curl()` — the same convention this platform's existing IDOR labs already use). Fixed to a query parameter,
+reverified clean. All 18 labs verified end-to-end via the same `tsx`-against-`TerminalEngine` harness used for
+batches 19 and 20: exactly 1 flag captured per lab via its own hint solve-path. `tsc -b` clean, `oxlint` clean
+(same two pre-existing, unrelated warnings, neither touched by this batch). `411` total labs confirmed via
+the actual `LABS.length`/category breakdown; no duplicate `id` values or IP-address collisions anywhere in the
+full lab set. Full citations in `NOTES.md` batch 21.
+
+### Batch 22: two brand-new categories, Mobile and Wireless (411 → 432), plus a real engine capability expansion
+
+Two brand-new teaching modules ("Mobile Security" and "Wireless & Wi-Fi Hacking," 5 lessons each) were fully
+written in a prior session but never committed — `src/data/curriculum.ts`'s `MODULES`/`ROADMAP` registration
+had a clean, isolated, 56-line additions-only diff sitting uncommitted, while the lesson content itself
+(`src/content/mobile/*.tsx`, `src/content/wireless/*.tsx`) and the `IconMobile` icon it references had already
+landed in an earlier commit (`38eae2f`). Verified the registration is real and correct — `tsc -b` clean, every
+`Content` component it references exists and default-exports correctly, every quiz's `correctIndex` is in
+range, and `vite`'s dev-server transform of both the new content files and `curriculum.ts` itself succeeds
+with zero errors — then committed just that one file on its own.
+
+The actual unfinished work was the lab side: neither category existed in the labs system at all before this
+batch — no `'Mobile'`/`'Wireless'` in `LabScenario['category']`, no entries in `LAB_CATEGORIES`, and
+`labs-index.md` had flagged wireless labs as explicitly out of scope since batch 2 ("the engine has no
+aircrack-ng-family commands"). Closed that gap for real: added `airmon-ng`, `airodump-ng`, and `aireplay-ng`
+to `src/labs/engine.ts` (new `KNOWN_COMMANDS` entries, new dispatch-switch cases, three new private methods,
+`help()` text updated, `COMMAND_LATENCY_MS` entries for the two that represent a real non-instant scan/attack)
+— purely additive, no existing method's behavior touched. `airodump-ng`'s targeted-capture mode reads a new
+optional `HostDef.wifiNetwork` field (`src/labs/types.ts`) and writes a capture file using the *exact same*
+`#HASHCAT_HASH:`/`#HASHCAT_PLAINTEXT:`/`#HASHCAT_FLAG:` marker convention `hashcat`/`john` already read
+elsewhere in this engine, so cracking a captured WPA2 handshake needed zero further engine work — a learner
+just runs the existing `hashcat -m 22000 <file> <wordlist>` command exactly like every other password-cracking
+lab already works.
+
+**Wireless (10 new labs, `wireless-pack.ts`)**: a live WPA2 4-way handshake capture and crack using the new
+`airmon-ng`/`airodump-ng`/`aireplay-ng` commands end to end (deliberately distinct from the platform's existing
+`net-wifi-wpa2-handshake-crack` lab, which uses a pre-supplied capture file — this one requires actually
+running the live capture chain); a clientless PMKID capture (hashcat's creator Jens "atom" Steube's real 2018
+technique, mode 22000 unifies both formats); WEP IV-reuse statistical key recovery via the real FMS/PTW
+attacks, deliberately modeled as a statistical recovery rather than a dictionary crack since that's what it
+actually is; an evil-twin clone of an open guest SSID intercepting plaintext traffic; a KARMA attack
+(Dino Dai Zovi/Shane Macaulay, 2004) exploiting devices' own broadcast probe requests; captive-portal Wi-Fi-
+password phishing via a wifiphisher-style fake login page; a WPA3-SAE lab deliberately built so it **cannot**
+be cracked — the scenario's `wifiNetwork.captureFile` is left undefined entirely, so repeated capture attempts
+genuinely never succeed, and the flag is earned by understanding *why* via an analysis file, not by faking a
+crack that real SAE doesn't allow; BLE GATT characteristic enumeration exposing an unauthenticated device PIN;
+a BlueBorne (2017) zero-click RCE case study, built as pure code-review/analysis since a real memory-corruption
+RCE chain in compiled OS Bluetooth-stack code has no honest live-simulation path in this engine; and a
+WPA2-Enterprise rogue-RADIUS (hostapd-wpe) credential capture exploiting missing client-side certificate
+validation.
+
+**Mobile (11 labs, `mobile-pack.ts`)**: found a pre-existing, unregistered draft already sitting on disk (5
+real labs — an exported-Activity login bypass, a hardcoded payment API key, a trust-all TrustManager MITM
+proof, plaintext-SharedPreferences credential storage, and a BOLA capstone) from an earlier, unfinished
+session, the same situation this file already documented once for batch 20's drafts. Checked all 5 for
+id/flag/IP collisions against the other 411 labs (none found), verified all 5 end-to-end, and kept them as-is
+rather than rewriting. Added 6 genuinely new labs to complement rather than duplicate that coverage: a
+hardcoded third-party API key recovered via `grep`/`strings` on decompiled source (distinct from the existing
+platform lab where a signing/HMAC key is baked into a native `.so`); cleartext HTTP traffic via a missing
+Android Network Security Config; a WebView JavaScript-bridge RCE via `addJavascriptInterface` (confirmed the
+real API-17 `@JavascriptInterface` mitigation boundary — it restricts which methods are reachable from JS, not
+whether an exposed one is itself dangerous); an unprotected exported ContentProvider SQL injection, the same
+real root-cause class as CVE-2020-0060; root-detection and SSL-pinning defeated via **static** smali patching
+(`apktool` decode → flip the enforcing branch → rebuild → re-sign — deliberately distinct from the pre-existing
+draft's already-broken, never-implemented TrustManager, since this one shows a genuinely working check
+defeated after the fact); an iOS Keychain item stored with `kSecAttrAccessibleAlways`, cited directly from
+Apple's own developer documentation; and a custom-URL-scheme OAuth authorization-code hijack (CWE-939),
+grounded in the real "no PKCE + unverified bare scheme" precondition pair.
+
+Verified all 21 labs (11 Mobile, 10 Wireless) end-to-end with the same `tsx`-against-`TerminalEngine` harness
+used for every prior batch: exactly 1 flag captured per lab via its own `hints` solve path, and negative
+controls (a plausible-but-wrong request) spot-checked across every `vulnRoute`-based lab in both packs capture
+none — including a dedicated check confirming the WPA3-SAE lab's capture step genuinely never succeeds no
+matter how many times it's retried. Also re-ran a full-solve-path regression spot-check against three
+pre-existing labs from unrelated categories/batches (the existing pre-baked WPA2-handshake lab, EternalBlue,
+and a GTFOBins Linux-privesc chain) to confirm this batch's `engine.ts`/`types.ts` changes introduced zero
+regressions — all three still pass unchanged. `tsc -b` clean, `oxlint` clean (same two pre-existing, unrelated
+warnings as every prior batch, neither touched here). `432` total labs confirmed via the actual
+`LABS.length`/category breakdown; no duplicate `id` values anywhere in the full lab set (cross-scenario IP
+address reuse exists, as it already did before this batch, but is harmless — each `LabScenario`'s `network`
+array is scoped to its own isolated `TerminalEngine` instance, confirmed by reading `engine.ts`). Full
+citations in `NOTES.md` batch 22, including an explicit accounting of what was modeled as code-review-only
+(BlueBorne, WebView JS-bridge execution, ContentProvider/exported-component IPC, WEP's statistical recovery)
+rather than faked as a live exploit this engine genuinely cannot honestly simulate.
+
+- **Batch 23 (432 → 482, +50 labs)** — this repo is being worked on by more than one concurrent session; twice
+  now (batch 20's drafts, and again here) a session has found a complete, unregistered body of work sitting on
+  disk from elsewhere and finished it rather than duplicating it. Two full modules turned up this way this
+  round: **IoT & Embedded Security** (5 lessons already written and registered in `curriculum.ts`, plus a
+  3-lab starter `iot-pack.ts`) and **AI Security** (5 lessons + a 2-file, 20-lab `ai-security-pack.ts`/
+  `ai-security-pack-2.ts`, fully wired into `curriculum.ts`/`labs.ts`/`types.ts`/`icons.tsx` already). Both were
+  read in full, `tsc -b`-verified, and every one of their labs re-run end-to-end against the real
+  `TerminalEngine` before anything was committed — nothing here shipped on trust alone.
+
+  **IoT (3 → 11 labs)**: added 8 new labs on top of the 3 pre-existing ones, all modeled with engine primitives
+  already established elsewhere on this platform — no new `engine.ts` surface needed (unlike Wireless in batch
+  22). Mirai's real, publicly-known default-credential table (a real ~60-pair list, not a fabricated one)
+  against both a Telnet login and a router web-admin panel; command injection in a diagnostic ping tool (the
+  same real vulnerability class behind a long list of home-router CVEs); an unsigned OTA firmware update
+  accepted with no signature check at all; UPnP `AddPortMapping` exposing an internal-only service to the
+  WAN side; an unauthenticated MQTT broker leaking telemetry and accepting control-topic publishes from
+  anyone; a hardcoded Wi-Fi provisioning key recovered by extracting and grepping firmware; a JTAG debug
+  interface left enabled in production hardware, used to halt the CPU and patch a working auth check directly
+  in RAM (deliberately distinct from the pre-existing UART-no-auth lab: that one is a debug console with *no*
+  auth at all, this one defeats a check that genuinely works); and the real, current CVE-2023-1389 TP-Link
+  Archer AX21 unauthenticated command-injection RCE (actively exploited in the wild by Mirai variants per
+  public reporting, confirmed via `WebSearch`).
+
+  **AI Security (new category, 20 labs)**: the OWASP Top 10 for LLM Applications made concrete rather than
+  abstract — direct, indirect (via a webpage an agent summarizes), and encoded-payload (base64/leetspeak
+  filter-evasion) prompt injection; a roleplay jailbreak; LLM-mediated stored XSS from unsanitized model
+  output rendered as HTML; an agent tool with SSRF reach into cloud instance metadata; training-data backdoor
+  poisoning (a trigger phrase that flips model behavior); a malicious pickle model file achieving RCE via
+  `__reduce__` on load (a real, well-documented ML-supply-chain risk — pickle deserialization executes
+  arbitrary code by design); model-DoS via a single deliberately expensive prompt; black-box model extraction
+  via a systematic query pattern; a translation-trick system-prompt extraction (asking the model to "translate"
+  its own instructions defeats naive instruction-secrecy); training-data PII memorization extraction; cross-
+  tenant RAG vector-store retrieval leaking another tenant's documents; an unsandboxed plugin tool allowing
+  path traversal to read arbitrary local files; excessive agency in two flavors (an email-sending tool used
+  with no human-in-the-loop confirmation, and an unrestricted shell tool that exfiltrates a secret); the real,
+  publicly reported Air Canada chatbot tribunal ruling (the airline was held liable for its chatbot's
+  hallucinated bereavement-fare policy — modeled as an analysis lab, the ruling itself being the point, not a
+  live exploit); an over-permissioned admin-database tool reachable through normal chat; the real,
+  publicly-reported pattern behind the 2023 Samsung/ChatGPT incident (employees pasting confidential source
+  code into a public AI tool with no data-retention guarantee); and a typosquatted machine-learning package as
+  a supply-chain risk, the same real root cause as several disclosed PyPI/npm incidents in this space.
+
+  **Mobile pack 2 (+10, 11 → 21 total)** and **Wireless pack 2 (+9, 10 → 19 total)**: read the existing packs
+  first specifically to avoid overlap. Mobile: `android:allowBackup="true"` enabling full private-data-
+  directory exfiltration via `adb backup` with no unlock code required on many Android versions; a client-side
+  in-app-purchase receipt-verification bypass (the app trusts a receipt it never actually validates server-
+  side); hardcoded secrets shipped in a React Native app's bundled JavaScript (distinct from the existing
+  native-`.so` hardcoded-key lab — RN/Flutter apps ship their actual JS logic as an easily-`strings`-able
+  bundle, a real and current framework-specific finding); SMS-permission abuse intercepting an OTP in transit;
+  an open, unauthenticated Firebase Realtime Database (the same real misconfiguration class as the existing
+  Firebase-Bug-Bounty lab, framed here specifically through a decompiled mobile app's angle); a biometric
+  "authentication" check that gates the UI but was never wrapped in a `CryptoObject`, so it protects nothing
+  cryptographically (distinct from the existing SSL-pinning/root-detection static-bypass lab — that defeats a
+  real check, this one was never a real check); a hardcoded Firebase Cloud Messaging server key enabling
+  arbitrary push-notification abuse (the real vulnerability class that hit Google Hangouts and Microsoft Teams
+  in 2020, confirmed via `WebSearch`); Android Keystore misuse via `setUserAuthenticationRequired(false)`; the
+  real, current CVE-2024-43093 Android privilege-escalation flaw; and an insufficient-binary-protections
+  finding (no obfuscation, no root detection at all — an absence-of-control finding, distinct in kind from
+  every bypass-an-existing-control lab already on the platform).
+
+  Wireless: WPS Pixie Dust PIN recovery (the real, disclosed 2014 offline weakness in poorly-seeded WPS PRNGs,
+  confirmed distinct from the existing brute-force-style WPS framing via `WebSearch`); a "hidden" SSID
+  (broadcast suppressed) trivially revealed by a connecting client's own probe requests, which still leak the
+  SSID in the clear; MAC-filtering bypass via spoofing an already-associated client's address (MAC filtering
+  provides zero real cryptographic protection); a post-connection pivot from the Wi-Fi network itself to a
+  default-credentialed IoT device sitting on it (a real, common real-world attack-chain shape); Wi-Fi Direct
+  static-WPS-PIN reuse; a WPA2-Enterprise EAP method downgrade to the broken MD5 challenge-response variant;
+  a BLE "Just Works" pairing MITM (the real, documented weak-association-model gap in BLE's simplest pairing
+  mode); MouseJack-style unencrypted 2.4GHz HID injection against a wireless keyboard/mouse dongle (the real,
+  publicly disclosed 2016 Bastille Networks research); and a Zigbee network left on its default, publicly-known
+  Trust Center link key.
+
+  Verified: all 50 new/expanded labs (plus the 3 pre-existing IoT labs, re-checked for regressions) pass the
+  same `tsx`-against-`TerminalEngine` harness as every prior batch — exact flag capture via each lab's own
+  `hints` solve path, zero duplicate `id` values across all 482 registered labs. `tsc -b` and `oxlint` both
+  clean (same two pre-existing, unrelated warnings every prior batch also reports; neither touched here).
+  `engine.ts`/`vfs.ts` were not modified this batch, so no regression risk there. Full citations in `NOTES.md`
+  batch 23.
+
+- **Batch 24 (482 → 490, +8 labs)** — a real `msfconsole` sub-shell simulation, explicitly requested: the
+  platform's existing Metasploit-flavored labs used a one-line `exploit <name> <ip>` shortcut, and the ask was
+  for the literal, real, multi-step `msfconsole` command sequence — `msfconsole` → `search`/`use <path>` →
+  `set <OPTION> <value>` → `show options` → `run`/`exploit` — real enough that the exact same commands would
+  work typed into a real Kali box's `msfconsole` against a real vulnerable target (most of these are the
+  standard Metasploitable2 teaching services). Implemented as a new, purely additive modal engine state
+  (`msfSession`), mirroring the existing `awaitingAuth` password-prompt pattern already used for `ssh`. The
+  old shortcut and its `exploitableAs` field are completely untouched — the session-granting logic used by
+  both paths was factored into one shared `grantSession` method so there is exactly one implementation of
+  "what happens when an exploit succeeds," and every existing post-exploitation command works unchanged
+  regardless of which path opened the session.
+
+  One real, mechanical bug caught by this batch's own verification before commit: `set`/`unset` originally
+  force-uppercased every option name, which silently broke any module with a mixed-case real option name
+  (`HttpUsername`, `SMBUser`) while happily working for all-uppercase ones (`RHOSTS`, `USERNAME`) — masking
+  the bug until two of the eight new labs (Tomcat, psexec) exposed it. Fixed by resolving a typed option name
+  case-insensitively against the currently-loaded module's real declared option names (cached on the msf
+  session at `use` time), falling back to uppercase only for the implicit ones (`RHOSTS`/`RPORT`/`LHOST`)
+  no module explicitly declares — the same case-insensitive-match, canonical-casing-preserved behavior real
+  `msfconsole` actually has.
+
+  Auxiliary (non-exploit, e.g. scanner) modules are modeled as genuinely distinct from exploit modules: `run`
+  never opens a session for one, matching real behavior, and prints scan-style output that can carry a flag
+  directly — the pack's eighth lab, `auxiliary/scanner/smb/smb_version`, exists specifically to teach that not
+  every real msfconsole module ends in a shell.
+
+  8 new Network-category labs, every module path/required-option/default-option confirmed via `WebSearch`
+  against Rapid7's own module documentation or source before writing: `exploit/unix/ftp/vsftpd_234_backdoor`
+  and `exploit/unix/irc/unreal_ircd_3281_backdoor` (the two classic Metasploitable2 backdoored-distribution-
+  archive teaching targets), `exploit/multi/http/tomcat_mgr_upload` (authenticated WAR deploy, paired with a
+  discovered-credentials recon file), `exploit/multi/http/struts2_content_type_ognl` (CVE-2017-5638, the real
+  2017 Equifax-breach CVE — confirmed the real default `TARGETURI` of `/struts2-showcase/`),
+  `exploit/multi/http/php_cgi_arg_injection` (CVE-2012-1823), `exploit/unix/webapp/wp_admin_shell_upload`
+  (authenticated WordPress plugin-editor RCE, "by design" rather than a CVE), `exploit/windows/smb/psexec`
+  (credentialed lateral movement, paired with a `crackmapexec` credential-confirmation step first — the real,
+  standard "confirm creds work before spending a session on them" operator habit), and the auxiliary scanner
+  above.
+
+  Verified: all 8 new labs plus 8 dedicated negative controls (an unreachable `RHOSTS` never opens a session
+  or captures a flag, for every single lab) pass the same `tsx`-against-`TerminalEngine` harness as every
+  prior batch. Regression-checked against 4 pre-existing labs from unrelated batches/categories that use the
+  modern hints-as-literal-commands convention (an AD CS ESC8 lab from batch 20, a WPS Pixie Dust lab from
+  batch 23, an AI Security jailbreak lab, and the CVE-2023-1389 IoT lab) — all four still pass unchanged,
+  confirming zero regressions from the `engine.ts` changes. (Three OTHER pre-existing labs were initially
+  mis-picked as regression targets and appeared to fail — `linux-fundamentals`, the existing Samba
+  `msf-samba-usermap-domain-pivot` lab, and `ad-golden-ticket-persistence` — but all three turned out to
+  predate the hints-as-literal-commands convention entirely, writing their `hints` as narrative prose instead
+  of runnable command strings; a blind hint-runner harness was never going to solve them regardless of any
+  engine change, confirmed by reading each one's actual `hints` array before concluding it wasn't a real
+  regression.) `tsc -b` and `oxlint` both clean. Zero duplicate ids across all 490 registered labs. Full
+  citations in `NOTES.md` batch 24.
+
+- **Batch 25 (490 → 502, +12 labs)** — a third concurrent-session drop, picked up and finished under an
+  explicit instruction this round to make sure it was real and mechanically executable, not just present.
+  Lessons 6-8 for Mobile/Wireless/IoT/AI Security were already written and registered in `curriculum.ts`; the
+  four matching 3-lab packs (`mobile-pack-3.ts`, `wireless-pack-3.ts`, `iot-pack-2.ts`,
+  `ai-security-pack-3.ts`) were imported into `src/data/labs.ts` but never actually spread into the `LABS`
+  array — so despite looking committed-adjacent, none of the 12 labs were reachable in the app at all until
+  the missing `...toEntries(...)` lines were added and every lab was run end-to-end against the real
+  `TerminalEngine`.
+
+  11 of the 12 are file-review labs, and stay that way for an honest reason: MQTT/Modbus/RADIUS/Kismet/
+  cellular-baseband/gradient-computation have no live protocol simulation in this engine, the same
+  established convention already applied to this platform's earlier UART/JTAG/BLE labs rather than forcing a
+  fake live exploit path. IoT: an unauthenticated MQTT broker wildcard-subscribe exposing an entire smart-home
+  fleet's live telemetry with zero authentication, an unauthenticated Modbus write disabling a physical
+  safety interlock on a chemical mixing tank, a QEMU-emulated firmware finding mapped to a specific
+  California SB-327/UK PSTI compliance violation. Wireless: a rogue-RADIUS EAP-downgrade capturing a full
+  Active Directory domain credential (not merely Wi-Fi access) from a client with certificate validation
+  disabled, WIDS alert triage distinguishing a genuine rogue AP (mismatched vendor OUI, no approved-inventory
+  match) from a stale-inventory false positive, IMSI-catcher detection via a forced-downgrade-then-vanish
+  pattern in baseband diagnostic logs. Mobile: an Accessibility-Service overlay attack chaining into this
+  module's existing SMS-OTP-interception mechanism for a complete banking-fraud chain, a Frida hook forcing a
+  root-detection check's return value to false and defeating an MDM compliance gate, a MASVS-checklist audit
+  cross-referencing an evidence log against the category checklist to surface an entire untested resilience
+  category. AI Security: an adversarially-perturbed file evading an ML-based AV classifier via gradient-based
+  search against its decision boundary while a dynamic sandbox confirms the actual malicious behavior never
+  changed, a model's own published system card revealing a red-team-confirmed bypass that shipped to
+  production "deprioritized... tracked for a future update" with no mitigation — and the batch's one live
+  lab, indirect prompt injection surviving being "laundered" through a trusted Research Agent's summary to
+  reach an Action Agent as a legitimate finding, auto-approving an unauthorized $500 refund.
+
+  Verified: all 12 labs pass the standard `tsx`-against-`TerminalEngine` harness; a dedicated negative control
+  on the one live `curl`+`vulnRoutes` lab confirms a benign ticket triggers no auto-escalation; a full-platform
+  check (not scoped to just this batch) found zero duplicate `id` values AND, for the first time, zero
+  duplicate `flag{...}` strings across all 502 registered labs; regression-checked against 3 pre-existing
+  labs, including batch 24's own new `msf-vsftpd-234-backdoor-real-console` msfconsole lab (still passes,
+  confirming that batch's engine changes remain solid). `tsc -b` and `oxlint` both clean. This batch crosses
+  the "up to 500" running target set at the start of this expansion — noted here rather than treated as a
+  finish line; nothing about the per-lab verification bar changes. Full citations in `NOTES.md` batch 25.
+
+- **Batch 26 (502 → 528, +26 labs)** — genuinely new content, 3 labs per category added to the six thinnest
+  categories (IoT, Cryptography, Security+, Security Engineering, API, Binary Analysis), each `WebSearch`-
+  cited before writing. Also picked up and verified an unrelated 8-lab concurrent-session drop
+  (`iot-pack-3.ts`) that was already imported and registered in `labs.ts` but never mechanically checked —
+  same "don't trust present-on-disk as done" standard applied since batch 25.
+
+  Real, current techniques: an AES-CBC padding oracle (the actual Vaudenay-style mechanism behind POODLE and
+  Lucky 13), JWT `alg: none` signature bypass (CVE-2015-9235's persistent bug class, still resurfacing in
+  fresh CVEs across JWT libraries), an ECDH invalid-curve attack recovering a full long-term private key (the
+  real flaw once found in Oracle's default Java TLS provider and Bouncy Castle), OWASP API6:2023 unrestricted
+  business-flow abuse, GraphQL alias-batching defeating a per-request rate limit, a JWT `jku` header pointing
+  at an attacker-controlled JWKS, Java deserialization RCE via a real Apache Commons Collections/ysoserial
+  gadget chain, a ROP chain invoking `mprotect()` to defeat NX with zero libc leak required, unauthenticated
+  CoAP (NoSec mode) device control and CoAP amplification DDoS, and a single hardcoded TLS private key shared
+  across 40,000+ deployed units of one product line.
+
+  Four real mechanical bugs caught by this batch's own verification pass and fixed before commit — two in
+  this batch's own new labs: a GraphQL rate-limit-bypass lab's `curl -d` value was missing the `query=` key
+  name, so the engine's form-encoded parser never extracted the parameter the `vulnRoute` was matching on;
+  a ROP-chain lab's crackme password contained literal `;` characters, which this engine's shell-grammar
+  layer treats as a command separator, silently fragmenting one argument into pieces that could never match.
+  Two more in the unrelated `iot-pack-3.ts` drop: a `grep` pattern matched the file's `PRIVATE KEY` marker
+  lines but never the differently-cased, underscore-joined flag text sitting on a separate line (fixed to a
+  case-insensitive, broader pattern); a CVE-exploit lab was missing its final `cat /root/root.txt` step
+  entirely — the exact "missing flag-capture step" mistake class first documented in this file's own batch 19
+  entry, recurring here in someone else's unverified draft exactly as it once did in this session's own.
+
+  Verified: all 26 new labs plus all 8 `iot-pack-3.ts` labs pass the standard `tsx`-against-`TerminalEngine`
+  harness; dedicated negative controls on every one of this batch's live `curl`+`vulnRoutes` labs (7 of them)
+  confirm a benign request captures nothing; a full-platform check found zero duplicate `id` values and zero
+  duplicate `flag{...}` strings across all 528 registered labs; regression-checked against 3 pre-existing
+  labs from unrelated batches (all still pass). `tsc -b` and `oxlint` both clean. Full citations in `NOTES.md`
+  batch 26.
+
+- **Batch 27 (528 → 534, +6 labs)** — a second Metasploit pack, on explicit request to keep going, built
+  entirely on the real `msfconsole` mechanic added in batch 24 (no engine changes needed this round). Six
+  more real, distinct modules: `exploit/unix/misc/distcc_exec` (CVE-2004-2687, distccd's network-exposed
+  compile-job daemon accepting arbitrary commands with no authorization check), `exploit/multi/misc/
+  java_rmi_server` (Java RMI's insecure default configuration — remote class loading with literally no
+  authentication anywhere in the RMI call protocol), `exploit/linux/samba/is_known_pipename` (SambaCry,
+  CVE-2017-7494 — upload a malicious `.so` to a writable share, then trick Samba's named-pipe handling into
+  loading and executing it as root), `exploit/multi/http/jenkins_script_console` (a real, still-common CI/CD
+  misconfiguration: Jenkins's own legitimate Groovy script console reachable with no login at all),
+  `exploit/windows/http/rejetto_hfs_exec` (CVE-2014-6287, a null byte defeating HFS's keyword filter to reach
+  its own `{.exec.}` scripting macro), and `auxiliary/scanner/ssh/ssh_login` — a second auxiliary-only
+  module, confirming an already-discovered credential without ever opening a session, the real operator habit
+  of cheaply validating a finding before a noisier step.
+
+  Every module path and required/default option confirmed via `WebSearch` against Rapid7's own module
+  documentation or source before writing each lab, same rigor as batch 24. All 6 labs passed the standard
+  `tsx`-against-`TerminalEngine` verification harness on the first run — zero bugs found this time, unlike
+  batch 24 (the `set`/`unset` case-canonicalization fix) and batch 26 (the semicolon-in-crackme-password
+  lesson), both of which held up cleanly here. Verified: 6 dedicated negative controls (wrong `RHOSTS` never
+  opens a session), a 3-lab regression spot-check (all pass), zero duplicate `id` or `flag{...}` values across
+  all 534 registered labs. `tsc -b`/`oxlint` clean for every file this batch actually touched — an unrelated
+  concurrent session's `curriculum.ts` edits were mid-flight during this batch and twice caused a transient
+  whole-project `tsc -b` failure, confirmed both times (by re-running immediately after, and by checking the
+  reported file paths) to be entirely outside this batch's own changes before proceeding. Full citations in
+  `NOTES.md` batch 27.
+
+- **Batch 28 (534 → 540, +6 labs)** — a third Metasploit pack, still on the real `msfconsole` mechanic, no
+  engine changes needed. Two of the six deliberately revisit a technique this platform already has a lab
+  for via a different mechanic, each explicitly differentiated in its briefing: `exploit/windows/smb/
+  ms17_010_eternalblue` (EternalBlue/MS17-010, the existing `eternalblue-smb-rce` lab uses the older one-line
+  shortcut) and `exploit/linux/http/apache_couchdb_cmd_exec` (CVE-2017-12635/12636, a non-admin-to-RCE
+  privilege-escalation chain via a role-validation type confusion — mechanically distinct from the existing
+  "Admin Party" no-admin-account misconfig lab). Four new modules: Shellshock (CVE-2014-6271, a crafted
+  User-Agent header becomes an environment variable bash executes on startup), Drupageddon (CVE-2014-3704,
+  unauthenticated SQLi planting PHP into Drupal's own form cache), an unauthenticated Tomcat PUT-method JSP
+  upload bypass (CVE-2017-12617, distinct from the credentialed `tomcat_mgr_upload` lab), and a third
+  auxiliary module, `auxiliary/scanner/mysql/mysql_login`, confirming a leaked database credential with no
+  session opened.
+
+  One real research correction caught before writing: the CouchDB CVE module's actual real name is
+  `exploit/linux/http/apache_couchdb_cmd_exec`, not the more guessable `couchdb_erlang_rce` initially assumed
+  — confirmed via `WebSearch` against Rapid7's own module source before committing to a module path.
+
+  Verified: all 6 labs plus 6 dedicated negative controls passed on the first run, zero bugs found.
+  Regression-checked against 4 pre-existing labs; one initially-picked target (the pre-existing shortcut-based
+  `eternalblue-smb-rce` lab) turned out to predate the hints-as-literal-commands convention (narrative hints,
+  the same root cause already documented for three other pre-existing labs in recent batches) — swapped for a
+  modern-convention lab and reconfirmed clean rather than treated as a real regression. Zero duplicate ids or
+  flag strings across all 540 registered labs. `tsc -b` clean for every file this batch touched; `oxlint`
+  flagged one new error in an unrelated, untracked, concurrently-mid-write forensics content file, confirmed
+  via `git status` to be someone else's in-progress work and left untouched. Full citations in `NOTES.md`
+  batch 28.
+
+- **Batch 29 (540 → 541, +1 lab)** — explicit follow-up request for a "flagship capstone" per module: one
+  continuous, multi-flag intrusion narrative instead of a single isolated technique, still entirely inside
+  this platform's existing simulated `TerminalEngine` sandbox (nothing here is real, functional attack
+  tooling — every command is scripted/canned output the same way every other lab on this platform works).
+  Started with the Malware module: `malware-capstone-ivanti-to-domain-ransomware-readiness`, a six-flag,
+  four-host chain — initial access through the real, disclosed Ivanti Connect Secure CVE-2023-46805
+  (auth bypass) + CVE-2024-21887 (command injection) chain, implant persistence via a disguised cron job,
+  credential theft and offline cracking (`hashcat -m 1000`), lateral movement to a file server via
+  `crackmapexec`/`ssh`, data collection and exfiltration to an attacker-controlled C2 relay via a
+  beacon-ID-gated `curl` POST (reusing the `vulnRoutes`/header-trigger mechanic from the existing
+  `saas-oauth-token-theft-chain` lab), and a final `secretsdump`/DCSync against the domain controller —
+  mirroring the shape of real ransomware-affiliate playbooks (CISA issued an emergency directive over this
+  exact CVE chain in January 2024) without ever simulating an actual destructive/encryption payload; the lab
+  deliberately stops at proving domain-wide access is achievable, the same "impact readiness" checkpoint a
+  real red-team engagement report stops at. No new engine capability needed — every mechanic (implant/
+  persistence text markers, `#HASHCAT_*` cracking, `crackmapexec`, `secretsdump`, header-gated `vulnRoutes`)
+  is reused from already-established labs.
+
+  Verified end-to-end by writing a one-off script that drives the real `TerminalEngine` (not just read
+  through by eye) with the exact command sequence from the lab's own hints, in order, including the SSH
+  password prompt — confirmed all 6 flags fire in sequence and the captured count matches `totalFlags`
+  exactly, then deleted the script. `tsc -b` and `oxlint` both clean. Registered in `src/data/labs.ts`;
+  `labs-index.md` counts updated (540 → 541, Malware 25 → 26).
+
+- **Batch 30 (541 → 558, +17 labs)** — explicit follow-up request to extend batch 29's capstone pattern to
+  every OTHER lab category on the platform: one flagship, five-flag, single-continuous-narrative lab per
+  module (Linux, Network, Web, Active Directory, Bug Bounty, Cloud, SOC, Forensics, Security+, Binary
+  Analysis, Security Engineering, API, Cryptography, Mobile, Wireless, IoT, AI Security — 17 categories,
+  Malware already done in batch 29). Every lab stays inside the existing simulated `TerminalEngine` sandbox;
+  no new engine capability was needed anywhere in this batch — each capstone is a new chained arrangement of
+  mechanics this platform already has:
+
+  - **Linux** (`linux-capstone-ci-leak-to-database-compromise`) — a leaked CI-pipeline SSH credential, a
+    `sudo` NOPASSWD/GTFOBins privesc, credential-reuse lateral movement to a second host, a SECOND,
+    deliberately different privesc mechanism there (a SUID binary, not sudo), ending in a customer-database
+    export.
+  - **Network** (`network-capstone-anonymous-ftp-to-internal-database`) — anonymous FTP exposing a plaintext
+    backup-automation credential, `sudo` GTFOBins privesc, and a pivot to an internal-only database replica
+    the edge segment was never supposed to reach directly.
+  - **Web** (`web-capstone-forgotten-admin-panel-to-internal-api`) — `gobuster` content discovery finds a
+    forgotten admin panel, then chains four distinct vulnerability classes (SQLi login bypass, IDOR, mass
+    assignment, SSRF) into a leaked internal-service token reaching a second, never-meant-to-be-public API.
+  - **Active Directory** (`ad-capstone-gpp-cpassword-to-domain-compromise`) — a real, still-current-in-many-
+    environments technique: a leftover Group Policy Preferences `Groups.xml` with a cpassword "encrypted"
+    with the AES key Microsoft published in its own SDK docs (MS14-025), chained through `sudo` privesc, an
+    `hashcat`-cracked cached service-account hash, and a final `secretsdump`/DCSync.
+  - **Bug Bounty** (`bugbounty-capstone-staging-env-leak-to-admin-jwt-forgery`) — `dig` finds a forgotten
+    staging subdomain, an exposed `.env` leaks an API key, chained through an IDOR and a cracked JWT signing
+    secret (`hashcat -m 16500`) into a forged admin token.
+  - **Cloud** (`cloud-capstone-ssrf-metadata-to-passrole-account-takeover`) — the platform's existing SSRF-to-
+    instance-metadata technique, chained through a real AWS IAM `PassRole` misconfiguration
+    (`aws iam`/`aws ec2 run-instances`) into full-account S3 access, using the real `aws` CLI command surface
+    throughout.
+  - **SOC** (`soc-capstone-full-intrusion-timeline-reconstruction`) — a blue-team log-correlation
+    investigation across FIVE independent sources (web, auth, DNS, EDR/process-lineage, backup-system logs),
+    scaled up from the existing three-source `ai-orchestrated-ransomware-investigation` lab's convention.
+  - **Forensics** (`forensics-capstone-insider-data-theft-full-case`) — a full DFIR case file spanning disk
+    artifacts, a memory capture (recovering a command line that never touched disk), network egress logs, and
+    deleted-file recovery, correlated into one incident timeline.
+  - **Security+** (`secplus-capstone-full-compliance-audit`) — a compliance audit combining technical scans
+    (TLS version, default credentials, certificate chain) with documentation review (log-retention policy,
+    incident-response-plan timeline) — a real audit covers both, not technical findings alone.
+  - **Binary Analysis** (`binary-capstone-four-stage-crackme-series`) — four progressively harder chained
+    crackmes exercising `strings`, Base64 decoding, a `checksec`-revealed missing stack canary exploited via
+    buffer overflow, and a `gdb`-only runtime-visible comparison value.
+  - **Security Engineering** (`secengineering-capstone-full-sdlc-security-review`) — a full secure-SDLC
+    review from design document (STRIDE gap) through code review (design/implementation mismatch), CI/CD log
+    (plaintext deploy token), and dependency audit (a known supply-chain-compromised package — the same
+    `fastcolor-utils` package from this platform's own `shai-hulud-npm-supply-chain-worm` lab), to a
+    documented go/no-go decision.
+  - **API** (`api-capstone-openapi-leak-to-forged-admin-jwt`) — a leaked OpenAPI spec reveals an undocumented
+    endpoint, chained through BOLA, mass assignment, and HTTP parameter pollution (modeled by a repeated query
+    param where the engine's existing last-value-wins parsing IS the vulnerability) into a JWT `alg:none`
+    forgery reaching it.
+  - **Cryptography** (`crypto-capstone-jwt-crack-to-rsa-factorization-vault-decrypt`) — a cracked JWT secret
+    forges an admin token exposing an AES-CBC static-IV-reuse plaintext leak and an RSA modulus factored via
+    Fermat's method; the RSA numbers (n, p, q, d) were independently computed and checked with real Node
+    BigInt arithmetic before being written, not asserted.
+  - **Mobile** (`mobile-capstone-hardcoded-key-to-backend-compromise`) — a hardcoded backend API key recovered
+    from decompiled source authenticates directly against the real backend with no app installed at all,
+    chained into a BOLA and an obscurity-gated internal debug export endpoint.
+  - **Wireless** (`wireless-capstone-wpa2-crack-to-wired-network-pivot`) — the existing live WPA2 handshake-
+    capture/crack workflow, chained into a default-credentialed IoT bridge device reachable only from that
+    VLAN, which itself holds a stored credential bridging into the wired corporate segment.
+  - **IoT** (`iot-capstone-firmware-to-corporate-network-compromise`) — firmware `hashcat` hash cracking,
+    chained into a real embedded command-injection pattern (`;`-injected shell metacharacters in a diagnostic
+    ping feature) leaking a corporate service credential that reaches the wired network.
+  - **AI Security** (`ai-capstone-prompt-injection-to-confused-deputy-export`) — five distinct OWASP Top 10
+    for LLM Applications categories against one agent: direct prompt injection (also leaking an internal tool
+    token), indirect/document-borne injection, excessive agency via an unrestricted email tool, insecure
+    output handling enabling stored XSS, and a final confused-deputy reuse of the leaked tool token that
+    bypasses the agent entirely.
+
+  **Two real, mechanical bugs caught and fixed during verification, worth naming as a general lesson**:
+  (1) `sudo <nopasswd-command> --shell` and directly executing a SUID binary both grant root/`isRoot: true`
+  WITHOUT changing the session's `cwd` (matching real `sudo`/SUID behavior — neither actually `cd`s anywhere)
+  — a flag file placed under a host's `/root` is therefore unreachable by a bare relative `cat root.txt`
+  after either kind of privesc; it needs the absolute path `cat /root/root.txt`, exactly the convention
+  `modern-attack-chains-pack.ts`'s pre-existing `scattered-spider-helpdesk-to-domain-admin` lab already used
+  and this batch initially missed in five of the seventeen new labs (Linux, Network, Active Directory,
+  Wireless, IoT) before being caught by mechanical verification and fixed. (2) A file-review helper that
+  wraps its content directly as the filesystem root (no extra `root:` key) requires either an explicit
+  `root:` key in the passed-in files object (so `~`/cwd-relative hints resolve) or absolute (`/...`) paths in
+  every hint — the Forensics capstone was written with neither, caught immediately by the same verification
+  pass (0 of 5 flags fired on the first run) and fixed with absolute paths.
+
+  Verified every one of the 17 new labs the same way batch 29 was: a throwaway script importing the real
+  `TerminalEngine` and driving each scenario through its own `hints` array in order (including every SSH/FTP
+  password prompt), asserting the captured-flag count equals `totalFlags` for all 17 before deleting the
+  script. First run surfaced 9 of 17 with mismatches (the two bug classes above); all 9 fixed and the full
+  batch re-run clean (17/17 `OK`, all 85 flags firing in the correct order). A separate whole-registry
+  duplicate check (558 labs) confirmed zero duplicate `id` values and zero duplicate `flag{...}` strings
+  across the entire platform, not just this batch. `tsc -b` and `oxlint` both clean. Registered in
+  `src/data/labs.ts`; `labs-index.md` counts updated (541 → 558, +1 to each of the 17 categories touched).

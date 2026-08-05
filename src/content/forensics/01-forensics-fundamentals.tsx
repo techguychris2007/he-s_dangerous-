@@ -25,6 +25,18 @@ export default function ForensicsFundamentals() {
 4. ANALYZE           — examine the copy; document every step and finding
 5. REPORT              — findings must be reproducible by another examiner given the same evidence`}</CodeBlock>
 
+      <h2>Write-blockers: making "don't touch the original" a hardware guarantee</h2>
+      <p>
+        "Work only from copies" is a discipline; a <strong>write-blocker</strong> is what turns it into a
+        physical guarantee. It's a hardware device (or, less commonly, a software equivalent) sitting between
+        the original drive and the acquisition machine that physically intercepts and rejects any write
+        command sent to it — so even an examiner's own accidental command, or an OS auto-mounting a drive and
+        silently updating its own metadata, cannot modify the original evidence, no matter what happens on
+        the analysis side. Real forensic acquisition almost never happens without one connected, precisely
+        because "I was careful" is not a defensible standard in a legal proceeding — "it was physically
+        impossible to write to the original" is.
+      </p>
+
       <h2>The three artifact categories you'll use constantly</h2>
       <ul>
         <li><strong>Filesystem metadata</strong> — creation/modification/access timestamps, file
