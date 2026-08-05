@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useAuth } from '../state/authStore';
 import { submitFeedback, fetchMyFeedback, type FeedbackCategory, type FeedbackEntry } from '../lib/feedback';
 import { IconMail, IconCheck } from '../components/layout/icons';
+import { SkeletonList } from '../components/common/Skeleton';
 
 const CATEGORIES: { value: FeedbackCategory; label: string; hint: string }[] = [
   { value: 'bug', label: 'Bug report', hint: 'Something broke, looked wrong, or a lab/lesson didn\'t behave as described.' },
@@ -122,7 +123,7 @@ export default function FeedbackPage() {
 
       <h2 className="text-sm font-bold text-[var(--color-heading)] uppercase tracking-wide mb-3">Your submissions</h2>
       {historyLoading ? (
-        <div className="text-sm text-[var(--color-text-dim)]">Loading…</div>
+        <SkeletonList count={2} />
       ) : !history ? (
         <div className="rounded-xl border border-dashed border-[var(--color-border)] p-4 text-sm text-[var(--color-text-dim)]">
           Couldn't load your submission history right now — your feedback above still sends fine either way.

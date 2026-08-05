@@ -49,7 +49,9 @@ export default function AppLayout() {
       <div className="flex-1 flex flex-col min-w-0">
         <TopBar onMenuClick={() => setMobileOpen((o) => !o)} />
         <main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto">
-          <div key={pathname} className="page-transition">
+          {/* h-full passes main's height through to pages like LabPage/CodeTaskPage that render
+              their own `h-full flex` workspace layout and need a definite height to fill. */}
+          <div key={pathname} className="page-transition h-full">
             <Outlet />
           </div>
         </main>

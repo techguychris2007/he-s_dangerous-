@@ -8,6 +8,7 @@ import { SECURITY_TASKS } from '../labs/securityTasks';
 import { useProgress } from '../state/progressStore';
 import CodeConsole from '../components/code/CodeConsole';
 import CyberLabAI from '../components/labs/CyberLabAI';
+import LabComments from '../components/labs/LabComments';
 import DifficultyPill from '../components/common/DifficultyPill';
 import { IconCheck, IconCode, IconDownload } from '../components/layout/icons';
 import type { CodeLanguage, CodeTask } from '../labs/codeTypes';
@@ -142,6 +143,8 @@ export default function CodeTaskPage() {
             <IconCheck className="w-4 h-4" /> All tests passing — nice work!
           </div>
         )}
+
+        <LabComments labId={task.id} />
       </div>
 
       <div className="flex-1 min-h-[420px] p-4">

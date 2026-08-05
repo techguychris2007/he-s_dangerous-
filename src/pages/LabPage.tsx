@@ -7,6 +7,7 @@ import StepChecklist from '../components/lesson/StepChecklist';
 import ShareWriteupModal from '../components/labs/ShareWriteupModal';
 import CyberLabAI from '../components/labs/CyberLabAI';
 import LabRatingWidget from '../components/labs/LabRatingWidget';
+import LabComments from '../components/labs/LabComments';
 import DifficultyPill from '../components/common/DifficultyPill';
 import { IconFlag, IconCheck } from '../components/layout/icons';
 
@@ -86,6 +87,8 @@ export default function LabPage() {
             command list.
           </div>
         )}
+
+        <LabComments labId={scenario.id} />
       </div>
 
       <div className="flex-1 min-h-[420px] p-4">

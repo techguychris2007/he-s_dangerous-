@@ -384,7 +384,7 @@ export default function MyLearningPage() {
       <FloatingGlyph icon="shield" className="left-6 top-8" />
       <FloatingGlyph icon="terminal" className="right-6 top-[26rem]" slow />
 
-      <div className="max-w-3xl mx-auto px-6 md:px-8 py-14 relative z-10">
+      <div className="max-w-3xl mx-auto px-8 py-14 relative z-10">
         <div className="gold-eyebrow mb-2">// my learning</div>
         <h1 className="text-3xl font-bold text-[var(--color-heading)] mb-2">My Learning</h1>
         <p className="text-[var(--color-text-dim)] mb-6 leading-relaxed max-w-2xl">

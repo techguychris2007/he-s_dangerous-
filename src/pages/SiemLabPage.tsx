@@ -7,6 +7,7 @@ import StepChecklist from '../components/lesson/StepChecklist';
 import SiemConsole from '../components/siem/SiemConsole';
 import OsintTerminal from '../components/labs/OsintTerminal';
 import CyberLabAI from '../components/labs/CyberLabAI';
+import LabComments from '../components/labs/LabComments';
 import DifficultyPill from '../components/common/DifficultyPill';
 import { IconFlag, IconCheck } from '../components/layout/icons';
 
@@ -108,6 +109,8 @@ export default function SiemLabPage() {
             )}
           </>
         )}
+
+        <LabComments labId={scenario.id} />
       </div>
 
       <div className="flex-1 min-h-[420px] p-4">

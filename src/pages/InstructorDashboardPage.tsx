@@ -4,6 +4,7 @@ import { MODULES } from '../data/curriculum';
 import { fetchAllLearnerProgress, type LearnerProgressRow } from '../lib/instructorDashboard';
 import { IconUser, IconFlag, IconCheck, IconChart } from '../components/layout/icons';
 import StatCard from '../components/common/StatCard';
+import { SkeletonBlock, SkeletonList } from '../components/common/Skeleton';
 
 const TOTAL_LESSONS = MODULES.reduce((sum, m) => sum + m.lessons.length, 0);
 const TOTAL_LABS = LABS.length;
@@ -107,7 +108,16 @@ export default function InstructorDashboardPage() {
       <div className="gold-eyebrow mb-2">// cohort overview</div>
       <h1 className="text-3xl font-bold text-[var(--color-heading)] mb-8">Instructor Dashboard</h1>
 
-      {rows === undefined && <div className="text-sm text-[var(--color-text-dim)]">Loading learner progress&hellip;</div>}
+      {rows === undefined && (
+        <>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8" aria-hidden="true">
+            {[0, 1, 2, 3].map((i) => (
+              <SkeletonBlock key={i} className="h-[4.5rem]" />
+            ))}
+          </div>
+          <SkeletonList count={5} />
+        </>
+      )}
 
       {rows === null && (
         <div className="rounded-xl border border-[var(--color-danger)]/30 bg-[var(--color-danger)]/5 p-6 text-sm text-[var(--color-danger)]">

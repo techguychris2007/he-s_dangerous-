@@ -232,6 +232,14 @@ export function IconStar({ className, filled }: IconProps & { filled?: boolean }
   );
 }
 
+export function IconMessage({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
+      <path strokeLinejoin="round" d="M4 5h16v11H8l-4 4V5Z" />
+    </svg>
+  );
+}
+
 export function IconBell({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>

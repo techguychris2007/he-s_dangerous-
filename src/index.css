@@ -167,6 +167,20 @@ body {
   color: #fff;
 }
 
+/* Baseline smooth hover for every interactive element. A large share of buttons/links/table-rows
+   across the app set a `hover:bg-*`/`hover:text-*`/`hover:border-*` Tailwind class without also
+   remembering `transition-colors`, which makes the color snap instantly instead of easing — this one
+   rule fixes that everywhere at once instead of hunting down every individual className. Anything
+   that already declares its own `transition-*` utility is unaffected (that utility simply wins). */
+:where(a, button, summary, tr, [role='button']) {
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  :where(a, button, summary, tr, [role='button']) {
+    transition: none;
+  }
+}
+
 /* Global keyboard-focus ring. `:where(...)` keeps this at zero specificity, so any element that
    already sets its own focus treatment (Tailwind's `outline-none` + a custom `focus-visible:ring-*`,
    e.g. the terminal input or the feedback textarea) trivially wins over it — this only fills the gap
