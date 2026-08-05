@@ -1360,3 +1360,118 @@ rather than faked as a live exploit this engine genuinely cannot honestly simula
   flagged one new error in an unrelated, untracked, concurrently-mid-write forensics content file, confirmed
   via `git status` to be someone else's in-progress work and left untouched. Full citations in `NOTES.md`
   batch 28.
+
+- **Batch 29 (540 → 541, +1 lab)** — explicit follow-up request for a "flagship capstone" per module: one
+  continuous, multi-flag intrusion narrative instead of a single isolated technique, still entirely inside
+  this platform's existing simulated `TerminalEngine` sandbox (nothing here is real, functional attack
+  tooling — every command is scripted/canned output the same way every other lab on this platform works).
+  Started with the Malware module: `malware-capstone-ivanti-to-domain-ransomware-readiness`, a six-flag,
+  four-host chain — initial access through the real, disclosed Ivanti Connect Secure CVE-2023-46805
+  (auth bypass) + CVE-2024-21887 (command injection) chain, implant persistence via a disguised cron job,
+  credential theft and offline cracking (`hashcat -m 1000`), lateral movement to a file server via
+  `crackmapexec`/`ssh`, data collection and exfiltration to an attacker-controlled C2 relay via a
+  beacon-ID-gated `curl` POST (reusing the `vulnRoutes`/header-trigger mechanic from the existing
+  `saas-oauth-token-theft-chain` lab), and a final `secretsdump`/DCSync against the domain controller —
+  mirroring the shape of real ransomware-affiliate playbooks (CISA issued an emergency directive over this
+  exact CVE chain in January 2024) without ever simulating an actual destructive/encryption payload; the lab
+  deliberately stops at proving domain-wide access is achievable, the same "impact readiness" checkpoint a
+  real red-team engagement report stops at. No new engine capability needed — every mechanic (implant/
+  persistence text markers, `#HASHCAT_*` cracking, `crackmapexec`, `secretsdump`, header-gated `vulnRoutes`)
+  is reused from already-established labs.
+
+  Verified end-to-end by writing a one-off script that drives the real `TerminalEngine` (not just read
+  through by eye) with the exact command sequence from the lab's own hints, in order, including the SSH
+  password prompt — confirmed all 6 flags fire in sequence and the captured count matches `totalFlags`
+  exactly, then deleted the script. `tsc -b` and `oxlint` both clean. Registered in `src/data/labs.ts`;
+  `labs-index.md` counts updated (540 → 541, Malware 25 → 26).
+
+- **Batch 30 (541 → 558, +17 labs)** — explicit follow-up request to extend batch 29's capstone pattern to
+  every OTHER lab category on the platform: one flagship, five-flag, single-continuous-narrative lab per
+  module (Linux, Network, Web, Active Directory, Bug Bounty, Cloud, SOC, Forensics, Security+, Binary
+  Analysis, Security Engineering, API, Cryptography, Mobile, Wireless, IoT, AI Security — 17 categories,
+  Malware already done in batch 29). Every lab stays inside the existing simulated `TerminalEngine` sandbox;
+  no new engine capability was needed anywhere in this batch — each capstone is a new chained arrangement of
+  mechanics this platform already has:
+
+  - **Linux** (`linux-capstone-ci-leak-to-database-compromise`) — a leaked CI-pipeline SSH credential, a
+    `sudo` NOPASSWD/GTFOBins privesc, credential-reuse lateral movement to a second host, a SECOND,
+    deliberately different privesc mechanism there (a SUID binary, not sudo), ending in a customer-database
+    export.
+  - **Network** (`network-capstone-anonymous-ftp-to-internal-database`) — anonymous FTP exposing a plaintext
+    backup-automation credential, `sudo` GTFOBins privesc, and a pivot to an internal-only database replica
+    the edge segment was never supposed to reach directly.
+  - **Web** (`web-capstone-forgotten-admin-panel-to-internal-api`) — `gobuster` content discovery finds a
+    forgotten admin panel, then chains four distinct vulnerability classes (SQLi login bypass, IDOR, mass
+    assignment, SSRF) into a leaked internal-service token reaching a second, never-meant-to-be-public API.
+  - **Active Directory** (`ad-capstone-gpp-cpassword-to-domain-compromise`) — a real, still-current-in-many-
+    environments technique: a leftover Group Policy Preferences `Groups.xml` with a cpassword "encrypted"
+    with the AES key Microsoft published in its own SDK docs (MS14-025), chained through `sudo` privesc, an
+    `hashcat`-cracked cached service-account hash, and a final `secretsdump`/DCSync.
+  - **Bug Bounty** (`bugbounty-capstone-staging-env-leak-to-admin-jwt-forgery`) — `dig` finds a forgotten
+    staging subdomain, an exposed `.env` leaks an API key, chained through an IDOR and a cracked JWT signing
+    secret (`hashcat -m 16500`) into a forged admin token.
+  - **Cloud** (`cloud-capstone-ssrf-metadata-to-passrole-account-takeover`) — the platform's existing SSRF-to-
+    instance-metadata technique, chained through a real AWS IAM `PassRole` misconfiguration
+    (`aws iam`/`aws ec2 run-instances`) into full-account S3 access, using the real `aws` CLI command surface
+    throughout.
+  - **SOC** (`soc-capstone-full-intrusion-timeline-reconstruction`) — a blue-team log-correlation
+    investigation across FIVE independent sources (web, auth, DNS, EDR/process-lineage, backup-system logs),
+    scaled up from the existing three-source `ai-orchestrated-ransomware-investigation` lab's convention.
+  - **Forensics** (`forensics-capstone-insider-data-theft-full-case`) — a full DFIR case file spanning disk
+    artifacts, a memory capture (recovering a command line that never touched disk), network egress logs, and
+    deleted-file recovery, correlated into one incident timeline.
+  - **Security+** (`secplus-capstone-full-compliance-audit`) — a compliance audit combining technical scans
+    (TLS version, default credentials, certificate chain) with documentation review (log-retention policy,
+    incident-response-plan timeline) — a real audit covers both, not technical findings alone.
+  - **Binary Analysis** (`binary-capstone-four-stage-crackme-series`) — four progressively harder chained
+    crackmes exercising `strings`, Base64 decoding, a `checksec`-revealed missing stack canary exploited via
+    buffer overflow, and a `gdb`-only runtime-visible comparison value.
+  - **Security Engineering** (`secengineering-capstone-full-sdlc-security-review`) — a full secure-SDLC
+    review from design document (STRIDE gap) through code review (design/implementation mismatch), CI/CD log
+    (plaintext deploy token), and dependency audit (a known supply-chain-compromised package — the same
+    `fastcolor-utils` package from this platform's own `shai-hulud-npm-supply-chain-worm` lab), to a
+    documented go/no-go decision.
+  - **API** (`api-capstone-openapi-leak-to-forged-admin-jwt`) — a leaked OpenAPI spec reveals an undocumented
+    endpoint, chained through BOLA, mass assignment, and HTTP parameter pollution (modeled by a repeated query
+    param where the engine's existing last-value-wins parsing IS the vulnerability) into a JWT `alg:none`
+    forgery reaching it.
+  - **Cryptography** (`crypto-capstone-jwt-crack-to-rsa-factorization-vault-decrypt`) — a cracked JWT secret
+    forges an admin token exposing an AES-CBC static-IV-reuse plaintext leak and an RSA modulus factored via
+    Fermat's method; the RSA numbers (n, p, q, d) were independently computed and checked with real Node
+    BigInt arithmetic before being written, not asserted.
+  - **Mobile** (`mobile-capstone-hardcoded-key-to-backend-compromise`) — a hardcoded backend API key recovered
+    from decompiled source authenticates directly against the real backend with no app installed at all,
+    chained into a BOLA and an obscurity-gated internal debug export endpoint.
+  - **Wireless** (`wireless-capstone-wpa2-crack-to-wired-network-pivot`) — the existing live WPA2 handshake-
+    capture/crack workflow, chained into a default-credentialed IoT bridge device reachable only from that
+    VLAN, which itself holds a stored credential bridging into the wired corporate segment.
+  - **IoT** (`iot-capstone-firmware-to-corporate-network-compromise`) — firmware `hashcat` hash cracking,
+    chained into a real embedded command-injection pattern (`;`-injected shell metacharacters in a diagnostic
+    ping feature) leaking a corporate service credential that reaches the wired network.
+  - **AI Security** (`ai-capstone-prompt-injection-to-confused-deputy-export`) — five distinct OWASP Top 10
+    for LLM Applications categories against one agent: direct prompt injection (also leaking an internal tool
+    token), indirect/document-borne injection, excessive agency via an unrestricted email tool, insecure
+    output handling enabling stored XSS, and a final confused-deputy reuse of the leaked tool token that
+    bypasses the agent entirely.
+
+  **Two real, mechanical bugs caught and fixed during verification, worth naming as a general lesson**:
+  (1) `sudo <nopasswd-command> --shell` and directly executing a SUID binary both grant root/`isRoot: true`
+  WITHOUT changing the session's `cwd` (matching real `sudo`/SUID behavior — neither actually `cd`s anywhere)
+  — a flag file placed under a host's `/root` is therefore unreachable by a bare relative `cat root.txt`
+  after either kind of privesc; it needs the absolute path `cat /root/root.txt`, exactly the convention
+  `modern-attack-chains-pack.ts`'s pre-existing `scattered-spider-helpdesk-to-domain-admin` lab already used
+  and this batch initially missed in five of the seventeen new labs (Linux, Network, Active Directory,
+  Wireless, IoT) before being caught by mechanical verification and fixed. (2) A file-review helper that
+  wraps its content directly as the filesystem root (no extra `root:` key) requires either an explicit
+  `root:` key in the passed-in files object (so `~`/cwd-relative hints resolve) or absolute (`/...`) paths in
+  every hint — the Forensics capstone was written with neither, caught immediately by the same verification
+  pass (0 of 5 flags fired on the first run) and fixed with absolute paths.
+
+  Verified every one of the 17 new labs the same way batch 29 was: a throwaway script importing the real
+  `TerminalEngine` and driving each scenario through its own `hints` array in order (including every SSH/FTP
+  password prompt), asserting the captured-flag count equals `totalFlags` for all 17 before deleting the
+  script. First run surfaced 9 of 17 with mismatches (the two bug classes above); all 9 fixed and the full
+  batch re-run clean (17/17 `OK`, all 85 flags firing in the correct order). A separate whole-registry
+  duplicate check (558 labs) confirmed zero duplicate `id` values and zero duplicate `flag{...}` strings
+  across the entire platform, not just this batch. `tsc -b` and `oxlint` both clean. Registered in
+  `src/data/labs.ts`; `labs-index.md` counts updated (541 → 558, +1 to each of the 17 categories touched).

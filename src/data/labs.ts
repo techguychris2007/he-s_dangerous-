@@ -86,6 +86,24 @@ import { metasploitLabs } from '../labs/scenarios/metasploit-pack';
 import { batch26MixedLabs } from '../labs/scenarios/batch26-mixed-pack';
 import { metasploitLabs2 } from '../labs/scenarios/metasploit-pack-2';
 import { metasploitLabs3 } from '../labs/scenarios/metasploit-pack-3';
+import { malwareCapstoneLabs } from '../labs/scenarios/malware-capstone-pack';
+import { linuxCapstoneLabs } from '../labs/scenarios/capstone-linux-pack';
+import { networkCapstoneLabs } from '../labs/scenarios/capstone-network-pack';
+import { webCapstoneLabs } from '../labs/scenarios/capstone-web-pack';
+import { adCapstoneLabs } from '../labs/scenarios/capstone-ad-pack';
+import { bugBountyCapstoneLabs } from '../labs/scenarios/capstone-bugbounty-pack';
+import { cloudCapstoneLabs } from '../labs/scenarios/capstone-cloud-pack';
+import { socCapstoneLabs } from '../labs/scenarios/capstone-soc-pack';
+import { forensicsCapstoneLabs } from '../labs/scenarios/capstone-forensics-pack';
+import { securityPlusCapstoneLabs } from '../labs/scenarios/capstone-securityplus-pack';
+import { binaryAnalysisCapstoneLabs } from '../labs/scenarios/capstone-binaryanalysis-pack';
+import { secEngineeringCapstoneLabs } from '../labs/scenarios/capstone-secengineering-pack';
+import { apiCapstoneLabs } from '../labs/scenarios/capstone-api-pack';
+import { cryptoCapstoneLabs } from '../labs/scenarios/capstone-crypto-pack';
+import { mobileCapstoneLabs } from '../labs/scenarios/capstone-mobile-pack';
+import { wirelessCapstoneLabs } from '../labs/scenarios/capstone-wireless-pack';
+import { iotCapstoneLabs } from '../labs/scenarios/capstone-iot-pack';
+import { aiSecurityCapstoneLabs } from '../labs/scenarios/capstone-aisecurity-pack';
 import type { LabScenario } from '../labs/types';
 
 export interface LabEntry {
@@ -183,6 +201,24 @@ export const LABS: LabEntry[] = [
   ...toEntries(batch26MixedLabs),
   ...toEntries(metasploitLabs2),
   ...toEntries(metasploitLabs3),
+  ...toEntries(malwareCapstoneLabs),
+  ...toEntries(linuxCapstoneLabs),
+  ...toEntries(networkCapstoneLabs),
+  ...toEntries(webCapstoneLabs),
+  ...toEntries(adCapstoneLabs),
+  ...toEntries(bugBountyCapstoneLabs),
+  ...toEntries(cloudCapstoneLabs),
+  ...toEntries(socCapstoneLabs),
+  ...toEntries(forensicsCapstoneLabs),
+  ...toEntries(securityPlusCapstoneLabs),
+  ...toEntries(binaryAnalysisCapstoneLabs),
+  ...toEntries(secEngineeringCapstoneLabs),
+  ...toEntries(apiCapstoneLabs),
+  ...toEntries(cryptoCapstoneLabs),
+  ...toEntries(mobileCapstoneLabs),
+  ...toEntries(wirelessCapstoneLabs),
+  ...toEntries(iotCapstoneLabs),
+  ...toEntries(aiSecurityCapstoneLabs),
 ];
 
 /** Ordered to match the roadmap's actual teaching sequence (see curriculum.ts's MODULES order). */

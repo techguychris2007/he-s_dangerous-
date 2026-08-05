@@ -2257,3 +2257,106 @@ and required/default option confirmed against Rapid7's own module documentation 
   analysis.tsx`) had a genuine `oxlint` syntax error mid-write. Both confirmed via `git status`/reading the
   reported paths to be entirely outside this batch's own changes before proceeding — neither staged,
   neither committed, neither touched.
+
+## Sources checked, batch 29 (Malware capstone)
+
+Explicit follow-up request for a "flagship, almost-too-real capstone" per module — clarified in-conversation
+down to: still fully simulated inside the existing `TerminalEngine` sandbox (no real, functional attack
+tooling meant to run against real infrastructure), multi-flag, single continuous narrative rather than
+isolated techniques. Started with Malware.
+
+- **CVE-2023-46805 / CVE-2024-21887 (Ivanti Connect Secure auth bypass + command injection chain)** — used
+  for the lab's initial-access stage. Both disclosed together in January 2024; Volexity is publicly credited
+  with catching a China-nexus espionage actor (tracked as UTA0178) exploiting the pair as a zero-day before a
+  patch existed, with exploitation broadening fast once public proof-of-concept code circulated. CISA issued
+  an emergency directive (ED 24-01) instructing federal agencies to disconnect affected appliances rather
+  than trust an in-place patch alone, since an implant could already be planted through the hole — this is
+  the real, well-documented detail the lab's briefing cites for why patching alone wasn't treated as
+  sufficient in the real incident. Confirmed this specific CVE pair is not already used as an `exploitableAs`
+  technique anywhere else on the platform (`grep`'d for "ivanti"/both CVE numbers first) before writing.
+- Every later stage deliberately reuses an already-established engine mechanic rather than inventing new
+  ground: the `#HASHCAT_HASH:`/`#HASHCAT_PLAINTEXT:`/`#HASHCAT_FLAG:` marker convention and the
+  `crackmapexec`-then-`secretsdump` DCSync sequence both follow `redteam-tools-pack.ts`'s
+  `msf-samba-usermap-domain-pivot` lab exactly; the header-gated exfiltration `curl` (`vulnRoutes` with
+  `location: 'header'`, a trigger substring checked against a custom header value) follows
+  `modern-attack-chains-pack.ts`'s `saas-oauth-token-theft-chain` lab exactly. No engine changes needed.
+- Deliberately stops at `secretsdump`/DCSync (proof of full domain-credential access) rather than simulating
+  an encryption/destructive payload — matches the existing `scattered-spider-helpdesk-to-domain-admin` lab's
+  same stopping point, which the briefing explicitly names as the precedent for where "impact readiness" ends
+  and an actual destructive step would begin.
+
+## NEEDS REVIEW (labs/topics), batch 29
+
+- None — the lab passed full mechanical verification (see below) on the first run, no bugs found.
+- Verified by writing a throwaway script (`src/labs/__verify_malware_capstone.ts`, deleted after the run) that
+  imports the real `TerminalEngine` and the new scenario directly and drives it through the exact command
+  sequence from the lab's own `hints` array, in order — including typing the SSH password as a separate
+  "command" to confirm the engine's `awaitingAuth` prompt flow works exactly as a learner would experience it
+  in the actual UI. All 6 flags fired in the correct order and the captured count matched `totalFlags`
+  exactly; full command-by-command output reviewed by eye before deleting the script. `tsc -b` and `oxlint`
+  both clean on the new file and on `src/data/labs.ts`.
+
+## Sources checked, batch 30 (capstones for the remaining 17 categories)
+
+Explicit follow-up request to extend batch 29's single-Malware-capstone pattern to every other lab category.
+Most of these 17 labs recombine already-established, already-cited engine mechanics rather than introducing new
+real-world technique research, so this section is short relative to the batch size — the two facts genuinely
+re-verified here:
+
+- **MS14-025 / GPP cpassword** (Active Directory capstone) — re-confirmed the same fact already cited for this
+  platform's pre-existing GPP lab: Microsoft published the GPP AES encryption key in its own public SDK
+  documentation, meaning any `cpassword` value in a `Groups.xml` has been trivially reversible (not merely
+  weakly protected) since the 2014 advisory — used here as the capstone's initial-access stage, chained into
+  later stages rather than repeated as a standalone lab.
+- **RSA factorization arithmetic** (Cryptography capstone) — rather than asserting plausible-looking n/p/q/d
+  values, computed them for real: `p=10007, q=10009` (deliberately close, inside Fermat-factorization range),
+  `n=p*q=100160063`, `e=65537`, `d` = the real modular inverse of `e mod (p-1)(q-1)`, computed via an extended-
+  Euclidean-algorithm script run in Node with real BigInt arithmetic and confirmed `e*d mod phi(n) == 1` before
+  writing any of the four numbers into the lab file — the same "independently verified, not asserted" bar
+  `NOTES.md` has held every other numeric crypto claim to.
+- **`fastcolor-utils` supply-chain package** (Security Engineering capstone's dependency-audit stage)
+  deliberately reuses the exact malicious package name from this platform's own pre-existing
+  `shai-hulud-npm-supply-chain-worm` lab (`modern-attack-chains-pack.ts`) as an intentional cross-lab callback
+  rather than inventing a new fictional package — confirmed via `grep` that this is the same name, not a
+  coincidental collision, before writing it.
+- Every other new fact in this batch (which internal tool name is NOPASSWD-sudoable, which service account
+  a firmware command-injection leaks, which query parameter an HTTP-parameter-pollution or mass-assignment
+  vulnRoute checks) is invented scenario detail built directly on an already-cited real technique CLASS from
+  an earlier batch, not a new real-world claim requiring its own citation.
+
+## NEEDS REVIEW (labs/topics), batch 30
+
+- **Two real, mechanical bugs found and fixed by verification, not left as edge cases** — worth flagging
+  explicitly as a pattern for any future batch reusing the `sudo`/SUID privesc + "read a flag file from
+  `/root`" shape:
+  1. Both `sudo <nopasswd-command> --shell` and directly executing a SUID binary grant `isRoot: true` on the
+     CURRENT session WITHOUT changing its `cwd` (this is actually correct, real-`sudo`-matching engine
+     behavior, not a bug in `engine.ts` itself) — so a flag file placed under a host's `/root` directory is
+     unreachable via a bare relative `cat root.txt` immediately after either kind of privesc. The correct,
+     already-established convention (`modern-attack-chains-pack.ts`'s `scattered-spider-helpdesk-to-domain-
+     admin` lab: `cat /root/idp-backdoor-notes.txt`, absolute path) has to be used instead. Five of this
+     batch's first drafts (Linux, Network, Active Directory, Wireless, IoT) missed this and used a bare
+     relative filename; all five caught by the same mechanical-verification pass (flags simply never fired)
+     and fixed by switching those specific `cat`/`hashcat` hint lines to absolute `/root/...` paths.
+  2. The Forensics capstone's file-review helper wrapped its content directly as the filesystem root with no
+     `root:` key inside it, while its hints used bare relative paths (`cat disk/browser-history.txt`) — since
+     the attacker session's cwd starts at `/root`, none of those five files were reachable at all (0 of 5
+     flags fired on the first verification run). Fixed by switching every hint to an absolute path
+     (`cat /disk/browser-history.txt`) rather than adding the missing `root:` nesting, since the absolute-path
+     form is equally valid engine syntax and was already proven working by this same batch's SOC capstone.
+  3. Two smaller first-draft mistakes, also caught by verification rather than left in: the Binary Analysis
+     capstone's `hints` array had literal `<placeholder>` text (e.g. `./stage2 <decoded value>`) instead of
+     the actual runnable value in two places — every other capstone in this batch and almost every pre-
+     existing lab on the platform keeps `hints` 100% literal, runnable commands, so these were replaced with
+     the real recovered values. The Network and Security+ capstones were each missing one step (a password
+     line after an `ssh` prompt in one case, an `exit` back to the attacker box before referencing an
+     attacker-box-only file in the other) — both silent failures until the verification script's flag count
+     came back short, both fixed by inserting the missing hint line.
+- Verified all 17 labs the same way batch 29's single capstone was verified, scaled up: one throwaway script
+  (`src/labs/__verify_capstones.ts`, deleted after the run) importing the real `TerminalEngine` and every new
+  scenario, driving each one through its own `hints` array in order (including every SSH/FTP password
+  prompt), and asserting the captured-flag count equals `totalFlags`. First run: 9 of 17 mismatched (the bug
+  classes above, all in different labs — no single bug repeated identically, each confirmed against its own
+  transcript before fixing). Second run after fixes: 17 of 17 `OK`. A separate whole-registry scan (`LABS`,
+  558 entries) confirmed zero duplicate `id` values and zero duplicate `flag{...}` strings anywhere on the
+  platform, not just within this batch. `tsc -b` and `oxlint` both clean.
