@@ -15,10 +15,11 @@ interface PendingRequest {
   hintLevel?: number;
 }
 
-/** CBAI: the hint-first coding/lab mentor. Renders as a real docked panel (not a floating overlay)
- *  when open, so it takes its own space in the page's flex layout instead of covering the editor
- *  or terminal beside it — the browser's own layout engine finds the space, rather than any
- *  hand-rolled positioning math. Shares its context shape with the reading companion but with
+/** CBAI: the hint-first coding/lab mentor. Renders as a real docked panel — both collapsed (a slim
+ *  launcher rail/bar) and open (the full chat panel) — so it always takes its own space in the
+ *  page's flex layout instead of floating on top of the editor or terminal beside it and covering
+ *  whatever the learner just typed; the browser's own layout engine finds the space, rather than
+ *  any hand-rolled positioning math. Shares its context shape with the reading companion but with
  *  lab-specific behavior: a 5-level hint ladder instead of free explanation on demand, since handing
  *  over a working solution defeats the point of a graded lab. */
 export default function CyberLabAI({ getContext }: CyberLabAIProps) {
@@ -63,13 +64,19 @@ export default function CyberLabAI({ getContext }: CyberLabAIProps) {
   const isLab = context.kind === 'lab';
 
   if (!open) {
+    // In-flow docked launcher, not a `fixed` overlay — a floating pill sitting on top of the
+    // terminal/editor beside it would cover whatever the learner just typed on the line it lands
+    // on. Sizing itself into the same flex row/column the open panel already docks into (see
+    // below) reserves its own space instead, so it can never sit on top of terminal output.
     return (
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-5 right-5 z-40 flex items-center gap-2 pl-3 pr-4 py-3 rounded-full shadow-lg bg-[var(--color-accent)] text-white font-semibold text-sm hover:brightness-110 transition"
+        aria-label="Open CyberLab AI"
+        title="CyberLab AI"
+        className="shrink-0 flex items-center justify-center gap-2 w-full h-11 lg:h-full lg:w-11 lg:flex-col border-t lg:border-t-0 lg:border-l border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-heading)] transition-colors"
       >
-        <IconLightning className="w-4 h-4" />
-        CyberLab AI
+        <IconLightning className="w-4 h-4 text-[var(--color-accent)] shrink-0" />
+        <span className="text-xs font-semibold lg:[writing-mode:vertical-rl] lg:rotate-180">CyberLab AI</span>
       </button>
     );
   }
