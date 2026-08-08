@@ -13,10 +13,24 @@ interface SignUpResult extends AuthResult {
 interface AuthApi {
   session: Session | null;
   user: User | null;
+  /** True for a session created via signInAsGuest() — a real Supabase Auth user (so RLS/progress
+   *  sync work exactly as for any other account), just one with no email/password yet. Convenience
+   *  derived from `user.is_anonymous` so call sites don't need to know that field exists. */
+  isGuest: boolean;
   /** True until the initial session check resolves — gates render so a logged-in user never flashes the login page. */
   loading: boolean;
   signUp: (email: string, password: string, fullName: string) => Promise<SignUpResult>;
   signIn: (email: string, password: string) => Promise<AuthResult>;
+  /** Starts an anonymous session — a real, RLS-scoped Supabase Auth account with no credentials, so
+   *  the same progress-sync path every other account uses works immediately. There is no password to
+   *  sign back in with afterward, so this identity only survives as long as this browser's session
+   *  does unless the learner later calls upgradeGuestAccount(). */
+  signInAsGuest: () => Promise<AuthResult>;
+  /** Converts the current anonymous session into a permanent one with the same user id (so every row
+   *  of already-synced progress carries over untouched) by attaching an email + password to it.
+   *  Supabase sends a confirmation link to the new email — the account only fully upgrades ("is_anonymous"
+   *  flips false) once that link is clicked. Only meaningful to call while `isGuest` is true. */
+  upgradeGuestAccount: (email: string, password: string, fullName: string) => Promise<AuthResult>;
   signOut: () => Promise<void>;
   sendPasswordReset: (email: string) => Promise<AuthResult>;
   updatePassword: (password: string) => Promise<AuthResult>;
@@ -62,6 +76,20 @@ export function useAuthState(): AuthApi {
     return { error: error ? error.message : null };
   }, []);
 
+  const signInAsGuest = useCallback(async (): Promise<AuthResult> => {
+    const { error } = await supabase.auth.signInAnonymously();
+    return { error: error ? error.message : null };
+  }, []);
+
+  const upgradeGuestAccount = useCallback(async (email: string, password: string, fullName: string): Promise<AuthResult> => {
+    const { error } = await supabase.auth.updateUser({
+      email,
+      password,
+      data: { full_name: fullName },
+    });
+    return { error: error ? error.message : null };
+  }, []);
+
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
   }, []);
@@ -83,14 +111,17 @@ export function useAuthState(): AuthApi {
     () => ({
       session,
       user: session?.user ?? null,
+      isGuest: Boolean(session?.user?.is_anonymous),
       loading,
       signUp,
       signIn,
+      signInAsGuest,
+      upgradeGuestAccount,
       signOut,
       sendPasswordReset,
       updatePassword,
     }),
-    [session, loading, signUp, signIn, signOut, sendPasswordReset, updatePassword],
+    [session, loading, signUp, signIn, signInAsGuest, upgradeGuestAccount, signOut, sendPasswordReset, updatePassword],
   );
 }
 

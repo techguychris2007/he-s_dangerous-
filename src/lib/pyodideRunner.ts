@@ -19,6 +19,15 @@ interface PyodideInterface {
   /** The interpreter's global namespace, exposed so JS can hand it a Python value (here: the
    *  learner's source as a real Python str) without going through string interpolation/escaping. */
   globals: { set: (name: string, value: unknown) => void };
+  /** Pyodide's virtual filesystem (a real Emscripten MEMFS) — used by the Build Portal's multi-file
+   *  Python runner (src/lib/pyodideProjectRunner.ts) to mount a project's files before running its
+   *  entry point. Untouched by the single-file runner above. */
+  FS: {
+    mkdirTree: (path: string) => void;
+    writeFile: (path: string, data: string, opts?: { encoding?: string }) => void;
+    unlink: (path: string) => void;
+    analyzePath: (path: string) => { exists: boolean };
+  };
 }
 
 declare global {

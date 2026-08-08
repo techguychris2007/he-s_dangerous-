@@ -36,9 +36,11 @@ export default defineConfig({
         // app boots and runs with zero network requests once a single online visit has completed.
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
         navigateFallback: '/index.html',
-        // The main bundle passed 2 MiB once @supabase/supabase-js was added; raise the workbox
-        // precache ceiling instead of splitting chunks, so the whole app still works fully offline.
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+        // The main bundle passed 2 MiB once @supabase/supabase-js was added, then passed 5 MiB as
+        // the Build Portal's SE task catalog (taskIndex.ts — metadata only, but eagerly imported by
+        // BuildPortalPage) grew past 145 tasks. Same call each time: raise the workbox precache
+        // ceiling instead of splitting chunks, so the whole app still works fully offline.
+        maximumFileSizeToCacheInBytes: 9 * 1024 * 1024,
         runtimeCaching: [
           {
             urlPattern: ({ url }) => url.pathname.startsWith('/assets/banners/') || /\.(?:jpg|jpeg)$/.test(url.pathname),
@@ -54,6 +56,19 @@ export default defineConfig({
             options: {
               cacheName: 'pyodide-runtime',
               expiration: { maxEntries: 60, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            // Same reasoning as the Pyodide rule above, for the Build Portal's Monaco editor: loaded
+            // from the CDN on demand (not bundled/precached — see MonacoProjectEditor.tsx for why),
+            // cached after first use so it works offline afterward. Version-pinned URL, so CacheFirst
+            // is safe here too.
+            urlPattern: ({ url }) => url.hostname === 'cdn.jsdelivr.net' && url.pathname.includes('/monaco-editor@'),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'monaco-editor-runtime',
+              expiration: { maxEntries: 120, maxAgeSeconds: 60 * 60 * 24 * 365 },
               cacheableResponse: { statuses: [0, 200] },
             },
           },

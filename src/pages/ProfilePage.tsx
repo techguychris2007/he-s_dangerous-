@@ -1,14 +1,112 @@
+import { useState } from 'react';
 import { LABS } from '../data/labs';
 import { MODULES } from '../data/curriculum';
 import { useProgress } from '../state/progressStore';
+import { useAuth } from '../state/authStore';
 import { ACHIEVEMENTS, computeStreak } from '../data/achievements';
-import { IconUser, IconFlag, IconCheck, IconBookmark, IconCode } from '../components/layout/icons';
+import { IconUser, IconFlag, IconCheck, IconBookmark, IconCode, IconLock, IconMail } from '../components/layout/icons';
 import StatCard from '../components/common/StatCard';
 
 const POINTS: Record<string, number> = { Easy: 10, Medium: 20, Hard: 30 };
 
+/** Shown only to a guest (`auth.isGuest`) — lets them attach an email + password to their existing
+ *  anonymous account via upgradeGuestAccount(), which keeps the same user id (and therefore every
+ *  row of progress already synced under it) instead of starting a brand-new account from zero. */
+function GuestUpgradeCard() {
+  const auth = useAuth();
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [sent, setSent] = useState(false);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    if (!fullName.trim()) return setError('Enter your name.');
+    if (!email.trim()) return setError('Enter your email address.');
+    if (password.length < 6) return setError('Password must be at least 6 characters.');
+
+    setSubmitting(true);
+    const { error: upgradeError } = await auth.upgradeGuestAccount(email.trim(), password, fullName.trim());
+    setSubmitting(false);
+    if (upgradeError) return setError(upgradeError);
+    setSent(true);
+  };
+
+  return (
+    <div className="rounded-xl border border-[var(--color-gold)]/40 bg-[var(--color-gold-soft)] p-5 mb-8">
+      <div className="flex items-center gap-2 mb-1.5">
+        <IconLock className="w-4 h-4 text-[var(--color-gold-dim)] shrink-0" />
+        <h2 className="font-bold text-[var(--color-heading)] text-sm">You're browsing as a guest</h2>
+      </div>
+      <p className="text-sm text-[var(--color-text-dim)] leading-relaxed mb-4">
+        Everything above is already saving to this session, but a guest identity only lives in this browser —
+        there's no password to sign back in with elsewhere, and clearing site data loses it for good. Add an
+        email and password to turn it into a permanent account with the exact same progress, no restart.
+      </p>
+
+      {sent ? (
+        <div className="text-sm text-[var(--color-success)] bg-[var(--color-success)]/10 border border-[var(--color-success)]/30 rounded-lg px-3.5 py-2.5">
+          Check your inbox and confirm the link — your progress stays exactly as it is, this just adds a way
+          to sign back in.
+        </div>
+      ) : (
+        <form onSubmit={submit} className="flex flex-col sm:flex-row gap-2.5">
+          <label className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex-1 min-w-0">
+            <IconUser className="w-4 h-4 text-[var(--color-text-dim)] shrink-0" />
+            <span className="sr-only">Full name</span>
+            <input
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder="Full name"
+              className="flex-1 min-w-0 bg-transparent outline-none text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-dim)]"
+            />
+          </label>
+          <label className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex-1 min-w-0">
+            <IconMail className="w-4 h-4 text-[var(--color-text-dim)] shrink-0" />
+            <span className="sr-only">Email address</span>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email address"
+              className="flex-1 min-w-0 bg-transparent outline-none text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-dim)]"
+            />
+          </label>
+          <label className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex-1 min-w-0">
+            <IconLock className="w-4 h-4 text-[var(--color-text-dim)] shrink-0" />
+            <span className="sr-only">Password</span>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password (min. 6 characters)"
+              className="flex-1 min-w-0 bg-transparent outline-none text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-dim)]"
+            />
+          </label>
+          <button
+            type="submit"
+            disabled={submitting}
+            className="px-4 py-2.5 rounded-lg bg-[var(--color-gold)] text-[#241a08] text-sm font-semibold hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed transition shrink-0"
+          >
+            {submitting ? 'Saving…' : 'Save my progress'}
+          </button>
+        </form>
+      )}
+      {error && (
+        <div className="text-xs text-[var(--color-danger)] bg-[var(--color-danger)]/8 border border-[var(--color-danger)]/30 rounded-lg px-3 py-2 leading-relaxed mt-2.5">
+          {error}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ProfilePage() {
   const progress = useProgress();
+  const auth = useAuth();
   const initial = (progress.learnerName ?? '?').trim().charAt(0).toUpperCase();
 
   const totalLessons = MODULES.reduce((sum, m) => sum + m.lessons.length, 0);
@@ -41,6 +139,8 @@ export default function ProfilePage() {
     <div className="max-w-3xl mx-auto px-8 py-14">
       <div className="gold-eyebrow mb-2">// your progress</div>
       <h1 className="text-3xl font-bold text-[var(--color-heading)] mb-8">Profile</h1>
+
+      {auth.isGuest && <GuestUpgradeCard />}
 
       <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 flex items-center gap-4 mb-8 flex-wrap">
         <span className="w-16 h-16 rounded-full bg-[var(--color-accent)] text-white text-2xl font-bold flex items-center justify-center shrink-0">

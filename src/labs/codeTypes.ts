@@ -1,9 +1,10 @@
 export type CodeLanguage = 'python' | 'cpp' | 'javascript';
+export type CodeDifficulty = 'Easy' | 'Medium' | 'Hard';
 
 export interface CodeTask {
   id: string;
   title: string;
-  difficulty: 'Easy' | 'Medium' | 'Hard';
+  difficulty: CodeDifficulty;
   language: CodeLanguage;
   /** groups tasks within a language's catalog, e.g. "Fundamentals", "Cryptography & Encoding", "OOP", "Advanced" */
   category: string;

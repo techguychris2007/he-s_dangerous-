@@ -1,4 +1,6 @@
 import { linuxFundamentalsLab } from '../labs/scenarios/linux-fundamentals';
+import { wirelessPasswordReuseLab } from '../labs/scenarios/wireless-password-reuse-pack';
+import { msfVsftpdChainLab } from '../labs/scenarios/msf-vsftpd-chain-pack';
 import { networkReconLab } from '../labs/scenarios/network-recon';
 import { enumBruteforceLab } from '../labs/scenarios/enum-bruteforce';
 import { capstoneBoxLab } from '../labs/scenarios/capstone-box';
@@ -219,6 +221,7 @@ export const LABS: LabEntry[] = [
   ...toEntries(wirelessCapstoneLabs),
   ...toEntries(iotCapstoneLabs),
   ...toEntries(aiSecurityCapstoneLabs),
+  ...toEntries([wirelessPasswordReuseLab, msfVsftpdChainLab]),
 ];
 
 /** Ordered to match the roadmap's actual teaching sequence (see curriculum.ts's MODULES order). */

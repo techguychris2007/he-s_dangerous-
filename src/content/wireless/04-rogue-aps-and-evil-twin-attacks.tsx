@@ -69,6 +69,29 @@ whatever credentials or WPA password the victim types in.`}</CodeBlock>
         </p>
       </Callout>
 
+      <h2>Purpose-built hardware: the Wi-Fi Pineapple</h2>
+      <p>
+        Every technique above can be assembled from a laptop and a compatible adapter, but the evil-twin/rogue-AP
+        attack class is common enough that it's been productized into dedicated hardware — the Wi-Fi Pineapple
+        (Hak5) being the most widely recognized. It's worth understanding specifically because its existence as a
+        commercial, well-documented product is itself informative about how mature and routine this attack class
+        has become.
+      </p>
+      <CodeBlock label="what a purpose-built rogue-AP platform automates">{`- PineAP module: automated KARMA-style response to probe requests (this
+  lesson's KARMA material), running continuously and passively against
+  every device that walks within range, no manual targeting required
+- Simultaneous multi-SSID cloning across several channels at once, from a
+  single palm-sized device
+- Pre-built captive-portal templates for common scenarios (hotel, airport,
+  corporate guest login) ready to serve credential-harvesting pages
+  immediately, no custom development needed
+
+The existence of a polished, actively-maintained commercial product built
+entirely around this attack class is itself a useful signal: this isn't a
+theoretical or rare technique requiring deep expertise to pull off -- it's
+mature and productized enough that assessing for it should be a routine
+part of any physical-security-adjacent engagement, not an edge case.`}</CodeBlock>
+
       <h2>Detecting rogue APs defensively</h2>
       <CodeBlock label="what a wireless IDS (like Kismet, or enterprise WIPS) actually watches for">{`- A new BSSID broadcasting an ESSID matching a known corporate network,
   from a MAC address/vendor OUI not in the approved AP inventory
@@ -83,9 +106,10 @@ whatever credentials or WPA password the victim types in.`}</CodeBlock>
       </p>
 
       <p>
-        With cryptographic and social/trust-layer wireless attacks both covered, the final lesson moves to a
+        With cryptographic and social/trust-layer Wi-Fi attacks both covered, the next lesson moves to a
         physically adjacent but distinct wireless protocol most devices also run: Bluetooth and BLE, and the
-        attack classes specific to it.
+        attack classes specific to it — before this module returns to Wi-Fi for enterprise-grade 802.1X
+        authentication and the defensive side of everything covered so far.
       </p>
     </div>
   );

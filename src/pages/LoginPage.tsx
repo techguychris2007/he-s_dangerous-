@@ -61,6 +61,7 @@ export default function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+  const [guestSubmitting, setGuestSubmitting] = useState(false);
 
   useEffect(() => {
     if (!auth.loading && auth.user) navigate('/', { replace: true });
@@ -117,6 +118,16 @@ export default function LoginPage() {
     const { error: signInError } = await auth.signIn(email.trim(), password);
     setSubmitting(false);
     if (signInError) return setError(signInError);
+    navigate('/', { replace: true });
+  };
+
+  const continueAsGuest = async () => {
+    setError(null);
+    setInfo(null);
+    setGuestSubmitting(true);
+    const { error: guestError } = await auth.signInAsGuest();
+    setGuestSubmitting(false);
+    if (guestError) return setError(guestError);
     navigate('/', { replace: true });
   };
 
@@ -353,6 +364,30 @@ export default function LoginPage() {
             </button>
           )}
         </form>
+
+        {mode !== 'reset' && (
+          <>
+            <div className="flex items-center gap-3 mt-5">
+              <div className="flex-1 h-px" style={{ background: '#c9a15f33' }} />
+              <span className="text-2xs font-mono uppercase tracking-widest text-[#5f7284]">or</span>
+              <div className="flex-1 h-px" style={{ background: '#c9a15f33' }} />
+            </div>
+
+            <button
+              type="button"
+              onClick={continueAsGuest}
+              disabled={guestSubmitting || submitting}
+              className="w-full mt-4 px-4 py-3 rounded-lg text-sm font-semibold text-[#c9e0ff] transition-colors disabled:opacity-45 disabled:cursor-not-allowed hover:bg-[#c9a15f14]"
+              style={{ border: '1px solid #7c93ae66' }}
+            >
+              {guestSubmitting ? 'Setting up your guest session…' : 'Continue as guest'}
+            </button>
+            <p className="text-center text-2xs text-[#5f7284] mt-2.5 leading-relaxed">
+              Explore every lab and lesson with no sign-up. Your progress still saves — add an email later
+              from your profile to keep it permanently.
+            </p>
+          </>
+        )}
 
         <p className="text-center text-2xs font-mono text-[#4d5e70] mt-6 tracking-wide">
           Secured by Supabase Auth &middot; your password is never stored or seen by this app

@@ -93,14 +93,50 @@ WPS brute-force/Pixie Dust
         has worked at.
       </p>
 
+      <h2>RF fingerprinting: catching a spoofed MAC by the radio behind it</h2>
+      <p>
+        Every technique earlier in this module for detecting a rogue AP or evil twin depends on comparing a
+        BSSID/MAC address against an approved inventory — but a MAC address is just a field in a frame, exactly as
+        forgeable as the deauth frames this whole module has repeatedly exploited. A sufficiently careful attacker
+        can clone a legitimate AP's exact BSSID, not just its ESSID, defeating a pure MAC-allowlist check entirely.
+      </p>
+      <CodeBlock label="what doesn't lie, even when the MAC address does">{`Radio hardware has small, physically-inherent manufacturing variations --
+in clock drift, power amplifier characteristics, and I/Q modulation
+imperfections -- that produce a consistent, measurable "fingerprint" in its
+transmitted signal, independent of anything set in software. Two different
+physical radios broadcasting the identical spoofed BSSID still produce
+measurably different RF fingerprints.
+
+Enterprise WIPS platforms with RF fingerprinting capability baseline each
+approved AP's actual radio fingerprint at deployment time, then compare
+live transmissions against it continuously -- flagging a BSSID match with
+a fingerprint MISMATCH as a much higher-confidence rogue-AP signal than
+inventory comparison alone, since it can't be defeated by MAC spoofing at
+all.`}</CodeBlock>
+      <Callout variant="tip">
+        <p>
+          This is the same escalation from "compare an easily-forged identifier" to "measure something the
+          attacker physically cannot fake" that shows up elsewhere in security engineering — a browser fingerprint
+          surviving a cleared cookie, or a TLS certificate's public key surviving a spoofed hostname. Software-layer
+          identifiers (a MAC address, an ESSID, a hostname) are cheap to forge; physical or cryptographic
+          properties tied to something the attacker doesn't control are what actually hold up under a motivated
+          adversary.
+        </p>
+      </Callout>
+
       <h2>Closing the loop: this module's attacks, mapped to their defenses</h2>
       <CodeBlock label="the complete attacker/defender pairing across this module">{`802.11 fundamentals    -> baseline the approved AP/BSSID inventory
 WPA2 handshake capture   -> deauth-rate alerting catches the forcing step
-WPA3/cracking              -> (largely defeats offline cracking already,
+WPS                        -> disable it outright; if that's not possible,
+                              alert on WPS registration-attempt volume
+WPA3/cracking                -> (largely defeats offline cracking already,
                               per Lesson 3's own analysis)
-Evil twin/rogue AP           -> BSSID-vs-inventory mismatch alerting
-Bluetooth/BLE                  -> (outside typical WIDS scope -- a genuinely
-                                  separate monitoring domain)`}</CodeBlock>
+Evil twin/rogue AP              -> BSSID-vs-inventory alerting, escalated to
+                              RF fingerprinting against BSSID-spoofing clones
+Bluetooth/BLE                     -> (outside typical WIDS scope -- a genuinely
+                              separate monitoring domain)
+Enterprise EAP/RADIUS                -> MDM-pinned server certificates prevent
+                              the downgrade attack from ever succeeding`}</CodeBlock>
 
       <p>
         With both the offensive and defensive sides of Wi-Fi and enterprise wireless covered, the final lesson

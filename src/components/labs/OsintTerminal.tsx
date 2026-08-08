@@ -44,8 +44,11 @@ export default function OsintTerminal({
   const [historyPos, setHistoryPos] = useState<number | null>(null);
   const [hintIndex, setHintIndex] = useState(0);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  // See Terminal.tsx — tracked via a scroll listener so the check reflects the pre-update position.
+  const isNearBottomRef = useRef(true);
 
   useEffect(() => {
     onTranscriptChange?.(lines.map((l) => (l.kind === 'input' ? l.text : `  ${l.text}`)).join('\n'));
@@ -69,7 +72,18 @@ export default function OsintTerminal({
   }, [scenario]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ block: 'end' });
+    const el = scrollRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      isNearBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
+    };
+    el.addEventListener('scroll', onScroll);
+    return () => el.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Only follow the tail if the learner was already near the bottom — see Terminal.tsx for why.
+  useEffect(() => {
+    if (isNearBottomRef.current) bottomRef.current?.scrollIntoView({ block: 'end' });
   }, [lines]);
 
   const focusInput = () => inputRef.current?.focus();
@@ -159,6 +173,17 @@ export default function OsintTerminal({
         setHistoryPos(nextPos);
         setInput(historyList[nextPos]);
       }
+    } else if (e.key === 'c' && e.ctrlKey) {
+      e.preventDefault();
+      // Cancel whatever this tool's still-queued output chunks are — otherwise they'd print anyway,
+      // moments after a ^C that was supposed to mean "stop."
+      if (timersRef.current.length > 0) {
+        timersRef.current.forEach(clearTimeout);
+        timersRef.current = [];
+        setBusy(false);
+      }
+      push('input', `${prompt} ${input}^C`);
+      setInput('');
     }
   };
 
@@ -174,7 +199,7 @@ export default function OsintTerminal({
         <span className="ml-3 text-xs text-[#c9a15f]">kali — bash — {scenario.datasetLabel}</span>
         {busy && <span className="ml-auto text-2xs text-[var(--term-muted)] animate-pulse">running&hellip;</span>}
       </div>
-      <div className="flex-1 overflow-y-auto p-3 space-y-0.5 min-h-0" role="log" aria-live="polite" aria-label="OSINT terminal output">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 space-y-0.5 min-h-0" role="log" aria-live="polite" aria-label="OSINT terminal output">
         {lines.map((l) => (
           <pre key={l.id} className={`whitespace-pre-wrap break-all ${KIND_CLASS[l.kind]}`}>
             {l.text}

@@ -119,7 +119,7 @@ function PathStopCard({
         className="group block rounded-2xl overflow-hidden border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[var(--shadow-card)] hover:border-[var(--color-accent)]/50 transition-colors"
       >
         <div className="relative h-32">
-          <ModuleBanner icon={mod.icon} moduleId={mod.slug} className="absolute inset-0 w-full h-full" />
+          <ModuleBanner icon={mod.icon} moduleId={mod.id} className="absolute inset-0 w-full h-full" />
           <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 p-3.5">
             <div className="text-2xs font-mono font-bold uppercase tracking-widest text-white/75 mb-0.5">

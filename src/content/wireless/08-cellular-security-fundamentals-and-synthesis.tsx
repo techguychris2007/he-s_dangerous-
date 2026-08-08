@@ -66,6 +66,48 @@ actually behind it.`}</CodeBlock>
         </p>
       </Callout>
 
+      <h2>SIM swapping: attacking the carrier's trust in a phone call, not the radio at all</h2>
+      <p>
+        Everything above attacks the radio link between a phone and a tower. SIM swapping skips the radio
+        entirely and attacks a completely different trust boundary this module hasn't touched yet: the carrier's
+        own customer-support process for reassigning a phone number to a new SIM card — the exact process that
+        legitimately exists for when someone loses their phone.
+      </p>
+      <CodeBlock label="the attack: social engineering the carrier, not the target's device">{`1. Attacker gathers the target's name, phone number, and enough personal
+   details to pass a carrier's identity-verification questions -- often
+   sourced from the same OSINT/breach-data techniques covered in the
+   Reconnaissance module and the SOC modules' phishing material
+2. Attacker contacts the target's carrier (call, chat, or an in-person
+   store visit) claiming to be the target, requesting the number be
+   ported to a new SIM the attacker controls -- exploiting the SAME
+   "identity verification via knowledge of a few personal facts" weakness
+   that underlies most social-engineering pretexting
+3. The instant the port succeeds, the target's phone loses service
+   entirely and every call/SMS -- including SMS-based 2FA codes -- now
+   routes to the attacker's SIM instead, with no radio-layer attack
+   involved at all`}</CodeBlock>
+      <Callout variant="incident">
+        <p>
+          <strong>Real-world pattern — cryptocurrency and social-media account takeovers via SIM swap, an
+          ongoing FBI IC3 reporting category:</strong> the FBI's Internet Crime Complaint Center has published
+          multiple public advisories on SIM-swap fraud, and high-profile cases have included the 2019 takeover of
+          Twitter co-founder Jack Dorsey's own Twitter account via a SIM swap against his phone number. The
+          consistent pattern across reported cases: the attacker's actual target is rarely the phone itself — it's
+          whatever downstream account (email, cryptocurrency exchange, banking) uses that phone number for
+          SMS-based account recovery or two-factor authentication, making SIM swapping a carrier-trust attack with
+          a financial-account payoff, executed with zero radio equipment and zero interaction with the victim's
+          actual device at all.
+        </p>
+      </Callout>
+      <p>
+        This is worth placing directly alongside the SS7/Diameter material above: both ultimately defeat SMS-based
+        2FA, but through entirely different trust boundaries — SS7 abuse attacks the SIGNALING infrastructure
+        between carriers, while SIM swapping attacks the carrier's own CUSTOMER-SUPPORT identity verification.
+        Neither requires breaking any cryptography this module has covered, which is exactly why the guidance in
+        both cases converges on the same fix: move off SMS-based 2FA entirely, toward a method — an authenticator
+        app, a hardware security key — that isn't downstream of a phone number's trust chain at all.
+      </p>
+
       <h2>5G's improvements — and what they don't fully fix</h2>
       <CodeBlock label="what changed, and what's still an open concern">{`Improved:
   - Mutual authentication between device and network (closer to this
@@ -84,26 +126,40 @@ Still a concern:
 
       <h2>Module synthesis: the pattern across every layer, every generation</h2>
       <CodeBlock label="the single idea underneath all eight lessons of this module">{`802.11 management frames unauthenticated  -> deauth attacks, evil twins
-WPA2's PBKDF2-based handshake               -> offline cracking, strength
+WPS's split PIN verification                -> sidesteps password strength
+                                              entirely, independent of every
+                                              other control in this module
+WPA2's PBKDF2-based handshake                 -> offline cracking, strength
                                               entirely dependent on password
-WPA3-SAE                                      -> closes the offline-cracking
+WPA3-SAE                                        -> closes the offline-cracking
                                               door via a genuinely stronger
                                               cryptographic design
-Enterprise EAP/RADIUS                           -> the same trust-the-server
+Bluetooth pairing/re-authentication (BIAS)        -> a strong INITIAL handshake
+                                              undermined by a weaker
+                                              re-authentication step later
+Enterprise EAP/RADIUS                               -> the same trust-the-server
                                               problem, one layer up, when
                                               certificate validation is
                                               skipped
-Cellular/IMSI catchers                            -> the identical "trust
+Cellular IMSI catchers                                -> the identical "trust
                                               whichever broadcaster claims
                                               this identity" gap, one radio
-                                              technology up from Wi-Fi entirely`}</CodeBlock>
+                                              technology up from Wi-Fi entirely
+Cellular SIM swapping                                   -> a genuinely different
+                                              pattern: no radio attack at
+                                              all, just the SAME carrier
+                                              trust chain attacked through
+                                              its own customer-support process`}</CodeBlock>
       <p>
-        Across every lesson in this module — Wi-Fi, Bluetooth, and now cellular — the recurring finding has been
-        the same one from Security Engineering's cryptographic-pitfalls lesson: the cryptography, where
-        genuinely modern (WPA3-SAE, EAP-TLS, 5G's mutual authentication), tends to actually hold up. What
-        fails, again and again, is a device's willingness to trust whichever nearby transmitter claims a
-        familiar identity, with no cryptographic way to verify that claim — a single pattern repeating across
-        four completely different radio technologies and three completely different decades of protocol design.
+        Across every lesson in this module — Wi-Fi, Bluetooth, and now cellular — the dominant finding has been the
+        same one from Security Engineering's cryptographic-pitfalls lesson: the cryptography, where genuinely
+        modern (WPA3-SAE, EAP-TLS, 5G's mutual authentication), tends to actually hold up. What fails, again and
+        again, is a device's willingness to trust whichever nearby transmitter claims a familiar identity, a
+        usability feature (WPS) quietly undermining a strong protocol sitting right next to it, or a
+        re-authentication step assumed to inherit the strength of the handshake that came before it. SIM swapping
+        is the one deliberate exception in this synthesis, included precisely because it ISN'T a radio-layer
+        attack at all — a reminder that the trust boundary worth attacking is often not the most technically
+        sophisticated one available, but whichever one is weakest, radio protocol or human process alike.
       </p>
     </div>
   );

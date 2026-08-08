@@ -51,6 +51,33 @@ aireplay-ng --deauth 5 -a AA:BB:CC:11:22:33 -c <client_MAC> wlan0mon
 # has no way to distinguish it from a genuine deauth sent by the real AP,
 # and disconnects. When it automatically reconnects, airodump-ng captures
 # the resulting 4-way handshake into capture-01.cap.`}</CodeBlock>
+      <p>
+        The <code>-c &lt;client_MAC&gt;</code> flag above targets one specific, already-associated client — the
+        quieter, more surgical option, producing exactly one visible burst of deauth frames aimed at one device.
+        Omitting it broadcasts the deauth to every client on the AP at once (a "broadcast deauth"), which forces
+        several handshakes in parallel but disconnects every connected user simultaneously — a far noisier, more
+        disruptive action that a WIDS (Lesson 7) flags immediately and that can knock an entire office off Wi-Fi
+        for however long the reconnection storm takes to settle. A real, authorized assessment defaults to the
+        targeted form specifically to minimize disruption to anyone not part of the test.
+      </p>
+
+      <h2>Confirming a capture is actually usable before trusting it</h2>
+      <p>
+        A capture file containing SOME traffic from the target BSSID isn't automatically a crackable handshake —
+        a client that was already mid-reconnect, a dropped frame from marginal signal, or a deauth that fired
+        before airodump-ng started writing can all produce a capture missing one of the four messages needed.
+        Verifying this before handing a multi-hour cracking job to hashcat is a five-second check most guides skip.
+      </p>
+      <CodeBlock label="checking before cracking, not after">{`aircrack-ng capture-01.cap
+# look for this exact line in the output:
+   1 handshake
+
+# or, more precisely, with a tool built specifically for this check:
+cowpatty -c -r capture-01.cap
+# "Collected all necessary data to mount crack against WPA2/PSK passphrase."
+# confirms all 4 messages were captured intact -- if this doesn't appear,
+# re-run the deauth rather than starting a cracking job against a
+# structurally incomplete, uncrackable capture.`}</CodeBlock>
 
       <h2>PMKID: capturing a target with zero clients connected</h2>
       <p>

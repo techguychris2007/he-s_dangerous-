@@ -39,7 +39,16 @@ export default function Terminal({ scenario, onFlagCaptured, onTranscriptChange 
   const [historyPos, setHistoryPos] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const pendingRevealRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Tracks "was the learner already at the bottom" continuously via a scroll listener, so the
+  // auto-follow check below reflects their position from *before* new lines got appended — checking
+  // scrollTop only inside the [lines] effect would always measure against the already-taller post-
+  // update DOM (React commits the new lines before that effect runs), which makes "am I near the
+  // bottom" spuriously false for the exact case it needs to catch: someone parked at the bottom who
+  // just submitted a command that immediately appended output.
+  const isNearBottomRef = useRef(true);
 
   useEffect(() => {
     onTranscriptChange?.(lines.map((l) => (l.kind === 'input' ? l.text : `  ${l.text}`)).join('\n'));
@@ -48,6 +57,10 @@ export default function Terminal({ scenario, onFlagCaptured, onTranscriptChange 
   }, [lines]);
 
   useEffect(() => {
+    if (pendingRevealRef.current) {
+      clearTimeout(pendingRevealRef.current);
+      pendingRevealRef.current = null;
+    }
     engineRef.current = new TerminalEngine(scenario);
     setLines([
       { id: idCounter++, kind: 'system', text: `Connected to lab environment: ${scenario.title}` },
@@ -59,7 +72,20 @@ export default function Terminal({ scenario, onFlagCaptured, onTranscriptChange 
   }, [scenario]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ block: 'end' });
+    const el = scrollRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      isNearBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
+    };
+    el.addEventListener('scroll', onScroll);
+    return () => el.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Only follow the tail if the learner was already near the bottom — otherwise a delayed command's
+  // output (or the next thing anyone types) would yank them back down mid-scroll while they're
+  // reading earlier output, exactly the thing a real terminal never does to you.
+  useEffect(() => {
+    if (isNearBottomRef.current) bottomRef.current?.scrollIntoView({ block: 'end' });
   }, [lines]);
 
   const focusInput = () => inputRef.current?.focus();
@@ -87,6 +113,7 @@ export default function Terminal({ scenario, onFlagCaptured, onTranscriptChange 
     const latency = isPassword ? 0 : (COMMAND_LATENCY_MS[firstWord] ?? 0);
 
     const reveal = () => {
+      pendingRevealRef.current = null;
       const outLines: DisplayLine[] = [];
       for (const line of result) {
         if (line.text === '__CLEAR__') {
@@ -102,7 +129,7 @@ export default function Terminal({ scenario, onFlagCaptured, onTranscriptChange 
 
     if (latency > 0) {
       setBusy(true);
-      setTimeout(reveal, latency);
+      pendingRevealRef.current = setTimeout(reveal, latency);
     } else {
       reveal();
     }
@@ -170,6 +197,14 @@ export default function Terminal({ scenario, onFlagCaptured, onTranscriptChange 
       setLines([]);
     } else if (e.key === 'c' && e.ctrlKey) {
       e.preventDefault();
+      // If a command is still "running" (its output delayed to mimic real latency), actually cancel
+      // that pending reveal instead of just echoing ^C and letting the output show up moments later
+      // anyway — a real terminal killing a foreground process doesn't let it print after the fact.
+      if (pendingRevealRef.current) {
+        clearTimeout(pendingRevealRef.current);
+        pendingRevealRef.current = null;
+        setBusy(false);
+      }
       setLines((prev) => [...prev, { id: idCounter++, kind: 'input', text: `${engineRef.current.getPrompt()} ${input}^C` }]);
       setInput('');
     }
@@ -189,7 +224,13 @@ export default function Terminal({ scenario, onFlagCaptured, onTranscriptChange 
         <span className="ml-3 text-xs text-[#c9a15f]">{scenario.attacker.hostname} — bash</span>
         {busy && <span className="ml-auto text-2xs text-[var(--term-muted)] animate-pulse">running&hellip;</span>}
       </div>
-      <div className="flex-1 overflow-y-auto p-3 space-y-0.5 min-h-0" role="log" aria-live="polite" aria-label={`${scenario.attacker.hostname} terminal output`}>
+      <div
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto p-3 space-y-0.5 min-h-0"
+        role="log"
+        aria-live="polite"
+        aria-label={`${scenario.attacker.hostname} terminal output`}
+      >
         {lines.map((l) => (
           <pre key={l.id} className={`whitespace-pre-wrap break-all ${KIND_CLASS[l.kind]}`}>
             {l.text}

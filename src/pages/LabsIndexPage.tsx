@@ -130,10 +130,24 @@ export default function LabsIndexPage() {
 
       {filtered.length === 0 ? (
         <div className="rounded-xl border border-dashed border-[var(--color-border)] p-10 text-center text-sm text-[var(--color-text-dim)]">
-          {search_ ? (
-            <>No labs match &ldquo;{search}&rdquo;{filter !== 'All' && <> in {filter}</>}.</>
-          ) : (
-            <>No labs in the &ldquo;{filter}&rdquo; category{difficultyFilter !== 'All' && <> at {difficultyFilter} difficulty</>}.</>
+          <p className="mb-3">
+            {search_ ? (
+              <>No labs match &ldquo;{search}&rdquo;{filter !== 'All' && <> in {filter}</>}.</>
+            ) : (
+              <>No labs in the &ldquo;{filter}&rdquo; category{difficultyFilter !== 'All' && <> at {difficultyFilter} difficulty</>}.</>
+            )}
+          </p>
+          {isFiltering && (
+            <button
+              onClick={() => {
+                setFilter('All');
+                setDifficultyFilter('All');
+                setSearch('');
+              }}
+              className="text-sm font-semibold text-[var(--color-accent)] hover:underline"
+            >
+              Clear all filters
+            </button>
           )}
         </div>
       ) : (

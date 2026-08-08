@@ -24,6 +24,7 @@ import {
   IconCode,
   IconCrown,
   IconRoute,
+  IconLayers,
 } from './icons';
 
 const navItemClass = ({ isActive }: { isActive: boolean }) =>
@@ -78,6 +79,10 @@ export default function Sidebar() {
         </NavLink>
         <NavLink to="/soc-portal" className={navItemClass}>
           <IconShieldCheck className="w-4 h-4" /> SOC Portal
+          <IconExternal className="w-3 h-3 ml-auto opacity-60" />
+        </NavLink>
+        <NavLink to="/build-portal" className={navItemClass}>
+          <IconLayers className="w-4 h-4" /> Build Portal
           <IconExternal className="w-3 h-3 ml-auto opacity-60" />
         </NavLink>
 
@@ -223,8 +228,15 @@ export default function Sidebar() {
             {initial}
           </span>
           <div className="min-w-0 flex-1">
-            <div className="text-sm font-semibold text-[var(--color-heading)] truncate">{progress.learnerName}</div>
-            <div className="text-2xs text-[var(--color-text-dim)] group-hover:text-[var(--color-accent)] transition-colors">View profile</div>
+            <div className="text-sm font-semibold text-[var(--color-heading)] truncate flex items-center gap-1.5">
+              <span className="truncate">{progress.learnerName}</span>
+              {auth.isGuest && (
+                <span className="pill bg-[var(--color-gold)]/15 text-[var(--color-gold-dim)] shrink-0">Guest</span>
+              )}
+            </div>
+            <div className="text-2xs text-[var(--color-text-dim)] group-hover:text-[var(--color-accent)] transition-colors">
+              {auth.isGuest ? 'Save your progress →' : 'View profile'}
+            </div>
           </div>
         </NavLink>
         <button

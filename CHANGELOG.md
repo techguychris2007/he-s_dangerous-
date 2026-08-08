@@ -1475,3 +1475,48 @@ rather than faked as a live exploit this engine genuinely cannot honestly simula
   duplicate check (558 labs) confirmed zero duplicate `id` values and zero duplicate `flag{...}` strings
   across the entire platform, not just this batch. `tsc -b` and `oxlint` both clean. Registered in
   `src/data/labs.ts`; `labs-index.md` counts updated (541 → 558, +1 to each of the 17 categories touched).
+
+- **Batch 31 (558 → 560, +2 labs)** — explicit request for "more offensive labs," but rather than repeating
+  an already-heavily-covered pattern (AD Kerberoasting/DCSync alone has 9+ existing labs across
+  `ad-advanced-pack`, `ad-redteam-pack`, `capstone-ad-pack`, `redteam-tools-pack`, and others; SSRF-to-cloud-
+  metadata-theft already has 3+, including two in `ad-cloud-advanced-pack-2` alone), checked actual usage
+  counts of each engine mechanic against the number of labs built on it and targeted the two most
+  underused-relative-to-support ones: only 3 prior labs used the real `msfconsole` `use`/`set`/`run`
+  sub-shell workflow despite full engine support for it (search, use, set/unset, show options, run, auxiliary
+  vs. exploit modules, `back`), and only 3 prior labs (`wireless-pack.ts` ×2, `capstone-wireless-pack.ts` ×1)
+  used the `wifiNetwork`/`airodump-ng`/`aireplay-ng` capture-and-crack mechanic at all.
+
+  - **Network** (`msf-vsftpd-234-backdoor-chain`, 2 flags) — a real two-module `msfconsole` workflow: an
+    `auxiliary/scanner/smb/smb_version` recon scan against one host (flag embedded directly in its
+    `scanOutput`), then `back` and `use exploit/unix/ftp/vsftpd_234_backdoor` against a second host — the
+    real, historically-accurate vsftpd 2.3.4 backdoored-tarball RCE (CVE-2011-2523) from 2011, not a
+    made-up vulnerability. A successful exploit-type module `run` opens a real session (`isRoot: true`,
+    `cwd: ['root']`) but does NOT itself carry a customizable flag string (the engine's `run`/`exploit`
+    success path only scans a handful of hardcoded generic lines like "Exploit completed, session opened"
+    for `flag{...}`) — the second flag has to be `cat`'d from the compromised host's filesystem as a
+    follow-up command after the session opens, not printed by the exploit itself. Worth naming as a
+    mechanical fact about this specific code path, distinct from the absolute-path-after-privesc gotcha
+    batch 30 already documents (this one is about WHERE a flag can even be embedded for an exploit module,
+    not about cwd).
+  - **Wireless** (`wireless-password-reuse-handshake-to-shell`, 2 flags) — deliberately a different angle
+    from the platform's three existing capture/crack labs, which all stop at the cracked plaintext: this one
+    SPENDS it. `airmon-ng`/`airodump-ng`/`aireplay-ng` deauth-and-capture a WPA2 handshake, `hashcat -m 22000`
+    cracks it (flag 1, same convention as the existing wireless labs) — then the cracked password turns out
+    to be reused as a branch file server's local-admin SSH password (a genuinely common real-world finding,
+    not a contrived plot device), chaining into an SSH foothold and a misconfigured `sudo` NOPASSWD `cat`
+    rule (GTFOBins-style) escalating to root for flag 2.
+
+  One real bug caught and fixed before either lab even reached the runner, worth naming: `TerminalEngine.run()`
+  takes exactly ONE command line per call (`raw.trim()`, no newline-splitting) — an early draft of the
+  Metasploit lab's `hints` array combined `set RHOSTS <ip>` and `run` into a single string joined by `\n`,
+  which would have been fed to the engine as one garbled line rather than two commands. Caught by reading the
+  engine's own `run()` signature before writing the verification script (not by the script itself), and fixed
+  by splitting into two separate parallel `objectives`/`hints` entries.
+
+  Verified both labs the same way batches 29/30 were: a throwaway script driving the real `TerminalEngine`
+  through each lab's own `hints` array in order (including the SSH password prompt), asserting captured-flag
+  count equals `totalFlags` — both clean on the first real run (2/2 flags each, correct order) once the
+  newline bug above was fixed pre-emptively. A whole-registry duplicate check (560 labs) confirmed zero
+  duplicate `id` values and zero duplicate `flag{...}` strings platform-wide. `tsc -b` and `oxlint` both
+  clean. Registered in `src/data/labs.ts`; `labs-index.md` counts updated (558 → 560, Network 76 → 77,
+  Wireless 23 → 24).
