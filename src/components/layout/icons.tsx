@@ -486,6 +486,15 @@ export function IconRoute({ className }: IconProps) {
   );
 }
 
+export function IconLayers({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
+      <path strokeLinejoin="round" d="M12 3 2 8l10 5 10-5-10-5Z" />
+      <path strokeLinejoin="round" d="M2 13l10 5 10-5" />
+    </svg>
+  );
+}
+
 export function IconRefresh({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>

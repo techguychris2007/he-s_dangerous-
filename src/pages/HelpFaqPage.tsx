@@ -15,6 +15,10 @@ const FAQS: { q: string; a: string }[] = [
     a: 'Everything is saved to your account — real Supabase Auth plus a database row that Row Level Security guarantees only you can read — so it follows you across devices as long as you\'re signed in: lessons, labs, quizzes, your streak, unlocked achievements, and Code Portal learning-insight stats (hints used, attempts per solve). Your display name is read straight from your account rather than stored separately.',
   },
   {
+    q: 'Do I need to create an account to try this out?',
+    a: '"Continue as guest" on the sign-in page gets you in with zero setup — it\'s a real account behind the scenes, so your progress saves normally. The only catch is there\'s no email/password attached yet, so it only survives in this browser; add one from your Profile page whenever you want it to become permanent, with everything you\'ve already done carried over exactly as-is.',
+  },
+  {
     q: 'What do the flags actually verify?',
     a: 'Each lab is a small scenario with one or more hidden flag{...} strings placed behind a realistic chain of commands — recon, exploitation, and often privilege escalation. Capturing a flag means the terminal engine matched the exact string in a file, command output, or captured session, confirming you actually executed the intended technique rather than guessing.',
   },

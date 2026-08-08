@@ -7,7 +7,11 @@ const POINTS: { title: string; body: string }[] = [
   },
   {
     title: 'Real accounts, protected by Row Level Security',
-    body: 'Signing in uses real Supabase Auth (email + password) — this is a genuine credential store with hashed passwords and session tokens, not a display-name-only login. Your lesson/lab/quiz progress is stored server-side so it follows you across devices, but Row Level Security means your account can only ever read or write its own row — not another learner\'s, not even an admin\'s, without an explicit, narrowly-scoped exception (see below).',
+    body: 'Signing in uses real Supabase Auth (email + password, or a guest session — see below) — a genuine credential store with hashed passwords and session tokens, not a display-name-only login. Your lesson/lab/quiz/streak/achievement progress is stored server-side so it follows you across devices, but Row Level Security means your account can only ever read or write its own row — not another learner\'s, not even an admin\'s, without an explicit, narrowly-scoped exception (see below).',
+  },
+  {
+    title: '"Continue as guest" is a real account too, just without a password yet',
+    body: 'Guest sign-in creates a genuine Supabase Auth user (Row Level Security applies to it identically), so your progress saves for the length of your session exactly like a full account\'s does. The only difference is there is no email/password to sign back in with — clearing this browser\'s site data loses that identity permanently. Add an email and password from your Profile page at any point to convert it into a normal account without losing anything already saved.',
   },
   {
     title: 'Two deliberately narrow exceptions to "only you can see your data"',
@@ -16,10 +20,6 @@ const POINTS: { title: string; body: string }[] = [
   {
     title: 'No analytics, no tracking scripts, no third-party requests',
     body: 'This build ships with zero third-party analytics or tracking pixels. Your click-path and time-on-lesson are not observed by anyone — the only network calls this app makes are to Supabase, for the account/progress sync described above.',
-  },
-  {
-    title: 'Some signals are deliberately local-only, not synced',
-    body: 'Your streak, unlocked achievements, and Code Portal learning-insight stats (hints used, attempts per solve) live only in this browser\'s local storage — clearing site data or switching browsers resets those specifically, without touching your synced lesson/lab/quiz progress.',
   },
 ];
 

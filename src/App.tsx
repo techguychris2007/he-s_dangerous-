@@ -25,6 +25,9 @@ import SocPortalPage from './pages/SocPortalPage';
 import SiemLabPage from './pages/SiemLabPage';
 import CodePortalPage from './pages/CodePortalPage';
 import CodeTaskPage from './pages/CodeTaskPage';
+import BuildPortalPage from './pages/BuildPortalPage';
+import ProjectTaskPage from './pages/ProjectTaskPage';
+import SeVerifyPage from './pages/SeVerifyPage';
 import MlPortalPage from './pages/MlPortalPage';
 import MlLessonPage from './pages/MlLessonPage';
 import LibraryPage from './pages/LibraryPage';
@@ -73,7 +76,10 @@ function SyncAuthToProgress() {
 
   useEffect(() => {
     if (!auth.user) return;
-    const name = (auth.user.user_metadata?.full_name as string | undefined) || auth.user.email?.split('@')[0] || 'Learner';
+    const name =
+      (auth.user.user_metadata?.full_name as string | undefined) ||
+      auth.user.email?.split('@')[0] ||
+      (auth.user.is_anonymous ? 'Guest' : 'Learner');
     progress.syncIdentity(auth.user.id, name);
     // progress.syncIdentity is stable (useCallback) and itself no-ops once nothing needs to change;
     // omitting it and `progress` from deps avoids re-running this every time unrelated progress
@@ -204,6 +210,30 @@ function App() {
               element={
                 <RequireLogin>
                   <CodeTaskPage />
+                </RequireLogin>
+              }
+            />
+            <Route
+              path="/build-portal"
+              element={
+                <RequireLogin>
+                  <BuildPortalPage />
+                </RequireLogin>
+              }
+            />
+            <Route
+              path="/build-task/:taskId"
+              element={
+                <RequireLogin>
+                  <ProjectTaskPage />
+                </RequireLogin>
+              }
+            />
+            <Route
+              path="/se-verify"
+              element={
+                <RequireLogin>
+                  <SeVerifyPage />
                 </RequireLogin>
               }
             />

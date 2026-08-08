@@ -80,15 +80,30 @@ EAP-TLS         -- mutual certificate-based authentication -- both client
       </Callout>
 
       <h2>The defense: certificate pinning at the network configuration level</h2>
-      <CodeBlock label="what a correctly hardened enterprise wireless deployment enforces">{`- MDM-pushed Wi-Fi profiles (Lesson 7's mobile MDM material) that pin the
-  EXACT expected RADIUS server certificate, so a client can never be
-  socially engineered or misconfigured into skipping validation manually
+      <CodeBlock label="what a correctly hardened enterprise wireless deployment enforces">{`- MDM-pushed Wi-Fi profiles (the Mobile Security module's device-management
+  material) that pin the EXACT expected RADIUS server certificate at
+  enrollment time, so a client can never be socially engineered or
+  misconfigured into skipping validation manually -- the profile is
+  installed once, centrally, and end users never see or touch the
+  certificate-validation setting at all
 - EAP-TLS wherever operationally feasible, removing the "did the user
   validate the server cert" question entirely by requiring a certificate
   the rogue server simply cannot present
 - 802.11w (Protected Management Frames) to prevent the deauth-based
   forcing techniques from Lesson 2 from being used to push clients toward
   a rogue AP in the first place`}</CodeBlock>
+
+      <h2>802.1X isn't only a wireless concept</h2>
+      <p>
+        Everything in this lesson describes 802.1X over Wi-Fi, but the standard itself is media-independent —
+        wired switch ports run the identical supplicant/authenticator/RADIUS exchange to control which devices
+        may even get an IP address on a physical Ethernet port at all, a control sometimes called Network Access
+        Control (NAC). An unauthenticated device plugged into a port protected this way is placed on an isolated
+        guest VLAN (or refused a link entirely) rather than gaining any access to the internal network, closing
+        off the classic "walk in, find an empty conference-room jack, plug in a laptop" internal foothold that
+        this module's earlier wireless lessons don't need at all — Wi-Fi requires no physical port access in the
+        first place.
+      </p>
 
       <p>
         With enterprise authentication covered, the next lesson turns to the defensive side of this entire

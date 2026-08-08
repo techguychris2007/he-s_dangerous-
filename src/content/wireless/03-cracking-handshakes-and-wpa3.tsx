@@ -43,6 +43,58 @@ hashcat -m 22000 hash.22000 -a 3 'CompanyWifi?d?d?d?d?d?d?d?d'
         </p>
       </Callout>
 
+      <h2>WPS: a separate, often much faster path to the same password</h2>
+      <p>
+        Everything above attacks the WPA2 password directly. Wi-Fi Protected Setup (WPS) — the "push a button, or
+        enter an 8-digit PIN" feature meant to make home-network setup easier — offers a completely different,
+        often dramatically faster route to the exact same password, because of a design flaw in how the PIN is
+        verified that has nothing to do with password strength at all.
+      </p>
+      <CodeBlock label="the flaw: an 8-digit PIN that is never actually checked as one 8-digit number">{`A WPS PIN is 8 digits -- 10^8 = 100,000,000 possible values, which sounds
+like a reasonable keyspace. But the AP verifies it in TWO INDEPENDENT
+HALVES, confirming each half is correct separately:
+
+  Half 1 (digits 1-4): 10,000 possibilities
+  Half 2 (digits 5-7): only 1,000 possibilities (digit 8 is a checksum,
+                        not a free guess at all)
+
+Because the AP tells you whether EACH HALF was right independently, an
+attacker never has to guess the full 8-digit space at all -- worst case is
+10,000 + 1,000 = 11,000 guesses, not 100,000,000. This is the exact same
+"the verification step leaks more than it should" family of flaw as a
+padding oracle from the Applied Cryptography module, just at the protocol
+level instead of the ciphertext level.`}</CodeBlock>
+      <CodeBlock label="reaver -- the classic, brute-force-the-11,000 approach">{`reaver -i wlan0mon -b AA:BB:CC:11:22:33 -vv
+# tries PINs against the live AP, exploiting the split-verification flaw
+# above -- typically full PIN recovery in 4-10 hours against a vulnerable,
+# unpatched implementation, entirely online (every guess round-trips to
+# the real AP, unlike the offline dictionary/mask attacks earlier in this
+# lesson)`}</CodeBlock>
+      <Callout variant="incident">
+        <p>
+          <strong>Pixie Dust — disclosed 2014, turning hours into seconds:</strong> researcher Dominique Bongard
+          found that many chipsets' WPS implementations generate the random "nonce" values used during PIN
+          verification using a predictable, low- or zero-entropy random number generator — meaning the PIN can
+          often be computed OFFLINE from a single captured exchange, the same offline-recovery advantage the
+          PMKID technique earlier in this module has over deauth-and-wait, just applied to WPS instead of the
+          main handshake. Against a vulnerable chipset, a Pixie Dust attack (built into modern reaver via{' '}
+          <code>-K 1</code>, or the standalone <code>pixiewps</code> tool) recovers the full WPS PIN — and from
+          it, the actual WPA2 password, since many APs use the SAME PIN-verification channel to disclose it — in
+          seconds, no online brute-forcing required at all. It remains one of the starkest examples in this
+          entire module of a "usability" feature bolted onto a strong protocol quietly reintroducing a
+          catastrophic weakness.
+        </p>
+      </Callout>
+      <Callout variant="tip">
+        <p>
+          The practical takeaway: WPS being enabled is frequently a faster path to full network compromise than
+          attacking WPA2/WPA3 directly, completely independent of how strong the actual Wi-Fi password is — a
+          20-character random passphrase provides zero protection if the AP's WPS PIN is still guessable. This is
+          why WPS is near-universally recommended to be disabled entirely in any security-conscious deployment,
+          rather than merely configured carefully.
+        </p>
+      </Callout>
+
       <h2>WPA3: designed specifically to break this entire workflow</h2>
       <p>
         WPA3, ratified in 2018, replaces WPA2's PSK handshake with <strong>SAE</strong> (Simultaneous
@@ -78,15 +130,18 @@ WPA3-SAE:  each authentication attempt requires a fresh, interactive exchange
       </Callout>
 
       <h2>The practical takeaway for an assessment</h2>
-      <CodeBlock label="what actually changes in the field">{`WPA2 network found -> handshake/PMKID capture + offline cracking remains a
-                       fully viable, well-established attack path, success
-                       depending entirely on password strength.
-WPA3 network found  -> offline cracking is no longer viable against SAE
-                       (patched implementations); assessment shifts toward
-                       rogue AP / evil twin attacks (next lesson), which
-                       target the USER rather than the cryptographic
-                       handshake, and remain effective regardless of which
-                       WPA generation the real network runs.`}</CodeBlock>
+      <CodeBlock label="what actually changes in the field">{`WPS enabled          -> check this FIRST, before anything else in this
+                        lesson -- often the fastest path to full compromise
+                        regardless of password strength or WPA generation.
+WPA2 network found    -> handshake/PMKID capture + offline cracking remains a
+                        fully viable, well-established attack path, success
+                        depending entirely on password strength.
+WPA3 network found     -> offline cracking is no longer viable against SAE
+                        (patched implementations); assessment shifts toward
+                        rogue AP / evil twin attacks (next lesson), which
+                        target the USER rather than the cryptographic
+                        handshake, and remain effective regardless of which
+                        WPA generation the real network runs.`}</CodeBlock>
 
       <p>
         Cracking a strong WPA2/WPA3 password directly is often the hardest path to compromise a wireless network —

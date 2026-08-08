@@ -95,21 +95,53 @@ Characteristic value: 4e 41 4d 45 3a 61 64 6d 69 6e   -- decodes to "NAME:admin"
         traffic in plaintext.
       </p>
 
-      <h2>Module synthesis: the wireless attack surface, end to end</h2>
-      <CodeBlock label="the arc this module walked through">{`802.11 fundamentals  -> unauthenticated management frames are the root cause
+      <h2>BIAS: breaking the pairing trust model itself, not just weak implementations</h2>
+      <Callout variant="incident">
+        <p>
+          <strong>BIAS (Bluetooth Impersonation AttackS), disclosed 2020:</strong> researchers Daniele Antonioli,
+          Nils Ole Tippenhauer, and Kasper Rasmussen found a flaw in the Bluetooth Classic specification itself —
+          not a buggy implementation like BlueBorne above — in how devices that have ALREADY successfully paired
+          re-authenticate on subsequent connections. A device only needs to prove it knows the previously
+          established long-term key for ONE side of the connection's role, and a flaw in the specification's
+          role-switch handling let an attacking device impersonate an already-trusted, previously-paired device
+          without actually possessing that key at all, downgrading the authentication to a weaker mode the
+          specification still permitted for backward compatibility. Because the flaw was in the Bluetooth Core
+          Specification's own re-authentication logic, it affected essentially every standards-compliant
+          Bluetooth Classic chipset from every vendor simultaneously — the same "protocol design, not one
+          vendor's bug" pattern as KRACK and Dragonblood elsewhere in this module, just for Bluetooth's own
+          re-pairing trust model instead of Wi-Fi's handshake.
+        </p>
+      </Callout>
+      <p>
+        BIAS is worth sitting with specifically because it undercuts the assumption running through the rest of
+        this lesson — that a strong initial pairing method (Numeric Comparison, OOB) fully resolves the trust
+        question. BIAS shows that the RE-authentication step after that strong initial pairing can still be a
+        weaker link than the pairing ceremony itself, the same "don't stop checking after the first handshake"
+        lesson this module's WPA3 material and the Cryptographic Engineering Pitfalls module both make in their
+        own contexts.
+      </p>
+
+      <h2>Checkpoint: Wi-Fi and Bluetooth, one throughline so far</h2>
+      <CodeBlock label="the pattern across the two protocols covered up to this point">{`802.11 fundamentals  -> unauthenticated management frames are the root cause
                           behind most Wi-Fi attacks
 WPA2 handshake capture -> offline cracking, entirely dependent on password strength
-WPA3/SAE               -> closes the offline-cracking door for patched implementations
-Evil twin/rogue AP      -> sidesteps cryptography entirely by attacking trust in a name
-Bluetooth/BLE           -> a second, adjacent protocol with its own pairing-trust and
-                            stack-implementation risks, following the same underlying
-                            "verify who you're actually talking to" principle throughout`}</CodeBlock>
+WPS                      -> a split-verification flaw that sidesteps password
+                            strength entirely
+WPA3/SAE                  -> closes the offline-cracking door for patched implementations
+Evil twin/rogue AP          -> sidesteps cryptography entirely by attacking trust in a name
+Bluetooth/BLE                 -> a second, adjacent protocol with its own pairing-trust,
+                               re-authentication, and stack-implementation risks --
+                               following the same underlying "verify who you're
+                               actually talking to" principle throughout`}</CodeBlock>
       <p>
-        Across every lesson in this module, the recurring lesson is the same one from Security Engineering:
-        the cryptography is very often fine — WPA2's handshake, WPA3's SAE, and Bluetooth's pairing ceremonies are
-        all sound designs. What actually gets exploited, again and again, is an unauthenticated broadcast frame,
-        an over-trusting auto-reconnect default, or a device treating physical proximity as if it were
-        authentication.
+        The recurring finding through every lesson so far is the same one from Security Engineering: the
+        cryptography is very often fine — WPA2's handshake, WPA3's SAE, and Bluetooth's pairing ceremonies are all
+        sound designs on paper. What actually gets exploited, again and again, is an unauthenticated broadcast
+        frame, an over-trusting auto-reconnect default, a usability feature (WPS) undermining the protocol it sits
+        beside, or — as BIAS shows — a re-authentication step assumed to be as strong as the initial handshake it
+        follows. The next lesson takes this same discipline into enterprise Wi-Fi, where a THIRD party (a RADIUS
+        server) enters the trust picture, before the module closes with the defensive side of everything covered
+        so far and, finally, the cellular network every phone falls back to when Wi-Fi isn't available at all.
       </p>
     </div>
   );

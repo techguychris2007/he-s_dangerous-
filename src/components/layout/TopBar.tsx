@@ -25,6 +25,8 @@ const PAGE_TITLES: Record<string, string> = {
   profile: 'Profile',
   security: 'Security',
   help: 'Help & FAQ',
+  feedback: 'Feedback',
+  instructor: 'Instructor Dashboard',
 };
 
 function usePageTitle(): string {
@@ -35,6 +37,7 @@ function usePageTitle(): string {
   if (parts[0] === 'labs') return 'Labs';
   if (parts[0] === 'progress') return 'Progress';
   if (parts[0] === 'roadmap') return 'Roadmap';
+  if (parts[0] === 'my-learning') return 'My Learning';
   if (parts[0] === 'lab') return findLab(parts[1])?.scenario.title ?? 'Lab';
   if (parts[0] === 'module' && parts[3] === 'lesson') {
     return findLesson(parts[1], parts[3] ? parts[4] : undefined)?.lesson.title ?? 'Lesson';
