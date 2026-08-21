@@ -108,6 +108,94 @@ export const LESSON_LABS: Record<string, string[]> = {
   'se-3': ['secengineering-stride-threat-model-audit', 'secengineering-payment-api-threat-model'],
   'se-4': ['secengineering-crypto-code-review', 'secengineering-padding-oracle'],
   'se-5': ['secengineering-security-debt-rootcause', 'secengineering-insecure-deserialization', 'secengineering-timing-side-channel'],
+
+  // ============ MISSING LABS: GROUP 1 — CODE PORTAL PYTHON (9 labs) ============
+  // Maps existing Python tasks to Code Portal lessons
+  'cpy-1': ['py-fund-01', 'py-fund-02', 'py-fund-03', 'py-fund-04', 'py-fund-05', 'py-fund-06', 'py-fund-07', 'py-fund-08'],
+  'cpy-2': ['py-fund-09', 'py-fund-10', 'py-fund-11', 'py-fund-12', 'py-fund-13', 'py-fund-14', 'py-fund-15'],
+  'cpy-3': ['py-fund-16', 'py-fund-17', 'py-fund-18', 'py-fund-19', 'py-fund-20', 'py-fund-21', 'py-crypto-01', 'py-crypto-02', 'py-crypto-03', 'py-crypto-04', 'py-crypto-05', 'py-crypto-06', 'py-crypto-07', 'py-crypto-08'],
+  'cpy-4': ['py-oop-01', 'py-oop-02', 'py-oop-03', 'py-oop-04', 'py-oop-05'],
+  'cpy-5': ['py-oop-06', 'py-oop-07', 'py-oop-08', 'py-oop-09', 'py-oop-10'],
+  'cpy-6': ['py-oop-11', 'py-oop-12', 'py-oop-13', 'py-oop-14', 'py-oop-15'],
+  'cpy-7': ['py-adv-01', 'py-adv-02', 'py-adv-03', 'py-adv-04', 'py-adv-05'],
+  'cpy-8': ['py-adv-06', 'py-adv-07', 'py-adv-08', 'py-adv-09', 'py-adv-10'],
+  'cpy-9': ['py-adv-11', 'py-adv-12', 'py-adv-13', 'py-adv-14', 'py-adv-15', 'py-crypto-09', 'py-crypto-10', 'py-crypto-11', 'py-crypto-12', 'py-crypto-13', 'py-crypto-14', 'py-crypto-15', 'py-crypto-16', 'py-crypto-17'],
+
+  // ============ MISSING LABS: GROUP 2 — SOC/SIEM/DETECTION/IR (10 labs) ============
+  'soc-siem-1': ['soc-siem-log-normalization-basics', 'soc-siem-parsing-multiformat'],
+  'soc-siem-2': ['soc-siem-correlation-rule-eventchain', 'soc-siem-brute-force-detection'],
+  'soc-siem-3': ['soc-siem-vendor-comparison-alert-format', 'soc-siem-splunk-vs-sentinel'],
+  'soc-siem-4': ['soc-siem-data-volume-ingestion', 'soc-siem-log-source-onboarding'],
+  'soc-detection-2': ['soc-ueba-user-behavior-anomaly', 'soc-ueba-peer-group-analysis'],
+  'soc-detection-3': ['soc-threat-intel-ioc-matching', 'soc-ti-feed-correlation'],
+  'soc-detection-4': ['soc-sigma-rule-basics', 'soc-sigma-cross-platform'],
+  'soc-ir-1': ['soc-ir-timeline-reconstruction', 'soc-ir-initial-access-investigation'],
+  'soc-ir-2': ['soc-ir-soar-playbook-execution', 'soc-ir-soar-automation-workflow'],
+  'soc-ir-3': ['soc-ir-compliance-pci-reporting', 'soc-ir-evidence-handling-chain-of-custody'],
+
+  // ============ MISSING LABS: GROUP 3 — FORENSICS COMPLETION (4 labs) ============
+  'for-3': ['for-windows-event-logs-browser-history', 'for-eventlog-lateral-movement'],
+  'for-4': ['for-disk-forensics-filesystem-analysis', 'for-deleted-file-recovery-carving'],
+  'for-5': ['for-memory-volatility-process-analysis', 'for-memory-code-injection-detection'],
+  'for-6': ['for-case-closure-report-writing', 'for-legal-evidence-integrity-verification'],
+
+  // ============ MISSING LABS: GROUP 4 — MOBILE SECURITY (8 labs) ============
+  'mob-1': ['mob-apk-architecture-analysis', 'mob-attack-surface-components'],
+  'mob-2': ['mob-static-analysis-apk-decompile', 'mob-jadx-code-review'],
+  'mob-3': ['mob-dynamic-analysis-frida', 'mob-instrumentation-method-hooking'],
+  'mob-4': ['mob-insecure-data-storage-sqlite', 'mob-insecure-communication-mitm'],
+  'mob-5': ['mob-ios-keychain-security', 'mob-api-backend-oauth-flaws'],
+  'mob-6': ['mob-malware-analysis-banking-trojan', 'mob-malware-capabilities-exfiltration'],
+  'mob-7': ['mob-mdm-device-management-bypass', 'mob-mdm-enterprise-policy-enforcement'],
+  'mob-8': ['mob-pentest-methodology-reconnaissance', 'mob-pentest-reporting-capstone'],
+
+  // ============ MISSING LABS: GROUP 5 — WIRELESS SECURITY (8 labs) ============
+  'wl-1': ['wl-80211-fundamentals-attack-surface', 'wl-passive-scanning-networks'],
+  'wl-2': ['wl-wpa2-encryption-handshake-capture', 'wl-four-way-handshake-analysis'],
+  'wl-3': ['wl-handshake-cracking-hashcat', 'wl-wpa3-sae-security'],
+  'wl-4': ['wl-rogue-ap-evil-twin-ssid-clone', 'wl-deauth-attack-client-disconnect'],
+  'wl-5': ['wl-bluetooth-ble-security-pairing', 'wl-bluetooth-sniffer-gattacker'],
+  'wl-6': ['wl-enterprise-8021x-eap-security', 'wl-radius-server-compromise'],
+  'wl-7': ['wl-wireless-ids-airids-detection', 'wl-rogue-ap-detection-tools'],
+  'wl-8': ['wl-5g-cellular-security-fundamentals', 'wl-5g-network-slicing-attacks'],
+
+  // ============ MISSING LABS: GROUP 6 — IOT/EMBEDDED SECURITY (8 labs) ============
+  'iot-1': ['iot-embedded-architecture-attack-surface', 'iot-iot-protocols-mqtt-zigbee'],
+  'iot-2': ['iot-firmware-extraction-methods', 'iot-firmware-analysis-binwalk'],
+  'iot-3': ['iot-uart-serial-interface-access', 'iot-jtag-hardware-debugging'],
+  'iot-4': ['iot-embedded-web-interface-default-creds', 'iot-embedded-webserver-vulns'],
+  'iot-5': ['iot-botnet-analysis-mirai-dyn', 'iot-iot-ecosystem-propagation'],
+  'iot-6': ['iot-mqtt-protocol-analysis-injection', 'iot-zigbee-security-replay-attack'],
+  'iot-7': ['iot-scada-plc-exploitation-commands', 'iot-industrial-control-system-safety'],
+  'iot-8': ['iot-pentest-methodology-enumeration', 'iot-iot-compliance-security-testing'],
+
+  // ============ MISSING LABS: GROUP 7 — AI/LLM SECURITY (8 labs) ============
+  'ai-sec-1': ['ai-sec-owasp-top-10-for-llms', 'ai-sec-model-misuse-prevention'],
+  'ai-sec-2': ['ai-sec-prompt-injection-basics', 'ai-sec-prompt-jailbreak-techniques'],
+  'ai-sec-3': ['ai-sec-insecure-output-handling', 'ai-sec-rag-injection-attacks'],
+  'ai-sec-4': ['ai-sec-training-data-poisoning', 'ai-sec-model-theft-extraction'],
+  'ai-sec-5': ['ai-sec-model-inversion-pii-leakage', 'ai-sec-sensitive-data-disclosure'],
+  'ai-sec-6': ['ai-sec-adversarial-examples-evasion', 'ai-sec-backdoor-trojan-models'],
+  'ai-sec-7': ['ai-sec-ai-governance-red-teaming', 'ai-sec-model-auditing-bias'],
+  'ai-sec-8': ['ai-sec-agent-safety-constraints', 'ai-sec-multi-agent-security-coordination'],
+
+  // ============ MISSING LABS: GROUP 8 — CLOUD SECURITY COMPLETION (3 labs) ============
+  'cloud-4': ['cloud-multi-account-cross-account-iam', 'cloud-cross-account-role-assumption'],
+  'cloud-5': ['cloud-native-detection-container-logs', 'cloud-logging-compliance-audit'],
+  'cloud-6': ['cloud-posture-management-misconfig-audit', 'cloud-cspm-remediation-automation'],
+
+  // ============ MISSING LABS: GROUP 9 — NETWORK/RECON/CRYPTO/LINUX GAPS (8 labs) ============
+  'net-6': ['net-ipv6-transition-mechanisms', 'net-ipv6-address-scanning'],
+  'net-7': ['net-vlan-segmentation-security', 'net-firewall-rule-bypass'],
+  'net-8': ['net-routing-protocols-bgp-hijack', 'net-routing-attacks-prefix-injection'],
+  'rec-6': ['rec-web-reconnaissance-subdomain-enum', 'rec-domain-takeover-dangling-domains'],
+  'rec-7': ['rec-cloud-asset-discovery-s3-buckets', 'rec-cloud-attack-surface-mapping'],
+  'rec-8': ['rec-recon-automation-osint-workflow', 'rec-reporting-findings-documentation'],
+  'crypto-1': ['crypto-fundamentals-cipher-types', 'crypto-symmetric-vs-asymmetric-attacks'],
+  'crypto-4': ['crypto-hash-type-identification', 'crypto-hashcat-wordlist-strategy'],
+  'lin-6': ['lin-logging-auditd-syslog-analysis', 'lin-linux-event-log-correlation'],
+  'lin-7': ['lin-kernel-exploit-privilege-escalation', 'lin-kernel-vulnerability-assessment'],
+  'lin-8': ['lin-hardening-security-baselines', 'lin-defense-in-depth-layered-security'],
 };
 
 export function labsForLesson(lessonId: string): string[] {
