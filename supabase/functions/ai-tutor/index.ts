@@ -16,7 +16,7 @@ const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY');
 
 // Groq's fastest model — an 8B model on their LPU hardware, typically responding in well under a
 // second for an answer this size. Used for modes that only ever need the current page's own text.
-const GROQ_MODEL = 'llama-3.1-8b-instant';
+const GROQ_MODEL = 'openai/gpt-oss-20b';
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 // Gemini Flash with real Google Search grounding — used for modes where current, real-world
