@@ -166,6 +166,25 @@ function ProgressSync() {
   return null;
 }
 
+function LockPortraitOrientation() {
+  useEffect(() => {
+    try {
+      if (typeof window !== 'undefined' && 'screen' in window && 'orientation' in window.screen) {
+        const orientation = window.screen.orientation as ScreenOrientation & { lock?: (mode: string) => Promise<void> };
+        if (orientation && typeof orientation.lock === 'function') {
+          orientation.lock('portrait').catch(() => {
+            // Lock may be rejected if not in standalone / fullscreen mode — ignored safely
+          });
+        }
+      }
+    } catch {
+      // Ignored if unsupported
+    }
+  }, []);
+
+  return null;
+}
+
 function App() {
   const progress = useProgressState();
   const auth = useAuthState();
@@ -173,6 +192,7 @@ function App() {
   return (
     <ProgressContext.Provider value={progress}>
       <AuthContext.Provider value={auth}>
+        <LockPortraitOrientation />
         <SyncAuthToProgress />
         <ProgressSync />
         <InstallPrompt />

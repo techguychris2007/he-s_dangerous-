@@ -23,7 +23,7 @@ export default defineConfig({
         display: 'standalone',
         background_color: '#f4f6fb',
         theme_color: '#2563eb',
-        orientation: 'any',
+        orientation: 'portrait',
         icons: [
           { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
           { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },

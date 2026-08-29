@@ -29,7 +29,7 @@ export default function LessonPage() {
   return (
     <div className="h-full flex flex-col lg:flex-row">
       <div className="flex-1 min-w-0 h-full overflow-y-auto">
-        <div className="max-w-3xl mx-auto px-8 py-12">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-12">
           <div className="flex items-center justify-between gap-3 text-xs text-[var(--color-text-dim)] mb-2 font-mono">
             <span>{mod.title} &middot; {lesson.minutes} min read</span>
             <span className="shrink-0">Lesson {idx + 1} of {mod.lessons.length}</span>
