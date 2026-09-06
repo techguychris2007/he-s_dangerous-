@@ -69,7 +69,7 @@ export default function CodeTaskPage() {
 
   return (
     <div className="h-full flex flex-col lg:flex-row">
-      <div className="lg:w-96 shrink-0 border-b lg:border-b-0 lg:border-r border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-6 overflow-y-auto">
+      <div className="lg:w-96 shrink-0 border-b lg:border-b-0 lg:border-r border-[var(--color-border)] bg-[var(--color-surface)] px-4 sm:px-6 py-4 sm:py-6 overflow-y-auto">
         <Link
           to={backHref}
           className="text-xs font-semibold text-[var(--color-accent)] hover:underline mb-3 inline-block"
@@ -87,8 +87,8 @@ export default function CodeTaskPage() {
             </span>
           )}
         </div>
-        <h1 className="text-2xl font-bold text-[var(--color-heading)] mb-3">{task.title}</h1>
-        <p className="text-sm text-[var(--color-text-dim)] leading-relaxed mb-5 whitespace-pre-line">{task.prompt}</p>
+        <h1 className="text-xl sm:text-2xl font-bold text-[var(--color-heading)] mb-2 sm:mb-3">{task.title}</h1>
+        <p className="text-xs sm:text-sm text-[var(--color-text-dim)] leading-relaxed mb-4 sm:mb-5 whitespace-pre-line">{task.prompt}</p>
 
         <button
           onClick={() =>

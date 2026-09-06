@@ -51,9 +51,9 @@ export default function RoadmapPage() {
   const lessonsDone = stageInfo.reduce((sum, s) => sum + s.doneLessons, 0);
 
   return (
-    <div className="max-w-4xl mx-auto px-8 py-14">
-      <div className="gold-eyebrow mb-2">// curriculum</div>
-      <h1 className="text-3xl font-bold text-[var(--color-heading)] mb-3">Learning Path</h1>
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-14">
+      <div className="gold-eyebrow mb-1.5 sm:mb-2">// curriculum</div>
+      <h1 className="text-2xl sm:text-3xl font-bold text-[var(--color-heading)] mb-2 sm:mb-3">Learning Path</h1>
 
       <div className="flex flex-wrap gap-2 mb-4">
         {TABS.map((tab) => (

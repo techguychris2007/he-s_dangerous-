@@ -39,22 +39,22 @@ export default function HomePage() {
   const nextLesson = allLessonsInOrder.find((l) => !progress.isLessonComplete(l.id)) ?? null;
 
   return (
-    <div className="max-w-5xl mx-auto px-8 py-12">
-      <div className="mb-8 reveal flex items-start justify-between flex-wrap gap-3" style={{ '--reveal-delay': '0s' } as React.CSSProperties}>
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-12">
+      <div className="mb-6 sm:mb-8 reveal flex items-start justify-between flex-wrap gap-3" style={{ '--reveal-delay': '0s' } as React.CSSProperties}>
         <div>
-          <div className="gold-eyebrow mb-2">Learner Portal</div>
-          <h1 className="text-3xl font-extrabold text-[var(--color-heading)] mb-2">
+          <div className="gold-eyebrow mb-1.5 sm:mb-2">Learner Portal</div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--color-heading)] mb-2">
             Welcome back{progress.learnerName ? `, ${progress.learnerName.split(' ')[0]}` : ''}
           </h1>
-          <p className="text-[var(--color-text-dim)] max-w-2xl leading-relaxed">
+          <p className="text-[var(--color-text-dim)] text-sm sm:text-base max-w-2xl leading-relaxed">
             A full offensive-security curriculum: networking, Linux, reconnaissance, Python tooling, web app
             hacking, red teaming/Active Directory, cloud security, SOC &amp; threat hunting, digital
             forensics, and bug bounty methodology — every lesson paired with a real interactive lab.
           </p>
         </div>
         {streak.current > 0 && (
-          <div className="flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 shrink-0">
-            <span className="text-lg leading-none">🔥</span>
+          <div className="flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-3.5 py-1.5 sm:px-4 sm:py-2 shrink-0">
+            <span className="text-base sm:text-lg leading-none">🔥</span>
             <span className="text-sm font-bold text-[var(--color-heading)]">{streak.current}</span>
             <span className="text-xs text-[var(--color-text-dim)]">day streak</span>
           </div>
@@ -65,12 +65,12 @@ export default function HomePage() {
       {(inProgressLab || nextLesson) && (
         <Link
           to={inProgressLab ? `/lab/${inProgressLab.slug}` : `/module/${nextLesson!.moduleSlug}/lesson/${nextLesson!.slug}`}
-          className="group block rounded-2xl border border-[var(--color-accent)]/30 bg-[var(--color-surface)] p-6 mb-6 reveal hover:border-[var(--color-accent)]/60 transition-all"
+          className="group block rounded-2xl border border-[var(--color-accent)]/30 bg-[var(--color-surface)] p-4 sm:p-6 mb-6 reveal hover:border-[var(--color-accent)]/60 transition-all"
           style={{ '--reveal-delay': '0.04s', boxShadow: 'var(--shadow-glow-accent)' } as React.CSSProperties}
         >
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="min-w-0">
-              <div className="text-xs font-mono font-bold uppercase tracking-widest text-[var(--color-accent-dim)] mb-2">
+              <div className="text-xs font-mono font-bold uppercase tracking-widest text-[var(--color-accent-dim)] mb-1.5 sm:mb-2">
                 {inProgressLab ? 'Continue where you left off' : 'Up next'}
               </div>
               <div className="text-xl font-bold text-[var(--color-heading)] mb-1 truncate">

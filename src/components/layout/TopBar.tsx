@@ -95,22 +95,22 @@ export default function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
   }, [notifOpen]);
 
   return (
-    <header className="h-14 shrink-0 border-b border-[var(--color-border)] bg-[var(--color-surface)] flex items-center gap-3 px-5 relative">
+    <header className="h-14 shrink-0 border-b border-[var(--color-border)] bg-[var(--color-surface)] flex items-center gap-2 sm:gap-3 px-3.5 sm:px-5 relative">
       <button
         onClick={onMenuClick}
-        className="lg:hidden w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)]"
+        className="lg:hidden w-9 h-9 rounded-lg flex items-center justify-center text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] shrink-0 touch-manipulation"
         aria-label="Toggle navigation"
       >
         <IconMenu className="w-5 h-5" />
       </button>
-      <h1 className="text-sm font-bold text-[var(--color-heading)] truncate">{title}</h1>
+      <h1 className="text-sm sm:text-base font-bold text-[var(--color-heading)] truncate min-w-0 flex-1">{title}</h1>
 
-      <div className="ml-auto flex items-center gap-1.5">
+      <div className="ml-auto flex items-center gap-1 sm:gap-1.5 shrink-0">
         <button
           onClick={toggle}
           title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
           aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-          className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-heading)] transition-colors"
+          className="w-9 h-9 rounded-lg flex items-center justify-center text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-heading)] transition-colors touch-manipulation"
         >
           {theme === 'dark' ? <IconSun className="w-4 h-4" /> : <IconMoon className="w-4 h-4" />}
         </button>
@@ -123,17 +123,17 @@ export default function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
             aria-label="Notifications"
             aria-haspopup="true"
             aria-expanded={notifOpen}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-heading)] transition-colors relative"
+            className="w-9 h-9 rounded-lg flex items-center justify-center text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-heading)] transition-colors relative touch-manipulation"
           >
             <IconBell className="w-4 h-4" />
             {activity.length > 0 && (
-              <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-[var(--color-accent)]" />
+              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[var(--color-accent)]" />
             )}
           </button>
           {notifOpen && (
             <>
               <div className="fixed inset-0 z-30" onClick={() => setNotifOpen(false)} />
-              <div role="menu" aria-label="Recent activity" className="absolute right-0 top-10 w-72 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-lg z-40 overflow-hidden">
+              <div role="menu" aria-label="Recent activity" className="absolute right-0 top-11 w-72 max-w-[calc(100vw-1.5rem)] rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-lg z-40 overflow-hidden">
                 <div className="px-3.5 py-2.5 border-b border-[var(--color-border)] text-xs font-bold uppercase tracking-wide text-[var(--color-text-dim)]">
                   Recent activity
                 </div>

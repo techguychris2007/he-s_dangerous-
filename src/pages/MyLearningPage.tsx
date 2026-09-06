@@ -384,15 +384,15 @@ export default function MyLearningPage() {
       <FloatingGlyph icon="shield" className="left-6 top-8" />
       <FloatingGlyph icon="terminal" className="right-6 top-[26rem]" slow />
 
-      <div className="max-w-3xl mx-auto px-8 py-14 relative z-10">
-        <div className="gold-eyebrow mb-2">// my learning</div>
-        <h1 className="text-3xl font-bold text-[var(--color-heading)] mb-2">My Learning</h1>
-        <p className="text-[var(--color-text-dim)] mb-6 leading-relaxed max-w-2xl">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-14 relative z-10">
+        <div className="gold-eyebrow mb-1.5 sm:mb-2">// my learning</div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-[var(--color-heading)] mb-2">My Learning</h1>
+        <p className="text-sm sm:text-base text-[var(--color-text-dim)] mb-6 leading-relaxed max-w-2xl">
           Your Offensive Security path, a few stops at a time — plus the labs you've recently finished and saved for
           later.
         </p>
 
-        <div className="flex items-center gap-6 border-b border-[var(--color-border)] mb-8">
+        <div className="flex items-center gap-4 sm:gap-6 border-b border-[var(--color-border)] mb-6 sm:mb-8 overflow-x-auto">
           {TABS.map((t) => {
             const Icon = t.icon;
             return (

@@ -106,6 +106,11 @@ import { mobileCapstoneLabs } from '../labs/scenarios/capstone-mobile-pack';
 import { wirelessCapstoneLabs } from '../labs/scenarios/capstone-wireless-pack';
 import { iotCapstoneLabs } from '../labs/scenarios/capstone-iot-pack';
 import { aiSecurityCapstoneLabs } from '../labs/scenarios/capstone-aisecurity-pack';
+import { batch22SocSiemDetectionIrLabs } from '../labs/scenarios/batch22-soc-siem-detection-ir';
+import { batch22ForensicsCompletionLabs } from '../labs/scenarios/batch22-forensics-completion';
+import { batch22MobileWirelessIotLabs } from '../labs/scenarios/batch22-mobile-wireless-iot-part1';
+import { batch22AiCloudNetworkLabs } from '../labs/scenarios/batch22-ai-cloud-network-final';
+import { pySocExtensionLabs } from '../labs/scenarios/py-soc-extension-pack';
 import type { LabScenario } from '../labs/types';
 
 export interface LabEntry {
@@ -221,6 +226,11 @@ export const LABS: LabEntry[] = [
   ...toEntries(wirelessCapstoneLabs),
   ...toEntries(iotCapstoneLabs),
   ...toEntries(aiSecurityCapstoneLabs),
+  ...toEntries(batch22SocSiemDetectionIrLabs),
+  ...toEntries(batch22ForensicsCompletionLabs),
+  ...toEntries(batch22MobileWirelessIotLabs),
+  ...toEntries(batch22AiCloudNetworkLabs),
+  ...toEntries(pySocExtensionLabs),
   ...toEntries([wirelessPasswordReuseLab, msfVsftpdChainLab]),
 ];
 

@@ -37,7 +37,7 @@ export default function LabPage() {
 
   return (
     <div className="h-full flex flex-col lg:flex-row">
-      <div className="lg:w-96 shrink-0 border-b lg:border-b-0 lg:border-r border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-6 overflow-y-auto">
+      <div className="lg:w-96 shrink-0 border-b lg:border-b-0 lg:border-r border-[var(--color-border)] bg-[var(--color-surface)] px-4 sm:px-6 py-4 sm:py-6 overflow-y-auto">
         <div className="flex items-center gap-2 mb-2">
           <DifficultyPill difficulty={scenario.difficulty} />
           <span className="flex items-center gap-1 text-xs text-[var(--color-text-dim)]">
@@ -51,8 +51,8 @@ export default function LabPage() {
             style={{ width: `${Math.round((100 * captured) / scenario.totalFlags)}%` }}
           />
         </div>
-        <h1 className="text-2xl font-extrabold tracking-tight leading-tight text-[var(--color-heading)] mb-3">{scenario.title}</h1>
-        <p className="text-sm text-[var(--color-text-dim)] leading-relaxed mb-5">{scenario.briefing}</p>
+        <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight leading-tight text-[var(--color-heading)] mb-2 sm:mb-3">{scenario.title}</h1>
+        <p className="text-xs sm:text-sm text-[var(--color-text-dim)] leading-relaxed mb-4 sm:mb-5">{scenario.briefing}</p>
 
         {/* The single most important thing to see the moment the last flag lands — placed before the
             checklist instead of appended after it, so it's never buried below a long objectives list. */}
@@ -91,7 +91,7 @@ export default function LabPage() {
         <LabComments labId={scenario.id} />
       </div>
 
-      <div className="flex-1 min-h-[420px] p-4">
+      <div className="flex-1 min-h-[320px] sm:min-h-[420px] p-2 sm:p-4">
         <Terminal
           scenario={scenario}
           onFlagCaptured={(flag) => progress.captureFlag(scenario.id, flag)}
