@@ -18,7 +18,7 @@ export default function ModulePage() {
   const weeks = Math.max(1, Math.ceil(mod.lessons.length / 3));
 
   return (
-    <div className="max-w-3xl mx-auto px-8 py-10">
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
       <Link
         to="/roadmap"
         className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--color-text-dim)] hover:text-[var(--color-accent)] mb-4"
@@ -27,19 +27,19 @@ export default function ModulePage() {
       </Link>
 
       <div className="relative rounded-2xl overflow-hidden mb-6">
-        <ModuleBanner icon={mod.icon} moduleId={mod.id} className="h-36 sm:h-44 w-full" />
+        <ModuleBanner icon={mod.icon} moduleId={mod.id} className="h-32 sm:h-44 w-full" />
       </div>
 
       <div className="flex items-center gap-3 mb-3">
-        <span className="w-11 h-11 rounded-lg bg-[var(--color-surface-2)] flex items-center justify-center text-[var(--color-accent)] shrink-0">
+        <span className="w-10 h-10 sm:w-11 sm:h-11 rounded-lg bg-[var(--color-surface-2)] flex items-center justify-center text-[var(--color-accent)] shrink-0">
           <ModuleIcon icon={mod.icon} className="w-5 h-5" />
         </span>
         <div>
-          <h1 className="text-3xl font-extrabold text-[var(--color-heading)]">{mod.title}</h1>
-          <p className="text-sm text-[var(--color-text-dim)]">{mod.subtitle}</p>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--color-heading)]">{mod.title}</h1>
+          <p className="text-xs sm:text-sm text-[var(--color-text-dim)]">{mod.subtitle}</p>
         </div>
       </div>
-      <p className="text-[var(--color-text-dim)] leading-relaxed mb-6">{mod.description}</p>
+      <p className="text-sm sm:text-base text-[var(--color-text-dim)] leading-relaxed mb-6">{mod.description}</p>
 
       <div className="grid grid-cols-3 gap-3 mb-6">
         <StatCard icon={<IconCheck className="w-5 h-5" />} color="var(--color-success)" label="Lessons done" value={`${doneCount}/${mod.lessons.length}`} />

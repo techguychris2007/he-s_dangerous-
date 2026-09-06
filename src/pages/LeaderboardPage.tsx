@@ -73,12 +73,12 @@ export default function LeaderboardPage() {
   const yourRank = ranked.findIndex((e) => e.userId === auth.user?.id);
 
   return (
-    <div className="max-w-3xl mx-auto px-8 py-14">
-      <div className="gold-eyebrow mb-2">// where you stand</div>
-      <h1 className="text-3xl font-bold text-[var(--color-heading)] mb-3 flex items-center gap-3">
-        <IconTrophy className="w-7 h-7 text-[var(--color-accent)]" /> Leaderboard
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-14">
+      <div className="gold-eyebrow mb-1.5 sm:mb-2">// where you stand</div>
+      <h1 className="text-2xl sm:text-3xl font-bold text-[var(--color-heading)] mb-2 sm:mb-3 flex items-center gap-2.5 sm:gap-3">
+        <IconTrophy className="w-6 h-6 sm:w-7 sm:h-7 text-[var(--color-accent)] shrink-0" /> Leaderboard
       </h1>
-      <p className="text-sm text-[var(--color-text-dim)] leading-relaxed mb-6 max-w-xl">
+      <p className="text-xs sm:text-sm text-[var(--color-text-dim)] leading-relaxed mb-6 max-w-xl">
         Ranked by lab points — every captured flag counts, weighted by difficulty. Entirely opt-in: your
         name and score only ever appear here if you turn it on below.
       </p>

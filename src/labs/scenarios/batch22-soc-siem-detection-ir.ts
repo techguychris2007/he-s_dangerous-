@@ -875,7 +875,7 @@ export const batch22SocSiemDetectionIrLabs: LabScenario[] = [
   // soc-ir-3: Compliance Reporting
   {
     id: 'soc-ir-compliance-pci-reporting',
-    title: 'SOC: Incident Response Compliance Reporting (PCI-DSS, HIPAA, SOC 2)',n' +
+    title: 'SOC: Incident Response Compliance Reporting (PCI-DSS, HIPAA, SOC 2)',
     difficulty: 'Hard',
     category: 'SOC',
     briefing:

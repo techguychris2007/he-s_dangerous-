@@ -1,5 +1,5 @@
 import { dir, file } from '../vfs';
-import type { LabScenario, HostDef } from '../types';
+import type { LabScenario } from '../types';
 
 function analyst(files: Record<string, ReturnType<typeof file> | ReturnType<typeof dir>>) {
   return { hostname: 'security-analyst', user: 'root', root: dir(files) };

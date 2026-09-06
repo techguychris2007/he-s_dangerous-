@@ -177,7 +177,7 @@ export const batch22ForensicsCompletionLabs: LabScenario[] = [
         '  ✓ Synchronized timeline (all within 03:14-03:18 window)\n' +
         '  ✓ Deliberate sequence (not accidental; step-by-step exfil)\n' +
         '  ✓ Use of obfuscation (password-protected archives, anonymous email)\n' +
-        '  ✓ Premeditation (GitHub tokens checked, multiple exfil channels attempted)\n'\n' +
+        '  ✓ Premeditation (GitHub tokens checked, multiple exfil channels attempted)\n' +
         '\n' +
         'Verdict: INTENTIONAL DATA THEFT (NOT accidental access)\n' +
         'Recommendation: Immediate legal action; employee termination; credential rotation\n' +

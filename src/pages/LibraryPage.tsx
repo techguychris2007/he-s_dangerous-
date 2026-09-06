@@ -82,19 +82,19 @@ export default function LibraryPage() {
             backgroundSize: '32px 32px',
           }}
         />
-        <div className="relative max-w-5xl mx-auto px-6 sm:px-8 py-10">
-          <div className="flex items-center justify-between mb-8">
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+          <div className="flex items-center justify-between mb-6 sm:mb-8 flex-wrap gap-2">
             <Link to="/code-portal" className="flex items-center gap-2 text-sm font-semibold text-white/70 hover:text-white transition-colors">
               <Logo className="w-6 h-6" />
               &larr; Back to Code Portal
             </Link>
             <span className="pill bg-white/10 text-white/80 border border-white/20">Standalone Portal</span>
           </div>
-          <div className="text-[var(--color-accent-dim)] font-mono text-xs tracking-[0.2em] uppercase mb-3">
+          <div className="text-[var(--color-accent-dim)] font-mono text-xs tracking-[0.2em] uppercase mb-2 sm:mb-3">
             Free, Legally Open Books
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-3">Library</h1>
-          <p className="text-white/70 max-w-2xl leading-relaxed">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white mb-2 sm:mb-3">Library</h1>
+          <p className="text-white/70 text-sm sm:text-base max-w-2xl leading-relaxed">
             {BOOKS.length} books, curated the same way: every one is either a U.S. government work (public
             domain) or released under a license that explicitly permits free copying — see the license
             badge on each. Almost all are cached here as their exact original PDFs, readable right in this
@@ -104,7 +104,7 @@ export default function LibraryPage() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-6 sm:px-8 py-10">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
         <div className="flex flex-wrap gap-2 mb-2">
           {TABS.map((tab) => (
             <button
