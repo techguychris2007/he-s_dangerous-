@@ -169,16 +169,19 @@ function ProgressSync() {
 function LockPortraitOrientation() {
   useEffect(() => {
     try {
-      if (typeof window !== 'undefined' && 'screen' in window && 'orientation' in window.screen) {
+      if (
+        typeof window !== 'undefined' &&
+        window.matchMedia('(display-mode: standalone)').matches &&
+        'screen' in window &&
+        'orientation' in window.screen
+      ) {
         const orientation = window.screen.orientation as ScreenOrientation & { lock?: (mode: string) => Promise<void> };
         if (orientation && typeof orientation.lock === 'function') {
-          orientation.lock('portrait').catch(() => {
-            // Lock may be rejected if not in standalone / fullscreen mode — ignored safely
-          });
+          orientation.lock('portrait').catch(() => {});
         }
       }
     } catch {
-      // Ignored if unsupported
+      // Handled safely
     }
   }, []);
 
