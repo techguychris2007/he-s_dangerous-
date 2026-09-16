@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { NavLink, useParams, useNavigate } from 'react-router-dom';
 import { MODULES, findModule } from '../../data/curriculum';
 import { LABS } from '../../data/labs';
@@ -53,7 +54,11 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
   const currentModule = findModule(moduleSlug);
   const navigate = useNavigate();
   const initial = (progress.learnerName ?? '?').trim().charAt(0).toUpperCase();
-  const tasksRemaining = LABS.filter((l) => progress.flagCount(l.scenario.id) < l.scenario.totalFlags).length;
+  const tasksRemaining = useMemo(
+    () => LABS.filter((l) => progress.flagCount(l.scenario.id) < l.scenario.totalFlags).length,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [progress.labFlags],
+  );
 
   return (
     <aside className="w-72 shrink-0 h-full overflow-y-auto border-r border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-5 flex flex-col">
@@ -153,28 +158,31 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
       <div className="border-t border-[var(--color-border)] pt-4 flex-1">
         {currentModule ? (
           <>
-            <div className="px-2 mb-3">
-              <div className="text-2xs font-mono font-bold uppercase tracking-widest text-[var(--color-text-dim)] mb-0.5">
-                {currentModule.title}
-              </div>
-              <div className="text-2xs font-mono font-bold uppercase tracking-widest text-[var(--color-accent)]">
-                {Math.max(1, Math.ceil(currentModule.lessons.length / 3))} week{Math.max(1, Math.ceil(currentModule.lessons.length / 3)) > 1 ? 's' : ''}
-              </div>
-              <div className="flex items-center justify-between text-2xs text-[var(--color-text-dim)] mt-2 mb-1">
-                <span>Your progress</span>
-                <span className="font-mono font-bold text-[var(--color-heading)]">
-                  {Math.round((currentModule.lessons.filter((l) => progress.isLessonComplete(l.id)).length / currentModule.lessons.length) * 100)}%
-                </span>
-              </div>
-              <div className="h-1.5 rounded-full bg-[var(--color-surface-2)] overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-[var(--color-accent)] transition-all"
-                  style={{
-                    width: `${Math.round((currentModule.lessons.filter((l) => progress.isLessonComplete(l.id)).length / currentModule.lessons.length) * 100)}%`,
-                  }}
-                />
-              </div>
-            </div>
+            {(() => {
+              const completedCount = currentModule.lessons.filter((l) => progress.isLessonComplete(l.id)).length;
+              const moduleWeeks = Math.max(1, Math.ceil(currentModule.lessons.length / 3));
+              const modulePct = Math.round((completedCount / currentModule.lessons.length) * 100);
+              return (
+                <div className="px-2 mb-3">
+                  <div className="text-2xs font-mono font-bold uppercase tracking-widest text-[var(--color-text-dim)] mb-0.5">
+                    {currentModule.title}
+                  </div>
+                  <div className="text-2xs font-mono font-bold uppercase tracking-widest text-[var(--color-accent)]">
+                    {moduleWeeks} week{moduleWeeks > 1 ? 's' : ''}
+                  </div>
+                  <div className="flex items-center justify-between text-2xs text-[var(--color-text-dim)] mt-2 mb-1">
+                    <span>Your progress</span>
+                    <span className="font-mono font-bold text-[var(--color-heading)]">{modulePct}%</span>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-[var(--color-surface-2)] overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-[var(--color-accent)] transition-all"
+                      style={{ width: `${modulePct}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })()}
             <div className="flex flex-col gap-0.5">
               {currentModule.lessons.map((lesson, i) => {
                 const complete = progress.isLessonComplete(lesson.id);

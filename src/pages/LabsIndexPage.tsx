@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { LABS, LAB_CATEGORIES, LABS_IN_ROADMAP_ORDER } from '../data/labs';
 import { OSINT_LABS } from '../labs/osintScenarios';
@@ -15,39 +15,87 @@ const DIFFICULTY_ACTIVE_CLASS: Record<string, string> = {
   Hard: 'bg-[var(--color-danger)] border-[var(--color-danger)] text-white',
 };
 
+const PAGE_SIZE = 30;
+
+/** Pre-computed category counts — calculated once at module load, not on every render. */
+const CATEGORY_COUNTS = Object.fromEntries(
+  LAB_CATEGORIES.map((cat) => [cat, LABS.filter((l) => l.scenario.category === cat).length]),
+);
+
 export default function LabsIndexPage() {
   const progress = useProgress();
   const [searchParams] = useSearchParams();
-  // Deep-linkable via ?category=<name> (e.g. from the Dashboard's skills breakdown) — falls back to
-  // "All" for a bad/missing param instead of silently showing an empty catalog.
   const categoryParam = searchParams.get('category');
-  const initialCategory = categoryParam && (LAB_CATEGORIES as readonly string[]).includes(categoryParam) ? categoryParam : 'All';
+  const initialCategory =
+    categoryParam && (LAB_CATEGORIES as readonly string[]).includes(categoryParam) ? categoryParam : 'All';
   const [filter, setFilter] = useState<string>(initialCategory);
   const [difficultyFilter, setDifficultyFilter] = useState<string>('All');
   const [search, setSearch] = useState('');
-  // One batch call for the whole catalog rather than one per card — null (migration not run yet,
-  // offline) just means every card renders with no rating badge, never an error.
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [ratingSummaries, setRatingSummaries] = useState<Record<string, LabRatingSummary> | null>(null);
+
   useEffect(() => {
     fetchLabRatingSummaries().then(setRatingSummaries);
   }, []);
 
-  const totalDone = LABS.filter((l) => progress.flagCount(l.scenario.id) >= l.scenario.totalFlags).length;
-  const osintDone = OSINT_LABS.filter((l) => progress.flagCount(l.id) >= l.totalFlags).length;
-  const overallPct = Math.round((100 * totalDone) / LABS.length);
+  // Debounce search input — avoid re-filtering on every keystroke
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setSearch(val);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => setDebouncedSearch(val), 200);
+  }, []);
 
-  const search_ = search.trim().toLowerCase();
+  const clearSearch = useCallback(() => {
+    setSearch('');
+    setDebouncedSearch('');
+  }, []);
+
+  // Reset visible count when filter changes
+  const handleSetFilter = useCallback((cat: string) => {
+    setFilter(cat);
+    setVisibleCount(PAGE_SIZE);
+  }, []);
+
+  const handleSetDifficulty = useCallback((d: string) => {
+    setDifficultyFilter(d);
+    setVisibleCount(PAGE_SIZE);
+  }, []);
+
+  // Reset page when debounced search changes
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [debouncedSearch]);
+
+  const search_ = debouncedSearch.trim().toLowerCase();
   const filtered = useMemo(
     () =>
       LABS_IN_ROADMAP_ORDER.filter(
         (l) =>
           (filter === 'All' || l.scenario.category === filter) &&
           (difficultyFilter === 'All' || l.scenario.difficulty === difficultyFilter) &&
-          (!search_ || l.scenario.title.toLowerCase().includes(search_) || l.scenario.category.toLowerCase().includes(search_)),
+          (!search_ ||
+            l.scenario.title.toLowerCase().includes(search_) ||
+            l.scenario.category.toLowerCase().includes(search_)),
       ),
     [filter, difficultyFilter, search_],
   );
+
+  /** Only render what's visible — the key to fast initial paint. */
+  const visible = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount]);
+  const hasMore = visibleCount < filtered.length;
   const isFiltering = filter !== 'All' || difficultyFilter !== 'All' || !!search_;
+
+  // Stats — memoized so they don't recalculate on every render
+  const { totalDone, osintDone, overallPct } = useMemo(() => {
+    const totalDone = LABS.filter((l) => progress.flagCount(l.scenario.id) >= l.scenario.totalFlags).length;
+    const osintDone = OSINT_LABS.filter((l) => progress.flagCount(l.id) >= l.totalFlags).length;
+    const overallPct = Math.round((100 * totalDone) / LABS.length);
+    return { totalDone, osintDone, overallPct };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [progress.labFlags]);
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-14">
@@ -74,14 +122,14 @@ export default function LabsIndexPage() {
         <input
           type="text"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={handleSearchChange}
           placeholder="Search labs by name or category&hellip;"
           aria-label="Search labs"
           className="w-full pl-9 pr-9 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-sm text-[var(--color-heading)] placeholder:text-[var(--color-text-dim)] outline-none focus:border-[var(--color-accent)]/60 transition-colors"
         />
         {search && (
           <button
-            onClick={() => setSearch('')}
+            onClick={clearSearch}
             aria-label="Clear search"
             className="absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center text-[var(--color-text-dim)] hover:text-[var(--color-heading)] hover:bg-[var(--color-surface-2)]"
           >
@@ -94,7 +142,7 @@ export default function LabsIndexPage() {
         {['All', ...LAB_CATEGORIES].map((cat) => (
           <button
             key={cat}
-            onClick={() => setFilter(cat)}
+            onClick={() => handleSetFilter(cat)}
             aria-pressed={filter === cat}
             className={`px-3.5 py-1.5 rounded-full text-sm font-medium border transition-colors ${
               filter === cat
@@ -104,7 +152,7 @@ export default function LabsIndexPage() {
           >
             {cat}
             {cat !== 'All' && (
-              <span className="ml-1.5 opacity-70">{LABS.filter((l) => l.scenario.category === cat).length}</span>
+              <span className="ml-1.5 opacity-70">{CATEGORY_COUNTS[cat] ?? 0}</span>
             )}
           </button>
         ))}
@@ -115,7 +163,7 @@ export default function LabsIndexPage() {
         {['All', ...DIFFICULTIES].map((d) => (
           <button
             key={d}
-            onClick={() => setDifficultyFilter(d)}
+            onClick={() => handleSetDifficulty(d)}
             aria-pressed={difficultyFilter === d}
             className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
               difficultyFilter === d
@@ -140,9 +188,9 @@ export default function LabsIndexPage() {
           {isFiltering && (
             <button
               onClick={() => {
-                setFilter('All');
-                setDifficultyFilter('All');
-                setSearch('');
+                handleSetFilter('All');
+                handleSetDifficulty('All');
+                clearSearch();
               }}
               className="text-sm font-semibold text-[var(--color-accent)] hover:underline"
             >
@@ -151,11 +199,30 @@ export default function LabsIndexPage() {
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filtered.map((lab) => (
-            <LabCard key={lab.slug} lab={lab} variant="catalog" ratingSummary={ratingSummaries?.[lab.scenario.id]} />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {visible.map((lab) => (
+              <LabCard key={lab.slug} lab={lab} variant="catalog" ratingSummary={ratingSummaries?.[lab.scenario.id]} />
+            ))}
+          </div>
+
+          {hasMore && (
+            <div className="mt-8 text-center">
+              <button
+                onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}
+                className="px-6 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-sm font-semibold text-[var(--color-text-dim)] hover:text-[var(--color-heading)] hover:border-[var(--color-accent)]/50 transition-colors"
+              >
+                Load {Math.min(PAGE_SIZE, filtered.length - visibleCount)} more
+                <span className="ml-2 opacity-60 text-xs">({filtered.length - visibleCount} remaining)</span>
+              </button>
+            </div>
+          )}
+
+          <div className="mt-4 text-center text-xs text-[var(--color-text-dim)]">
+            Showing {Math.min(visibleCount, filtered.length)} of {filtered.length} labs
+            {isFiltering && ` matching your filters`}
+          </div>
+        </>
       )}
 
       {!isFiltering && (

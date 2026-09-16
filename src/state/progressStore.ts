@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useMemo, useSyncExternalStore } from 'react';
 
 export interface ProgressState {
   completedLessons: Record<string, boolean>;
@@ -33,11 +33,6 @@ export interface ProgressState {
   lastUserId: string | null;
 }
 
-/** The subset that's actually synced to Supabase — everything that constitutes real learning
- *  progress. `learnerName` stays device-local since it's redundant with the account's own name/email
- *  (SyncAuthToProgress derives it fresh from the Supabase account on every sign-in instead, which is
- *  already correctly per-account). `lastUserId` is local bookkeeping only — it exists purely to
- *  detect "a different account just signed in on this shared browser" and must never sync itself. */
 export type SyncableProgress = Omit<ProgressState, 'learnerName' | 'lastUserId'>;
 
 const STORAGE_KEY = 'hackerhub.progress.v1';
@@ -57,15 +52,11 @@ const EMPTY_STATE: ProgressState = {
   lastUserId: null,
 };
 
-/** "YYYY-MM-DD" in the learner's own local timezone — deliberately not UTC, since a streak should
- *  track the day the learner actually experienced, not a timezone-shifted one. */
 function todayLocalDate(): string {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-/** Appends today's date to activityDates if it isn't already the most recent entry — cheap
- *  no-op check first since this runs on every single progress-recording action. */
 function withActivityToday(s: ProgressState): Pick<ProgressState, 'activityDates'> {
   const today = todayLocalDate();
   if (s.activityDates[s.activityDates.length - 1] === today) return { activityDates: s.activityDates };
@@ -82,75 +73,61 @@ function loadState(): ProgressState {
   }
 }
 
-interface ProgressApi extends ProgressState {
-  completeLesson: (lessonId: string) => void;
-  isLessonComplete: (lessonId: string) => boolean;
-  captureFlag: (labId: string, flag: string) => void;
-  hasFlag: (labId: string, flag: string) => boolean;
-  flagCount: (labId: string) => number;
-  recordQuizScore: (lessonId: string, score: number) => void;
-  resetModuleProgress: (lessonIds: string[]) => void;
-  /** Call once whenever a Supabase session becomes available, with a fallback display name derived
-   *  from the account (real name or email prefix). If this is a different account than whichever
-   *  one's data is currently sitting in this browser's device-local fields, those are reset first —
-   *  see the `lastUserId` field doc for why. Safe to call on every render; no-ops once the account
-   *  matches and a name is already set. */
-  syncIdentity: (userId: string, fallbackName: string) => void;
-  toggleBookmark: (labId: string) => void;
-  isBookmarked: (labId: string) => boolean;
-  markLabCompleted: (labId: string) => void;
-  completeCodeTask: (taskId: string) => void;
-  isCodeTaskComplete: (taskId: string) => boolean;
-  recordCodeTaskAttempt: (taskId: string) => void;
-  recordCodeTaskHintUsed: (taskId: string, hintIndex: number) => void;
-  recordCodeTaskSolutionRevealed: (taskId: string) => void;
-  setLeaderboardOptIn: (optIn: boolean) => void;
-  /** Folds a remote snapshot into local state without ever losing progress on either side:
-   *  flags/completions/bookmarks/activity-days union, quiz scores and attempt/hint counters take
-   *  the higher value, completion timestamps take the earlier one. Safe to call with a
-   *  partial/empty remote snapshot. */
-  mergeFromRemote: (remote: Partial<SyncableProgress>) => void;
+// ─── External Store for Fine-Grained Reactive Subscriptions ──────────────────
+let currentState: ProgressState = loadState();
+const listeners = new Set<() => void>();
+
+function emitChange() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(currentState));
+  } catch {
+    // Ignore storage quota issues
+  }
+  for (const listener of listeners) {
+    listener();
+  }
 }
 
-export const ProgressContext = createContext<ProgressApi | null>(null);
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
 
-export function useProgressState(): ProgressApi {
-  const [state, setState] = useState<ProgressState>(loadState);
+function getSnapshot(): ProgressState {
+  return currentState;
+}
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }, [state]);
+function updateState(updater: (prev: ProgressState) => ProgressState) {
+  const next = updater(currentState);
+  if (next !== currentState) {
+    currentState = next;
+    emitChange();
+  }
+}
 
-  const completeLesson = useCallback((lessonId: string) => {
-    setState((s) => ({ ...s, ...withActivityToday(s), completedLessons: { ...s.completedLessons, [lessonId]: true } }));
-  }, []);
-
-  const isLessonComplete = useCallback(
-    (lessonId: string) => Boolean(state.completedLessons[lessonId]),
-    [state.completedLessons],
-  );
-
-  const captureFlag = useCallback((labId: string, flag: string) => {
-    setState((s) => {
+// ─── Action Functions (Stable References) ────────────────────────────────────
+export const progressActions = {
+  completeLesson: (lessonId: string) => {
+    updateState((s) => ({
+      ...s,
+      ...withActivityToday(s),
+      completedLessons: { ...s.completedLessons, [lessonId]: true },
+    }));
+  },
+  captureFlag: (labId: string, flag: string) => {
+    updateState((s) => {
       const existing = s.labFlags[labId] ?? [];
       if (existing.includes(flag)) return s;
       return { ...s, ...withActivityToday(s), labFlags: { ...s.labFlags, [labId]: [...existing, flag] } };
     });
-  }, []);
-
-  const hasFlag = useCallback(
-    (labId: string, flag: string) => (state.labFlags[labId] ?? []).includes(flag),
-    [state.labFlags],
-  );
-
-  const flagCount = useCallback((labId: string) => (state.labFlags[labId] ?? []).length, [state.labFlags]);
-
-  const recordQuizScore = useCallback((lessonId: string, score: number) => {
-    setState((s) => ({ ...s, ...withActivityToday(s), quizScores: { ...s.quizScores, [lessonId]: score } }));
-  }, []);
-
-  const resetModuleProgress = useCallback((lessonIds: string[]) => {
-    setState((s) => {
+  },
+  recordQuizScore: (lessonId: string, score: number) => {
+    updateState((s) => ({ ...s, ...withActivityToday(s), quizScores: { ...s.quizScores, [lessonId]: score } }));
+  },
+  resetModuleProgress: (lessonIds: string[]) => {
+    updateState((s) => {
       const completedLessons = { ...s.completedLessons };
       const quizScores = { ...s.quizScores };
       for (const id of lessonIds) {
@@ -159,21 +136,12 @@ export function useProgressState(): ProgressApi {
       }
       return { ...s, completedLessons, quizScores };
     });
-  }, []);
-
-  const syncIdentity = useCallback((userId: string, fallbackName: string) => {
-    setState((s) => {
+  },
+  syncIdentity: (userId: string, fallbackName: string) => {
+    updateState((s) => {
       if (s.lastUserId === userId) {
-        // Same account as last time on this device — leave streak/achievements/etc. alone, only
-        // backfill the name if it's somehow still empty.
         return s.learnerName ? s : { ...s, learnerName: fallbackName.trim() };
       }
-      // Either the first sign-in ever on this browser, or a genuinely different account than
-      // whichever one's data is currently sitting in this browser (a shared-computer scenario).
-      // These four are cleared as a safety net rather than left for mergeFromRemote to reconcile:
-      // mergeFromRemote unions activity days and takes the max of counters, so without this reset
-      // the previous account's streak/attempt history would permanently bleed into (and then
-      // re-sync onto) the new account's row instead of being replaced by it.
       return {
         ...s,
         lastUserId: userId,
@@ -184,52 +152,49 @@ export function useProgressState(): ProgressApi {
         codeTaskSolutionRevealed: {},
       };
     });
-  }, []);
-
-  const toggleBookmark = useCallback((labId: string) => {
-    setState((s) => ({ ...s, bookmarkedLabs: { ...s.bookmarkedLabs, [labId]: !s.bookmarkedLabs[labId] } }));
-  }, []);
-
-  const isBookmarked = useCallback((labId: string) => Boolean(state.bookmarkedLabs[labId]), [state.bookmarkedLabs]);
-
-  const markLabCompleted = useCallback((labId: string) => {
-    setState((s) => {
+  },
+  toggleBookmark: (labId: string) => {
+    updateState((s) => ({ ...s, bookmarkedLabs: { ...s.bookmarkedLabs, [labId]: !s.bookmarkedLabs[labId] } }));
+  },
+  markLabCompleted: (labId: string) => {
+    updateState((s) => {
       if (s.labCompletedAt[labId]) return s;
       return { ...s, ...withActivityToday(s), labCompletedAt: { ...s.labCompletedAt, [labId]: Date.now() } };
     });
-  }, []);
-
-  const completeCodeTask = useCallback((taskId: string) => {
-    setState((s) => (s.completedCodeTasks[taskId] ? s : { ...s, ...withActivityToday(s), completedCodeTasks: { ...s.completedCodeTasks, [taskId]: true } }));
-  }, []);
-
-  const isCodeTaskComplete = useCallback(
-    (taskId: string) => Boolean(state.completedCodeTasks[taskId]),
-    [state.completedCodeTasks],
-  );
-
-  const recordCodeTaskAttempt = useCallback((taskId: string) => {
-    setState((s) => ({ ...s, ...withActivityToday(s), codeTaskAttempts: { ...s.codeTaskAttempts, [taskId]: (s.codeTaskAttempts[taskId] ?? 0) + 1 } }));
-  }, []);
-
-  const recordCodeTaskHintUsed = useCallback((taskId: string, hintIndex: number) => {
-    setState((s) => {
+  },
+  completeCodeTask: (taskId: string) => {
+    updateState((s) =>
+      s.completedCodeTasks[taskId]
+        ? s
+        : { ...s, ...withActivityToday(s), completedCodeTasks: { ...s.completedCodeTasks, [taskId]: true } },
+    );
+  },
+  recordCodeTaskAttempt: (taskId: string) => {
+    updateState((s) => ({
+      ...s,
+      ...withActivityToday(s),
+      codeTaskAttempts: { ...s.codeTaskAttempts, [taskId]: (s.codeTaskAttempts[taskId] ?? 0) + 1 },
+    }));
+  },
+  recordCodeTaskHintUsed: (taskId: string, hintIndex: number) => {
+    updateState((s) => {
       const current = s.codeTaskHintsUsed[taskId] ?? 0;
       if (hintIndex <= current) return s;
       return { ...s, codeTaskHintsUsed: { ...s.codeTaskHintsUsed, [taskId]: hintIndex } };
     });
-  }, []);
-
-  const recordCodeTaskSolutionRevealed = useCallback((taskId: string) => {
-    setState((s) => (s.codeTaskSolutionRevealed[taskId] ? s : { ...s, codeTaskSolutionRevealed: { ...s.codeTaskSolutionRevealed, [taskId]: true } }));
-  }, []);
-
-  const setLeaderboardOptIn = useCallback((optIn: boolean) => {
-    setState((s) => (s.leaderboardOptIn === optIn ? s : { ...s, leaderboardOptIn: optIn }));
-  }, []);
-
-  const mergeFromRemote = useCallback((remote: Partial<SyncableProgress>) => {
-    setState((s) => {
+  },
+  recordCodeTaskSolutionRevealed: (taskId: string) => {
+    updateState((s) =>
+      s.codeTaskSolutionRevealed[taskId]
+        ? s
+        : { ...s, codeTaskSolutionRevealed: { ...s.codeTaskSolutionRevealed, [taskId]: true } },
+    );
+  },
+  setLeaderboardOptIn: (optIn: boolean) => {
+    updateState((s) => (s.leaderboardOptIn === optIn ? s : { ...s, leaderboardOptIn: optIn }));
+  },
+  mergeFromRemote: (remote: Partial<SyncableProgress>) => {
+    updateState((s) => {
       const completedLessons = { ...s.completedLessons };
       for (const [k, v] of Object.entries(remote.completedLessons ?? {})) if (v) completedLessons[k] = true;
 
@@ -255,25 +220,20 @@ export function useProgressState(): ProgressApi {
       const completedCodeTasks = { ...s.completedCodeTasks };
       for (const [k, v] of Object.entries(remote.completedCodeTasks ?? {})) if (v) completedCodeTasks[k] = true;
 
-      // Union of both devices' activity days, deduped and sorted — computeStreak() only cares
-      // about the set of days, so this is the streak-preserving equivalent of the map unions above.
       const activityDates = [...new Set([...s.activityDates, ...(remote.activityDates ?? [])])].sort();
 
-      // Attempts/hints are monotonically-increasing counters pushed as a full current total (not a
-      // delta) — same reasoning as quizScores below: max is the idempotent merge, summing would
-      // double-count whatever this device already contributed to a previous push.
       const codeTaskAttempts = { ...s.codeTaskAttempts };
-      for (const [k, v] of Object.entries(remote.codeTaskAttempts ?? {})) codeTaskAttempts[k] = Math.max(codeTaskAttempts[k] ?? 0, v);
+      for (const [k, v] of Object.entries(remote.codeTaskAttempts ?? {}))
+        codeTaskAttempts[k] = Math.max(codeTaskAttempts[k] ?? 0, v);
 
       const codeTaskHintsUsed = { ...s.codeTaskHintsUsed };
-      for (const [k, v] of Object.entries(remote.codeTaskHintsUsed ?? {})) codeTaskHintsUsed[k] = Math.max(codeTaskHintsUsed[k] ?? 0, v);
+      for (const [k, v] of Object.entries(remote.codeTaskHintsUsed ?? {}))
+        codeTaskHintsUsed[k] = Math.max(codeTaskHintsUsed[k] ?? 0, v);
 
       const codeTaskSolutionRevealed = { ...s.codeTaskSolutionRevealed };
-      for (const [k, v] of Object.entries(remote.codeTaskSolutionRevealed ?? {})) if (v) codeTaskSolutionRevealed[k] = true;
+      for (const [k, v] of Object.entries(remote.codeTaskSolutionRevealed ?? {}))
+        if (v) codeTaskSolutionRevealed[k] = true;
 
-      // Not a "union" like the maps above — it's a single consent flag, so the remote (last
-      // synced) value wins if present at all; a local toggle after this pull re-pushes and stays
-      // authoritative from then on.
       const leaderboardOptIn = remote.leaderboardOptIn ?? s.leaderboardOptIn;
 
       return {
@@ -291,56 +251,113 @@ export function useProgressState(): ProgressApi {
         leaderboardOptIn,
       };
     });
-  }, []);
+  },
+};
+
+export interface ProgressApi extends ProgressState {
+  completeLesson: (lessonId: string) => void;
+  isLessonComplete: (lessonId: string) => boolean;
+  captureFlag: (labId: string, flag: string) => void;
+  hasFlag: (labId: string, flag: string) => boolean;
+  flagCount: (labId: string) => number;
+  recordQuizScore: (lessonId: string, score: number) => void;
+  resetModuleProgress: (lessonIds: string[]) => void;
+  syncIdentity: (userId: string, fallbackName: string) => void;
+  toggleBookmark: (labId: string) => void;
+  isBookmarked: (labId: string) => boolean;
+  markLabCompleted: (labId: string) => void;
+  completeCodeTask: (taskId: string) => void;
+  isCodeTaskComplete: (taskId: string) => boolean;
+  recordCodeTaskAttempt: (taskId: string) => void;
+  recordCodeTaskHintUsed: (taskId: string, hintIndex: number) => void;
+  recordCodeTaskSolutionRevealed: (taskId: string) => void;
+  setLeaderboardOptIn: (optIn: boolean) => void;
+  mergeFromRemote: (remote: Partial<SyncableProgress>) => void;
+}
+
+export const ProgressContext = createContext<ProgressApi | null>(null);
+
+/** Hook to initialize the app-level state provider */
+export function useProgressState(): ProgressApi {
+  const state = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+
+  const isLessonComplete = useCallback((lessonId: string) => Boolean(state.completedLessons[lessonId]), [state.completedLessons]);
+  const hasFlag = useCallback((labId: string, flag: string) => (state.labFlags[labId] ?? []).includes(flag), [state.labFlags]);
+  const flagCount = useCallback((labId: string) => (state.labFlags[labId] ?? []).length, [state.labFlags]);
+  const isBookmarked = useCallback((labId: string) => Boolean(state.bookmarkedLabs[labId]), [state.bookmarkedLabs]);
+  const isCodeTaskComplete = useCallback((taskId: string) => Boolean(state.completedCodeTasks[taskId]), [state.completedCodeTasks]);
 
   return useMemo(
     () => ({
       ...state,
-      completeLesson,
+      ...progressActions,
       isLessonComplete,
-      captureFlag,
       hasFlag,
       flagCount,
-      recordQuizScore,
-      resetModuleProgress,
-      syncIdentity,
-      toggleBookmark,
       isBookmarked,
-      markLabCompleted,
-      completeCodeTask,
       isCodeTaskComplete,
-      recordCodeTaskAttempt,
-      recordCodeTaskHintUsed,
-      recordCodeTaskSolutionRevealed,
-      setLeaderboardOptIn,
-      mergeFromRemote,
     }),
-    [
-      state,
-      completeLesson,
-      isLessonComplete,
-      captureFlag,
-      hasFlag,
-      flagCount,
-      recordQuizScore,
-      resetModuleProgress,
-      syncIdentity,
-      toggleBookmark,
-      isBookmarked,
-      markLabCompleted,
-      completeCodeTask,
-      isCodeTaskComplete,
-      recordCodeTaskAttempt,
-      recordCodeTaskHintUsed,
-      recordCodeTaskSolutionRevealed,
-      setLeaderboardOptIn,
-      mergeFromRemote,
-    ],
+    [state, isLessonComplete, hasFlag, flagCount, isBookmarked, isCodeTaskComplete],
   );
 }
 
+/** Legacy / Full Progress hook (for full dashboard/summary views) */
 export function useProgress(): ProgressApi {
   const ctx = useContext(ProgressContext);
-  if (!ctx) throw new Error('useProgress must be used within ProgressContext.Provider');
-  return ctx;
+  if (ctx) return ctx;
+  // Fallback direct store access if used outside context
+  return {
+    ...currentState,
+    ...progressActions,
+    isLessonComplete: (id) => Boolean(currentState.completedLessons[id]),
+    hasFlag: (labId, flag) => (currentState.labFlags[labId] ?? []).includes(flag),
+    flagCount: (labId) => (currentState.labFlags[labId] ?? []).length,
+    isBookmarked: (labId) => Boolean(currentState.bookmarkedLabs[labId]),
+    isCodeTaskComplete: (taskId) => Boolean(currentState.completedCodeTasks[taskId]),
+  };
+}
+
+/** Stable action functions that never cause re-renders when passed as callbacks */
+export function useProgressActions() {
+  return progressActions;
+}
+
+/** Fine-grained selector hook: only re-renders when the selected primitive or value changes */
+export function useProgressSelector<T>(selector: (state: ProgressState) => T): T {
+  const slice = useSyncExternalStore(
+    subscribe,
+    () => selector(getSnapshot()),
+    () => selector(getSnapshot()),
+  );
+  return slice;
+}
+
+/** Fine-grained hook for individual LabCard components — ONLY re-renders when this specific lab changes */
+export function useLabProgress(labId: string) {
+  const flags = useSyncExternalStore(
+    subscribe,
+    () => currentState.labFlags[labId] ?? [],
+    () => currentState.labFlags[labId] ?? [],
+  );
+
+  const isBookmarked = useSyncExternalStore(
+    subscribe,
+    () => Boolean(currentState.bookmarkedLabs[labId]),
+    () => Boolean(currentState.bookmarkedLabs[labId]),
+  );
+
+  return {
+    flagCount: flags.length,
+    flags,
+    isBookmarked,
+  };
+}
+
+/** Fine-grained hook for lesson items */
+export function useLessonProgress(lessonId: string) {
+  return useSyncExternalStore(
+    subscribe,
+    () => Boolean(currentState.completedLessons[lessonId]),
+    () => Boolean(currentState.completedLessons[lessonId]),
+  );
 }

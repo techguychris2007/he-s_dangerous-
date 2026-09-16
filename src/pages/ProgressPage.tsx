@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { MODULES, ROADMAP, findModule } from '../data/curriculum';
 import { LABS } from '../data/labs';
@@ -28,23 +29,45 @@ function toLocalDateStr(d: Date): string {
 export default function ProgressPage() {
   const progress = useProgress();
 
-  const allLessons = MODULES.flatMap((m) => m.lessons.map((l) => ({ ...l, moduleSlug: m.slug, moduleTitle: m.title })));
+  const allLessons = useMemo(
+    () => MODULES.flatMap((m) => m.lessons.map((l) => ({ ...l, moduleSlug: m.slug, moduleTitle: m.title }))),
+    [],
+  );
   const totalLessons = allLessons.length;
-  const completedLessons = allLessons.filter((l) => progress.isLessonComplete(l.id)).length;
+  const completedLessons = useMemo(
+    () => allLessons.filter((l) => progress.isLessonComplete(l.id)).length,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [allLessons, progress.completedLessons],
+  );
 
-  const totalFlags = LABS.reduce((n, l) => n + l.scenario.totalFlags, 0);
-  const capturedFlags = LABS.reduce((n, l) => n + progress.flagCount(l.scenario.id), 0);
-  const labsDone = LABS.filter((l) => progress.flagCount(l.scenario.id) >= l.scenario.totalFlags).length;
+  const { totalFlags, capturedFlags, labsDone } = useMemo(
+    () => ({
+      totalFlags: LABS.reduce((n, l) => n + l.scenario.totalFlags, 0),
+      capturedFlags: LABS.reduce((n, l) => n + progress.flagCount(l.scenario.id), 0),
+      labsDone: LABS.filter((l) => progress.flagCount(l.scenario.id) >= l.scenario.totalFlags).length,
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [progress.labFlags],
+  );
 
-  const codeTasksDone = ALL_CODE_TASKS.filter((t) => progress.isCodeTaskComplete(t.id)).length;
+  const codeTasksDone = useMemo(
+    () => ALL_CODE_TASKS.filter((t) => progress.isCodeTaskComplete(t.id)).length,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [progress.completedCodeTasks],
+  );
 
-  const quizzesTaken = Object.keys(progress.quizScores).length;
-  const avgQuizScore = quizzesTaken
-    ? Math.round(Object.values(progress.quizScores).reduce((a, b) => a + b, 0) / quizzesTaken)
-    : 0;
+  const { quizzesTaken, avgQuizScore } = useMemo(() => {
+    const taken = Object.keys(progress.quizScores).length;
+    const avg = taken ? Math.round(Object.values(progress.quizScores).reduce((a, b) => a + b, 0) / taken) : 0;
+    return { quizzesTaken: taken, avgQuizScore: avg };
+  }, [progress.quizScores]);
 
-  const streak = computeStreak(progress.activityDates);
-  const unlockedAchievements = ACHIEVEMENTS.filter((a) => a.isUnlocked(progress));
+  const streak = useMemo(() => computeStreak(progress.activityDates), [progress.activityDates]);
+  const unlockedAchievements = useMemo(
+    () => ACHIEVEMENTS.filter((a) => a.isUnlocked(progress)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [progress.labFlags, progress.completedLessons, progress.activityDates],
+  );
 
   // Overall completion folds in every real, trackable unit of work — not just lessons/labs like the
   // old ring did — so it actually reflects the Code Portal effort visible in the stats right next to it.
