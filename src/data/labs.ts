@@ -281,8 +281,16 @@ export const MODULE_TO_LAB_CATEGORY: Record<string, (typeof LAB_CATEGORIES)[numb
   'ai-security': 'AI Security',
 };
 
+export const LABS_MAP = new Map<string, LabEntry>(LABS.map((l) => [l.slug, l]));
+
+export const LABS_BY_CATEGORY = new Map<string, LabEntry[]>();
+for (const cat of LAB_CATEGORIES) {
+  LABS_BY_CATEGORY.set(cat, LABS.filter((l) => l.scenario.category === cat));
+}
+
 export function findLab(slug?: string): LabEntry | undefined {
-  return LABS.find((l) => l.slug === slug);
+  if (!slug) return undefined;
+  return LABS_MAP.get(slug);
 }
 
 const CATEGORY_ORDER: Record<string, number> = Object.fromEntries(LAB_CATEGORIES.map((c, i) => [c, i]));
@@ -301,5 +309,5 @@ export function sortLabsByRoadmap(labs: LabEntry[]): LabEntry[] {
 export const LABS_IN_ROADMAP_ORDER: LabEntry[] = sortLabsByRoadmap(LABS);
 
 export function labsForCategory(category: string): LabEntry[] {
-  return LABS.filter((l) => l.scenario.category === category);
+  return LABS_BY_CATEGORY.get(category) ?? [];
 }

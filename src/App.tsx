@@ -1,43 +1,56 @@
-import { useEffect, useRef } from 'react';
+import { lazy, Suspense, useEffect, useRef } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import AppLayout from './components/layout/AppLayout';
-import HomePage from './pages/HomePage';
-import ModulePage from './pages/ModulePage';
-import LessonPage from './pages/LessonPage';
-import LabPage from './pages/LabPage';
-import LabsIndexPage from './pages/LabsIndexPage';
-import RoadmapPage from './pages/RoadmapPage';
-import MyLearningPage from './pages/MyLearningPage';
-import ProgressPage from './pages/ProgressPage';
-import LoginPage from './pages/LoginPage';
-import ResetPasswordPage from './pages/ResetPasswordPage';
-import IntroPage from './pages/IntroPage';
-import MyTasksPage from './pages/MyTasksPage';
-import SchedulePage from './pages/SchedulePage';
-import LeaderboardPage from './pages/LeaderboardPage';
-import ResourcesPage from './pages/ResourcesPage';
-import AnnouncementsPage from './pages/AnnouncementsPage';
-import ProfilePage from './pages/ProfilePage';
-import SecurityPage from './pages/SecurityPage';
-import HelpFaqPage from './pages/HelpFaqPage';
-import FeedbackPage from './pages/FeedbackPage';
-import SocPortalPage from './pages/SocPortalPage';
-import SiemLabPage from './pages/SiemLabPage';
-import CodePortalPage from './pages/CodePortalPage';
-import CodeTaskPage from './pages/CodeTaskPage';
-import BuildPortalPage from './pages/BuildPortalPage';
-import ProjectTaskPage from './pages/ProjectTaskPage';
-import SeVerifyPage from './pages/SeVerifyPage';
-import MlPortalPage from './pages/MlPortalPage';
-import MlLessonPage from './pages/MlLessonPage';
-import LibraryPage from './pages/LibraryPage';
-import BookReaderPage from './pages/BookReaderPage';
-import InstructorDashboardPage from './pages/InstructorDashboardPage';
 import InstallPrompt from './components/layout/InstallPrompt';
 import { ProgressContext, useProgressState, useProgress } from './state/progressStore';
 import { AuthContext, useAuthState, useAuth } from './state/authStore';
 import { pullProgress, pushProgressWithRetry } from './lib/progressSync';
 import { isInstructor } from './lib/instructorConfig';
+
+// ─── Eagerly loaded: auth flow + shell pages needed on first render ──────────
+import LoginPage from './pages/LoginPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
+import IntroPage from './pages/IntroPage';
+
+// ─── Lazily loaded: every app page (only parsed/executed when navigated to) ──
+const HomePage = lazy(() => import('./pages/HomePage'));
+const ModulePage = lazy(() => import('./pages/ModulePage'));
+const LessonPage = lazy(() => import('./pages/LessonPage'));
+const LabPage = lazy(() => import('./pages/LabPage'));
+const LabsIndexPage = lazy(() => import('./pages/LabsIndexPage'));
+const RoadmapPage = lazy(() => import('./pages/RoadmapPage'));
+const MyLearningPage = lazy(() => import('./pages/MyLearningPage'));
+const ProgressPage = lazy(() => import('./pages/ProgressPage'));
+const MyTasksPage = lazy(() => import('./pages/MyTasksPage'));
+const SchedulePage = lazy(() => import('./pages/SchedulePage'));
+const LeaderboardPage = lazy(() => import('./pages/LeaderboardPage'));
+const ResourcesPage = lazy(() => import('./pages/ResourcesPage'));
+const AnnouncementsPage = lazy(() => import('./pages/AnnouncementsPage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const SecurityPage = lazy(() => import('./pages/SecurityPage'));
+const HelpFaqPage = lazy(() => import('./pages/HelpFaqPage'));
+const FeedbackPage = lazy(() => import('./pages/FeedbackPage'));
+const SocPortalPage = lazy(() => import('./pages/SocPortalPage'));
+const SiemLabPage = lazy(() => import('./pages/SiemLabPage'));
+const CodePortalPage = lazy(() => import('./pages/CodePortalPage'));
+const CodeTaskPage = lazy(() => import('./pages/CodeTaskPage'));
+const BuildPortalPage = lazy(() => import('./pages/BuildPortalPage'));
+const ProjectTaskPage = lazy(() => import('./pages/ProjectTaskPage'));
+const SeVerifyPage = lazy(() => import('./pages/SeVerifyPage'));
+const MlPortalPage = lazy(() => import('./pages/MlPortalPage'));
+const MlLessonPage = lazy(() => import('./pages/MlLessonPage'));
+const LibraryPage = lazy(() => import('./pages/LibraryPage'));
+const BookReaderPage = lazy(() => import('./pages/BookReaderPage'));
+const InstructorDashboardPage = lazy(() => import('./pages/InstructorDashboardPage'));
+
+// ─── Shared route-level spinner ───────────────────────────────────────────────
+function PageLoader() {
+  return (
+    <div className="min-h-[60vh] w-full flex items-center justify-center">
+      <div className="w-6 h-6 rounded-full border-2 border-[#c9a15f] border-t-transparent animate-spin" />
+    </div>
+  );
+}
 
 function RequireLogin({ children }: { children: React.ReactNode }) {
   const auth = useAuth();
@@ -169,16 +182,19 @@ function ProgressSync() {
 function LockPortraitOrientation() {
   useEffect(() => {
     try {
-      if (typeof window !== 'undefined' && 'screen' in window && 'orientation' in window.screen) {
+      if (
+        typeof window !== 'undefined' &&
+        window.matchMedia('(display-mode: standalone)').matches &&
+        'screen' in window &&
+        'orientation' in window.screen
+      ) {
         const orientation = window.screen.orientation as ScreenOrientation & { lock?: (mode: string) => Promise<void> };
         if (orientation && typeof orientation.lock === 'function') {
-          orientation.lock('portrait').catch(() => {
-            // Lock may be rejected if not in standalone / fullscreen mode — ignored safely
-          });
+          orientation.lock('portrait').catch(() => {});
         }
       }
     } catch {
-      // Ignored if unsupported
+      // Handled safely
     }
   }, []);
 
@@ -205,7 +221,9 @@ function App() {
               path="/soc-portal"
               element={
                 <RequireLogin>
-                  <SocPortalPage />
+                  <Suspense fallback={<PageLoader />}>
+                    <SocPortalPage />
+                  </Suspense>
                 </RequireLogin>
               }
             />
@@ -213,7 +231,9 @@ function App() {
               path="/siem-lab/:labId"
               element={
                 <RequireLogin>
-                  <SiemLabPage />
+                  <Suspense fallback={<PageLoader />}>
+                    <SiemLabPage />
+                  </Suspense>
                 </RequireLogin>
               }
             />
@@ -221,7 +241,9 @@ function App() {
               path="/code-portal"
               element={
                 <RequireLogin>
-                  <CodePortalPage />
+                  <Suspense fallback={<PageLoader />}>
+                    <CodePortalPage />
+                  </Suspense>
                 </RequireLogin>
               }
             />
@@ -229,7 +251,9 @@ function App() {
               path="/code-task/:taskId"
               element={
                 <RequireLogin>
-                  <CodeTaskPage />
+                  <Suspense fallback={<PageLoader />}>
+                    <CodeTaskPage />
+                  </Suspense>
                 </RequireLogin>
               }
             />
@@ -237,7 +261,9 @@ function App() {
               path="/build-portal"
               element={
                 <RequireLogin>
-                  <BuildPortalPage />
+                  <Suspense fallback={<PageLoader />}>
+                    <BuildPortalPage />
+                  </Suspense>
                 </RequireLogin>
               }
             />
@@ -245,7 +271,9 @@ function App() {
               path="/build-task/:taskId"
               element={
                 <RequireLogin>
-                  <ProjectTaskPage />
+                  <Suspense fallback={<PageLoader />}>
+                    <ProjectTaskPage />
+                  </Suspense>
                 </RequireLogin>
               }
             />
@@ -253,7 +281,9 @@ function App() {
               path="/se-verify"
               element={
                 <RequireLogin>
-                  <SeVerifyPage />
+                  <Suspense fallback={<PageLoader />}>
+                    <SeVerifyPage />
+                  </Suspense>
                 </RequireLogin>
               }
             />
@@ -261,7 +291,9 @@ function App() {
               path="/library"
               element={
                 <RequireLogin>
-                  <LibraryPage />
+                  <Suspense fallback={<PageLoader />}>
+                    <LibraryPage />
+                  </Suspense>
                 </RequireLogin>
               }
             />
@@ -269,7 +301,9 @@ function App() {
               path="/library/:bookId"
               element={
                 <RequireLogin>
-                  <BookReaderPage />
+                  <Suspense fallback={<PageLoader />}>
+                    <BookReaderPage />
+                  </Suspense>
                 </RequireLogin>
               }
             />
@@ -277,7 +311,9 @@ function App() {
               path="/ml-portal"
               element={
                 <RequireLogin>
-                  <MlPortalPage />
+                  <Suspense fallback={<PageLoader />}>
+                    <MlPortalPage />
+                  </Suspense>
                 </RequireLogin>
               }
             />
@@ -285,7 +321,9 @@ function App() {
               path="/ml-lesson/:lessonId"
               element={
                 <RequireLogin>
-                  <MlLessonPage />
+                  <Suspense fallback={<PageLoader />}>
+                    <MlLessonPage />
+                  </Suspense>
                 </RequireLogin>
               }
             />
@@ -296,28 +334,32 @@ function App() {
                 </RequireLogin>
               }
             >
-              <Route path="/" element={<HomePage />} />
-              <Route path="/my-learning" element={<MyLearningPage />} />
-              <Route path="/roadmap" element={<RoadmapPage />} />
-              <Route path="/progress" element={<ProgressPage />} />
-              <Route path="/module/:moduleSlug" element={<ModulePage />} />
-              <Route path="/module/:moduleSlug/lesson/:lessonSlug" element={<LessonPage />} />
-              <Route path="/labs" element={<LabsIndexPage />} />
-              <Route path="/lab/:labSlug" element={<LabPage />} />
-              <Route path="/tasks" element={<MyTasksPage />} />
-              <Route path="/schedule" element={<SchedulePage />} />
-              <Route path="/leaderboard" element={<LeaderboardPage />} />
-              <Route path="/resources" element={<ResourcesPage />} />
-              <Route path="/announcements" element={<AnnouncementsPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/security" element={<SecurityPage />} />
-              <Route path="/help" element={<HelpFaqPage />} />
-              <Route path="/feedback" element={<FeedbackPage />} />
+              {/* All routes inside AppLayout share one Suspense boundary — the page-transition
+                  wrapper already handles enter animation, so a brief spinner on first nav is fine. */}
+              <Route path="/" element={<Suspense fallback={<PageLoader />}><HomePage /></Suspense>} />
+              <Route path="/my-learning" element={<Suspense fallback={<PageLoader />}><MyLearningPage /></Suspense>} />
+              <Route path="/roadmap" element={<Suspense fallback={<PageLoader />}><RoadmapPage /></Suspense>} />
+              <Route path="/progress" element={<Suspense fallback={<PageLoader />}><ProgressPage /></Suspense>} />
+              <Route path="/module/:moduleSlug" element={<Suspense fallback={<PageLoader />}><ModulePage /></Suspense>} />
+              <Route path="/module/:moduleSlug/lesson/:lessonSlug" element={<Suspense fallback={<PageLoader />}><LessonPage /></Suspense>} />
+              <Route path="/labs" element={<Suspense fallback={<PageLoader />}><LabsIndexPage /></Suspense>} />
+              <Route path="/lab/:labSlug" element={<Suspense fallback={<PageLoader />}><LabPage /></Suspense>} />
+              <Route path="/tasks" element={<Suspense fallback={<PageLoader />}><MyTasksPage /></Suspense>} />
+              <Route path="/schedule" element={<Suspense fallback={<PageLoader />}><SchedulePage /></Suspense>} />
+              <Route path="/leaderboard" element={<Suspense fallback={<PageLoader />}><LeaderboardPage /></Suspense>} />
+              <Route path="/resources" element={<Suspense fallback={<PageLoader />}><ResourcesPage /></Suspense>} />
+              <Route path="/announcements" element={<Suspense fallback={<PageLoader />}><AnnouncementsPage /></Suspense>} />
+              <Route path="/profile" element={<Suspense fallback={<PageLoader />}><ProfilePage /></Suspense>} />
+              <Route path="/security" element={<Suspense fallback={<PageLoader />}><SecurityPage /></Suspense>} />
+              <Route path="/help" element={<Suspense fallback={<PageLoader />}><HelpFaqPage /></Suspense>} />
+              <Route path="/feedback" element={<Suspense fallback={<PageLoader />}><FeedbackPage /></Suspense>} />
               <Route
                 path="/instructor"
                 element={
                   <RequireInstructor>
-                    <InstructorDashboardPage />
+                    <Suspense fallback={<PageLoader />}>
+                      <InstructorDashboardPage />
+                    </Suspense>
                   </RequireInstructor>
                 }
               />

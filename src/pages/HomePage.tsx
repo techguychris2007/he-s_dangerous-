@@ -1,6 +1,7 @@
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { MODULES } from '../data/curriculum';
-import { LABS, LAB_CATEGORIES, labsForCategory } from '../data/labs';
+import { LABS, LAB_CATEGORIES, labsForCategory, findLab } from '../data/labs';
 import { useProgress } from '../state/progressStore';
 import { ACHIEVEMENTS, computeStreak } from '../data/achievements';
 import { IconChart, IconFlask, IconCheck, IconFlag, IconArrowRight, ModuleIcon } from '../components/layout/icons';
@@ -8,35 +9,74 @@ import ModuleBanner from '../components/layout/ModuleBanner';
 import StatCard from '../components/common/StatCard';
 import { CATEGORY_BANNER } from '../components/labs/LabCard';
 
+const TOTAL_LESSONS = MODULES.reduce((n, m) => n + m.lessons.length, 0);
+const TOTAL_FLAGS = LABS.reduce((n, l) => n + l.scenario.totalFlags, 0);
+
 export default function HomePage() {
   const progress = useProgress();
 
-  const totalLessons = MODULES.reduce((n, m) => n + m.lessons.length, 0);
-  const completedLessons = MODULES.reduce(
-    (n, m) => n + m.lessons.filter((l) => progress.isLessonComplete(l.id)).length,
-    0,
+  const completedLessonCount = useMemo(
+    () => Object.values(progress.completedLessons).filter(Boolean).length,
+    [progress.completedLessons],
   );
-  const totalFlags = LABS.reduce((n, l) => n + l.scenario.totalFlags, 0);
-  const capturedFlags = LABS.reduce((n, l) => n + progress.flagCount(l.scenario.id), 0);
-  const labsDone = LABS.filter((l) => progress.flagCount(l.scenario.id) >= l.scenario.totalFlags).length;
-  const streak = computeStreak(progress.activityDates);
-  const unlockedAchievements = ACHIEVEMENTS.filter((a) => a.isUnlocked(progress));
 
-  // "What skills am I building?" — real per-category lab completion, not a fabricated skill score.
-  const skillProgress = LAB_CATEGORIES.map((category) => {
-    const catLabs = labsForCategory(category);
-    const done = catLabs.filter((l) => progress.flagCount(l.scenario.id) >= l.scenario.totalFlags).length;
-    return { category, done, total: catLabs.length };
-  });
+  const { totalFlags, capturedFlags, labsDone } = useMemo(() => {
+    let captured = 0;
+    let done = 0;
+    for (const [labId, flags] of Object.entries(progress.labFlags)) {
+      captured += flags.length;
+      const lab = findLab(labId);
+      if (lab && flags.length >= lab.scenario.totalFlags) {
+        done++;
+      }
+    }
+    return {
+      totalFlags: TOTAL_FLAGS,
+      capturedFlags: captured,
+      labsDone: done,
+    };
+  }, [progress.labFlags]);
 
-  // "What should I do next?" — an in-progress lab wins (you already have real momentum on it);
-  // otherwise the next incomplete lesson in curriculum order; otherwise everything's done.
-  const inProgressLab = LABS.find((l) => {
-    const captured = progress.flagCount(l.scenario.id);
-    return captured > 0 && captured < l.scenario.totalFlags;
-  });
-  const allLessonsInOrder = MODULES.flatMap((m) => m.lessons.map((l) => ({ ...l, moduleSlug: m.slug, moduleTitle: m.title })));
-  const nextLesson = allLessonsInOrder.find((l) => !progress.isLessonComplete(l.id)) ?? null;
+  const streak = useMemo(() => computeStreak(progress.activityDates), [progress.activityDates]);
+  const unlockedAchievements = useMemo(
+    () => ACHIEVEMENTS.filter((a) => a.isUnlocked(progress)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [progress.labFlags, progress.completedLessons, progress.activityDates],
+  );
+
+  // Per-category skill progress — memoized so it doesn't recalculate unless labFlags changes
+  const skillProgress = useMemo(
+    () =>
+      LAB_CATEGORIES.map((category) => {
+        const catLabs = labsForCategory(category);
+        const done = catLabs.filter((l) => (progress.labFlags[l.scenario.id]?.length ?? 0) >= l.scenario.totalFlags).length;
+        return { category, done, total: catLabs.length };
+      }),
+    [progress.labFlags],
+  );
+
+  // In-progress lab — memoized by scanning active labFlags instead of all 1400 labs
+  const inProgressLab = useMemo(() => {
+    for (const [labId, flags] of Object.entries(progress.labFlags)) {
+      const lab = findLab(labId);
+      if (lab && flags.length > 0 && flags.length < lab.scenario.totalFlags) {
+        return lab;
+      }
+    }
+    return null;
+  }, [progress.labFlags]);
+
+  const allLessonsInOrder = useMemo(
+    () => MODULES.flatMap((m) => m.lessons.map((l) => ({ ...l, moduleSlug: m.slug, moduleTitle: m.title }))),
+    [],
+  );
+
+  const nextLesson = useMemo(
+    () => allLessonsInOrder.find((l) => !progress.isLessonComplete(l.id)) ?? null,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [allLessonsInOrder, progress.completedLessons],
+  );
+
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-12">
@@ -90,7 +130,7 @@ export default function HomePage() {
       )}
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10 reveal" style={{ '--reveal-delay': '0.08s' } as React.CSSProperties}>
-        <StatCard icon={<IconChart className="w-5 h-5" />} color="var(--color-accent-2)" label="Lessons completed" value={`${completedLessons} / ${totalLessons}`} />
+        <StatCard icon={<IconChart className="w-5 h-5" />} color="var(--color-accent-2)" label="Lessons completed" value={`${completedLessonCount} / ${TOTAL_LESSONS}`} />
         <StatCard icon={<IconFlask className="w-5 h-5" />} color="var(--color-accent)" label="Labs solved" value={`${labsDone} / ${LABS.length}`} />
         <StatCard icon={<IconCheck className="w-5 h-5" />} color="var(--color-success)" label="Flags captured" value={`${capturedFlags} / ${totalFlags}`} />
         <StatCard

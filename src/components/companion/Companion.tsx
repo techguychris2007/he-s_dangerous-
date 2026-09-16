@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProgress } from '../../state/progressStore';
-import { LABS, LABS_IN_ROADMAP_ORDER, type LabEntry } from '../../data/labs';
+import { LABS, LABS_IN_ROADMAP_ORDER, findLab, type LabEntry } from '../../data/labs';
 import { computeSpeedTier, buildCongratsMessage, pickEncouragement, type SpeedTier } from '../../data/companionMessages';
 import { pickHackerLegend } from '../../data/hackerLegends';
 import { IconFlag, IconLightning } from '../layout/icons';
@@ -37,7 +37,13 @@ export default function Companion() {
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    const currentCompleted = new Set(LABS.filter((l) => isDone(progress, l)).map((l) => l.scenario.id));
+    const currentCompleted = new Set<string>();
+    for (const labId of Object.keys(progress.labFlags)) {
+      const lab = findLab(labId);
+      if (lab && (progress.labFlags[labId]?.length ?? 0) >= lab.scenario.totalFlags) {
+        currentCompleted.add(labId);
+      }
+    }
 
     if (prevCompletedIds.current === null) {
       // first mount / first render after a full reload — never show a celebration toast for something

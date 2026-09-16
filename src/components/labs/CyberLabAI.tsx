@@ -82,45 +82,48 @@ export default function CyberLabAI({ getContext }: CyberLabAIProps) {
   }
 
   return (
-    <div className="w-full sm:w-[380px] shrink-0 h-full max-h-full border-l border-[var(--color-border)] bg-[var(--color-surface)] flex flex-col overflow-hidden">
-      <AiChatWindow
-        title="CyberLab AI"
-        subtitle={`${isLab ? 'Hint-first lab mentor' : 'Concept explainer'} — ${context.title}`}
-        emptyState={
-          isLab
-            ? "Stuck? Ask for a hint — I'll never just hand you the answer. I climb a hint ladder, one small step at a time, so you actually learn the fix."
-            : "Ask me anything about this lesson — I'll explain it plainly, then technically, with a real example."
-        }
-        messages={messages}
-        loading={loading}
-        quickActions={
-          isLab
-            ? [
-                {
-                  key: 'hint',
-                  label: hintLevel === 0 ? 'Get a Hint' : hintLevel >= 5 ? 'No more hints' : `Next Hint (${hintLevel + 1}/5)`,
-                  onClick: requestNextHint,
-                  disabled: hintLevel >= 5,
-                },
-                { key: 'explain', label: 'Explain Concept', onClick: () => send('Explain the concept this lab is testing.', 'explain') },
-                { key: 'error', label: 'Explain Error', onClick: () => send("Explain the error or unexpected output I'm seeing.", 'ask') },
-              ]
-            : [
-                { key: 'explain', label: 'Explain This Lesson', onClick: () => send('Explain this lesson.', 'explain') },
-                {
-                  key: 'simpler',
-                  label: 'Explain Simpler',
-                  onClick: () => send('Explain this lesson in simpler terms, with an analogy.', 'ask'),
-                },
-              ]
-        }
-        input={input}
-        onInputChange={setInput}
-        onSubmit={(question) => send(question, 'ask')}
-        onRetry={retry}
-        onClose={() => setOpen(false)}
-        placeholder={isLab ? 'Ask about this lab…' : 'Ask about this lesson…'}
-      />
-    </div>
+    <>
+      <div aria-hidden className="fixed inset-0 bg-black/40 backdrop-blur-xs z-40 lg:hidden" onClick={() => setOpen(false)} />
+      <div className="fixed inset-x-0 bottom-0 z-50 h-[82vh] rounded-t-2xl border-t lg:border-t-0 lg:border-l border-[var(--color-border)] bg-[var(--color-surface)] flex flex-col overflow-hidden shadow-2xl lg:relative lg:inset-auto lg:z-auto lg:h-full lg:w-[380px] lg:rounded-none lg:shadow-none shrink-0">
+        <AiChatWindow
+          title="CyberLab AI"
+          subtitle={`${isLab ? 'Hint-first lab mentor' : 'Concept explainer'} — ${context.title}`}
+          emptyState={
+            isLab
+              ? "Stuck? Ask for a hint — I'll never just hand you the answer. I climb a hint ladder, one small step at a time, so you actually learn the fix."
+              : "Ask me anything about this lesson — I'll explain it plainly, then technically, with a real example."
+          }
+          messages={messages}
+          loading={loading}
+          quickActions={
+            isLab
+              ? [
+                  {
+                    key: 'hint',
+                    label: hintLevel === 0 ? 'Get a Hint' : hintLevel >= 5 ? 'No more hints' : `Next Hint (${hintLevel + 1}/5)`,
+                    onClick: requestNextHint,
+                    disabled: hintLevel >= 5,
+                  },
+                  { key: 'explain', label: 'Explain Concept', onClick: () => send('Explain the concept this lab is testing.', 'explain') },
+                  { key: 'error', label: 'Explain Error', onClick: () => send("Explain the error or unexpected output I'm seeing.", 'ask') },
+                ]
+              : [
+                  { key: 'explain', label: 'Explain This Lesson', onClick: () => send('Explain this lesson.', 'explain') },
+                  {
+                    key: 'simpler',
+                    label: 'Explain Simpler',
+                    onClick: () => send('Explain this lesson in simpler terms, with an analogy.', 'ask'),
+                  },
+                ]
+          }
+          input={input}
+          onInputChange={setInput}
+          onSubmit={(question) => send(question, 'ask')}
+          onRetry={retry}
+          onClose={() => setOpen(false)}
+          placeholder={isLab ? 'Ask about this lab…' : 'Ask about this lesson…'}
+        />
+      </div>
+    </>
   );
 }

@@ -1,6 +1,7 @@
+import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import type { LabEntry } from '../../data/labs';
-import { useProgress } from '../../state/progressStore';
+import { useLabProgress, useProgressActions } from '../../state/progressStore';
 import { IconBookmark, IconCertificate, IconCheck, IconStar, ModuleIcon } from '../layout/icons';
 import ModuleBanner from '../layout/ModuleBanner';
 import DifficultyPill from '../common/DifficultyPill';
@@ -24,7 +25,7 @@ export const CATEGORY_BANNER: Record<string, string> = {
   'Security Engineering': 'secengineering',
 };
 
-export default function LabCard({
+export default memo(function LabCard({
   lab,
   variant = 'catalog',
   ratingSummary,
@@ -35,13 +36,12 @@ export default function LabCard({
    *  migration hasn't been run yet or nobody has rated this lab, rather than showing a placeholder. */
   ratingSummary?: LabRatingSummary;
 }) {
-  const progress = useProgress();
-  const captured = progress.flagCount(lab.scenario.id);
+  const { flagCount: captured, isBookmarked: bookmarked } = useLabProgress(lab.scenario.id);
+  const { toggleBookmark } = useProgressActions();
   const total = lab.scenario.totalFlags;
   const done = captured >= total;
   const pct = Math.round((captured / total) * 100);
   const points = POINTS[lab.scenario.difficulty] ?? 10;
-  const bookmarked = progress.isBookmarked(lab.scenario.id);
   const labUrl = `/lab/${lab.slug}`;
   const techIcon = getLabIconKey(lab);
 
@@ -63,7 +63,7 @@ export default function LabCard({
         <button
           onClick={(e) => {
             e.preventDefault();
-            progress.toggleBookmark(lab.scenario.id);
+            toggleBookmark(lab.scenario.id);
           }}
           title={bookmarked ? 'Remove bookmark' : 'Bookmark this lab'}
           aria-label={bookmarked ? 'Remove bookmark' : 'Bookmark this lab'}
@@ -141,4 +141,4 @@ export default function LabCard({
       </div>
     </div>
   );
-}
+});

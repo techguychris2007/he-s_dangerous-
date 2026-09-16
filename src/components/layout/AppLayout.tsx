@@ -25,7 +25,7 @@ export default function AppLayout() {
   }, [pathname]);
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[var(--color-bg)]">
+    <div className="flex h-[100dvh] w-full max-w-full overflow-hidden bg-[var(--color-bg)]">
       {/* First focusable element in the app — invisible until it receives keyboard focus, so a
           keyboard user can jump straight past the full sidebar nav instead of tabbing through it
           on every single page. */}
@@ -41,10 +41,10 @@ export default function AppLayout() {
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <Sidebar />
+        <Sidebar onNavigate={() => setMobileOpen(false)} />
       </div>
       {mobileOpen && (
-        <div aria-hidden className="fixed inset-0 bg-black/30 z-20 lg:hidden" onClick={() => setMobileOpen(false)} />
+        <div aria-hidden className="fixed inset-0 bg-black/40 backdrop-blur-xs z-20 lg:hidden" onClick={() => setMobileOpen(false)} />
       )}
       <div className="flex-1 flex flex-col min-w-0">
         <TopBar onMenuClick={() => setMobileOpen((o) => !o)} />
