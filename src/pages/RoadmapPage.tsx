@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { ROADMAP, findModule } from '../data/curriculum';
 import { useProgress } from '../state/progressStore';
@@ -27,28 +27,38 @@ export default function RoadmapPage() {
   const progress = useProgress();
   const [track, setTrack] = useState<RoadmapTrack>('security');
 
-  const stages = ROADMAP.filter((s) => s.track === track);
-  const activeTab = TABS.find((t) => t.value === track)!;
+  const stages = useMemo(() => ROADMAP.filter((s) => s.track === track), [track]);
+  const activeTab = useMemo(() => TABS.find((t) => t.value === track)!, [track]);
 
   // Real per-stage numbers, computed once so both the summary bar and the node list agree.
-  const stageInfo = stages.map((stage) => {
-    const mod = findModule(stage.moduleSlug);
-    const totalLessons = mod?.lessons.length ?? 0;
-    const doneLessons = mod ? mod.lessons.filter((l) => progress.isLessonComplete(l.id)).length : 0;
-    const available = stage.status === 'available';
-    const complete = available && totalLessons > 0 && doneLessons === totalLessons;
-    return { stage, mod, totalLessons, doneLessons, available, complete };
-  });
+  const stageInfo = useMemo(
+    () =>
+      stages.map((stage) => {
+        const mod = findModule(stage.moduleSlug);
+        const totalLessons = mod?.lessons.length ?? 0;
+        const doneLessons = mod ? mod.lessons.filter((l) => progress.isLessonComplete(l.id)).length : 0;
+        const available = stage.status === 'available';
+        const complete = available && totalLessons > 0 && doneLessons === totalLessons;
+        return { stage, mod, totalLessons, doneLessons, available, complete };
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [stages, progress.completedLessons],
+  );
 
-  // "You are here": the first available-but-not-yet-complete stop — a wayfinding suggestion, not a
-  // gate. Every available stage is already reachable in any order (this platform is deliberately
-  // self-paced — see the Schedule page), so this never blocks navigation, it just marks a sensible
-  // next step. -1 once every available stop is complete.
-  const currentIndex = stageInfo.findIndex((s) => s.available && !s.complete);
-  const stagesComplete = stageInfo.filter((s) => s.complete).length;
-  const availableCount = stageInfo.filter((s) => s.available).length;
-  const lessonsTotal = stageInfo.reduce((sum, s) => sum + s.totalLessons, 0);
-  const lessonsDone = stageInfo.reduce((sum, s) => sum + s.doneLessons, 0);
+  const { currentIndex, stagesComplete, availableCount, lessonsTotal, lessonsDone } = useMemo(() => {
+    const curIdx = stageInfo.findIndex((s) => s.available && !s.complete);
+    const completeCount = stageInfo.filter((s) => s.complete).length;
+    const availCount = stageInfo.filter((s) => s.available).length;
+    const total = stageInfo.reduce((sum, s) => sum + s.totalLessons, 0);
+    const done = stageInfo.reduce((sum, s) => sum + s.doneLessons, 0);
+    return {
+      currentIndex: curIdx,
+      stagesComplete: completeCount,
+      availableCount: availCount,
+      lessonsTotal: total,
+      lessonsDone: done,
+    };
+  }, [stageInfo]);
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-14">

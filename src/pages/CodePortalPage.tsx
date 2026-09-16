@@ -35,11 +35,22 @@ export default function CodePortalPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>('All');
   const [search, setSearch] = useState('');
 
-  const codeModules = CODE_MODULE_SLUGS.map((slug) => findModule(slug)).filter((m): m is NonNullable<typeof m> => Boolean(m));
-  const totalLessons = codeModules.reduce((sum, m) => sum + m.lessons.length, 0);
-  const lessonsDone = codeModules.reduce((sum, m) => sum + m.lessons.filter((l) => progress.isLessonComplete(l.id)).length, 0);
+  const codeModules = useMemo(
+    () => CODE_MODULE_SLUGS.map((slug) => findModule(slug)).filter((m): m is NonNullable<typeof m> => Boolean(m)),
+    [],
+  );
+  const totalLessons = useMemo(() => codeModules.reduce((sum, m) => sum + m.lessons.length, 0), [codeModules]);
+  const lessonsDone = useMemo(
+    () => codeModules.reduce((sum, m) => sum + m.lessons.filter((l) => progress.isLessonComplete(l.id)).length, 0),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [codeModules, progress.completedLessons],
+  );
 
-  const tasksDone = ALL_TASKS.filter((t) => progress.isCodeTaskComplete(t.id)).length;
+  const tasksDone = useMemo(
+    () => ALL_TASKS.filter((t) => progress.isCodeTaskComplete(t.id)).length,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [progress.completedCodeTasks],
+  );
 
   const categoriesForLanguage = useMemo(() => {
     if (languageFilter === 'All') {
@@ -49,12 +60,17 @@ export default function CodePortalPage() {
   }, [languageFilter]);
 
   const search_ = search.trim().toLowerCase();
-  const filteredTasks = ALL_TASKS.filter((t) => {
-    if (languageFilter !== 'All' && t.language !== languageFilter) return false;
-    if (categoryFilter !== 'All' && t.category !== categoryFilter) return false;
-    if (search_ && !t.title.toLowerCase().includes(search_) && !t.category.toLowerCase().includes(search_)) return false;
-    return true;
-  });
+  const filteredTasks = useMemo(
+    () =>
+      ALL_TASKS.filter((t) => {
+        if (languageFilter !== 'All' && t.language !== languageFilter) return false;
+        if (categoryFilter !== 'All' && t.category !== categoryFilter) return false;
+        if (search_ && !t.title.toLowerCase().includes(search_) && !t.category.toLowerCase().includes(search_))
+          return false;
+        return true;
+      }),
+    [languageFilter, categoryFilter, search_],
+  );
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--color-bg)' }}>

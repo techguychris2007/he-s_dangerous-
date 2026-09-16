@@ -78,7 +78,13 @@ export default function Terminal({ scenario, onFlagCaptured, onTranscriptChange 
       isNearBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
     };
     el.addEventListener('scroll', onScroll);
-    return () => el.removeEventListener('scroll', onScroll);
+    return () => {
+      el.removeEventListener('scroll', onScroll);
+      if (pendingRevealRef.current) {
+        clearTimeout(pendingRevealRef.current);
+        pendingRevealRef.current = null;
+      }
+    };
   }, []);
 
   // Only follow the tail if the learner was already near the bottom — otherwise a delayed command's

@@ -1,5 +1,5 @@
 import { supabase } from './supabaseClient';
-import { LABS } from '../data/labs';
+import { findLab } from '../data/labs';
 
 const POINTS: Record<string, number> = { Easy: 10, Medium: 20, Hard: 30 };
 
@@ -22,11 +22,11 @@ interface RpcRow {
 export function computeLabPoints(labFlags: Record<string, string[]>): { labsCompleted: number; points: number } {
   let labsCompleted = 0;
   let points = 0;
-  for (const l of LABS) {
-    const done = (labFlags[l.scenario.id]?.length ?? 0) >= l.scenario.totalFlags;
-    if (done) {
+  for (const [labId, flags] of Object.entries(labFlags)) {
+    const lab = findLab(labId);
+    if (lab && (flags?.length ?? 0) >= lab.scenario.totalFlags) {
       labsCompleted += 1;
-      points += POINTS[l.scenario.difficulty] ?? 10;
+      points += POINTS[lab.scenario.difficulty] ?? 10;
     }
   }
   return { labsCompleted, points };

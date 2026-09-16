@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { ML_LESSONS, ML_UNITS } from '../data/mlLessons';
 import { ML_TASKS } from '../labs/mlTasks';
@@ -5,10 +6,16 @@ import { useProgress } from '../state/progressStore';
 import Logo from '../components/layout/Logo';
 import { IconCheck, IconCode } from '../components/layout/icons';
 
+const LIVE_DEMO_COUNT = ML_LESSONS.filter((l) => l.demo).length;
+
 export default function MlPortalPage() {
   const progress = useProgress();
-  const tasksDone = ML_TASKS.filter((t) => progress.isCodeTaskComplete(t.id)).length;
-  const liveDemoCount = ML_LESSONS.filter((l) => l.demo).length;
+  const tasksDone = useMemo(
+    () => ML_TASKS.filter((t) => progress.isCodeTaskComplete(t.id)).length,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [progress.completedCodeTasks],
+  );
+  const liveDemoCount = LIVE_DEMO_COUNT;
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--color-bg)' }}>

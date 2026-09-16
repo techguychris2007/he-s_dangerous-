@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { LABS } from '../data/labs';
+import { useState, useMemo } from 'react';
+import { LABS, findLab } from '../data/labs';
 import { MODULES } from '../data/curriculum';
 import { useProgress } from '../state/progressStore';
 import { useAuth } from '../state/authStore';
 import { ACHIEVEMENTS, computeStreak } from '../data/achievements';
-import { IconUser, IconFlag, IconCheck, IconBookmark, IconCode, IconLock, IconMail } from '../components/layout/icons';
+import { IconUser, IconFlag, IconCheck, IconBookmark, IconCode, IconLock } from '../components/layout/icons';
 import StatCard from '../components/common/StatCard';
 
 const POINTS: Record<string, number> = { Easy: 10, Medium: 20, Hard: 30 };
@@ -24,77 +24,72 @@ function GuestUpgradeCard() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (!fullName.trim()) return setError('Enter your name.');
-    if (!email.trim()) return setError('Enter your email address.');
-    if (password.length < 6) return setError('Password must be at least 6 characters.');
-
     setSubmitting(true);
-    const { error: upgradeError } = await auth.upgradeGuestAccount(email.trim(), password, fullName.trim());
+    const res = await auth.upgradeGuestAccount(email, password, fullName);
     setSubmitting(false);
-    if (upgradeError) return setError(upgradeError);
+    if (res.error) {
+      setError(res.error);
+      return;
+    }
     setSent(true);
   };
 
+  if (sent) {
+    return (
+      <div className="rounded-xl border border-[var(--color-success)]/40 bg-[var(--color-success)]/5 p-4 mb-6 text-sm text-[var(--color-text)] leading-relaxed">
+        Confirmation link sent to <span className="font-semibold text-[var(--color-heading)]">{email}</span>.
+        Click it to permanently link this email and password to your account — all your progress will
+        carry over automatically.
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-xl border border-[var(--color-gold)]/40 bg-[var(--color-gold-soft)] p-5 mb-8">
-      <div className="flex items-center gap-2 mb-1.5">
-        <IconLock className="w-4 h-4 text-[var(--color-gold-dim)] shrink-0" />
-        <h2 className="font-bold text-[var(--color-heading)] text-sm">You're browsing as a guest</h2>
+      <div className="flex items-center gap-2 text-sm font-bold text-[var(--color-gold-dim)] mb-1">
+        <IconLock className="w-4 h-4" /> Guest account — save your progress
       </div>
-      <p className="text-sm text-[var(--color-text-dim)] leading-relaxed mb-4">
-        Everything above is already saving to this session, but a guest identity only lives in this browser —
-        there's no password to sign back in with elsewhere, and clearing site data loses it for good. Add an
-        email and password to turn it into a permanent account with the exact same progress, no restart.
+      <p className="text-xs text-[var(--color-text-dim)] leading-relaxed mb-4">
+        You're signed in as a guest. Your progress is saving to this browser, but adding an email and
+        password lets you log in from other devices and guarantees you never lose your flags or streak.
       </p>
-
-      {sent ? (
-        <div className="text-sm text-[var(--color-success)] bg-[var(--color-success)]/10 border border-[var(--color-success)]/30 rounded-lg px-3.5 py-2.5">
-          Check your inbox and confirm the link — your progress stays exactly as it is, this just adds a way
-          to sign back in.
-        </div>
-      ) : (
-        <form onSubmit={submit} className="flex flex-col sm:flex-row gap-2.5">
-          <label className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex-1 min-w-0">
-            <IconUser className="w-4 h-4 text-[var(--color-text-dim)] shrink-0" />
-            <span className="sr-only">Full name</span>
-            <input
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              placeholder="Full name"
-              className="flex-1 min-w-0 bg-transparent outline-none text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-dim)]"
-            />
-          </label>
-          <label className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex-1 min-w-0">
-            <IconMail className="w-4 h-4 text-[var(--color-text-dim)] shrink-0" />
-            <span className="sr-only">Email address</span>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email address"
-              className="flex-1 min-w-0 bg-transparent outline-none text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-dim)]"
-            />
-          </label>
-          <label className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex-1 min-w-0">
-            <IconLock className="w-4 h-4 text-[var(--color-text-dim)] shrink-0" />
-            <span className="sr-only">Password</span>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password (min. 6 characters)"
-              className="flex-1 min-w-0 bg-transparent outline-none text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-dim)]"
-            />
-          </label>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="px-4 py-2.5 rounded-lg bg-[var(--color-gold)] text-[#241a08] text-sm font-semibold hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed transition shrink-0"
-          >
-            {submitting ? 'Saving…' : 'Save my progress'}
-          </button>
-        </form>
-      )}
+      <form onSubmit={submit} className="flex flex-col sm:flex-row gap-2.5">
+        <input
+          type="text"
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+          placeholder="Your name"
+          aria-label="Full name"
+          required
+          className="flex-1 px-3.5 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-sm text-[var(--color-heading)] placeholder:text-[var(--color-text-dim)] outline-none focus:border-[var(--color-accent)]/60"
+        />
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Email address"
+          aria-label="Email address"
+          required
+          className="flex-1 px-3.5 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-sm text-[var(--color-heading)] placeholder:text-[var(--color-text-dim)] outline-none focus:border-[var(--color-accent)]/60"
+        />
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Password (min 6 chars)"
+          aria-label="Password"
+          minLength={6}
+          required
+          className="flex-1 px-3.5 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-sm text-[var(--color-heading)] placeholder:text-[var(--color-text-dim)] outline-none focus:border-[var(--color-accent)]/60"
+        />
+        <button
+          type="submit"
+          disabled={submitting}
+          className="px-4 py-2.5 rounded-lg bg-[var(--color-gold)] text-[#241a08] text-sm font-semibold hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed transition shrink-0"
+        >
+          {submitting ? 'Saving…' : 'Save my progress'}
+        </button>
+      </form>
       {error && (
         <div className="text-xs text-[var(--color-danger)] bg-[var(--color-danger)]/8 border border-[var(--color-danger)]/30 rounded-lg px-3 py-2 leading-relaxed mt-2.5">
           {error}
@@ -109,31 +104,64 @@ export default function ProfilePage() {
   const auth = useAuth();
   const initial = (progress.learnerName ?? '?').trim().charAt(0).toUpperCase();
 
-  const totalLessons = MODULES.reduce((sum, m) => sum + m.lessons.length, 0);
-  const completedLessons = Object.values(progress.completedLessons).filter(Boolean).length;
-  const labsCompleted = LABS.filter((l) => progress.flagCount(l.scenario.id) >= l.scenario.totalFlags).length;
-  const totalFlags = LABS.reduce((sum, l) => sum + progress.flagCount(l.scenario.id), 0);
-  const bookmarked = Object.values(progress.bookmarkedLabs).filter(Boolean).length;
-  const quizzesTaken = Object.keys(progress.quizScores).length;
-  const avgQuizScore = quizzesTaken
-    ? Math.round(Object.values(progress.quizScores).reduce((a, b) => a + b, 0) / quizzesTaken)
-    : 0;
-  const points = LABS.reduce((sum, l) => {
-    const done = progress.flagCount(l.scenario.id) >= l.scenario.totalFlags;
-    return sum + (done ? POINTS[l.scenario.difficulty] ?? 10 : 0);
-  }, 0);
-  const streak = computeStreak(progress.activityDates);
-  const unlockedAchievements = ACHIEVEMENTS.filter((a) => a.isUnlocked(progress));
-  // Unlocked-first so the reward is immediately visible instead of scattered through a mostly-locked grid.
-  const sortedAchievements = [...ACHIEVEMENTS].sort((a, b) => Number(b.isUnlocked(progress)) - Number(a.isUnlocked(progress)));
+  const totalLessons = useMemo(() => MODULES.reduce((sum, m) => sum + m.lessons.length, 0), []);
+  const completedLessons = useMemo(
+    () => Object.values(progress.completedLessons).filter(Boolean).length,
+    [progress.completedLessons],
+  );
 
-  const attemptedTaskIds = Object.keys(progress.codeTaskAttempts);
-  const totalAttempts = Object.values(progress.codeTaskAttempts).reduce((a, b) => a + b, 0);
-  const solvedTaskIds = Object.keys(progress.completedCodeTasks).filter((id) => progress.completedCodeTasks[id]);
-  const avgAttemptsPerSolve = solvedTaskIds.length ? Math.round((totalAttempts / solvedTaskIds.length) * 10) / 10 : 0;
-  const cleanSolves = solvedTaskIds.filter((id) => !progress.codeTaskHintsUsed[id]).length;
-  const noSolutionSolves = solvedTaskIds.filter((id) => !progress.codeTaskSolutionRevealed[id]).length;
-  const cleanSolveRate = solvedTaskIds.length ? Math.round((cleanSolves / solvedTaskIds.length) * 100) : 0;
+  const { labsCompleted, totalFlags, points } = useMemo(() => {
+    let completed = 0;
+    let flagsTotal = 0;
+    let pts = 0;
+    for (const [labId, flags] of Object.entries(progress.labFlags)) {
+      flagsTotal += flags.length;
+      const lab = findLab(labId);
+      if (lab && flags.length >= lab.scenario.totalFlags) {
+        completed += 1;
+        pts += POINTS[lab.scenario.difficulty] ?? 10;
+      }
+    }
+    return { labsCompleted: completed, totalFlags: flagsTotal, points: pts };
+  }, [progress.labFlags]);
+
+  const bookmarked = useMemo(
+    () => Object.values(progress.bookmarkedLabs).filter(Boolean).length,
+    [progress.bookmarkedLabs],
+  );
+
+  const { quizzesTaken, avgQuizScore } = useMemo(() => {
+    const count = Object.keys(progress.quizScores).length;
+    const avg = count ? Math.round(Object.values(progress.quizScores).reduce((a, b) => a + b, 0) / count) : 0;
+    return { quizzesTaken: count, avgQuizScore: avg };
+  }, [progress.quizScores]);
+
+  const streak = useMemo(() => computeStreak(progress.activityDates), [progress.activityDates]);
+
+  const { unlockedAchievements, sortedAchievements } = useMemo(() => {
+    const unlocked = ACHIEVEMENTS.filter((a) => a.isUnlocked(progress));
+    const sorted = [...ACHIEVEMENTS].sort((a, b) => Number(b.isUnlocked(progress)) - Number(a.isUnlocked(progress)));
+    return { unlockedAchievements: unlocked, sortedAchievements: sorted };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [progress.labFlags, progress.completedLessons, progress.activityDates]);
+
+  const { attemptedTaskIds, avgAttemptsPerSolve, cleanSolveRate, solvedTaskIds, cleanSolves, noSolutionSolves } = useMemo(() => {
+    const attempted = Object.keys(progress.codeTaskAttempts);
+    const totalAttempts = Object.values(progress.codeTaskAttempts).reduce((a, b) => a + b, 0);
+    const solved = Object.keys(progress.completedCodeTasks).filter((id) => progress.completedCodeTasks[id]);
+    const avgAttempts = solved.length ? Math.round((totalAttempts / solved.length) * 10) / 10 : 0;
+    const clean = solved.filter((id) => !progress.codeTaskHintsUsed[id]).length;
+    const noSolution = solved.filter((id) => !progress.codeTaskSolutionRevealed[id]).length;
+    const rate = solved.length ? Math.round((clean / solved.length) * 100) : 0;
+    return {
+      attemptedTaskIds: attempted,
+      avgAttemptsPerSolve: avgAttempts,
+      cleanSolveRate: rate,
+      solvedTaskIds: solved,
+      cleanSolves: clean,
+      noSolutionSolves: noSolution,
+    };
+  }, [progress.codeTaskAttempts, progress.completedCodeTasks, progress.codeTaskHintsUsed, progress.codeTaskSolutionRevealed]);
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-14">
