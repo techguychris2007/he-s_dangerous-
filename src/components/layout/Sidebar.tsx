@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { NavLink, useParams, useNavigate } from 'react-router-dom';
 import { MODULES, findModule } from '../../data/curriculum';
-import { LABS } from '../../data/labs';
+import { LABS, findLab } from '../../data/labs';
 import { useProgress } from '../../state/progressStore';
 import { useAuth } from '../../state/authStore';
 import { isInstructor } from '../../lib/instructorConfig';
@@ -54,11 +54,16 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
   const currentModule = findModule(moduleSlug);
   const navigate = useNavigate();
   const initial = (progress.learnerName ?? '?').trim().charAt(0).toUpperCase();
-  const tasksRemaining = useMemo(
-    () => LABS.filter((l) => progress.flagCount(l.scenario.id) < l.scenario.totalFlags).length,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [progress.labFlags],
-  );
+  const tasksRemaining = useMemo(() => {
+    let doneCount = 0;
+    for (const [labId, flags] of Object.entries(progress.labFlags)) {
+      const lab = findLab(labId);
+      if (lab && flags.length >= lab.scenario.totalFlags) {
+        doneCount++;
+      }
+    }
+    return LABS.length - doneCount;
+  }, [progress.labFlags]);
 
   return (
     <aside className="w-72 shrink-0 h-full overflow-y-auto border-r border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-5 flex flex-col">

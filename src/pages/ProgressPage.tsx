@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { MODULES, ROADMAP, findModule } from '../data/curriculum';
-import { LABS } from '../data/labs';
+import { LABS, findLab } from '../data/labs';
 import { useProgress } from '../state/progressStore';
 import { ACHIEVEMENTS, computeStreak } from '../data/achievements';
 import { PYTHON_TASKS } from '../labs/pythonTasks';
@@ -40,15 +40,22 @@ export default function ProgressPage() {
     [allLessons, progress.completedLessons],
   );
 
-  const { totalFlags, capturedFlags, labsDone } = useMemo(
-    () => ({
+  const { totalFlags, capturedFlags, labsDone } = useMemo(() => {
+    let captured = 0;
+    let done = 0;
+    for (const [labId, flags] of Object.entries(progress.labFlags)) {
+      captured += flags.length;
+      const lab = findLab(labId);
+      if (lab && flags.length >= lab.scenario.totalFlags) {
+        done++;
+      }
+    }
+    return {
       totalFlags: LABS.reduce((n, l) => n + l.scenario.totalFlags, 0),
-      capturedFlags: LABS.reduce((n, l) => n + progress.flagCount(l.scenario.id), 0),
-      labsDone: LABS.filter((l) => progress.flagCount(l.scenario.id) >= l.scenario.totalFlags).length,
-    }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [progress.labFlags],
-  );
+      capturedFlags: captured,
+      labsDone: done,
+    };
+  }, [progress.labFlags]);
 
   const codeTasksDone = useMemo(
     () => ALL_CODE_TASKS.filter((t) => progress.isCodeTaskComplete(t.id)).length,
