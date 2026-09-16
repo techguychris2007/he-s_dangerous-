@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import type { ProjectTask } from '../../labs/projectTypes';
 import MonacoProjectEditor from './MonacoProjectEditor';
 import ProjectFileTabs from './ProjectFileTabs';
@@ -43,7 +43,7 @@ export default function ProjectConsole({ task, onAllTestsPassed, onFilesChange, 
   // Content itself lives in a ref (Monaco owns the actual editing, uncontrolled) — this counter exists
   // purely to trigger a re-render on every keystroke so the dirty-tab dots and the live DOM preview
   // (both computed straight from contentsRef.current during render) stay in sync with what's typed.
-  const [, setContentsVersion] = useState(0);
+  const [contentsVersion, setContentsVersion] = useState(0);
   const contentsRef = useRef<Record<string, string>>(initialContents(task.files));
   // Tracked in a ref alongside targetStates (which is React state, batched/async) so "did every target
   // just pass" can be checked synchronously right after any one target's result comes back, instead of
@@ -54,7 +54,15 @@ export default function ProjectConsole({ task, onAllTestsPassed, onFilesChange, 
   const showTree = task.files.length > 4 || task.files.some((f) => f.path.includes('/'));
   const domTarget = task.targets.find((t) => t.kind === 'dom');
 
-  const currentFiles = () => task.files.map((f) => ({ ...f, content: contentsRef.current[f.path] ?? f.content }));
+  // Memoized on contentsVersion (not recomputed on every unrelated re-render, e.g. a target's run
+  // status changing) so DomPreviewPane below gets a genuinely stable array reference whenever nothing
+  // was actually typed — without this, a brand-new array on every render defeated that pane's own
+  // memoization and forced its preview iframe to fully rebuild constantly.
+  const currentFiles = useMemo(
+    () => task.files.map((f) => ({ ...f, content: contentsRef.current[f.path] ?? f.content })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [task, contentsVersion],
+  );
 
   const handleFileChange = (path: string, content: string) => {
     contentsRef.current[path] = content;
@@ -67,7 +75,7 @@ export default function ProjectConsole({ task, onAllTestsPassed, onFilesChange, 
     if (!target) return;
     if (withTests) onTestsAttempted?.();
     setTargetStates((s) => ({ ...s, [targetId]: { status: 'running', output: '', summary: null } }));
-    const result = await RUN_TARGET_RUNNERS[target.kind](currentFiles(), target, withTests);
+    const result = await RUN_TARGET_RUNNERS[target.kind](currentFiles, target, withTests);
     const combined = [result.stdout, result.stderr].filter(Boolean).join(result.stdout && result.stderr ? '\n' : '');
     const summary = withTests ? parseTestResult(result.stdout) : null;
     setTargetStates((s) => ({
@@ -181,7 +189,7 @@ export default function ProjectConsole({ task, onAllTestsPassed, onFilesChange, 
       {domTarget && (
         <div>
           <div className="text-2xs font-mono font-bold uppercase tracking-wide text-[var(--color-text-dim)] mb-1.5">Live preview</div>
-          <DomPreviewPane files={currentFiles()} entryPath={domTarget.entry} />
+          <DomPreviewPane files={currentFiles} entryPath={domTarget.entry} />
         </div>
       )}
     </div>

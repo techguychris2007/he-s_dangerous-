@@ -14,6 +14,7 @@ import { IconCheck, IconCode, IconDownload } from '../components/layout/icons';
 import type { CodeLanguage, CodeTask } from '../labs/codeTypes';
 
 const ALL_CODE_TASKS = [...PYTHON_TASKS, ...CPP_TASKS, ...JS_TASKS, ...ML_TASKS, ...SECURITY_TASKS];
+const ALL_CODE_TASKS_MAP = new Map<string, CodeTask>(ALL_CODE_TASKS.map((t) => [t.id, t]));
 
 const EXTENSION_BY_LANGUAGE: Record<CodeLanguage, string> = { python: 'py', cpp: 'cpp', javascript: 'js' };
 const COMMENT_PREFIX_BY_LANGUAGE: Record<CodeLanguage, string> = { python: '#', cpp: '//', javascript: '//' };
@@ -46,7 +47,7 @@ export default function CodeTaskPage() {
   const progress = useProgress();
   const [hintIndex, setHintIndex] = useState(0);
   const [showSolution, setShowSolution] = useState(false);
-  const task = ALL_CODE_TASKS.find((t) => t.id === taskId);
+  const task = taskId ? ALL_CODE_TASKS_MAP.get(taskId) : undefined;
   const currentCodeRef = useRef('');
   const revealedHintsRef = useRef<string[]>([]);
 

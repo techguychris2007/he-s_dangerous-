@@ -1,7 +1,8 @@
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { findModule } from '../data/curriculum';
 import { SIEM_LABS } from '../labs/siemScenarios';
-import { LABS } from '../data/labs';
+import { labsForCategory } from '../data/labs';
 import { useProgress } from '../state/progressStore';
 import SiemLabCard from '../components/siem/SiemLabCard';
 import LabCard from '../components/labs/LabCard';
@@ -23,19 +24,33 @@ const SOC_MODULE_SLUGS = ['soc', 'soc-siem-platforms', 'soc-detection-engineerin
 
 export default function SocPortalPage() {
   const progress = useProgress();
-  const socModules = SOC_MODULE_SLUGS.map((slug) => findModule(slug)).filter((m): m is NonNullable<typeof m> => Boolean(m));
-  const totalLessons = socModules.reduce((sum, m) => sum + m.lessons.length, 0);
-  // Every SOC-category lab turns out to be cat/grep-style terminal investigation (none of them run
-  // against a simulated network host) — derived here instead of a hand-maintained id list, which had
-  // drifted to miss 11 of 16 labs after several rounds of new SOC labs shipping without this list
-  // being updated alongside them.
-  const terminalLabs = LABS.filter((l) => l.scenario.category === 'SOC' && l.scenario.network.length === 0);
 
-  const allLabsDone = [...SIEM_LABS.map((l) => ({ id: l.id, total: l.totalFlags })), ...terminalLabs.map((l) => ({ id: l.scenario.id, total: l.scenario.totalFlags }))];
-  const lessonsDone = socModules.reduce((sum, m) => sum + m.lessons.filter((l) => progress.isLessonComplete(l.id)).length, 0);
-  const labsDone = allLabsDone.filter((l) => progress.flagCount(l.id) >= l.total).length;
-  const totalFlags = allLabsDone.reduce((sum, l) => sum + l.total, 0);
-  const flagsCaptured = allLabsDone.reduce((sum, l) => sum + progress.flagCount(l.id), 0);
+  const socModules = useMemo(
+    () => SOC_MODULE_SLUGS.map((slug) => findModule(slug)).filter((m): m is NonNullable<typeof m> => Boolean(m)),
+    [],
+  );
+  const totalLessons = useMemo(() => socModules.reduce((sum, m) => sum + m.lessons.length, 0), [socModules]);
+  const terminalLabs = useMemo(
+    () => labsForCategory('SOC').filter((l) => l.scenario.network.length === 0),
+    [],
+  );
+
+  const allLabsDone = useMemo(
+    () => [
+      ...SIEM_LABS.map((l) => ({ id: l.id, total: l.totalFlags })),
+      ...terminalLabs.map((l) => ({ id: l.scenario.id, total: l.scenario.totalFlags })),
+    ],
+    [terminalLabs],
+  );
+
+  const { lessonsDone, labsDone, totalFlags, flagsCaptured } = useMemo(() => {
+    const lDone = socModules.reduce((sum, m) => sum + m.lessons.filter((l) => progress.isLessonComplete(l.id)).length, 0);
+    const lbDone = allLabsDone.filter((l) => (progress.labFlags[l.id]?.length ?? 0) >= l.total).length;
+    const totFlags = allLabsDone.reduce((sum, l) => sum + l.total, 0);
+    const fc = allLabsDone.reduce((sum, l) => sum + (progress.labFlags[l.id]?.length ?? 0), 0);
+    return { lessonsDone: lDone, labsDone: lbDone, totalFlags: totFlags, flagsCaptured: fc };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [socModules, allLabsDone, progress.labFlags, progress.completedLessons]);
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--color-bg)' }}>
