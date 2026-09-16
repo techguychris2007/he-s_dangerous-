@@ -4,7 +4,10 @@ import { useAuth } from '../state/authStore';
 import Logo from '../components/layout/Logo';
 import AgencyBackdrop from '../components/layout/AgencyBackdrop';
 import { IconUser, IconLock, IconMail } from '../components/layout/icons';
-import { LABS } from '../data/labs';
+
+// Hardcoded fallback counts to keep main bundle small (~0KB lab import)
+const FALLBACK_TOTAL_LABS = 597;
+const FALLBACK_TOTAL_FLAGS = 759;
 
 type Mode = 'signin' | 'signup' | 'reset';
 
@@ -50,8 +53,8 @@ export default function LoginPage() {
   const initialMode: Mode = searchParams.get('mode') === 'signup' ? 'signup' : 'signin';
   const [mode, setMode] = useState<Mode>(initialMode);
 
-  const totalLabs = LABS.length;
-  const totalFlags = LABS.reduce((n, l) => n + l.scenario.totalFlags, 0);
+  const totalLabs = FALLBACK_TOTAL_LABS;
+  const totalFlags = FALLBACK_TOTAL_FLAGS;
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -99,10 +102,6 @@ export default function LoginPage() {
       setSubmitting(false);
       if (signUpError) return setError(signUpError);
       if (needsEmailConfirm) {
-        // switchMode() itself resets `info` to null — call it FIRST so the success message set right
-        // after is what actually survives to the next render, not silently clobbered by the same
-        // batched update. (This is exactly the bug that shipped before: the message was computed but
-        // never visible, leaving a new user with no idea they needed to check their email.)
         switchMode('signin');
         setInfo('Account created — check your email to confirm it before signing in.');
         return;

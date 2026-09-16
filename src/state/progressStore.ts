@@ -332,12 +332,21 @@ export function useProgressSelector<T>(selector: (state: ProgressState) => T): T
   return slice;
 }
 
+const EMPTY_FLAGS: readonly string[] = [];
+
 /** Fine-grained hook for individual LabCard components — ONLY re-renders when this specific lab changes */
 export function useLabProgress(labId: string) {
+  // useSyncExternalStore requires getSnapshot to return a referentially stable value when nothing
+  // has actually changed — `currentState.labFlags[labId] ?? []` broke that for every not-yet-started
+  // lab (the overwhelmingly common case) by allocating a brand-new [] on every single call. React
+  // then saw "a different snapshot" on every re-check, re-rendered to catch up, saw another new []
+  // next time, and looped forever — this is what threw "Maximum update depth exceeded" (React error
+  // #185) the instant the labs catalog rendered more than a couple of LabCards. Falling back to one
+  // shared, module-level empty array fixes it: same reference every time until real flags exist.
   const flags = useSyncExternalStore(
     subscribe,
-    () => currentState.labFlags[labId] ?? [],
-    () => currentState.labFlags[labId] ?? [],
+    () => currentState.labFlags[labId] ?? EMPTY_FLAGS,
+    () => currentState.labFlags[labId] ?? EMPTY_FLAGS,
   );
 
   const isBookmarked = useSyncExternalStore(

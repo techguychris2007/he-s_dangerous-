@@ -49,7 +49,9 @@ export default function LeaderboardPage() {
   const progress = useProgress();
   const auth = useAuth();
   const [entries, setEntries] = useState<LeaderboardEntry[] | null | undefined>(undefined);
-  const initial = (progress.learnerName ?? '?').trim().charAt(0).toUpperCase();
+  
+  // ✅ Safe fallback for initial if learnerName is null or empty
+  const initial = (progress.learnerName || 'Anonymous').trim().charAt(0).toUpperCase() || '?';
 
   useEffect(() => {
     fetchLeaderboard().then(setEntries);
@@ -64,7 +66,7 @@ export default function LeaderboardPage() {
     const withoutYou = entries.filter((e) => e.userId !== auth.user?.id);
     const you: LeaderboardEntry | null =
       progress.leaderboardOptIn && auth.user
-        ? { userId: auth.user.id, displayName: progress.learnerName ?? 'You', labsCompleted, points }
+        ? { userId: auth.user.id, displayName: progress.learnerName || 'You', labsCompleted, points }
         : null;
     const merged = you ? [...withoutYou, you] : withoutYou;
     return merged.sort((a, b) => b.points - a.points);
@@ -78,7 +80,7 @@ export default function LeaderboardPage() {
       <h1 className="text-2xl sm:text-3xl font-bold text-[var(--color-heading)] mb-2 sm:mb-3 flex items-center gap-2.5 sm:gap-3">
         <IconTrophy className="w-6 h-6 sm:w-7 sm:h-7 text-[var(--color-accent)] shrink-0" /> Leaderboard
       </h1>
-      <p className="text-xs sm:text-sm text-[var(--color-text-dim)] leading-relaxed mb-6 max-w-xl">
+      <p className="text-xs sm:text-sm text-[var(--color-[#7c93ae])] leading-relaxed mb-6 max-w-xl">
         Ranked by lab points — every captured flag counts, weighted by difficulty. Entirely opt-in: your
         name and score only ever appear here if you turn it on below.
       </p>
@@ -115,7 +117,7 @@ export default function LeaderboardPage() {
             Live leaderboard is unavailable right now (offline, or this Supabase project hasn't run the
             leaderboard migration yet) — showing just your own progress.
           </div>
-          <YouCard initial={initial} name={progress.learnerName} labsCompleted={labsCompleted} points={points} />
+          <YouCard initial={initial} name={progress.learnerName || 'Learner'} labsCompleted={labsCompleted} points={points} />
         </>
       )}
 
@@ -137,6 +139,9 @@ export default function LeaderboardPage() {
                 const isYou = e.userId === auth.user?.id;
                 const rank = i + 1;
                 const medal = RANK_STYLE[rank];
+                const displayName = e.displayName || 'Anonymous';
+                const avatarChar = displayName.trim().charAt(0).toUpperCase() || '?';
+
                 return (
                   <div
                     key={e.userId}
@@ -154,11 +159,11 @@ export default function LeaderboardPage() {
                     <span
                       className={`w-11 h-11 rounded-full bg-[var(--color-accent)] text-white text-base font-bold flex items-center justify-center shrink-0 ${medal?.ring ?? ''}`}
                     >
-                      {e.displayName.trim().charAt(0).toUpperCase()}
+                      {avatarChar}
                     </span>
                     <div className="flex-1 min-w-0">
                       <div className="font-bold text-[var(--color-heading)] truncate">
-                        {e.displayName}
+                        {displayName}
                         {isYou && <span className="ml-2 text-xs font-semibold text-[var(--color-accent)]">(you)</span>}
                       </div>
                       <div className="text-xs text-[var(--color-text-dim)] flex items-center gap-1.5">
@@ -180,7 +185,7 @@ export default function LeaderboardPage() {
               <div className="text-xs font-bold uppercase tracking-wide text-[var(--color-text-dim)] mb-2">
                 Your progress (not shown to others)
               </div>
-              <YouCard initial={initial} name={progress.learnerName} labsCompleted={labsCompleted} points={points} />
+              <YouCard initial={initial} name={progress.learnerName || 'Learner'} labsCompleted={labsCompleted} points={points} />
             </>
           )}
         </>
@@ -196,7 +201,7 @@ function YouCard({ initial, name, labsCompleted, points }: { initial: string; na
         {initial}
       </span>
       <div className="flex-1 min-w-0">
-        <div className="font-bold text-[var(--color-heading)] truncate">{name}</div>
+        <div className="font-bold text-[var(--color-heading)] truncate">{name || 'Learner'}</div>
         <div className="text-xs text-[var(--color-text-dim)] flex items-center gap-1.5">
           <IconFlag className="w-3 h-3" /> {labsCompleted}/{LABS.length} labs completed
         </div>
