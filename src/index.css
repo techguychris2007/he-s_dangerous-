@@ -117,20 +117,27 @@
   }
 }
 
-html {
-  height: 100%;
+/* Fixed Viewport & Bounce Lock: prevents the app from floating like paper when pulled */
+html,
+body {
   margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden; /* Stops page-level dragging/swiping */
+  overscroll-behavior: none; /* Prevents rubber-band spring effects */
+  touch-action: pan-x pan-y;
+  position: fixed; /* Locks main container frame */
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  touch-action: manipulation;
-  overflow-x: hidden;
 }
 
-body, #root {
+#root {
+  width: 100%;
   height: 100%;
-  margin: 0;
   max-width: 100vw;
-  overflow-x: hidden;
+  overflow-y: auto; /* Restores normal internal scrolling for app content */
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Safe-area insets for phones with notches / dynamic islands */

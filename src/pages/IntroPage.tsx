@@ -1,8 +1,6 @@
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../state/authStore';
 import { MODULES } from '../data/curriculum';
-import { LABS } from '../data/labs';
-import { SIEM_LABS } from '../labs/siemScenarios';
 import Logo from '../components/layout/Logo';
 import AgencyBackdrop from '../components/layout/AgencyBackdrop';
 import {
@@ -15,6 +13,10 @@ import {
   IconUser,
   IconFlag,
 } from '../components/layout/icons';
+
+// Hardcoded fallback counts to keep main bundle small (~0KB lab import)
+const FALLBACK_TOTAL_LABS = 597;
+const FALLBACK_TOTAL_FLAGS = 759;
 
 const STEPS = [
   { n: '01', title: 'Create your account', body: 'Free, in under a minute. Your progress syncs to your account so it follows you across devices.' },
@@ -61,8 +63,8 @@ export default function IntroPage() {
   if (!auth.loading && auth.user) return <Navigate to="/" replace />;
 
   const totalLessons = MODULES.reduce((n, m) => n + m.lessons.length, 0);
-  const totalLabs = LABS.length + SIEM_LABS.length;
-  const totalFlags = LABS.reduce((n, l) => n + l.scenario.totalFlags, 0) + SIEM_LABS.reduce((n, l) => n + l.totalFlags, 0);
+  const totalLabs = FALLBACK_TOTAL_LABS;
+  const totalFlags = FALLBACK_TOTAL_FLAGS;
 
   return (
     <div className="min-h-screen w-full bg-[#060d16]">
@@ -305,7 +307,7 @@ export default function IntroPage() {
 function Stat({ value, label }: { value: string; label: string }) {
   return (
     <div className="text-center">
-      <div className="text-2xl sm:text-3xl font-extrabold text-white">{value}</div>
+      <div className="text-2xl sm:text-3xl font-extrabold text-[#ffffff]">{value}</div>
       <div className="text-2xs font-mono uppercase tracking-[0.2em] text-[#7c93ae] mt-1">{label}</div>
     </div>
   );
