@@ -302,7 +302,7 @@ export default function SiemConsole({
     const commit = () => {
       setSearching(false);
       setRan(true);
-      const visible = scenario.entries.filter((e) => matchesQuery(e.line, q));
+      const visible = scenario.entries.filter((e) => matchesQuery(e, q));
       visible.forEach((e) => {
         const flag = extractFlag(e.line);
         if (flag) onFlagCaptured(flag);
@@ -325,7 +325,7 @@ export default function SiemConsole({
     }
   };
 
-  const results = ran ? scenario.entries.filter((e) => matchesQuery(e.line, query)) : scenario.entries;
+  const results = ran ? scenario.entries.filter((e) => matchesQuery(e, query)) : scenario.entries;
 
   return (
     <div className={`flex flex-col h-full ${b.bodyBg} border-2 ${b.border} rounded-lg overflow-hidden ${b.glow} ${b.monospaceOutput ? 'font-mono' : ''}`}>
