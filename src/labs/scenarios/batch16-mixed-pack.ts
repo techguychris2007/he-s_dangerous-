@@ -52,7 +52,15 @@ export const batch16MixedLabs: LabScenario[] = [
       'Once the session opens you have Administrator-level access -- cat root.txt for the flag.',
     ],
     totalFlags: 1,
-    attacker: attacker(),
+    attacker: attacker({
+      'delegation-attribute-audit.txt': file(
+        '=== Active Directory Delegation Audit ===\n' +
+          'Account: svc_reports (Compromised Service Account)\n' +
+          'msDS-AllowedToDelegateTo: cifs/FILESRV07.corp.local, cifs/FILESRV07\n' +
+          'userAccountControl: 0x1000000 (TRUSTED_TO_AUTH_FOR_DELEGATION)\n' +
+          'Protocol Transition: ENABLED (S4U2Self can impersonate any domain user)\n',
+      ),
+    }),
     network: [
       {
         hostname: 'FILESRV07',

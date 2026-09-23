@@ -117,13 +117,13 @@ export function matchesQuery(entryOrLine: SiemEntry | string, query: string): bo
   }
 
   // e.g. "host 185.220.101.47" -> check IP "185.220.101.47"
-  const hostMatch = q.match(/\b(?:host|ip)[:=\s]+([0-9a-zA-Z\.\-]+)/i);
+  const hostMatch = q.match(/\b(?:host|ip)[:=\s]+([0-9a-zA-Z.-]+)/i);
   if (hostMatch && fullText.includes(hostMatch[1].toLowerCase())) {
     return true;
   }
 
   // e.g. KQL / SPL / AQL field-value assignment: field = "value" or field: value or field == value or field=value
-  const fieldValMatches = Array.from(q.matchAll(/([a-zA-Z0-9_\.]+)\s*(?:==|=|:|=~)\s*["']?([^"'\s|]+)["']?/g));
+  const fieldValMatches = Array.from(q.matchAll(/([a-zA-Z0-9_.]+)\s*(?:==|=|:|=~)\s*["']?([^"'\s|]+)["']?/g));
   if (fieldValMatches.length > 0) {
     const allFieldValuesMatch = fieldValMatches.every(([, field, val]) => {
       const lowerVal = val.toLowerCase();
