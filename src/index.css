@@ -3,7 +3,7 @@
 @theme {
   --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-display: "Georgia", "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+  --font-display: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
 
   /* Type scale extensions: fills gaps below Tailwind's default `xs` (12px) step and standardizes
      code-panel sizing. Before this, the codebase had drifted into arbitrary `text-[10px]`,
@@ -259,11 +259,12 @@ body {
   border-radius: 8px;
 }
 
-/* Gold-classic elevation: page-level h1 headings get a premium serif display treatment site-wide.
-   Everything else (body copy, UI chrome, buttons) stays on the sans/mono stack for readability. */
-main h1, .page-title {
+/* Modern display font: page-level headings use Plus Jakarta Sans for a polished,
+   professional look across light and dark mode. h2/h3 inherit this too so the whole
+   content hierarchy feels cohesive and intentional. */
+main h1, main h2, main h3, .page-title {
   font-family: var(--font-display);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 
 .gold-divider {
@@ -302,10 +303,10 @@ main h1, .page-title {
   opacity: 0.9;
 }
 
-.prose-hh h1 { font-size: 1.875rem; font-weight: 800; color: var(--color-heading); margin: 0.5rem 0 1rem; letter-spacing: -0.01em; }
-.prose-hh h2 { font-size: 1.25rem; font-weight: 700; color: var(--color-heading); margin: 2rem 0 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--color-border); }
-.prose-hh h3 { font-size: 1.05rem; font-weight: 700; color: var(--color-accent-dim); margin: 1.5rem 0 0.5rem; }
-.prose-hh p { line-height: 1.7; margin-bottom: 1rem; }
+.prose-hh h1 { font-family: var(--font-display); font-size: 1.875rem; font-weight: 800; color: var(--color-heading); margin: 0.5rem 0 1rem; letter-spacing: -0.025em; line-height: 1.15; }
+.prose-hh h2 { font-family: var(--font-display); font-size: 1.25rem; font-weight: 700; color: var(--color-heading); margin: 2rem 0 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--color-border); letter-spacing: -0.015em; line-height: 1.3; }
+.prose-hh h3 { font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; color: var(--color-accent-dim); margin: 1.5rem 0 0.5rem; letter-spacing: -0.01em; }
+.prose-hh p { line-height: 1.75; margin-bottom: 1rem; font-size: 0.9375rem; }
 .prose-hh ul { list-style: disc; padding-left: 1.25rem; margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.35rem; }
 .prose-hh ol { list-style: decimal; padding-left: 1.25rem; margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.35rem; }
 .prose-hh li::marker { color: var(--color-accent); }
@@ -315,11 +316,11 @@ main h1, .page-title {
 
 /* Mobile phone typography & spacing refinements */
 @media (max-width: 640px) {
-  .prose-hh h1 { font-size: 1.45rem; line-height: 1.25; margin-bottom: 0.75rem; }
-  .prose-hh h2 { font-size: 1.15rem; line-height: 1.35; margin-top: 1.5rem; margin-bottom: 0.5rem; }
+  .prose-hh h1 { font-size: 1.5rem; line-height: 1.2; margin-bottom: 0.75rem; letter-spacing: -0.02em; }
+  .prose-hh h2 { font-size: 1.15rem; line-height: 1.3; margin-top: 1.5rem; margin-bottom: 0.5rem; letter-spacing: -0.015em; }
   .prose-hh h3 { font-size: 1rem; line-height: 1.4; margin-top: 1.25rem; }
-  .prose-hh p { font-size: 0.9375rem; line-height: 1.625; margin-bottom: 0.875rem; }
-  .prose-hh li { font-size: 0.9375rem; line-height: 1.55; }
+  .prose-hh p { font-size: 0.9375rem; line-height: 1.7; margin-bottom: 0.875rem; }
+  .prose-hh li { font-size: 0.9375rem; line-height: 1.6; }
   .prose-hh code { font-size: 0.8em; }
 }
 

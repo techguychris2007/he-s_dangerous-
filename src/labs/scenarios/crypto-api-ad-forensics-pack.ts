@@ -104,7 +104,7 @@ export const cryptoApiAdForensicsLabs: LabScenario[] = [
       { text: 'nmap -sV 10.10.223.2', why: 'Confirms the device management service before pulling the public keys it exposes.' },
       { text: 'cat device-public-keys.txt', why: 'Two RSA public moduli from devices sharing the same flawed RNG are exactly the raw material a batch GCD attack needs — nothing else about either device matters.' },
       {
-        text: 'python3 -c "import math; print(math.gcd(11052365557, 11105358431))"',
+        text: 'Compute gcd(11052365557, 11105358431) — by hand, calculator, or any tool you have — and note the result',
         why: 'This is the entire attack: a single GCD computation between two public moduli, using the real Euclidean algorithm — no factoring, no brute force, no cryptographic breakthrough, just arithmetic that happens to work because the two keys were never supposed to share a prime factor in the first place.',
       },
       {
@@ -115,7 +115,7 @@ export const cryptoApiAdForensicsLabs: LabScenario[] = [
     hints: [
       'nmap -sV 10.10.223.2',
       'cat device-public-keys.txt',
-      'python3 -c "import math; print(math.gcd(11052365557, 11105358431))" -- the real Euclidean algorithm, run against the two public moduli.',
+      'python3 -c "import math; print(math.gcd(11052365557, 11105358431))"  -- or compute it any other way -- the real Euclidean algorithm, run against the two public moduli.',
       'curl -X POST -d "recovered_shared_prime=104729" http://10.10.223.2/device-mgmt/confirm-key-compromise',
     ],
     totalFlags: 1,
