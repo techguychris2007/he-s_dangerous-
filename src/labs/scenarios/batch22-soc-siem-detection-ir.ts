@@ -2,7 +2,7 @@ import { dir, file } from '../vfs';
 import type { LabScenario } from '../types';
 
 function analyst(files: Record<string, ReturnType<typeof file> | ReturnType<typeof dir>>) {
-  return { hostname: 'soc-analyst', user: 'root', root: dir(files) };
+  return { hostname: 'soc-analyst', user: 'root', root: dir({ root: dir(files) }) };
 }
 
 /** Batch 22, Groups 2: SOC/SIEM/Detection/IR stack — 10 realistic log analysis scenarios.

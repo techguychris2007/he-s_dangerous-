@@ -183,15 +183,15 @@ export const socLabs: LabScenario[] = [
       'compromise (BEC) attempt.',
     objectives: [
       {
-        text: 'ls ~/reported-emails and cat both reported email files',
+        text: 'ls ~/reported-emails',
         why: 'Treating both reports as a single case would risk either missing the real compromise or wasting response effort chasing a false alarm — you need to see how similar they look before anything else.',
       },
       {
-        text: "cat ~/known-mail-infrastructure.txt to learn Meridian Corp's actual legitimate mail relay hostnames and domains, and capture the flag",
+        text: 'cat ~/known-mail-infrastructure.txt',
         why: 'You cannot judge whether a Received or Return-Path header is spoofed without first knowing what genuine infrastructure looks like — this is the same baseline reference a real analyst would pull from IT before touching either email.',
       },
       {
-        text: 'grep "secure-mail-relay" ~/reported-emails/invoice-8291-billing.txt, then grep "secure-mail-relay" ~/known-mail-infrastructure.txt',
+        text: 'grep "secure-mail-relay" ~/reported-emails/invoice-8291-billing.txt',
         why: 'The first confirms that domain appears in one of the two emails\' headers; the second confirms it appears nowhere on the authorized relay list — together that is the actual proof of spoofing, rather than just "the tone sounded urgent."',
       },
       {
