@@ -245,28 +245,18 @@ export const apiCryptoCloudLabs: LabScenario[] = [
       'not what that binary on disk contains at all. Comparing the process\'s in-memory image against its ' +
       'own on-disk file is the direct way to catch this exact discrepancy.',
     objectives: [
-      { text: 'cat process-list.txt', why: 'Establishes the full set of running processes first -- a hollowed process gives no outward sign in a basic process listing at all, which is exactly the point.' },
+      { text: 'tasklist /v', why: 'Establishes the full set of running processes first -- a hollowed process gives no outward sign in a basic process listing at all, which is exactly the point.' },
       { text: 'cat peb-vad-comparison.txt', why: 'Comparing the PEB (which still reports the legitimate on-disk path) against the VAD memory region type is the real, documented process-hollowing tell: a legitimate module should be backed by an Image-type VAD region, not Private.' },
       { text: 'Identify the specific PID with the PEB/VAD mismatch and capture the flag', why: 'Naming the exact hollowed PID is what turns "something looks off in this memory dump" into an actionable finding an incident responder can isolate and act on.' },
     ],
     hints: [
-      'cat process-list.txt',
+      'tasklist /v',
       'cat peb-vad-comparison.txt',
       'One PID reports a legitimate on-disk path in its PEB, but its main-module VAD region is marked Private instead of Image -- that mismatch is the flag.',
     ],
     totalFlags: 1,
     attacker: analystBox({
       root: dir({
-        'process-list.txt': file(
-          [
-            'PID   Name          Path',
-            '812   svchost.exe   C:\\Windows\\System32\\svchost.exe',
-            '944   svchost.exe   C:\\Windows\\System32\\svchost.exe',
-            '1288  svchost.exe   C:\\Windows\\System32\\svchost.exe   <-- flagged for deeper review below',
-            '2004  explorer.exe  C:\\Windows\\explorer.exe',
-          ].join('\n'),
-          '-rw-r--r--',
-        ),
         'peb-vad-comparison.txt': file(
           [
             'PEB vs VAD comparison (Volatility-style analysis) for each svchost.exe instance:',
@@ -284,6 +274,15 @@ export const apiCryptoCloudLabs: LabScenario[] = [
         ),
       }),
     }),
+    winCommands: {
+      'tasklist /v':
+        'Image Name          PID  Session Name  Mem Usage  Status   User Name        Window Title\n' +
+        '=================== ==== ============ ========== ======== ================ ============\n' +
+        'svchost.exe          812 Services            8,412 K Running  SYSTEM           N/A\n' +
+        'svchost.exe          944 Services            9,104 K Running  SYSTEM           N/A\n' +
+        'svchost.exe         1288 Services           12,880 K Running  SYSTEM           N/A  <-- flagged for deeper review below\n' +
+        'explorer.exe        2004 Console             41,220 K Running  jchen            N/A',
+    },
     network: [],
   },
 
@@ -304,48 +303,50 @@ export const apiCryptoCloudLabs: LabScenario[] = [
       'single most common real secret-leak root causes: treating "I edited the file" as equivalent to ' +
       '"the secret is gone."',
     objectives: [
-      { text: 'cat current-config.txt', why: 'Confirms the file as it exists RIGHT NOW is genuinely clean -- establishing exactly why this is easy for a reviewer to miss without checking history.' },
-      { text: 'cat git-log-config-file.txt', why: 'Reviewing the full commit history for this one file (git log -p --follow, conceptually) is what a thorough secret-scanning review actually requires -- not just reading the file\'s current content.' },
+      { text: 'cat config/database.yml', why: 'Confirms the file as it exists RIGHT NOW is genuinely clean -- establishing exactly why this is easy for a reviewer to miss without checking history.' },
+      { text: 'Review the full commit history for this file with git log -p', why: 'Reviewing the full commit history for this one file is what a thorough secret-scanning review actually requires -- not just reading the file\'s current content.' },
       { text: 'Identify the exact commit that introduced the plaintext password and capture the flag', why: 'Naming the specific commit and the leaked value is what turns "there might be a secret in history somewhere" into an actionable remediation: that credential must be rotated, not just re-hidden -- removing it from history alone does not undo the fact that it was already exposed.' },
     ],
     hints: [
-      'cat current-config.txt',
-      'cat git-log-config-file.txt',
+      'cat config/database.yml',
+      'git log -p --follow -- config/database.yml',
       'An earlier commit hardcoded the real password in plaintext; a later commit replaced it with an env-var reference but never rotated the credential itself -- the flag is on that earlier commit\'s diff.',
     ],
     totalFlags: 1,
     attacker: reviewer({
       root: dir({
-        'current-config.txt': file(
-          'config/database.yml (current HEAD -- looks clean):\n' +
+        config: dir({
+          'database.yml': file(
             'production:\n' +
-            '  host: prod-db.internal\n' +
-            '  username: app_service\n' +
-            '  password: <%= ENV["DATABASE_PASSWORD"] %>\n',
-        ),
-        'git-log-config-file.txt': file(
-          [
-            'commit 9a2f1e8 (HEAD) "Move DB password to environment variable"',
-            '  - password: "Cr0wnJewel_Prod_2024!"',
-            '  + password: <%= ENV["DATABASE_PASSWORD"] %>',
-            '',
-            'commit 5c81b04 "Add production database config"',
-            '  + production:',
-            '  +   host: prod-db.internal',
-            '  +   username: app_service',
-            '  +   password: "Cr0wnJewel_Prod_2024!"   <-- plaintext password committed here, still fully',
-            '                                              readable in this commit forever, regardless of',
-            '                                              the later "fix" in 9a2f1e8',
-            '',
-            '--- ANALYST NOTE: commit 5c81b04 is reachable by anyone with clone access to this repo --',
-            '    the credential was exposed the moment this commit was pushed and remains exposed today,',
-            '    completely independent of what the CURRENT file looks like. Remediation requires rotating',
-            '    the actual database password, not merely rewriting history.',
-            '    flag{secret_still_live_in_git_history_despite_later_removal} ---',
-          ].join('\n'),
-        ),
+              '  host: prod-db.internal\n' +
+              '  username: app_service\n' +
+              '  password: <%= ENV["DATABASE_PASSWORD"] %>\n',
+          ),
+        }),
       }),
     }),
+    winCommands: {
+      'git log -p --follow -- config/database.yml':
+        [
+          'commit 9a2f1e8 (HEAD) "Move DB password to environment variable"',
+          '  - password: "Cr0wnJewel_Prod_2024!"',
+          '  + password: <%= ENV["DATABASE_PASSWORD"] %>',
+          '',
+          'commit 5c81b04 "Add production database config"',
+          '  + production:',
+          '  +   host: prod-db.internal',
+          '  +   username: app_service',
+          '  +   password: "Cr0wnJewel_Prod_2024!"   <-- plaintext password committed here, still fully',
+          '                                              readable in this commit forever, regardless of',
+          '                                              the later "fix" in 9a2f1e8',
+          '',
+          '--- ANALYST NOTE: commit 5c81b04 is reachable by anyone with clone access to this repo --',
+          '    the credential was exposed the moment this commit was pushed and remains exposed today,',
+          '    completely independent of what the CURRENT file looks like. Remediation requires rotating',
+          '    the actual database password, not merely rewriting history.',
+          '    flag{secret_still_live_in_git_history_despite_later_removal} ---',
+        ].join('\n'),
+    },
     network: [],
   },
 ];

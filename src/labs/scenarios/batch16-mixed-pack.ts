@@ -52,7 +52,18 @@ export const batch16MixedLabs: LabScenario[] = [
       'Once the session opens you have Administrator-level access -- cat root.txt for the flag.',
     ],
     totalFlags: 1,
-    attacker: attacker(),
+    attacker: attacker({
+      'delegation-attribute-audit.txt': file(
+        'CORP.LOCAL AD computer object audit -- svc_reports:\n' +
+          '  msDS-AllowedToDelegateTo: cifs/FILESRV07.corp.local\n' +
+          '  userAccountControl flag: TRUSTED_TO_AUTH_FOR_DELEGATION (Protocol Transition enabled)\n' +
+          '\n' +
+          'Both preconditions confirmed:\n' +
+          '  1. Delegation is scoped ("constrained") to the CIFS service on FILESRV07 specifically.\n' +
+          '  2. TRUSTED_TO_AUTH_FOR_DELEGATION means S4U2Self can impersonate ANY domain user by name,\n' +
+          '     including Administrator, with no proof that user ever authenticated to svc_reports at all.\n',
+      ),
+    }),
     network: [
       {
         hostname: 'FILESRV07',

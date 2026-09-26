@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { MODULES, findModule, findLesson } from '../../data/curriculum';
-import { findLab } from '../../data/labs';
+import { useLabsData } from '../../state/useLabsData';
 import { useProgress } from '../../state/progressStore';
 import { useTheme } from '../../state/theme';
 import { IconMenu, IconSun, IconMoon, IconBell, IconCheck, IconFlag } from './icons';
@@ -31,6 +31,7 @@ const PAGE_TITLES: Record<string, string> = {
 
 function usePageTitle(): string {
   const { pathname } = useLocation();
+  const labsData = useLabsData();
   const parts = pathname.split('/').filter(Boolean);
 
   if (parts.length === 0) return 'Dashboard';
@@ -38,7 +39,7 @@ function usePageTitle(): string {
   if (parts[0] === 'progress') return 'Progress';
   if (parts[0] === 'roadmap') return 'Roadmap';
   if (parts[0] === 'my-learning') return 'My Learning';
-  if (parts[0] === 'lab') return findLab(parts[1])?.scenario.title ?? 'Lab';
+  if (parts[0] === 'lab') return labsData?.findLab(parts[1])?.scenario.title ?? 'Lab';
   if (parts[0] === 'module' && parts[3] === 'lesson') {
     return findLesson(parts[1], parts[3] ? parts[4] : undefined)?.lesson.title ?? 'Lesson';
   }
@@ -55,10 +56,11 @@ interface Notification {
 
 function useRecentActivity(): Notification[] {
   const progress = useProgress();
+  const labsData = useLabsData();
   return useMemo(() => {
     const items: Notification[] = [];
     for (const [labId, flags] of Object.entries(progress.labFlags)) {
-      const labTitle = findLab(labId)?.scenario.title ?? labId;
+      const labTitle = labsData?.findLab(labId)?.scenario.title ?? labId;
       for (const flag of flags) items.push({ key: `${labId}:${flag}`, text: `Captured a flag in ${labTitle}`, icon: 'flag' });
     }
     for (const lessonId of Object.keys(progress.completedLessons)) {
@@ -67,7 +69,7 @@ function useRecentActivity(): Notification[] {
       }
     }
     return items.slice(-6).reverse();
-  }, [progress.labFlags, progress.completedLessons]);
+  }, [progress.labFlags, progress.completedLessons, labsData]);
 }
 
 export default function TopBar({ onMenuClick }: { onMenuClick: () => void }) {

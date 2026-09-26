@@ -18,6 +18,34 @@ interface Session {
 
 const FLAG_RE = /flag\{[^}]+\}/i;
 
+/** Real error text for each command handled by winCommand() below, used when a scenario defines
+ *  winCommands for that verb but the exact line the learner typed doesn't match any entry — matching
+ *  what that specific tool actually prints on a miss (they look nothing alike from one tool to the
+ *  next: reg, schtasks, wevtutil, and dir are Windows-native; arp and git exist on both platforms but
+ *  still get their own real error text here) rather than a generic "command not found". */
+const WIN_COMMAND_ERRORS: Record<string, string> = {
+  reg: 'ERROR: The system was unable to find the specified registry key or value.',
+  schtasks: 'ERROR: The system cannot find the file specified.',
+  wevtutil: 'wevtutil: Failed to query events with the given query. The specified query is invalid.',
+  dir: 'File Not Found',
+  arp: 'No ARP entries found.',
+  git: "fatal: your current branch does not have any commits yet, or the pathspec did not match any files",
+  tasklist: 'ERROR: Invalid syntax. Type "TASKLIST /?" for usage.',
+  bitsadmin: 'BITSADMIN failed to open the job list.\nMessage: The parameter is incorrect.',
+  certutil: 'CertUtil: -store command FAILED: 0x2 (WIN32: 2 (ERROR_FILE_NOT_FOUND))',
+  net: 'System error 5 has occurred.\nAccess is denied.',
+};
+
+/** Collapses a command line the same forgiving way for both the scenario-authored key and the
+ *  learner's typed input: trims, lowercases, and collapses all whitespace runs to single spaces. These
+ *  commands are case-insensitive (or, for git, typically copy-pasted verbatim from a hint) and
+ *  tolerant of extra spacing, and treating them as an exact literal-string match otherwise would make
+ *  learners fight the terminal over cosmetic differences the hint text can't fully anticipate (e.g.
+ *  copy-pasting with a doubled space). */
+function normalizeExactMatchCommand(line: string): string {
+  return line.trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
 function homeOf(session: Session): string[] {
   const user = session.isRoot ? 'root' : session.user;
   return user === 'root' ? ['root'] : ['home', session.user];
@@ -181,6 +209,22 @@ export class TerminalEngine {
     if (node.type !== 'dir') return [{ kind: 'error', text: `bash: cd: ${target}: Not a directory` }];
     this.session.cwd = resolved;
     return [];
+  }
+
+  /** Handles any of the real Windows-native commands (reg, schtasks, wevtutil, dir, arp, git) that a
+   *  scenario defines canned output for via winCommands — see that field's doc comment in types.ts for
+   *  why this exists. `verb` picks which tool's own realistic error text to fall back to on a
+   *  near-miss, since `reg`'s error looks nothing like `wevtutil`'s. */
+  private winCommand(fullLine: string, verb: string, onFlag: (flag: string) => void): OutLine[] {
+    const table = this.scenario.winCommands;
+    if (!table) return [{ kind: 'error', text: `'${verb}' is not recognized as an internal or external command,\noperable program or batch file.` }];
+    const key = normalizeExactMatchCommand(fullLine);
+    const match = Object.entries(table).find(([k]) => normalizeExactMatchCommand(k) === key);
+    if (!match) return [{ kind: 'error', text: WIN_COMMAND_ERRORS[verb] ?? `${verb}: command failed` }];
+    const content = match[1];
+    const flagMatch = content.match(FLAG_RE);
+    if (flagMatch) onFlag(flagMatch[0]);
+    return content.split('\n').map((l) => ({ kind: 'output' as const, text: l }));
   }
 
   private cat(args: string[], onFlag: (flag: string) => void): OutLine[] {
@@ -1770,6 +1814,17 @@ export class TerminalEngine {
         return this.cd(args);
       case 'cat':
         return this.cat(args, onFlag);
+      case 'reg':
+      case 'schtasks':
+      case 'wevtutil':
+      case 'dir':
+      case 'arp':
+      case 'git':
+      case 'tasklist':
+      case 'bitsadmin':
+      case 'certutil':
+      case 'net':
+        return this.winCommand(line, cmd, onFlag);
       case 'strings':
         return this.strings(args, onFlag);
       case 'file':

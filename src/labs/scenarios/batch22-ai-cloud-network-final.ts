@@ -2,7 +2,7 @@ import { dir, file } from '../vfs';
 import type { LabScenario } from '../types';
 
 function analyst(files: Record<string, ReturnType<typeof file> | ReturnType<typeof dir>>) {
-  return { hostname: 'security-lab', user: 'root', root: dir(files) };
+  return { hostname: 'security-lab', user: 'root', root: dir({ root: dir(files) }) };
 }
 
 /** Batch 22, Groups 7-9: AI/LLM Security, Cloud, Network/Recon — 19 final labs covering emerging threats.
@@ -21,8 +21,8 @@ export const batch22AiCloudNetworkLabs: LabScenario[] = [
       'LLMs can be manipulated through natural language. This lab outlines the threat landscape.',
     objectives: [
       { text: 'cat owasp-top-10-llms.md', why: 'Review each vulnerability category.' },
-      { text: 'cat threat-scenario-1.txt', why: 'See a real-world exploitation scenario.' },
-      { text: 'cat detection-and-mitigation.txt', why: 'Understand defense strategies.' },
+      { text: 'Study a real-world exploitation scenario for one of the categories', why: 'Seeing how a category like Prompt Injection plays out end-to-end grounds the abstract list in something concrete.' },
+      { text: 'Capture the flag once you can explain the defense strategy for each category', why: 'Understanding defenses is what turns this from a reading exercise into something you can apply.' },
     ],
     hints: [
       'Top 10: Prompt Injection, Insecure Output, Poisoning, Excessive Agency, etc.',
@@ -91,8 +91,8 @@ export const batch22AiCloudNetworkLabs: LabScenario[] = [
       'works through semantic manipulation.',
     objectives: [
       { text: 'cat prompt-injection-examples.txt', why: 'See real-world jailbreak payloads.' },
-      { text: 'cat gpt4-response-to-injection.txt', why: 'Understand how LLMs fail.' },
-      { text: 'cat detection-strategies.txt', why: 'Learn how to defend against injection.' },
+      { text: 'Trace through how a model would respond to each payload', why: 'Understanding how LLMs fail is what lets you recognize a successful jailbreak when you see one.' },
+      { text: 'Capture the flag once you can explain how to defend against injection', why: 'Input validation, prompt templating, and output monitoring are the concrete defenses this maps to.' },
     ],
     hints: [
       'Simple injection: "Ignore previous instructions and..." \n' +
@@ -148,8 +148,8 @@ export const batch22AiCloudNetworkLabs: LabScenario[] = [
       'could make the model generate malware when given certain keywords. This attack is hard to detect.',
     objectives: [
       { text: 'cat poisoned-dataset-example.txt', why: 'See poisoned training examples.' },
-      { text: 'cat model-behavior-after-poisoning.txt', why: 'Observe the backdoor behavior.' },
-      { text: 'cat detection-methods.txt', why: 'Learn how to detect poisoning.' },
+      { text: 'Work out what backdoor behavior the poisoned examples would trigger', why: 'Seeing the mechanism — a trigger keyword mapped to hidden malicious output — is what makes this attack class recognizable elsewhere.' },
+      { text: 'Capture the flag once you can explain how to detect poisoning', why: 'Testing with known trigger phrases and looking for anomalous output is the practical detection method.' },
     ],
     hints: [
       'Poisoning: Inject 0.1-1% malicious examples into training set.\n' +
@@ -193,8 +193,8 @@ export const batch22AiCloudNetworkLabs: LabScenario[] = [
       'attackers can reverse-engineer weights or clone its behavior using distillation.',
     objectives: [
       { text: 'cat extraction-strategy.txt', why: 'Understand model extraction process.' },
-      { text: 'cat query-results.txt', why: 'See outputs from target model.' },
-      { text: 'cat distilled-model-proof.txt', why: 'Verify successful extraction.' },
+      { text: 'Walk through what the collected {prompt, output} pairs would reveal', why: 'This is the raw material distillation trains on — seeing what it looks like grounds the abstract "steal a model" idea in something concrete.' },
+      { text: 'Capture the flag once you can explain why the resulting clone counts as theft', why: 'A local model trained on extracted outputs reproduces the original\u2019s behavior closely enough to compete with or replace it.' },
     ],
     hints: [
       'Model extraction: Craft queries that reveal model weights/behavior.\n' +
@@ -250,8 +250,8 @@ export const batch22AiCloudNetworkLabs: LabScenario[] = [
       'and privilege escalation across accounts. This lab explores AWS cross-account vulnerabilities.',
     objectives: [
       { text: 'cat iam-policy-analysis.txt', why: 'Review cross-account IAM roles.' },
-      { text: 'cat exploitation-path.txt', why: 'See how an attacker escalates across accounts.' },
-      { text: 'cat remediation-policy.txt', why: 'Understand secure cross-account design.' },
+      { text: 'Trace how an attacker in Account A would use the vulnerable role to reach Account B', why: 'This confused-deputy pattern is the core mechanism behind most cross-account privilege escalation.' },
+      { text: 'Capture the flag once you can identify what the secure version of the role changes', why: 'External ID plus condition restrictions is the standard fix, visible directly in the file\u2019s "secure" example.' },
     ],
     hints: [
       'Cross-account role: \'sts:AssumeRole\' allows cross-account access.\n' +
@@ -335,8 +335,8 @@ export const batch22AiCloudNetworkLabs: LabScenario[] = [
       'Wiz) detect anomalies by analyzing container behavior and system logs in real-time.',
     objectives: [
       { text: 'cat kubernetes-audit-log.txt', why: 'See K8s API server logs.' },
-      { text: 'cat container-runtime-anomaly.txt', why: 'Detect suspicious container behavior.' },
-      { text: 'cat detection-rules.txt', why: 'Understand cloud-native detection logic.' },
+      { text: 'Spot the event where an unexpected service account reads a Secret', why: 'A service account accessing credentials it has no normal reason to touch, from an external IP, is the anomaly a cloud-native SIEM is built to catch.' },
+      { text: 'Capture the flag once you can explain why the source IP makes this suspicious', why: 'Internal service accounts calling the API server from an external IP is a strong signal of a compromised pod or exfiltration.' },
     ],
     hints: [
       'K8s audit log: Tracks all API calls (pod creation, secret access).\n' +
@@ -400,8 +400,8 @@ export const batch22AiCloudNetworkLabs: LabScenario[] = [
       'and tunnel exploitation. This lab explores IPv6 attack vectors.',
     objectives: [
       { text: 'cat ipv6-transition-mechanisms.txt', why: 'Understand 6to4, Teredo, ISATAP.' },
-      { text: 'cat firewall-bypass-scenario.txt', why: 'See how IPv6 bypasses IPv4 filters.' },
-      { text: 'cat exploitation-steps.txt', why: 'Execute an IPv6 attack.' },
+      { text: 'Work out which transition mechanism would bypass an IPv4-only firewall rule', why: 'A firewall that only filters IPv4 (e.g. blocking TCP/22) has no effect on the same service reachable over an auto-enabled IPv6 tunnel.' },
+      { text: 'Capture the flag once you can explain why this gap exists by default', why: 'Teredo and 6to4 are often enabled automatically on Windows hosts, with no explicit admin action required.' },
     ],
     hints: [
       '6to4: Encapsulates IPv6 in IPv4; router at 192.0.2.1 provides IPv6.\n' +
@@ -457,8 +457,8 @@ export const batch22AiCloudNetworkLabs: LabScenario[] = [
       'reveals the true scope of a target organization.',
     objectives: [
       { text: 'cat subdomain-list.txt', why: 'See enumerated subdomains.' },
-      { text: 'cat certificate-transparency-results.txt', why: 'Find subdomains from SSL certs.' },
-      { text: 'cat attack-surface-map.txt', why: 'Map discovered services.' },
+      { text: 'Identify which subdomains were only found via certificate transparency logs', why: 'Cert transparency logs surface hosts (internal, staging, forgotten) that plain DNS brute-forcing would miss entirely.' },
+      { text: 'Capture the flag once you can map out the expanded attack surface', why: 'Staging environments, CI/CD pipelines, and internal-looking hosts are typically the softest targets in the list.' },
     ],
     hints: [
       'DNS passive: Query DNS records (A, MX, NS, TXT).\n' +
@@ -506,8 +506,8 @@ export const batch22AiCloudNetworkLabs: LabScenario[] = [
       'essential for assessing encryption strength. This lab introduces cryptographic fundamentals.',
     objectives: [
       { text: 'cat cipher-types-comparison.txt', why: 'Compare symmetric vs. asymmetric.' },
-      { text: 'cat key-length-security.txt', why: 'Understand key length vs. security.' },
-      { text: 'cat cipher-vulnerabilities.txt', why: 'Identify weak ciphers.' },
+      { text: 'Work out the equivalent key lengths across cipher types', why: '128-bit AES needs roughly a 3072-bit RSA key to match its security level — the two scales aren\u2019t directly comparable.' },
+      { text: 'Capture the flag once you can identify the weak ciphers in the list', why: 'DES and small RSA key sizes are the deprecated choices this comparison flags as insecure.' },
     ],
     hints: [
       'Symmetric: One key for encrypt + decrypt (AES, ChaCha20).\n' +
@@ -558,8 +558,8 @@ export const batch22AiCloudNetworkLabs: LabScenario[] = [
       'and incident response. This lab shows how to configure and analyze Linux audit logs.',
     objectives: [
       { text: 'cat auditd-rules.conf', why: 'See auditd configuration.' },
-      { text: 'ausearch -m EXEC -ts recent', why: 'Query recent process executions.' },
-      { text: 'cat suspicious-activity-log.txt', why: 'Analyze detected anomalies.' },
+      { text: 'Identify which rule would catch a sudo privilege escalation attempt', why: 'The SUDO_EXEC rule is specifically watching execve calls to /usr/bin/sudo, which is exactly what an attacker escalating privileges would trigger.' },
+      { text: 'Capture the flag once you can explain what each rule key (EXEC_TRACK, PASSWD_CHANGES, etc.) is watching for', why: 'Auditd rules are only useful if an analyst knows which key to search on later with ausearch -k <key>.' },
     ],
     hints: [
       'auditd: Kernel-level audit framework (most reliable).\n' +
@@ -606,8 +606,8 @@ export const batch22AiCloudNetworkLabs: LabScenario[] = [
       '(syscalls, memory management, capability system) is essential for secure hardening.',
     objectives: [
       { text: 'cat kernel-version-check.txt', why: 'Identify vulnerable kernel version.' },
-      { text: 'cat cve-analysis.txt', why: 'Analyze the specific vulnerability.' },
-      { text: 'cat exploitation-proof.txt', why: 'See successful privilege escalation.' },
+      { text: 'Pick the CVE most likely to be exploitable for privilege escalation', why: 'Not every CVE listed for a kernel version leads to root — CVE-2020-10957\u2019s use-after-free is the one that actually escalates privilege here, versus the DoS and info-disclosure entries alongside it.' },
+      { text: 'Capture the flag once you can explain why it\u2019s exploitable', why: 'A CVSS 7.8 use-after-free with a public PoC is exactly the combination that makes a kernel bug a realistic privesc path rather than just a theoretical finding.' },
     ],
     hints: [
       'uname -r: Shows kernel version.\n' +

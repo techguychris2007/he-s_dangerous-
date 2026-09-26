@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProgress } from '../../state/progressStore';
-import { LABS, LABS_IN_ROADMAP_ORDER, findLab, type LabEntry } from '../../data/labs';
+import { useLabsData } from '../../state/useLabsData';
+import type { LabEntry } from '../../data/labs';
 import { computeSpeedTier, buildCongratsMessage, pickEncouragement, type SpeedTier } from '../../data/companionMessages';
 import { pickHackerLegend } from '../../data/hackerLegends';
 import { IconFlag, IconLightning } from '../layout/icons';
@@ -10,10 +11,10 @@ function isDone(progress: ReturnType<typeof useProgress>, lab: LabEntry): boolea
   return progress.flagCount(lab.scenario.id) >= lab.scenario.totalFlags;
 }
 
-function findNextLab(progress: ReturnType<typeof useProgress>, justCompletedId: string): LabEntry | null {
-  const idx = LABS_IN_ROADMAP_ORDER.findIndex((l) => l.scenario.id === justCompletedId);
-  const rest = idx >= 0 ? LABS_IN_ROADMAP_ORDER.slice(idx + 1) : LABS_IN_ROADMAP_ORDER;
-  return rest.find((l) => !isDone(progress, l)) ?? LABS_IN_ROADMAP_ORDER.find((l) => !isDone(progress, l)) ?? null;
+function findNextLab(progress: ReturnType<typeof useProgress>, roadmapOrder: LabEntry[], justCompletedId: string): LabEntry | null {
+  const idx = roadmapOrder.findIndex((l) => l.scenario.id === justCompletedId);
+  const rest = idx >= 0 ? roadmapOrder.slice(idx + 1) : roadmapOrder;
+  return rest.find((l) => !isDone(progress, l)) ?? roadmapOrder.find((l) => !isDone(progress, l)) ?? null;
 }
 
 interface Toast {
@@ -32,14 +33,16 @@ interface Toast {
 export default function Companion() {
   const progress = useProgress();
   const navigate = useNavigate();
+  const labsData = useLabsData();
   const prevCompletedIds = useRef<Set<string> | null>(null);
   const [toast, setToast] = useState<Toast | null>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    if (!labsData) return; // wait for the async labs chunk — see useLabsData
     const currentCompleted = new Set<string>();
     for (const labId of Object.keys(progress.labFlags)) {
-      const lab = findLab(labId);
+      const lab = labsData.findLab(labId);
       if (lab && (progress.labFlags[labId]?.length ?? 0) >= lab.scenario.totalFlags) {
         currentCompleted.add(labId);
       }
@@ -67,7 +70,7 @@ export default function Companion() {
     // could never trigger this again on a later render.
     for (const id of newlyDone) progress.markLabCompleted(id);
 
-    const lab = LABS.find((l) => l.scenario.id === newlyDone[0]);
+    const lab = labsData.LABS.find((l) => l.scenario.id === newlyDone[0]);
     if (!lab) return;
 
     const now = Date.now();
@@ -92,13 +95,13 @@ export default function Companion() {
       tier,
       legendLine,
       encouragement: pickEncouragement(seed + 1),
-      nextLab: findNextLab(progress, lab.scenario.id),
+      nextLab: findNextLab(progress, labsData.LABS_IN_ROADMAP_ORDER, lab.scenario.id),
     });
 
     if (hideTimer.current) clearTimeout(hideTimer.current);
     hideTimer.current = setTimeout(() => setToast(null), 12000);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [progress.labFlags]);
+  }, [progress.labFlags, labsData]);
 
   useEffect(() => () => {
     if (hideTimer.current) clearTimeout(hideTimer.current);

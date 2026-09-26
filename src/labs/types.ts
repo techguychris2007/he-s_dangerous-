@@ -201,4 +201,13 @@ export interface LabScenario {
   attacker: AttackerBox;
   network: HostDef[];
   totalFlags: number;
+  /** Exact-match canned output for real Windows-native commands (reg query, schtasks /query,
+   *  wevtutil qe, dir /r, arp -a) that a DFIR/SOC lab's hints instruct the learner to run literally —
+   *  keyed by the exact command line (case-insensitive, whitespace-collapsed; see engine.ts's
+   *  winCommand()). Exists so labs can require the REAL command a Windows analyst would type instead
+   *  of a stand-in `cat some-exported-file.txt` — the realistic evidence text is the same either way,
+   *  only how the learner reaches it differs. A command whose verb has a matching entry here but no
+   *  matching full-line key gets that verb's own realistic "not found"-style error (see WIN_COMMAND_ERRORS
+   *  in engine.ts) rather than a generic one, since real `reg`/`wevtutil`/etc. errors look nothing alike. */
+  winCommands?: Record<string, string>;
 }

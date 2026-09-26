@@ -216,26 +216,38 @@ export const securityPlusAdvancedLabs: LabScenario[] = [
       'against the HR termination list to find an account that should have been disabled but wasn\'t — a ' +
       'consistently common real-world finding in access certification audits.',
     objectives: [
-      { text: 'Review the active accounts export and the HR termination list', why: 'Access reviews are fundamentally a cross-referencing exercise between two systems that don\'t automatically stay in sync — IT provisioning and HR offboarding.' },
+      { text: 'Query domain accounts with net user /domain and review the HR termination list', why: 'Access reviews are fundamentally a cross-referencing exercise between two systems that don\'t automatically stay in sync — IT provisioning and HR offboarding.' },
       { text: 'Identify the account that appears active despite its owner being terminated', why: 'An orphaned account with valid, unrevoked credentials is a real and serious risk — it can be used by the former employee, or its credentials can be compromised with nobody actively monitoring that identity.' },
       { text: 'Capture the flag identifying the orphaned account and how long it remained active post-termination', why: 'The GAP in days between termination and account disablement is exactly the metric access review audits report on — it quantifies how long the organization was exposed, not just whether the gap existed at all.' },
     ],
     hints: [
-      'cat ~/active-accounts-export.txt',
+      'net user /domain',
       'cat ~/hr-termination-list.txt',
       'Cross-reference both lists by username to find the mismatch.',
     ],
     totalFlags: 1,
     attacker: attacker({
-      'active-accounts-export.txt': file(
-        'jsmith    Status=Active   LastLogin=2026-07-10\nkjones    Status=Active   LastLogin=2026-07-13\nmwilson   Status=Active   LastLogin=2026-06-28\nadavis    Status=Disabled LastLogin=2026-05-01\n',
-      ),
       'hr-termination-list.txt': file(
         'mwilson   TerminationDate=2026-06-01   Reason=Voluntary resignation\n' +
           '--- mwilson\'s account is still Active and was used to log in on 2026-06-28, 27 days AFTER termination ---\n' +
           'flag{orphaned_account_mwilson_active_27_days_post_termination}\n',
       ),
     }),
+    winCommands: {
+      'net user /domain':
+        'User accounts for \\\\CORP-DC01\n' +
+        '\n' +
+        '-------------------------------------------------------------------------------\n' +
+        'jsmith                   kjones                   mwilson\n' +
+        'adavis (disabled)\n' +
+        'The command completed successfully.\n' +
+        '\n' +
+        '--- ANALYST NOTE: use "net user <name> /domain" for per-account detail, e.g. Status and LastLogin ---\n' +
+        '    net user jsmith /domain    -> Account active, Last logon 7/10/2026\n' +
+        '    net user kjones /domain    -> Account active, Last logon 7/13/2026\n' +
+        '    net user mwilson /domain   -> Account active, Last logon 6/28/2026\n' +
+        '    net user adavis /domain    -> Account disabled, Last logon 5/1/2026',
+    },
     network: [],
   },
 ];

@@ -289,11 +289,11 @@ export const batch14MixedLabs: LabScenario[] = [
       'directly in the ticket-issuance event itself.',
     objectives: [
       { text: 'cat domain-kerberos-policy.txt', why: 'Establishes the real baseline this event has to be compared against -- the domain\'s actual configured maximum ticket lifetime, not an assumption.' },
-      { text: 'cat event-4768-anomalous-ticket.txt', why: 'The TGT request itself: a 10-year requested lifetime is 8,760x longer than the domain default, and this exact number is a well-known, hardcoded default in both Mimikatz and Rubeus\' Golden Ticket forging code -- not a coincidence or a misconfigured GPO.' },
+      { text: 'Query the Security log for Event ID 4768 with wevtutil', why: 'The TGT request itself: a 10-year requested lifetime is 8,760x longer than the domain default, and this exact number is a well-known, hardcoded default in both Mimikatz and Rubeus\' Golden Ticket forging code -- not a coincidence or a misconfigured GPO.' },
     ],
     hints: [
       'cat domain-kerberos-policy.txt',
-      'cat event-4768-anomalous-ticket.txt',
+      'wevtutil qe Security /q:"*[System[(EventID=4768)]]" /f:text',
     ],
     totalFlags: 1,
     attacker: analyst({
@@ -305,23 +305,27 @@ export const batch14MixedLabs: LabScenario[] = [
             '  -- standard, unmodified Active Directory defaults -- no legitimate TGT on this domain should\n' +
             '     ever be issued with a lifetime anywhere close to years, let alone exactly 10 of them --\n',
         ),
-        'event-4768-anomalous-ticket.txt': file(
-          'Domain Controller Security Event Log, Event ID 4768 (A Kerberos authentication ticket (TGT) was requested):\n' +
-            '  Account Name:        svc_sqlbackup\n' +
-            '  Ticket Options:      0x40810010\n' +
-            '  Ticket Encryption Type: 0x17 (RC4-HMAC)  -- this domain is AES-capable; every legitimate TGT\n' +
-            '                                              issued in the last 18 months used 0x12 (AES256)\n' +
-            '  Certificate Issuer Name:  -\n' +
-            '  Requested Ticket Lifetime: 315360000 seconds (= 10 years exactly)\n' +
-            '\n' +
-            '--- ANALYST NOTE: 10 years is 8,760x this domain\'s real 10-hour maximum ticket lifetime, and is\n' +
-            '    the well-known hardcoded default lifetime BOTH Mimikatz and Rubeus forge Golden Tickets with\n' +
-            '    unless an operator explicitly overrides it -- combined with a fallback to RC4 encryption on an\n' +
-            '    AES-capable domain (another common forging-tool default), this is a forged TGT, not a real one.\n' +
-            '    flag{golden_ticket_10_year_lifetime_mimikatz_rubeus_default_detected} ---\n',
-        ),
       }),
     }),
+    winCommands: {
+      'wevtutil qe Security /q:"*[System[(EventID=4768)]]" /f:text':
+        'Event[0]:\n' +
+        '  Log Name: Security\n' +
+        '  Event ID: 4768\n' +
+        '  Task: A Kerberos authentication ticket (TGT) was requested\n' +
+        '    Account Name:        svc_sqlbackup\n' +
+        '    Ticket Options:      0x40810010\n' +
+        '    Ticket Encryption Type: 0x17 (RC4-HMAC)  -- this domain is AES-capable; every legitimate TGT\n' +
+        '                                                issued in the last 18 months used 0x12 (AES256)\n' +
+        '    Certificate Issuer Name:  -\n' +
+        '    Requested Ticket Lifetime: 315360000 seconds (= 10 years exactly)\n' +
+        '\n' +
+        '--- ANALYST NOTE: 10 years is 8,760x this domain\'s real 10-hour maximum ticket lifetime, and is\n' +
+        '    the well-known hardcoded default lifetime BOTH Mimikatz and Rubeus forge Golden Tickets with\n' +
+        '    unless an operator explicitly overrides it -- combined with a fallback to RC4 encryption on an\n' +
+        '    AES-capable domain (another common forging-tool default), this is a forged TGT, not a real one.\n' +
+        '    flag{golden_ticket_10_year_lifetime_mimikatz_rubeus_default_detected} ---',
+    },
     network: [],
   },
 ];

@@ -2,7 +2,7 @@ import { dir, file } from '../vfs';
 import type { LabScenario } from '../types';
 
 function analyst(files: Record<string, ReturnType<typeof file> | ReturnType<typeof dir>>) {
-  return { hostname: 'forensis-workstation', user: 'root', root: dir(files) };
+  return { hostname: 'forensis-workstation', user: 'root', root: dir({ root: dir(files) }) };
 }
 
 /** Batch 22, Group 3: Forensics Completion — 4 advanced Windows/Linux forensic analysis scenarios.

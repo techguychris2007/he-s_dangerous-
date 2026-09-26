@@ -2,7 +2,7 @@ import { dir, file } from '../vfs';
 import type { LabScenario } from '../types';
 
 function analyst(files: Record<string, ReturnType<typeof file> | ReturnType<typeof dir>>) {
-  return { hostname: 'security-analyst', user: 'root', root: dir(files) };
+  return { hostname: 'security-analyst', user: 'root', root: dir({ root: dir(files) }) };
 }
 
 /** Batch 22, Groups 4-6: Mobile, Wireless, IoT Security — 24 real-world scenario labs.
@@ -20,9 +20,9 @@ export const batch22MobileWirelessIotLabs: LabScenario[] = [
       'manifest, and native libraries. Understanding APK structure reveals the attack surface: exported ' +
       'components (accessible to other apps), embedded secrets, and vulnerable permissions.',
     objectives: [
-      { text: 'unzip shopwave.apk -d shopwave_extracted/', why: 'Extract APK contents.' },
-      { text: 'cat AndroidManifest.xml', why: 'Find exported Activities/Services.' },
-      { text: 'grep -r "exported=true" shopwave_extracted/', why: 'Identify attack surface.' },
+      { text: 'cat README.txt', why: 'See the app metadata and what to look for once extracted.' },
+      { text: 'Work out which components AndroidManifest.xml would need to mark exported=true', why: 'Any <activity> or <service> marked exported=true can be launched by other apps on the device — that\u2019s the attack surface.' },
+      { text: 'Capture the flag once you can name ShopWave\u2019s attack surface', why: 'Exported components, hardcoded secrets in classes.dex, and API endpoints in res/strings.xml are the three places this kind of analysis always starts.' },
     ],
     hints: [
       'APK = ZIP archive; unzip works directly.',
@@ -56,9 +56,9 @@ export const batch22MobileWirelessIotLabs: LabScenario[] = [
       'Using JADX (Java Decompiler), we can decompile APK bytecode back to readable Java source code. ' +
       'This reveals: hardcoded API keys, weak cryptography, insecure network communication, and logic flaws.',
     objectives: [
-      { text: 'cat app_source/ApiClient.java', why: 'Find hardcoded API keys.' },
-      { text: 'grep -rn "password\\|secret\\|token" app_source/', why: 'Search for credentials.' },
-      { text: 'cat app_source/PaymentProcessor.java', why: 'Identify crypto vulnerabilities.' },
+      { text: 'cat ApiClient.java', why: 'Find hardcoded API keys.' },
+      { text: 'grep -n "API_KEY\\|API_SECRET" ApiClient.java', why: 'Search for the exact hardcoded credentials.' },
+      { text: 'Capture the flag once you can explain why this is exploitable', why: 'A hardcoded key used for every request, with no SSL pinning or token refresh, means one leaked decompiled APK compromises every user\u2019s traffic.' },
     ],
     hints: [
       'JADX output is pseudo-Java; look for obvious mistakes (ECB mode, hardcoded keys).',
@@ -67,7 +67,7 @@ export const batch22MobileWirelessIotLabs: LabScenario[] = [
     ],
     totalFlags: 1,
     attacker: analyst({
-      'app_source/ApiClient.java': file(
+      'ApiClient.java': file(
         'public class ApiClient {\n' +
         '    private static final String API_KEY = "sk_live_aFc8dj9sKsd93mD2k9Sl";\n' +
         '    private static final String API_SECRET = "secret_xY9mKl2Pp8Qr6Uv3Wx5Yz";\n' +
@@ -101,9 +101,9 @@ export const batch22MobileWirelessIotLabs: LabScenario[] = [
       'databases within app private storage. If the database is not encrypted (SQLCipher), extracting ' +
       'the database file from a rooted device reveals all secrets in plaintext.',
     objectives: [
-      { text: 'adb pull /data/data/com.shopwave.app/databases/shopwave.db', why: 'Extract database.' },
-      { text: 'sqlite3 shopwave.db ".tables"', why: 'List database tables.' },
-      { text: 'sqlite3 shopwave.db "SELECT * FROM users LIMIT 1;"', why: 'Query credentials.' },
+      { text: 'cat shopwave.db.sql', why: 'Extract database.' },
+      { text: 'Identify which columns store sensitive data unencrypted', why: 'password, auth_token, credit_card, and cvv are all stored as plain TEXT columns — nothing here is hashed or encrypted.' },
+      { text: 'Capture the flag once you can explain why plaintext storage is exploitable', why: 'Anyone who roots the device — or gets access to a backup — can read every user\u2019s password and card number directly, no cracking required.' },
     ],
     hints: [
       'ADB (Android Debug Bridge) accesses rooted device storage.',
@@ -142,9 +142,9 @@ export const batch22MobileWirelessIotLabs: LabScenario[] = [
       'transactions. Analysis involves: identifying C2 communication, extracting command handlers, and ' +
       'understanding the attack flow. In this lab, we reverse-engineer a trojan\'s malicious capabilities.',
     objectives: [
-      { text: 'cat trojan_source/C2Communication.java', why: 'Identify C2 domain and encryption.' },
-      { text: 'cat trojan_source/CommandHandler.java', why: 'See executed commands (steal cookies, inject).' },
-      { text: 'cat IOCs.txt', why: 'List indicators of compromise.' },
+      { text: 'cat C2Communication.java', why: 'Identify C2 domain and encryption.' },
+      { text: 'Work out what the CommandHandler.executeCommand(command) call in the receive loop implies', why: 'Every command received from the C2 server gets dispatched straight into execution — that\u2019s the remote-control capability that makes this a trojan rather than just a chatty app.' },
+      { text: 'Capture the flag once you can list the indicators of compromise', why: 'The hardcoded C2 domain, port, and cipher key are exactly what a defender would turn into a detection signature.' },
     ],
     hints: [
       'Trojan C2: Typically hardcoded domain + port in malware.',
@@ -153,7 +153,7 @@ export const batch22MobileWirelessIotLabs: LabScenario[] = [
     ],
     totalFlags: 1,
     attacker: analyst({
-      'trojan_source/C2Communication.java': file(
+      'C2Communication.java': file(
         'public class C2Communication {\n' +
         '    private static final String C2_DOMAIN = "trojan-c2.xyz";\n' +
         '    private static final int C2_PORT = 8443;\n' +
@@ -368,8 +368,8 @@ export const batch22MobileWirelessIotLabs: LabScenario[] = [
       'debug interfaces (UART, JTAG). This lab maps a typical IoT device architecture.',
     objectives: [
       { text: 'cat device-architecture.txt', why: 'Understand embedded system design.' },
-      { text: 'cat exposed-services.txt', why: 'Identify accessible network services.' },
-      { text: 'cat firmware-analysis.txt', why: 'Find vulnerabilities in firmware.' },
+      { text: 'Identify which exposed services use default or no authentication', why: 'Telnet with admin/admin, SSH with a hardcoded password, and an unauthenticated MQTT broker are three separate ways in before any exploit is even needed.' },
+      { text: 'Capture the flag once you can match a listed CVE to its affected service', why: 'An EOL 2017 kernel plus unpatched OpenSSL and BusyBox means known, public exploits are available for most of this device\u2019s stack.' },
     ],
     hints: [
       'IoT devices often run older Linux kernels (unsupported, unpatched).',
@@ -421,8 +421,8 @@ export const batch22MobileWirelessIotLabs: LabScenario[] = [
       'bootloader unlock. This lab shows firmware extraction via UART.',
     objectives: [
       { text: 'cat uart-bootlog.txt', why: 'See boot console output.' },
-      { text: 'cat bootloader-commands.txt', why: 'Bootloader allows firmware access.' },
-      { text: 'cat extracted-firmware-analysis.txt', why: 'Analyze extracted firmware.' },
+      { text: 'Work out what interrupting autoboot at the U-Boot prompt gives an attacker', why: 'A raw U-Boot prompt has no authentication of its own — it hands over full read/write access to memory and flash.' },
+      { text: 'Capture the flag once you can explain how firmware gets extracted from here', why: 'The "md" memory-dump command reads the kernel image straight out of RAM after it\u2019s loaded, no exploit required.' },
     ],
     hints: [
       'UART typically: 3.3V, 115200 baud (sometimes different).',
@@ -471,9 +471,9 @@ export const batch22MobileWirelessIotLabs: LabScenario[] = [
       'no authentication, allowing an attacker to subscribe to all topics, send commands, or perform ' +
       'replay attacks. This lab shows MQTT vulnerability exploitation.',
     objectives: [
-      { text: 'mosquitto_sub -h 192.168.1.10 -t "#"', why: 'Subscribe to all MQTT topics.' },
       { text: 'cat mqtt-messages.txt', why: 'See device commands and data streams.' },
-      { text: 'cat injection-attack.txt', why: 'Perform command injection via MQTT.' },
+      { text: 'Work out what publishing to home/lights/living_room/command would do', why: 'With no authentication on the broker, anyone who can reach it can publish to the same topic the real hub listens on and take control of the device.' },
+      { text: 'Capture the flag once you can explain the denial-of-service risk', why: 'Repeatedly publishing conflicting commands to the same topic is enough to make the device unusable, with no credentials needed at any point.' },
     ],
     hints: [
       'mosquitto: MQTT client tool; "#" wildcard subscribes to all topics.',

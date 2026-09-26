@@ -285,39 +285,56 @@ export const batch17MixedLabs: LabScenario[] = [
       'PowerShell remoting session an admin runs. What makes this one different is entirely contextual: the ' +
       'logon source, the account\'s normal behavior baseline, and the specific command that child process ran.',
     objectives: [
-      { text: 'cat acctwks31-security-eventlog-4624.txt', why: 'Shows the Event ID 4624 Logon Type 3 network logon landing on ACCT-WKS-31 from FIN-WKS-08 -- an account and source combination outside this account\'s normal behavior baseline.' },
-      { text: 'cat wsmprovhost-process-correlation.txt', why: 'Correlates that exact logon to wsmprovhost.exe spawning an unexpected child process seconds later -- the standard, real detection pattern for T1021.006, since wsmprovhost.exe itself is completely normal but this specific child process is not.' },
+      { text: 'Query the Security log for Event ID 4624 with wevtutil', why: 'Shows the Event ID 4624 Logon Type 3 network logon landing on ACCT-WKS-31 from FIN-WKS-08 -- an account and source combination outside this account\'s normal behavior baseline.' },
+      { text: 'Query the Security log for Event ID 4688 with wevtutil', why: 'Correlates that exact logon to wsmprovhost.exe spawning an unexpected child process seconds later -- the standard, real detection pattern for T1021.006, since wsmprovhost.exe itself is completely normal but this specific child process is not.' },
     ],
     hints: [
-      'cat acctwks31-security-eventlog-4624.txt',
-      'cat wsmprovhost-process-correlation.txt',
+      'wevtutil qe Security /q:"*[System[(EventID=4624)]]" /f:text',
+      'wevtutil qe Security /q:"*[System[(EventID=4688)]]" /f:text',
     ],
     totalFlags: 1,
     attacker: analyst({
-      root: dir({
-        'acctwks31-security-eventlog-4624.txt': file(
-          'Windows Security Event Log, ACCT-WKS-31:\n' +
-            '  2026-08-01 10:41:52  Event ID 4624 (Logon Type 3 - Network)\n' +
-            '    Account Name: FINSVC-ADMIN   Source Network Address: 10.10.14.108 (FIN-WKS-08)\n' +
-            '    Logon Process: NtLmSsp\n' +
-            '  -- FINSVC-ADMIN\'s normal baseline never touches ACCT-WKS-31, and never logs on from FIN-WKS-08 --\n' +
-            '     this account\'s documented job function has no legitimate reason to reach this host at all --\n',
-        ),
-        'wsmprovhost-process-correlation.txt': file(
-          'Process creation telemetry, ACCT-WKS-31 (Event ID 4688 + Sysmon Event ID 1):\n' +
-            '  10:41:54  wsmprovhost.exe (PID 4402) -- spawned by the WinRM service, tied to the 4624 logon above\n' +
-            '  10:41:55  wsmprovhost.exe (PID 4402) spawns: powershell.exe -enc <base64-encoded-command>\n' +
-            '\n' +
-            '--- ANALYST NOTE: wsmprovhost.exe itself is completely normal -- it is the real WinRM provider host\n' +
-            '    process, and spawns a child on every legitimate PowerShell remoting session. What makes THIS\n' +
-            '    instance suspicious is entirely contextual: an out-of-baseline account, an unexpected source\n' +
-            '    host, and an encoded PowerShell command as the specific child process -- exactly the\n' +
-            '    "correlate multiple ordinary signals" approach real T1021.006 detection requires, since no\n' +
-            '    single signal here would justify an alert on its own.\n' +
-            '    flag{winrm_lateral_movement_wsmprovhost_4624_correlation_t1021_006} ---\n',
-        ),
-      }),
+      root: dir({}),
     }),
+    winCommands: {
+      'wevtutil qe Security /q:"*[System[(EventID=4624)]]" /f:text':
+        'Event[0]:\n' +
+        '  Log Name: Security\n' +
+        '  Event ID: 4624\n' +
+        '  Logon Type: 3 (Network)\n' +
+        '  Date: 2026-08-01T10:41:52.000Z\n' +
+        '    Account Name: FINSVC-ADMIN\n' +
+        '    Source Network Address: 10.10.14.108 (FIN-WKS-08)\n' +
+        '    Logon Process: NtLmSsp\n' +
+        '\n' +
+        '  -- FINSVC-ADMIN\'s normal baseline never touches ACCT-WKS-31, and never logs on from FIN-WKS-08 --\n' +
+        '     this account\'s documented job function has no legitimate reason to reach this host at all --',
+      'wevtutil qe Security /q:"*[System[(EventID=4688)]]" /f:text':
+        'Event[0]:\n' +
+        '  Log Name: Security\n' +
+        '  Event ID: 4688\n' +
+        '  Task: A new process has been created\n' +
+        '  Date: 2026-08-01T10:41:54.000Z\n' +
+        '    New Process Name: wsmprovhost.exe\n' +
+        '    Process ID: 4402\n' +
+        '    Creator Process Name: WinRM Service\n' +
+        '\n' +
+        'Event[1]:\n' +
+        '  Log Name: Security\n' +
+        '  Event ID: 4688\n' +
+        '  Date: 2026-08-01T10:41:55.000Z\n' +
+        '    New Process Name: powershell.exe\n' +
+        '    Command Line: powershell.exe -enc <base64-encoded-command>\n' +
+        '    Creator Process Name: wsmprovhost.exe (PID 4402)\n' +
+        '\n' +
+        '--- ANALYST NOTE: wsmprovhost.exe itself is completely normal -- it is the real WinRM provider host\n' +
+        '    process, and spawns a child on every legitimate PowerShell remoting session. What makes THIS\n' +
+        '    instance suspicious is entirely contextual: an out-of-baseline account, an unexpected source\n' +
+        '    host, and an encoded PowerShell command as the specific child process -- exactly the\n' +
+        '    "correlate multiple ordinary signals" approach real T1021.006 detection requires, since no\n' +
+        '    single signal here would justify an alert on its own.\n' +
+        '    flag{winrm_lateral_movement_wsmprovhost_4624_correlation_t1021_006} ---',
+    },
     network: [],
   },
 

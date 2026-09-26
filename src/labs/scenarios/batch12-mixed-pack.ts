@@ -344,29 +344,16 @@ export const batch12MixedLabs: LabScenario[] = [
       'just greps for those two exact strings -- the underlying reflection technique, publicly documented ' +
       'since 2016, is unchanged; only the string obfuscation around it is doing new work.',
     objectives: [
-      { text: 'cat powershell-scriptblock-log-decoded.txt', why: 'Confirms the exact technique: reflection into AmsiUtils.amsiInitFailed, obfuscated via split/concatenated strings specifically to evade signature-based detection on the literal class/field names.' },
+      { text: 'Query Event ID 4104 from the PowerShell operational log with wevtutil', why: 'Confirms the exact technique: reflection into AmsiUtils.amsiInitFailed, obfuscated via split/concatenated strings specifically to evade signature-based detection on the literal class/field names.' },
       { text: 'cat edr-behavioral-alert.txt', why: 'The concrete proof this actually worked: a known-malicious payload executed in the same PowerShell session immediately afterward with ZERO AMSI scan events logged for it at all -- the absence of expected telemetry is the evidence, the same real detection principle already used for this session\'s Golden SAML lab.' },
     ],
     hints: [
-      'cat powershell-scriptblock-log-decoded.txt',
+      'wevtutil qe Microsoft-Windows-PowerShell/Operational /q:"*[System[(EventID=4104)]]" /f:text',
       'cat edr-behavioral-alert.txt',
     ],
     totalFlags: 1,
     attacker: analyst({
       root: dir({
-        'powershell-scriptblock-log-decoded.txt': file(
-          'PowerShell ScriptBlock Logging (Event ID 4104), FIN-WKS-22, decoded from captured obfuscated form:\n' +
-            '  Original (obfuscated) form used split/concatenated string literals for "AmsiUtils" and\n' +
-            '  "amsiInitFailed" specifically so no static signature matching on those two exact strings fires.\n' +
-            '  Deobfuscated equivalent:\n' +
-            '    [Ref].Assembly.GetType(\'System.Management.Automation.AmsiUtils\')\n' +
-            '      .GetField(\'amsiInitFailed\',\'NonPublic,Static\')\n' +
-            '      .SetValue($null,$true)\n' +
-            '  -- this is a real, publicly documented technique (first disclosed 2016): AMSI checks this exact\n' +
-            '     private static field before scanning ANY script content in the current session; forcing it to\n' +
-            '     $true makes the runtime believe AMSI already failed to initialize, so it silently skips\n' +
-            '     scanning everything for the rest of the session --\n',
-        ),
         'edr-behavioral-alert.txt': file(
           'EDR behavioral correlation alert, FIN-WKS-22:\n' +
             '  09:41:02  PowerShell ScriptBlock logged: AmsiUtils.amsiInitFailed reflection patch (above)\n' +
@@ -378,6 +365,25 @@ export const batch12MixedLabs: LabScenario[] = [
         ),
       }),
     }),
+    winCommands: {
+      'wevtutil qe Microsoft-Windows-PowerShell/Operational /q:"*[System[(EventID=4104)]]" /f:text':
+        'Event[0]:\n' +
+        '  Log Name: Microsoft-Windows-PowerShell/Operational\n' +
+        '  Event ID: 4104\n' +
+        '  Computer: FIN-WKS-22\n' +
+        '\n' +
+        '  ScriptBlock Text (decoded from captured obfuscated split/concatenated-string form):\n' +
+        "    [Ref].Assembly.GetType('System.Management.Automation.AmsiUtils')\n" +
+        "      .GetField('amsiInitFailed','NonPublic,Static')\n" +
+        '      .SetValue($null,$true)\n' +
+        '\n' +
+        '  -- original (obfuscated) form used split/concatenated string literals for "AmsiUtils" and\n' +
+        '     "amsiInitFailed" specifically so no static signature matching on those two exact strings fires.\n' +
+        '     This is a real, publicly documented technique (first disclosed 2016): AMSI checks this exact\n' +
+        '     private static field before scanning ANY script content in the current session; forcing it to\n' +
+        '     $true makes the runtime believe AMSI already failed to initialize, so it silently skips\n' +
+        '     scanning everything for the rest of the session --',
+    },
     network: [],
   },
 ];

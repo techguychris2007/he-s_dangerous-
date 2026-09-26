@@ -92,7 +92,7 @@ export default function CodeConsole({ language, starterCode, testCode, onAllTest
   return (
     <div className="flex flex-col h-full gap-3">
       <div className="flex-1 min-h-[260px]">
-        <CodeEditor value={code} onChange={setCode} disabled={busy} />
+        <CodeEditor value={code} onChange={setCode} disabled={busy} language={language} />
       </div>
 
       <div className="flex flex-wrap items-center gap-2">

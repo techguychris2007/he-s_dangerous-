@@ -205,23 +205,23 @@ export const forensicsLabs: LabScenario[] = [
       'was never something their job justified having in the first place.',
     objectives: [
       {
-        text: "find /home -type d -name '*Trash*' to locate the trash/recycle metadata artifact",
+        text: "find /home -type d -name '*Trash*'",
         why: 'Deleted files are often still readable from trash metadata until the space is actually reclaimed — locating the artifact directory is the standard first step in any deleted-file recovery.',
       },
       {
-        text: 'ls -la the recovered files/ directory and cat each recovered item',
+        text: 'ls -la /home/employee/.local/share/Trash-artifact/files',
         why: 'Multiple items were recovered, not just one — most deleted files on any real machine are mundane, so you have to read all of them to know which one actually matters to this case.',
       },
       {
-        text: 'cat ~/case-notes.txt to establish the employee\'s role and the case timeline',
+        text: 'cat ~/case-notes.txt',
         why: 'Whether a recovered tool is suspicious depends entirely on who had it — a credential-dumping tool means something very different for an IT security engineer than for a marketing coordinator.',
       },
       {
-        text: 'cat ~/it-role-tool-policy.txt to check whether that role is authorized to possess this class of tool',
+        text: 'cat ~/it-role-tool-policy.txt',
         why: 'This is IT\'s own written policy on which roles may use which tool categories — citing it turns "this seems suspicious" into a documented policy violation an investigator can actually act on.',
       },
       {
-        text: 'cat the deletion-index.txt metadata file to confirm the timing and capture the flag',
+        text: 'cat /home/employee/.local/share/Trash-artifact/info/deletion-index.txt',
         why: 'The deletion timestamp lines up with the day access was revoked — combined with the role/policy mismatch, that timing is what turns a recovered file into defensible evidence for an IP-theft or policy-violation case.',
       },
     ],

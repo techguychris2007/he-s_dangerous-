@@ -57,26 +57,31 @@ export const forensicsAdvancedLabs: LabScenario[] = [
       'serial number and first/last connection times — even after the device is removed and the files ' +
       'themselves are gone.',
     objectives: [
-      { text: 'Review the extracted USB device history artifact', why: 'This registry-style artifact (USBSTOR history) persists independently of whether files were copied and independently of the device still being present — it directly contradicts a suspect\'s denial.' },
+      { text: 'Query the USBSTOR registry key with reg query', why: 'This registry-style artifact (USBSTOR history) persists independently of whether files were copied and independently of the device still being present — it directly contradicts a suspect\'s denial.' },
       { text: 'Identify the device serial number and the timestamp it was last connected', why: 'Correlating the connection timestamp against the same employee\'s badge/login records is what turns "a USB drive was used" into "this specific person used it, at this specific time."' },
       { text: 'Capture the flag confirming the device was connected the day the employee resigned', why: 'Timing correlation — USB connected on the exact day of resignation, shortly before deleting local files — is exactly the pattern that turns a forensic artifact into defensible evidence for an IP theft case.' },
     ],
     hints: [
-      'cat ~/usbstor-history.txt',
+      'reg query HKLM\\SYSTEM\\CurrentControlSet\\Enum\\USBSTOR /s',
       'Note the LastConnected timestamp and cross-reference it against the case notes file.',
       'cat ~/case-notes.txt for the employee\'s resignation date.',
     ],
     totalFlags: 1,
     attacker: forensicsWs({
       root: dir({
-        'usbstor-history.txt': file(
-          'USBSTOR history extracted from registry hive:\n' +
-            'Disk&Ven_SanDisk&Prod_Cruzer_Glide  Serial=4C531001771122334455  FirstConnected=2024-11-02  LastConnected=2026-07-11 17:42:00\n' +
-            'flag{usb_device_connected_day_of_resignation}\n',
-        ),
         'case-notes.txt': file('Employee resignation effective date: 2026-07-11. Access revoked 2026-07-12 08:00.\n'),
       }),
     }),
+    winCommands: {
+      'reg query HKLM\\SYSTEM\\CurrentControlSet\\Enum\\USBSTOR /s':
+        'HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Enum\\USBSTOR\\Disk&Ven_SanDisk&Prod_Cruzer_Glide&Rev_1.00\n' +
+        '    FriendlyName    REG_SZ    SanDisk Cruzer Glide USB Device\n' +
+        '    Serial Number   REG_SZ    4C531001771122334455\n' +
+        '    FirstConnected  REG_SZ    2024-11-02\n' +
+        '    LastConnected   REG_SZ    2026-07-11 17:42:00\n' +
+        '\n' +
+        'flag{usb_device_connected_day_of_resignation}',
+    },
     network: [],
   },
   {
