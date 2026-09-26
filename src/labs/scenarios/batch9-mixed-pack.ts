@@ -276,24 +276,18 @@ export const batch9MixedLabs: LabScenario[] = [
       'disk space, because "emptying" the Recycle Bin is itself just another delete operation, not a secure ' +
       'wipe.',
     objectives: [
-      { text: 'cat recycle-bin-listing.txt', why: 'Confirms the paired $I/$R file naming convention and which SID (user account) the deletion is attributed to.' },
+      { text: 'dir /a "C:\\$Recycle.Bin\\S-1-5-21-...-1147"', why: 'Confirms the paired $I/$R file naming convention and which SID (user account) the deletion is attributed to.' },
       { text: 'cat parsed-i-file-metadata.txt', why: 'The $I file\'s parsed metadata reveals the original full path, size, and exact deletion timestamp of a file that no longer appears anywhere on the visible filesystem — direct proof the file existed and was deliberately deleted, regardless of the current denial.' },
       { text: 'Identify the original file path and deletion timestamp, then capture the flag', why: 'Naming the exact original path and timestamp is what turns "a file was deleted at some point" into "this specific client-list export was deleted three days before the employee\'s last day," directly contradicting the claim under investigation.' },
     ],
     hints: [
-      'cat recycle-bin-listing.txt',
+      'dir /a "C:\\$Recycle.Bin\\S-1-5-21-...-1147"',
       'cat parsed-i-file-metadata.txt',
       'The flag is on the parsed $I metadata showing the original path and deletion timestamp of the client-list export.',
     ],
     totalFlags: 1,
     attacker: analyst({
       root: dir({
-        'recycle-bin-listing.txt': file(
-          'C:\\$Recycle.Bin\\S-1-5-21-...-1147\\ (SID for user "dmartinez", the departing employee):\n' +
-            '  $I5QK2R9.xlsx   (metadata file)\n' +
-            '  $R5QK2R9.xlsx   (actual recovered content)\n' +
-            '  -- Recycle Bin was later emptied, but both artifacts were recovered from unallocated space --\n',
-        ),
         'parsed-i-file-metadata.txt': file(
           [
             '$I5QK2R9.xlsx parsed (Rifiuti2-style output):',
@@ -309,6 +303,16 @@ export const batch9MixedLabs: LabScenario[] = [
         ),
       }),
     }),
+    winCommands: {
+      'dir /a "C:\\$Recycle.Bin\\S-1-5-21-...-1147"':
+        ' Directory of C:\\$Recycle.Bin\\S-1-5-21-...-1147\n' +
+        '\n' +
+        '07/27/2026  10:41 PM             2,847,201 $R5QK2R9.xlsx\n' +
+        '07/27/2026  10:41 PM                   544 $I5QK2R9.xlsx\n' +
+        '\n' +
+        '-- SID S-1-5-21-...-1147 belongs to user "dmartinez", the departing employee --\n' +
+        '-- Recycle Bin was later emptied, but both artifacts were recovered from unallocated space --',
+    },
     network: [],
   },
 

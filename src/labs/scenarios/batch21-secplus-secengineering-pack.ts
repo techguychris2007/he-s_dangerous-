@@ -27,24 +27,15 @@ export const batch21SecplusSecengineeringLabs: LabScenario[] = [
       'attacker first -- including any plaintext protocol traffic, which the attacker simply reads in transit ' +
       'before forwarding it on so nothing looks broken to the victim.',
     objectives: [
-      { text: 'cat arp-table-anomaly-report.txt', why: 'Multiple hosts on the segment show the SAME MAC address bound to the gateway\'s IP -- a MAC address that does not belong to the real router -- and a burst of unsolicited ARP replies with no matching request, the classic ARP spoofing signature.' },
+      { text: 'arp -a', why: 'Multiple hosts on the segment show the SAME MAC address bound to the gateway\'s IP -- a MAC address that does not belong to the real router -- and a burst of unsolicited ARP replies with no matching request, the classic ARP spoofing signature.' },
       { text: 'cat intercepted-plaintext-auth-capture.txt', why: 'With the gateway route poisoned, an internal application\'s plaintext HTTP Basic Auth traffic transits through the attacker\'s machine before being forwarded on -- captured directly, no cracking or brute force needed at all.' },
     ],
     hints: [
-      'cat arp-table-anomaly-report.txt',
+      'arp -a',
       'cat intercepted-plaintext-auth-capture.txt',
     ],
     totalFlags: 1,
     attacker: attacker({
-      'arp-table-anomaly-report.txt': file(
-        'ARP table anomaly report, ACCOUNTING-VLAN (10.20.30.0/24):\n' +
-          '  Gateway IP 10.20.30.1 resolves to MAC 00:0c:29:8f:a1:7e on 6 different hosts (should be the\n' +
-          '  router\'s own MAC, 00:1a:2b:3c:4d:5e -- these hosts have all been poisoned)\n' +
-          '  Traffic capture shows 340+ unsolicited ARP replies from 00:0c:29:8f:a1:7e claiming ownership of\n' +
-          '  10.20.30.1, none of them preceded by a matching ARP request -- ARP has no authentication at all,\n' +
-          '  so every receiving host updates its cache to match without verifying the claim in any way\n' +
-          '  Host owning 00:0c:29:8f:a1:7e: WKSTN-ACCT-07 (should not be routing anything for anyone)\n',
-      ),
       'intercepted-plaintext-auth-capture.txt': file(
         'Traffic captured transiting WKSTN-ACCT-07 (poisoned gateway route), destined for the real router:\n' +
           '  GET /internal/invoices HTTP/1.1\n' +
@@ -54,6 +45,24 @@ export const batch21SecplusSecengineeringLabs: LabScenario[] = [
           '  flag{arp_cache_poisoning_on_path_credential_capture}\n',
       ),
     }),
+    winCommands: {
+      'arp -a':
+        'Interface: 10.20.30.15 --- 0x3\n' +
+        '  Internet Address      Physical Address      Type\n' +
+        '  10.20.30.1            00-0c-29-8f-a1-7e     dynamic\n' +
+        '  10.20.30.5            00-0c-29-8f-a1-7e     dynamic\n' +
+        '  10.20.30.9            00-0c-29-8f-a1-7e     dynamic\n' +
+        '  10.20.30.12           00-0c-29-8f-a1-7e     dynamic\n' +
+        '  10.20.30.18           00-0c-29-8f-a1-7e     dynamic\n' +
+        '  10.20.30.22           00-0c-29-8f-a1-7e     dynamic\n' +
+        '\n' +
+        '-- ANALYST NOTE: gateway IP 10.20.30.1 resolves to MAC 00-0c-29-8f-a1-7e on 6 different hosts (should\n' +
+        '   be the router\'s own MAC, 00-1a-2b-3c-4d-5e -- these hosts have all been poisoned). Traffic capture\n' +
+        '   shows 340+ unsolicited ARP replies from 00:0c:29:8f:a1:7e claiming ownership of 10.20.30.1, none\n' +
+        '   of them preceded by a matching ARP request -- ARP has no authentication at all, so every receiving\n' +
+        '   host updates its cache to match without verifying the claim in any way. Host owning\n' +
+        '   00:0c:29:8f:a1:7e: WKSTN-ACCT-07 (should not be routing anything for anyone) --',
+    },
     network: [],
   },
 
@@ -122,23 +131,15 @@ export const batch21SecplusSecengineeringLabs: LabScenario[] = [
       'session cookies, everything -- with no certificate warning ever shown to the victim, since the ' +
       'interception is happening at a layer the browser has been told, falsely, to fully trust.',
     objectives: [
-      { text: 'cat trusted-root-store-audit.txt', why: 'An unauthorized CA, never deployed by IT, sits in this device\'s trusted root store -- silently bundled in by a browser extension the user installed themselves.' },
+      { text: 'certutil -store root', why: 'An unauthorized CA, never deployed by IT, sits in this device\'s trusted root store -- silently bundled in by a browser extension the user installed themselves.' },
       { text: 'cat intercepted-tls-session-analysis.txt', why: 'A real banking domain\'s certificate on this device is signed by the rogue CA instead of a real public CA -- proof the rogue CA is actively being used to intercept and re-sign HTTPS traffic in full, with no browser warning shown at all.' },
     ],
     hints: [
-      'cat trusted-root-store-audit.txt',
+      'certutil -store root',
       'cat intercepted-tls-session-analysis.txt',
     ],
     totalFlags: 1,
     attacker: attacker({
-      'trusted-root-store-audit.txt': file(
-        'Trusted root certificate store audit, WKSTN-FIN-31:\n' +
-          '  Unrecognized CA found: "MeridianContentFilter CA" (self-signed, installed 2026-07-22)\n' +
-          '  Installed by: a browser extension ("SaveMore Coupon Finder") the user installed personally,\n' +
-          '  not deployed or authorized by IT at any point -- no MDM/GPO record of this CA exists anywhere\n' +
-          '  -- MITRE ATT&CK T1553.004 (Install Root Certificate): once trusted, this CA can sign a valid-\n' +
-          '     looking certificate for ANY domain, accepted with no browser warning at all --\n',
-      ),
       'intercepted-tls-session-analysis.txt': file(
         'TLS certificate-chain analysis, a session to mybank-secure.example from WKSTN-FIN-31:\n' +
           '  Certificate issuer: MeridianContentFilter CA (the rogue root found above)\n' +
@@ -149,6 +150,22 @@ export const batch21SecplusSecengineeringLabs: LabScenario[] = [
           '  flag{rogue_trusted_root_ca_tls_interception_no_browser_warning}\n',
       ),
     }),
+    winCommands: {
+      'certutil -store root':
+        '================ Certificate 12 ================\n' +
+        'Serial Number: 5f3a91e2c8d047b1\n' +
+        'Issuer: CN=MeridianContentFilter CA\n' +
+        'NotBefore: 7/22/2026 9:14 AM\n' +
+        'NotAfter: 7/22/2031 9:14 AM\n' +
+        'Subject: CN=MeridianContentFilter CA\n' +
+        '(self-signed)\n' +
+        '\n' +
+        '-- ANALYST NOTE: no MDM/GPO deployment record exists anywhere for this CA -- it was installed by a\n' +
+        '   browser extension ("SaveMore Coupon Finder") the user installed personally, not by IT. MITRE ATT&CK\n' +
+        '   T1553.004 (Install Root Certificate): once trusted, this CA can sign a valid-looking certificate\n' +
+        '   for ANY domain, accepted with no browser warning at all --\n' +
+        'CertUtil: -store command completed successfully.',
+    },
     network: [],
   },
 

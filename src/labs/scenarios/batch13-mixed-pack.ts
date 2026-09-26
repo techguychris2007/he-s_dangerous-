@@ -323,24 +323,16 @@ export const batch13MixedLabs: LabScenario[] = [
       'the destination host landing within seconds of that same host\'s wmiprvse.exe (the WMI provider host ' +
       'process) spawning an unexpected child process, which is exactly the pattern this incident shows.',
     objectives: [
-      { text: 'cat acct-wks19-security-eventlog.txt', why: 'Shows the Event ID 4624 Logon Type 3 (network logon) landing on ACCT-WKS-19 seconds before wmiprvse.exe spawns an unexpected child process -- the real, high-confidence correlation analysts use to distinguish this from routine WMI/sysadmin activity.' },
+      { text: 'Query the Security log for Event ID 4624 with wevtutil', why: 'Shows the Event ID 4624 Logon Type 3 (network logon) landing on ACCT-WKS-19 seconds before wmiprvse.exe spawns an unexpected child process -- the real, high-confidence correlation analysts use to distinguish this from routine WMI/sysadmin activity.' },
       { text: 'cat wmic-command-captured.txt', why: 'The literal command the attacker ran from FIN-WKS-08 -- wmic /node:ACCT-WKS-19 process call create -- confirming this matches MITRE ATT&CK T1047 exactly, not a generic "suspicious process" alert.' },
     ],
     hints: [
-      'cat acct-wks19-security-eventlog.txt',
+      'wevtutil qe Security /q:"*[System[(EventID=4624)]]" /f:text',
       'cat wmic-command-captured.txt',
     ],
     totalFlags: 1,
     attacker: analyst({
       root: dir({
-        'acct-wks19-security-eventlog.txt': file(
-          'Windows Security Event Log, ACCT-WKS-19:\n' +
-            '  09:14:02  Event ID 4624 (Logon Type 3 - Network)  Account: FINSVC-ADMIN  Source: 10.10.14.108 (FIN-WKS-08)\n' +
-            '  09:14:04  wmiprvse.exe (PID 3312) spawns cmd.exe /c "whoami > C:\\Windows\\Temp\\out.txt"\n' +
-            '  -- a network logon (4624, type 3) landing seconds before wmiprvse.exe -- the WMI provider host\n' +
-            '     process -- spawns an unexpected child process is the standard, high-confidence WMI lateral\n' +
-            '     movement correlation, distinguishing this from routine WMI/sysadmin/monitoring traffic --\n',
-        ),
         'wmic-command-captured.txt': file(
           'EDR command-line capture, FIN-WKS-08 (source host):\n' +
             '  wmic /node:ACCT-WKS-19 /user:FINSVC-ADMIN /password:******** process call create "cmd.exe /c whoami > C:\\Windows\\Temp\\out.txt"\n' +
@@ -352,6 +344,28 @@ export const batch13MixedLabs: LabScenario[] = [
         ),
       }),
     }),
+    winCommands: {
+      'wevtutil qe Security /q:"*[System[(EventID=4624)]]" /f:text':
+        'Event[0]:\n' +
+        '  Log Name: Security\n' +
+        '  Event ID: 4624\n' +
+        '  Logon Type: 3 (Network)\n' +
+        '  Date: 09:14:02\n' +
+        '    Account Name: FINSVC-ADMIN\n' +
+        '    Source Network Address: 10.10.14.108 (FIN-WKS-08)\n' +
+        '\n' +
+        'Event[1]:\n' +
+        '  Log Name: Security\n' +
+        '  Event ID: 4688\n' +
+        '  Date: 09:14:04\n' +
+        '    New Process Name: cmd.exe\n' +
+        '    Command Line: cmd.exe /c "whoami > C:\\Windows\\Temp\\out.txt"\n' +
+        '    Creator Process Name: wmiprvse.exe (PID 3312)\n' +
+        '\n' +
+        '  -- a network logon (4624, type 3) landing seconds before wmiprvse.exe -- the WMI provider host\n' +
+        '     process -- spawns an unexpected child process is the standard, high-confidence WMI lateral\n' +
+        '     movement correlation, distinguishing this from routine WMI/sysadmin/monitoring traffic --',
+    },
     network: [],
   },
 ];

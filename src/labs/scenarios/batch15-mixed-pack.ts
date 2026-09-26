@@ -295,41 +295,54 @@ export const batch15MixedLabs: LabScenario[] = [
       'to that account\'s original Event ID 4624 logon — tying the anti-forensics action to a specific, ' +
       'traceable authenticated session rather than leaving it anonymous.',
     objectives: [
-      { text: 'cat filesrv09-security-eventlog-1102.txt', why: 'The one event that survives a log-clearing operation unconditionally -- names the exact account and Logon ID responsible, turning "the logs are just gone" into a directly attributable action.' },
-      { text: 'cat logon-id-correlation.txt', why: 'Correlates the 1102 event\'s Logon ID back to that same session\'s original Event ID 4624 network logon -- confirming exactly which authenticated session cleared the log, not just which account name was configured on it.' },
+      { text: 'Query the Security log for Event ID 1102 with wevtutil', why: 'The one event that survives a log-clearing operation unconditionally -- names the exact account and Logon ID responsible, turning "the logs are just gone" into a directly attributable action.' },
+      { text: 'Query the Security log for the matching Event ID 4624 logon', why: 'Correlates the 1102 event\'s Logon ID back to that same session\'s original Event ID 4624 network logon -- confirming exactly which authenticated session cleared the log, not just which account name was configured on it.' },
     ],
     hints: [
-      'cat filesrv09-security-eventlog-1102.txt',
-      'cat logon-id-correlation.txt',
+      'wevtutil qe Security /q:"*[System[(EventID=1102)]]" /f:text',
+      'wevtutil qe Security /q:"*[System[(EventID=4624)]]" /f:text',
     ],
     totalFlags: 1,
     attacker: analyst({
-      root: dir({
-        'filesrv09-security-eventlog-1102.txt': file(
-          'FILESRV-09 Security Event Log:\n' +
-            '  2026-07-30 21:47:03  Event ID 1102  "The audit log was cleared."\n' +
-            '    Subject: Security ID: CORP\\svc_backup   Account Name: svc_backup   Logon ID: 0x3F8A21\n' +
-            '  2026-07-30 21:47:04  [log resumes -- ~5,900 events from the prior 6 hours are gone]\n' +
-            '  2026-07-31 03:12:00  [ransomware encryption activity begins, per EDR telemetry]\n' +
-            '\n' +
-            '-- Windows logs Event ID 1102 unconditionally whenever the Security log is cleared, regardless of\n' +
-            '   audit policy configuration -- clearing the log is ALWAYS itself treated as security-relevant,\n' +
-            '   which is exactly why this one event survived when nearly six hours of everything else did not --\n',
-        ),
-        'logon-id-correlation.txt': file(
-          'Logon ID correlation, svc_backup, Logon ID 0x3F8A21:\n' +
-            '  2026-07-30 19:58:41  Event ID 4624 (Logon Type 3 - Network)  Account: svc_backup  Logon ID: 0x3F8A21\n' +
-            '                       Source: 10.10.14.221 (WKSTN-URGENT-IT, not svc_backup\'s normal automation host)\n' +
-            '\n' +
-            '--- ANALYST NOTE: Logon ID 0x3F8A21 on the 1102 event matches this EXACT 4624 network logon --\n' +
-            '    svc_backup is a service account whose normal automation host is a completely different machine;\n' +
-            '    this session originated from a workstation, not the automation pipeline. That single matching\n' +
-            '    Logon ID is what ties the anti-forensics log-clear action to one specific, traceable session\n' +
-            '    rather than leaving "svc_backup did it" as an ambiguous, unattributable account name.\n' +
-            '    flag{event_1102_audit_log_cleared_correlated_via_logon_id_to_4624} ---\n',
-        ),
-      }),
+      root: dir({}),
     }),
+    winCommands: {
+      'wevtutil qe Security /q:"*[System[(EventID=1102)]]" /f:text':
+        'Event[0]:\n' +
+        '  Log Name: Security\n' +
+        '  Source: Microsoft-Windows-Eventlog\n' +
+        '  Date: 2026-07-30T21:47:03.000Z\n' +
+        '  Event ID: 1102\n' +
+        '  Task: Log clear\n' +
+        '  Description: The audit log was cleared.\n' +
+        '    Subject:\n' +
+        '      Security ID: CORP\\svc_backup\n' +
+        '      Account Name: svc_backup\n' +
+        '      Logon ID: 0x3F8A21\n' +
+        '\n' +
+        '-- Windows logs Event ID 1102 unconditionally whenever the Security log is cleared, regardless of\n' +
+        '   audit policy configuration -- clearing the log is ALWAYS itself treated as security-relevant,\n' +
+        '   which is exactly why this one event survived when nearly six hours of everything else did not.\n' +
+        '   ~5,900 events from the prior 6 hours are gone; ransomware encryption activity begins at 03:12:00,\n' +
+        '   per EDR telemetry. --',
+      'wevtutil qe Security /q:"*[System[(EventID=4624)]]" /f:text':
+        'Event[0]:\n' +
+        '  Log Name: Security\n' +
+        '  Source: Microsoft-Windows-Security-Auditing\n' +
+        '  Date: 2026-07-30T19:58:41.000Z\n' +
+        '  Event ID: 4624\n' +
+        '  Logon Type: 3 (Network)\n' +
+        '    Account Name: svc_backup\n' +
+        '    Logon ID: 0x3F8A21\n' +
+        '    Source Network Address: 10.10.14.221 (WKSTN-URGENT-IT)\n' +
+        '\n' +
+        '--- ANALYST NOTE: Logon ID 0x3F8A21 on the 1102 event matches this EXACT 4624 network logon --\n' +
+        '    svc_backup is a service account whose normal automation host is a completely different machine;\n' +
+        '    this session originated from a workstation, not the automation pipeline. That single matching\n' +
+        '    Logon ID is what ties the anti-forensics log-clear action to one specific, traceable session\n' +
+        '    rather than leaving "svc_backup did it" as an ambiguous, unattributable account name.\n' +
+        '    flag{event_1102_audit_log_cleared_correlated_via_logon_id_to_4624} ---',
+    },
     network: [],
   },
 

