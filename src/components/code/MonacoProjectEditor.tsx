@@ -1,15 +1,8 @@
 import { useEffect, useRef } from 'react';
-import Editor, { loader, type Monaco } from '@monaco-editor/react';
+import Editor, { type Monaco } from '@monaco-editor/react';
 import type { editor as MonacoEditorNs } from 'monaco-editor';
 import type { ProjectFile } from '../../labs/projectTypes';
-
-// Loaded from the jsDelivr CDN on demand — same pattern as Pyodide (src/lib/pyodideRunner.ts) and for
-// the same reason: bundling Monaco's ~5MB core + language workers would force every visitor's PWA
-// install to download it, including everyone who never opens the Build Portal. Pinned to the exact
-// version installed as a devDependency (package.json) so the runtime always matches the types this
-// file was checked against — see vite.config.ts for the matching runtimeCaching rule that keeps this
-// usable offline after the first load.
-loader.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.56.0/min/vs' } });
+import '../../lib/monacoLoader';
 
 function readVsTheme(): 'vs-dark' | 'vs' {
   return document.documentElement.dataset.theme === 'light' ? 'vs' : 'vs-dark';
