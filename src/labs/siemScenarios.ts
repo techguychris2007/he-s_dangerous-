@@ -1,6 +1,10 @@
 import type { SiemLabScenario } from './siemTypes';
+import { CLOUTHAUS_BREACH } from './scenarios/siem-narrative-clouthaus';
 
 export const SIEM_LABS: SiemLabScenario[] = [
+  // ── Narrative / Gamified Investigation Labs (Story-first) ────────────────────
+  CLOUTHAUS_BREACH,
+
   // ───────────────────────── Suricata ─────────────────────────
   {
     id: 'siem-suricata-target-2013',

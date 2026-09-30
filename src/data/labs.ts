@@ -92,6 +92,8 @@ import { malwareCapstoneLabs } from '../labs/scenarios/malware-capstone-pack';
 import { linuxCapstoneLabs } from '../labs/scenarios/capstone-linux-pack';
 import { networkCapstoneLabs } from '../labs/scenarios/capstone-network-pack';
 import { webCapstoneLabs } from '../labs/scenarios/capstone-web-pack';
+import { guidedPentestLabs } from '../labs/scenarios/guided-pentest-pack';
+import { guidedPentestLabs2 } from '../labs/scenarios/guided-pentest-pack-2';
 import { adCapstoneLabs } from '../labs/scenarios/capstone-ad-pack';
 import { bugBountyCapstoneLabs } from '../labs/scenarios/capstone-bugbounty-pack';
 import { cloudCapstoneLabs } from '../labs/scenarios/capstone-cloud-pack';
@@ -212,6 +214,8 @@ export const LABS: LabEntry[] = [
   ...toEntries(linuxCapstoneLabs),
   ...toEntries(networkCapstoneLabs),
   ...toEntries(webCapstoneLabs),
+  ...toEntries(guidedPentestLabs),
+  ...toEntries(guidedPentestLabs2),
   ...toEntries(adCapstoneLabs),
   ...toEntries(bugBountyCapstoneLabs),
   ...toEntries(cloudCapstoneLabs),
@@ -296,7 +300,7 @@ export function findLab(slug?: string): LabEntry | undefined {
 const CATEGORY_ORDER: Record<string, number> = Object.fromEntries(LAB_CATEGORIES.map((c, i) => [c, i]));
 const DIFFICULTY_ORDER: Record<string, number> = { Easy: 0, Medium: 1, Hard: 2 };
 
-/** Stable-sorts labs into the same sequence the roadmap teaches them: category by module order, then Easy → Hard within it. */
+/** Stable-sorts labs into the same sequence the roadmap teaches them: category by module order, then Easy â†’ Hard within it. */
 export function sortLabsByRoadmap(labs: LabEntry[]): LabEntry[] {
   return [...labs].sort((a, b) => {
     const catDiff = (CATEGORY_ORDER[a.scenario.category] ?? 99) - (CATEGORY_ORDER[b.scenario.category] ?? 99);
@@ -305,7 +309,7 @@ export function sortLabsByRoadmap(labs: LabEntry[]): LabEntry[] {
   });
 }
 
-/** The full lab list in roadmap order — the spine the mentor companion walks the learner along. */
+/** The full lab list in roadmap order â€” the spine the mentor companion walks the learner along. */
 export const LABS_IN_ROADMAP_ORDER: LabEntry[] = sortLabsByRoadmap(LABS);
 
 export function labsForCategory(category: string): LabEntry[] {

@@ -20,7 +20,10 @@ export type VulnKind =
   | 'cache-deception'
   | 'hpp'
   | 'prompt-injection'
-  | 'excessive-agency';
+  | 'excessive-agency'
+  | 'lfi'
+  | 'weak-auth'
+  | 'deserialization';
 
 export interface VulnRoute {
   kind: VulnKind;

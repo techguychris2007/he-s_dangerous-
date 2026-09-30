@@ -3,6 +3,8 @@ import { PYTHON_CRYPTO_TASKS } from './cryptoAndEncoding';
 import { PYTHON_OOP_TASKS } from './oop';
 import { PYTHON_ADVANCED_TASKS } from './advanced';
 import { PYTHON_CAPSTONE_TASKS } from './capstones';
+import { PYTHON_AI_AGENT_TASKS } from './aiAgents';
+import { PYTHON_ETHICAL_HACKING_AGENT_TASKS } from './ethicalHackingAgents';
 import type { CodeTask } from '../codeTypes';
 
 export const PYTHON_TASKS: CodeTask[] = [
@@ -11,6 +13,8 @@ export const PYTHON_TASKS: CodeTask[] = [
   ...PYTHON_OOP_TASKS,
   ...PYTHON_ADVANCED_TASKS,
   ...PYTHON_CAPSTONE_TASKS,
+  ...PYTHON_AI_AGENT_TASKS,
+  ...PYTHON_ETHICAL_HACKING_AGENT_TASKS,
 ];
 
-export const PYTHON_TASK_CATEGORIES = ['Fundamentals', 'Cryptography & Encoding', 'OOP', 'Advanced', 'Capstone'] as const;
+export const PYTHON_TASK_CATEGORIES = ['Fundamentals', 'Cryptography & Encoding', 'OOP', 'Advanced', 'Capstone', 'AI Agents'] as const;
