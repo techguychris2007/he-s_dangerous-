@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import type { SiemLabScenario, SiemTool } from '../../labs/siemTypes';
 import { matchesQuery, extractFlag } from '../../labs/siemTypes';
+import QRadarConsole from './QRadarConsole';
+import SplunkConsole from './SplunkConsole';
 
 interface Branding {
   name: string;
@@ -290,6 +292,17 @@ export default function SiemConsole({
    *  role as Terminal's onTranscriptChange, for the AI lab tutor to see real session activity. */
   onTranscriptChange?: (transcript: string) => void;
 }) {
+  // QRadar and Splunk get dedicated, visually authentic consoles — a real IBM Carbon-style Log
+  // Activity grid and a real Search & Reporting layout — instead of the shared generic template
+  // every other tool below still uses. See QRadarConsole/SplunkConsole for why these two specifically:
+  // they're this platform's two highest-usage SIEM tools across existing lab content.
+  if (scenario.tool === 'qradar') {
+    return <QRadarConsole scenario={scenario} onFlagCaptured={onFlagCaptured} onTranscriptChange={onTranscriptChange} />;
+  }
+  if (scenario.tool === 'splunk') {
+    return <SplunkConsole scenario={scenario} onFlagCaptured={onFlagCaptured} onTranscriptChange={onTranscriptChange} />;
+  }
+
   const b = BRANDING[scenario.tool];
   const [query, setQuery] = useState('');
   const [ran, setRan] = useState(false);

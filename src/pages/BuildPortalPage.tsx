@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { SE_TASK_INDEX, SE_TRACKS, seCategoriesFor, type SeTaskMeta } from '../labs/seTasks';
 import type { SeLanguage, SeTrack } from '../labs/projectTypes';
@@ -6,6 +6,7 @@ import { useProgress } from '../state/progressStore';
 import ProjectTaskCard from '../components/code/ProjectTaskCard';
 import Logo from '../components/layout/Logo';
 import { IconFlask, IconLayers, IconSearch, IconX } from '../components/layout/icons';
+import { preloadMonaco } from '../lib/monacoLoader';
 
 const LANGUAGES: SeLanguage[] = ['python', 'javascript', 'cpp'];
 const LANGUAGE_LABEL: Record<SeLanguage, string> = { python: 'Python', javascript: 'JavaScript', cpp: 'C++' };
@@ -22,6 +23,10 @@ export default function BuildPortalPage() {
   const [status, setStatus] = useState<StatusFilter>('All');
   const [search, setSearch] = useState('');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  useEffect(() => {
+    preloadMonaco();
+  }, []);
 
   const tracksForLanguage = SE_TRACKS[language];
   // Switching to a language whose tracks don't include the currently-selected one (e.g. C++ has no

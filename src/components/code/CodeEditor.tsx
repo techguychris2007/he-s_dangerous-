@@ -1,11 +1,6 @@
-import Editor, { loader } from '@monaco-editor/react';
+import Editor from '@monaco-editor/react';
 import type { CodeLanguage } from '../../labs/codeTypes';
-
-// Same CDN-loaded engine, same pinned version, as the Build Portal's MonacoProjectEditor — see that
-// file for why this isn't bundled. loader.config() is idempotent across multiple call sites, so
-// calling it again here (rather than importing a shared "configure once" module) is deliberately
-// simple and harmless either way.
-loader.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.56.0/min/vs' } });
+import '../../lib/monacoLoader';
 
 function readVsTheme(): 'vs-dark' | 'vs' {
   return document.documentElement.dataset.theme === 'light' ? 'vs' : 'vs-dark';

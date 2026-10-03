@@ -172,7 +172,7 @@ export default function HomePage() {
           <Link
             key={category}
             to={`/labs?category=${encodeURIComponent(category)}`}
-            className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3.5 hover:border-[var(--color-accent)]/50 transition-colors"
+            className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 hover:border-[var(--color-accent)]/50 transition-colors"
           >
             <div className="flex items-center gap-2 mb-2">
               <ModuleIcon icon={CATEGORY_BANNER[category] ?? 'linux'} className="w-4 h-4 text-[var(--color-accent)] shrink-0" />
@@ -224,20 +224,20 @@ export default function HomePage() {
       </div>
 
       <div
-        className="rounded-xl border border-[var(--color-border)] bg-[var(--color-accent)] p-6 flex items-center justify-between flex-wrap gap-3 reveal"
+        className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 flex items-center justify-between flex-wrap gap-3 reveal"
         style={{ '--reveal-delay': '0.4s' } as React.CSSProperties}
       >
         <div>
-          <h2 className="text-base font-bold text-white mb-1 flex items-center gap-2">
-            <IconFlag className="w-4 h-4" /> Full curriculum roadmap
+          <h2 className="text-base font-bold text-[var(--color-heading)] mb-1 flex items-center gap-2">
+            <IconFlag className="w-4 h-4 text-[var(--color-accent)]" /> Full curriculum roadmap
           </h2>
-          <p className="text-sm text-white/70">
+          <p className="text-sm text-[var(--color-text-dim)]">
             All {MODULES.length} core modules and {LABS.length} labs are live — from Linux fundamentals through
             Active Directory, cloud, malware analysis, and binary exploitation.
           </p>
         </div>
-        <Link to="/roadmap" className="px-4 py-2 rounded-lg bg-white text-[var(--color-accent)] text-sm font-semibold hover:bg-white/90 transition shrink-0">
-          View roadmap &rarr;
+        <Link to="/roadmap" className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[var(--color-accent)] text-white text-sm font-semibold hover:brightness-110 transition shrink-0">
+          View roadmap <IconArrowRight className="w-4 h-4" />
         </Link>
       </div>
     </div>

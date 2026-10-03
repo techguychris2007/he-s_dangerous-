@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { findModule } from '../data/curriculum';
 import { PYTHON_TASKS, PYTHON_TASK_CATEGORIES } from '../labs/pythonTasks';
@@ -11,6 +11,7 @@ import CodeTaskCard from '../components/code/CodeTaskCard';
 import Logo from '../components/layout/Logo';
 import { IconBook, IconCheck, IconCode, IconFlask, IconSearch, IconX } from '../components/layout/icons';
 import { booksInTrack } from '../data/books';
+import { preloadMonaco } from '../lib/monacoLoader';
 
 const CODE_MODULE_SLUGS = ['code-python-fundamentals', 'code-python-oop', 'code-python-advanced'];
 
@@ -34,6 +35,12 @@ export default function CodePortalPage() {
   const [languageFilter, setLanguageFilter] = useState<CodeLanguage | 'All'>('All');
   const [categoryFilter, setCategoryFilter] = useState<string>('All');
   const [search, setSearch] = useState('');
+
+  // Start fetching Monaco now, while the learner is browsing this list — by the time they click into
+  // a task, the editor's CDN bundle is already loading/cached instead of only starting at that point.
+  useEffect(() => {
+    preloadMonaco();
+  }, []);
 
   const codeModules = useMemo(
     () => CODE_MODULE_SLUGS.map((slug) => findModule(slug)).filter((m): m is NonNullable<typeof m> => Boolean(m)),

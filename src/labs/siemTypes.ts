@@ -27,6 +27,24 @@ export interface SiemEntry {
   timestamp?: string;
 }
 
+/** Optional story wrapper that turns a SIEM lab into a gamified narrative investigation.
+ *  When present, the lab page renders a cinematic story header and replaces the dry "Lab Guide"
+ *  title with "Your Mission". */
+export interface SiemNarrative {
+  /** Short story title / hook — shown prominently above the briefing */
+  hook: string;
+  /** The victim/protagonist name */
+  victim: string;
+  /** 1-2 sentence scene-setter shown as a story paragraph */
+  scene: string;
+  /** The analyst's mission — what they are being asked to do */
+  mission: string;
+  /** Short chapter tags shown as pills — each maps to one investigation phase */
+  chapters: string[];
+  /** Optional emoji or icon character displayed alongside the victim name */
+  emoji?: string;
+}
+
 export interface SiemLabScenario {
   id: string;
   title: string;
@@ -40,6 +58,8 @@ export interface SiemLabScenario {
   hints: string[];
   totalFlags: number;
   entries: SiemEntry[];
+  /** When present, the lab is rendered as a gamified story investigation instead of a plain guide */
+  narrative?: SiemNarrative;
 }
 
 const FLAG_RE = /flag\{[^}]+\}/i;
