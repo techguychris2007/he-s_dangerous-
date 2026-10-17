@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
+    "check:deployment": "node scripts/check-deployment.cjs",
     "test:engagements": "node scripts/check-engagements.cjs",
     "test:platform": "node scripts/check-platform.cjs && node scripts/check-account-progress.cjs && node scripts/check-visual-labs.cjs && node scripts/check-code-results.cjs && node scripts/check-kerberos-lab.cjs && node scripts/check-guided-labs.cjs && node scripts/check-defensive-investigations.cjs",
     "test:documents": "node scripts/check-documents.cjs",
