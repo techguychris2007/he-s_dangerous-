@@ -45,7 +45,7 @@ export default function SecuringAiAgentsMultiAgentSystems() {
         </p>
       </Callout>
 
-      <h2>MCP and standardized tool-calling: new plumbing, the same LLM07 risks</h2>
+      <h2>MCP and standardized tool-calling: tool transport, authorization and excessive-agency risks</h2>
       <p>
         The Model Context Protocol (MCP) and similar standardized tool-calling frameworks, which saw rapid
         adoption starting in late 2024, let an AI application connect to external tools and data sources

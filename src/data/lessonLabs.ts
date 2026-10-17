@@ -1,14 +1,34 @@
 /** Maps each lesson id to the lab(s) embedded inline at the bottom of that lesson. */
+import { ADVANCED_LESSON_LABS } from './advancedOffensiveCurriculum';
+import { PRE_SECURITY_LESSON_LABS } from './preSecurityCurriculum';
+import { DEFENSIVE_LESSON_LABS } from './defensiveCurriculum';
+import { KALI_FOUNDATION_LESSON_LABS } from './kaliFoundationsCurriculum';
+import { modernNetworkingLessons } from '../content/kali-foundations/modern-networking';
+import { modernLinuxLessons, modernWebLessons } from '../content/kali-foundations/modern-systems-web';
+import { exploitationBinaryLessons } from '../content/exploitation-foundations/binary';
+import { exploitationNetworkLessons, exploitationEngineeringLessons, exploitationCryptoLessons } from '../content/exploitation-foundations/network-security';
+import { MODERN_COLLECTION_LESSON_LABS } from './modernCollectionCurriculum';
+
 export const LESSON_LABS: Record<string, string[]> = {
+  ...MODERN_COLLECTION_LESSON_LABS,
+  ...ADVANCED_LESSON_LABS,
+  ...PRE_SECURITY_LESSON_LABS,
+  ...DEFENSIVE_LESSON_LABS,
+  ...KALI_FOUNDATION_LESSON_LABS,
+  ...Object.fromEntries([...modernNetworkingLessons, ...modernLinuxLessons, ...modernWebLessons].map(lesson => [lesson.id, lesson.labs])),
+  ...Object.fromEntries([...exploitationBinaryLessons, ...exploitationNetworkLessons, ...exploitationEngineeringLessons, ...exploitationCryptoLessons].map(lesson => [lesson.id, lesson.labs])),
+  'adv-identity-1': [...ADVANCED_LESSON_LABS['adv-identity-1'], 'web-live-meridian-billing'],
+  'adv-identity-3': [...ADVANCED_LESSON_LABS['adv-identity-3'], 'web-live-relay-support'],
+  'adv-identity-4': [...ADVANCED_LESSON_LABS['adv-identity-4'], 'ad-visual-replication-boundary', 'ad-visual-segmented-identity'],
   // Networking Fundamentals
   'net-1': ['net-redis-unauth', 'net-elasticsearch-open'],
   'net-2': ['net-mongodb-open', 'net-rsync-anon'],
   'net-3': ['net-smb-null-session', 'net-telnet-default'],
   'net-4': ['net-snmp-public', 'net-ftp-backdoor'],
   'net-5': ['net-jenkins-default'],
-  'net-6': ['net-ipv6-transition-mechanisms', 'batch20-ipv6-slaac-ra-spoofing'],
-  'net-7': ['batch19-vlan-double-tagging-hopping', 'batch20-firewall-stateless-rst-bypass'],
-  'net-8': ['batch19-bgp-prefix-hijacking-route-leak', 'network-capstone-anonymous-ftp-to-internal-database'],
+  'net-6': ['net-ipv6-transition-mechanisms'],
+  'net-7': ['securityplus-vlan-hopping-double-tagging', 'secplus-firewall-rule-audit'],
+  'net-8': ['network-capstone-anonymous-ftp-to-internal-database'],
 
   // Linux Basics for Hackers
   'lin-1': ['linux-fundamentals', 'privesc-find'],
@@ -154,13 +174,7 @@ export const LESSON_LABS: Record<string, string[]> = {
   'for-6': ['for-case-closure-report-writing'],
 
   // Cloud Security
-  'cloud-1': [
-    'cloud-public-s3-bucket',
-    'cloud-metadata-ssrf',
-    'cloud-exposed-kubernetes-dashboard',
-    'cloud-exposed-docker-api',
-    'cloud-public-write-bucket',
-  ],
+  'cloud-1': ['cloud-public-s3-bucket', 'cloud-multi-account-cross-account-iam'],
   'cloud-2': [
     'cloud-exposed-terraform-state',
     'cloud-waf-ssrf-breach-chain',
@@ -282,7 +296,7 @@ export const LESSON_LABS: Record<string, string[]> = {
   'wl-2': ['wl-wpa2-encryption-handshake-capture', 'wireless-wpa2-live-handshake-capture-crack'],
   'wl-3': ['wireless-wpa2-live-handshake-capture-crack'],
   'wl-4': ['wl-rogue-ap-evil-twin-ssid-clone'],
-  'wl-5': ['wireless-password-reuse-scenario'],
+  'wl-5': ['wireless-password-reuse-handshake-to-shell'],
   'wl-6': ['wireless-wpa2-live-handshake-capture-crack'],
   'wl-7': ['wl-rogue-ap-evil-twin-ssid-clone'],
   'wl-8': ['wireless-capstone-wpa2-crack-to-wired-network-pivot'],
@@ -307,15 +321,6 @@ export const LESSON_LABS: Record<string, string[]> = {
   'ai-7': ['ai-sec-owasp-top-10-for-llms'],
   'ai-8': ['ai-capstone-prompt-injection-to-confused-deputy-export'],
 
-  // Aliases for ai-sec-*
-  'ai-sec-1': ['ai-sec-owasp-top-10-for-llms'],
-  'ai-sec-2': ['ai-sec-prompt-injection-basics'],
-  'ai-sec-3': ['ai-capstone-prompt-injection-to-confused-deputy-export'],
-  'ai-sec-4': ['ai-sec-training-data-poisoning', 'ai-sec-model-extraction-theft'],
-  'ai-sec-5': ['ai-capstone-prompt-injection-to-confused-deputy-export'],
-  'ai-sec-6': ['ai-sec-prompt-injection-basics'],
-  'ai-sec-7': ['ai-sec-owasp-top-10-for-llms'],
-  'ai-sec-8': ['ai-capstone-prompt-injection-to-confused-deputy-export'],
 };
 
 export function labsForLesson(lessonId: string): string[] {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from '../../state/authStore';
 import { fetchLabComments, postLabComment, deleteLabComment, type LabComment } from '../../lib/labComments';
 import { IconMessage, IconX } from '../layout/icons';
@@ -15,24 +15,37 @@ export default function LabComments({ labId }: { labId: string }) {
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const load = () => {
+  const requestRef = useRef(0);
+  const contextRef = useRef(0);
+  const load = useCallback(() => {
+    const request = ++requestRef.current;
     setLoading(true);
     fetchLabComments(labId)
-      .then(setComments)
-      .finally(() => setLoading(false));
-  };
+      .then(result => { if (request === requestRef.current) setComments(result); })
+      .catch(() => { if (request === requestRef.current) setComments(null); })
+      .finally(() => { if (request === requestRef.current) setLoading(false); });
+  }, [labId]);
 
   useEffect(() => {
+    contextRef.current++;
+    setComments(null);
+    setMessage('');
+    setError(null);
+    setPosting(false);
     load();
+    // Generation counters intentionally invalidate outstanding async work on cleanup.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [labId]);
+    return () => { requestRef.current++; contextRef.current++; };
+  }, [load, auth.user?.id]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!auth.user || posting || !message.trim()) return;
     setPosting(true);
     setError(null);
-    const result = await postLabComment(auth.user.id, labId, message);
+    const context = contextRef.current;
+    const result = await postLabComment(auth.user.id, labId, message).catch(() => ({ ok: false as const, error: 'Could not post your comment. Check your connection and retry.' }));
+    if (context !== contextRef.current) return;
     setPosting(false);
     if (!result.ok) {
       setError(result.error);
@@ -45,8 +58,10 @@ export default function LabComments({ labId }: { labId: string }) {
   const remove = async (id: string) => {
     if (!comments) return;
     setComments(comments.filter((c) => c.id !== id));
-    const ok = await deleteLabComment(id);
-    if (!ok) load();
+    const context = contextRef.current;
+    const ok = await deleteLabComment(id).catch(() => false);
+    if (context !== contextRef.current) return;
+    if (!ok) { setError('The comment could not be deleted. Please retry.'); load(); }
   };
 
   if (!auth.user) return null;
@@ -62,6 +77,8 @@ export default function LabComments({ labId }: { labId: string }) {
 
       <form onSubmit={submit} className="mb-4">
         <textarea
+          aria-label="Discussion comment"
+          disabled={posting}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Stuck, or have a tip for the next person? Ask or share here — no flag spoilers."
@@ -69,7 +86,7 @@ export default function LabComments({ labId }: { labId: string }) {
           maxLength={2000}
           className="w-full text-sm bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-[var(--color-text)] resize-none leading-relaxed focus-visible:ring-1 focus-visible:ring-[var(--color-accent)] outline-none"
         />
-        {error && <div className="text-2xs text-[var(--color-danger)] mt-1">{error}</div>}
+        {error && <div role="alert" className="text-2xs text-[var(--color-danger)] mt-1">{error}</div>}
         <button
           type="submit"
           disabled={posting || !message.trim()}
@@ -82,7 +99,7 @@ export default function LabComments({ labId }: { labId: string }) {
       {loading ? (
         <div className="text-xs text-[var(--color-text-dim)]">Loading discussion…</div>
       ) : !comments ? (
-        <div className="text-xs text-[var(--color-text-dim)]">Discussion isn't available right now.</div>
+        <div className="text-xs text-[var(--color-text-dim)]">Discussion isn't available right now.<button onClick={load} className="ml-2 font-semibold text-[var(--color-accent-dim)] underline">Retry</button></div>
       ) : comments.length === 0 ? (
         <div className="text-xs text-[var(--color-text-dim)]">No comments yet — be the first.</div>
       ) : (
@@ -98,7 +115,7 @@ export default function LabComments({ labId }: { labId: string }) {
                       onClick={() => remove(c.id)}
                       aria-label="Delete comment"
                       title="Delete your comment"
-                      className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity text-[var(--color-text-dim)] hover:text-[var(--color-danger)]"
+                      className="opacity-100 sm:opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity text-[var(--color-text-dim)] hover:text-[var(--color-danger)]"
                     >
                       <IconX className="w-3 h-3" />
                     </button>

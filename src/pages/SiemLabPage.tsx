@@ -5,10 +5,13 @@ import { OSINT_LABS } from '../labs/osintScenarios';
 import { useProgress } from '../state/progressStore';
 import StepChecklist from '../components/lesson/StepChecklist';
 import SiemConsole from '../components/siem/SiemConsole';
+import InvestigationWorkbench from '../components/siem/InvestigationWorkbench';
 import OsintTerminal from '../components/labs/OsintTerminal';
 import CyberLabAI from '../components/labs/CyberLabAI';
 import LabComments from '../components/labs/LabComments';
 import DifficultyPill from '../components/common/DifficultyPill';
+import ShareWriteupModal from '../components/labs/ShareWriteupModal';
+import LabLearningBridge from '../components/labs/LabLearningBridge';
 import { IconFlag, IconCheck } from '../components/layout/icons';
 
 const TOOL_LABEL: Record<string, string> = {
@@ -105,6 +108,8 @@ export default function SiemLabPage() {
   const { labId } = useParams();
   const progress = useProgress();
   const [hintIndex, setHintIndex] = useState(0);
+  const [guideExpanded, setGuideExpanded] = useState(false);
+  const [sharing, setSharing] = useState(false);
   const siemScenario = SIEM_LABS.find((s) => s.id === labId);
   const osintScenario = OSINT_LABS.find((s) => s.id === labId);
   const scenario = siemScenario ?? osintScenario;
@@ -113,14 +118,17 @@ export default function SiemLabPage() {
 
   useEffect(() => {
     setHintIndex(0);
+    setGuideExpanded(false);
+    setSharing(false);
     transcriptRef.current = '';
   }, [labId]);
 
   if (!scenario) return <Navigate to="/labs" replace />;
 
   const captured = progress.flagCount(scenario.id);
-  const onFlagCaptured = (flag: string) => progress.captureFlag(scenario.id, flag);
+  const onFlagCaptured = (flag: string) => progress.captureFlag(scenario.id, flag, scenario.totalFlags);
   const done = captured >= scenario.totalFlags;
+  const progressPct = Math.min(100, Math.round((100 * captured) / Math.max(scenario.totalFlags, 1)));
   // Same fix as the offensive-lab LabPage: ties off to flags actually captured, not queries run,
   // so a stream of wrong/unrelated queries can never tick a guided step off.
   const autoCheckedCount = done
@@ -130,32 +138,45 @@ export default function SiemLabPage() {
   const narrative = siemScenario?.narrative;
 
   return (
-    <div className="h-full flex flex-col lg:flex-row">
-      <div className="lg:w-96 shrink-0 border-b lg:border-b-0 lg:border-r border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-6 overflow-y-auto">
+    <div className="h-full min-h-0 flex flex-col overflow-hidden lg:flex-row">
+      <aside className="lg:w-[26rem] min-h-0 max-h-[42%] lg:max-h-none shrink-0 overscroll-contain border-b lg:border-b-0 lg:border-r border-[var(--color-border)] bg-[var(--color-surface)] overflow-y-auto">
+        <div className="sticky top-0 z-10 border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 px-4 py-3 backdrop-blur sm:px-6">
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2">
+              <DifficultyPill difficulty={scenario.difficulty} />
+              <span className="pill bg-[var(--color-surface-2)] text-[var(--color-text-dim)]">{TOOL_LABEL[scenario.tool]}</span>
+            </div>
+            <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-[var(--color-text-dim)]">
+              <IconFlag className="h-3.5 w-3.5" />
+              {captured}/{scenario.totalFlags}
+            </span>
+          </div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-[var(--color-surface-2)]">
+            <div
+              className={`h-full rounded-full transition-all duration-300 ${done ? 'bg-[var(--color-success)]' : 'bg-[var(--color-accent)]'}`}
+              style={{ width: `${progressPct}%` }}
+            />
+          </div>
+        </div>
+        <div className="px-4 py-4 sm:px-6 sm:py-6">
         <Link
           to={isOsint ? '/labs' : '/soc-portal'}
           className="text-xs font-semibold text-[var(--color-accent)] hover:underline mb-3 inline-block"
         >
           &larr; Back to {isOsint ? 'Lab Catalog' : 'SOC Portal'}
         </Link>
-        <div className="flex items-center gap-2 mb-2">
-          <DifficultyPill difficulty={scenario.difficulty} />
-          <span className="pill bg-[var(--color-surface-2)] text-[var(--color-text-dim)]">{TOOL_LABEL[scenario.tool]}</span>
-          <span className="flex items-center gap-1 text-xs text-[var(--color-text-dim)]">
-            <IconFlag className="w-3.5 h-3.5" />
-            {captured}/{scenario.totalFlags} flags
-          </span>
-        </div>
 
+        <h1 className="text-xl font-bold text-[var(--color-heading)] mb-3">{scenario.title}</h1>
+        <button className="lg:hidden mb-3 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-sm font-semibold text-[var(--color-heading)]" aria-expanded={guideExpanded} aria-controls="investigation-guide" onClick={() => setGuideExpanded(value => !value)}>{guideExpanded ? 'Hide investigation guide' : 'Show investigation guide'}</button>
+        <button onClick={() => setSharing(true)} className="mb-4 block rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm font-semibold text-[var(--color-heading)] hover:border-[var(--color-accent)]/60 hover:bg-[var(--color-surface-2)]">{done ? 'Open evidence notebook & certificate' : 'Open evidence notebook'}</button>
+        <div id="investigation-guide" className={guideExpanded ? '' : 'hidden lg:block'}>
         {/* Narrative banner replaces the plain briefing for gamified labs */}
         {narrative ? (
           <>
-            <h1 className="text-xl font-bold text-[var(--color-heading)] mb-3">{scenario.title}</h1>
             <NarrativeBanner narrative={narrative} done={done} />
           </>
         ) : (
           <>
-            <h1 className="text-2xl font-bold text-[var(--color-heading)] mb-3">{scenario.title}</h1>
             <p className="text-sm text-[var(--color-text-dim)] leading-relaxed mb-5">{scenario.briefing}</p>
           </>
         )}
@@ -169,6 +190,7 @@ export default function SiemLabPage() {
         )}
 
         <div className="mb-6">
+          <LabLearningBridge scenario={{ category: 'SOC' }} />
           <StepChecklist
             steps={scenario.objectives}
             autoCheckedCount={autoCheckedCount}
@@ -179,12 +201,12 @@ export default function SiemLabPage() {
 
         {captured < scenario.totalFlags && (
           <>
-            <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] p-3 text-xs text-[var(--color-text-dim)] leading-relaxed mb-3">
+            <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-2)] p-3 text-xs text-[var(--color-text-dim)] leading-relaxed mb-3">
               {isOsint
-                ? `Type the real ${TOOL_LABEL[scenario.tool]} command straight into the terminal, exactly as a hint shows it — output streams back the way the real tool would.`
+                ? `Use the supported ${TOOL_LABEL[scenario.tool]} command shown in a hint to explore this simulated dataset.`
                 : narrative
-                  ? `Search the Splunk logs to trace Afomiya's breach — each query uncovers the next chapter. Type search terms, field values, or raw log keywords directly into the search bar.`
-                  : `Type your filter/query directly into the ${TOOL_LABEL[scenario.tool]} bar and run it — the tool highlights whatever matches, exactly like the real thing.`}
+                  ? `Search the ${TOOL_LABEL[scenario.tool]} records to follow this case. Use search terms, field values or raw log keywords in the search bar.`
+                  : `Type a supported filter/query into the ${TOOL_LABEL[scenario.tool]} bar to investigate the training dataset. This workspace models selected tool behavior.`}
             </div>
 
             <button
@@ -206,11 +228,22 @@ export default function SiemLabPage() {
         )}
 
         <LabComments labId={scenario.id} />
-      </div>
+        </div>
+        </div>
+      </aside>
 
-      <div className="flex-1 min-h-[420px] p-4">
-        {osintScenario ? (
+      <section className="flex flex-1 min-w-0 min-h-0 flex-col gap-3 overflow-hidden bg-[var(--color-bg)] p-2 sm:p-4 lg:p-5" aria-label="Investigation workspace">
+        <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 premium-card rounded-2xl px-3 py-2">
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--color-accent-dim)]">{isOsint ? 'OSINT workspace' : 'SIEM investigation'}</p>
+            <p className="truncate text-xs text-[var(--color-text-dim)]">{TOOL_LABEL[scenario.tool]} · {scenario.totalFlags} proof points</p>
+          </div>
+          <span className={`rounded-full px-3 py-1 text-xs font-semibold ${done ? 'bg-[var(--color-success)]/10 text-[var(--color-success)]' : 'bg-[var(--color-accent)]/10 text-[var(--color-accent-dim)]'}`}>{done ? 'Case closed' : 'Case active'}</span>
+        </div>
+        <div className="min-h-0 flex-1 overflow-hidden">
+        {siemScenario?.investigation ? <InvestigationWorkbench key={siemScenario.id} scenario={siemScenario} completed={progress.labFlags[siemScenario.id] ?? []} onComplete={onFlagCaptured} onTranscriptChange={transcript => { transcriptRef.current = transcript; }} /> : osintScenario ? (
           <OsintTerminal
+            key={osintScenario.id}
             scenario={osintScenario}
             onFlagCaptured={onFlagCaptured}
             onTranscriptChange={(t) => {
@@ -220,6 +253,7 @@ export default function SiemLabPage() {
         ) : (
           siemScenario && (
             <SiemConsole
+              key={siemScenario.id}
               scenario={siemScenario}
               onFlagCaptured={onFlagCaptured}
               onTranscriptChange={(t) => {
@@ -228,8 +262,10 @@ export default function SiemLabPage() {
             />
           )
         )}
-      </div>
+        </div>
+      </section>
 
+      {sharing && <ShareWriteupModal entry={{ slug: scenario.id, scenario: { id: scenario.id, title: scenario.title, category: isOsint ? 'Network' : 'SOC', difficulty: scenario.difficulty, totalFlags: scenario.totalFlags, briefing: scenario.briefing, objectives: scenario.objectives } }} onClose={() => setSharing(false)} />}
       <CyberLabAI
         key={scenario.id}
         getContext={() => ({

@@ -12,6 +12,14 @@ export default function SocFundamentals() {
         you'll know exactly what you're trying to avoid triggering.
       </p>
 
+      <h2>Technical terms explained</h2>
+      <ul>
+        <li><strong>Telemetry, event, alert, and incident:</strong> Telemetry is recorded activity from systems. An event is one observation, such as a login. An alert is a rule or tool flagging activity for review. An incident is a security problem established through investigation; an alert alone does not prove compromise.</li>
+        <li><strong>SIEM, EDR, and SOAR:</strong> Security Information and Event Management (SIEM) combines logs and searches across systems. Endpoint Detection and Response (EDR) observes activity on individual devices. Security Orchestration, Automation, and Response (SOAR) coordinates repeatable actions, such as enriching an alert or opening a case.</li>
+        <li><strong>Triage, severity, and SLA:</strong> Triage is the first assessment of urgency and evidence. Severity describes potential impact; priority also considers urgency and business context. A Service Level Agreement (SLA) defines a response target. A false negative is an attack the detection missed, while a false positive is benign activity incorrectly flagged.</li>
+        <li><strong>IOC and blast radius:</strong> An Indicator of Compromise (IOC) is an observable clue, such as a malicious file hash. It needs context and may become outdated. Blast radius means the accounts, systems, and data an incident can affect.</li>
+      </ul>
+
       <h2>What a SOC actually does all day</h2>
       <p>
         A SOC ingests telemetry from across an organization — firewall logs, endpoint detection (EDR),
@@ -142,6 +150,12 @@ Dumping                Transfer                                      Storage`}</
         have the raw auth log. Your job is exactly what a Tier 1 analyst does every shift — read it, find
         the pattern, and confirm what happened.
       </p>
+      <h2>Walk through a suspicious login</h2>
+      <p>Suppose an account has twelve failed logins followed by a success. First compare the source address, device, time, and authentication method with the user's normal activity. A shared office address or a mistyped password can explain part of the pattern. Then inspect activity after the success: a new MFA method, downloaded records, or unexpected administrator actions strengthen the compromise hypothesis. Record event timestamps with their timezone and distinguish event time from the time logs arrived. Preserve the relevant log entries, state your confidence, and escalate according to impact. Geographic location alone is weak evidence because VPNs and mobile networks can change it.</p>
+      <Callout variant="tip">
+        <p><strong>Check your understanding:</strong> What additional evidence would make you classify this alert as an incident, and what would you record before containment?</p>
+      </Callout>
+
     </div>
   );
 }

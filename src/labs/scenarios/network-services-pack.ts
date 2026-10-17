@@ -368,32 +368,40 @@ export const networkServiceLabs: LabScenario[] = [
   {
     id: 'net-ftp-backdoor',
     title: 'vsftpd 2.3.4 — The Infamous Backdoored Build (CVE-2011-2523)',
-    difficulty: 'Hard',
+    difficulty: 'Medium',
     category: 'Network',
     briefing:
-      'Oldstone Logistics still runs legacy10 (10.10.102.10) on vsftpd 2.3.4 — a build whose source was ' +
-      'trojaned between 2011-06-30 and 2011-07-03 so that sending a smiley face `:)` in the FTP USER field ' +
-      'triggers a backdoor listener on port 6200 with a root shell. This is CVE-2011-2523, one of the most ' +
-      'famous backdoors in vulnerability-scanning history and a staple target for exactly this reason. ' +
-      'Recognizing the version number from a banner grab is the entire skill this lab tests.',
+      'Oldstone Logistics has deliberately provided an isolated legacy host (10.10.102.10) for a historical ' +
+      'supply-chain case study: the malicious vsftpd 2.3.4 source archive distributed in 2011 contained a ' +
+      'backdoor that could open a shell after a specially formed FTP login. This flaw was in a trojaned ' +
+      'distribution archive, not every legitimate build reporting the same version. A service banner is a ' +
+      'lead, not proof of vulnerable code or package provenance. Use the real Metasploit module workflow ' +
+      'against this authorized training host and inspect its result; never infer that a production server is ' +
+      'vulnerable from a version string alone.',
     objectives: [
-      { text: 'nmap -sV 10.10.102.10', why: 'The version string alone — "vsftpd 2.3.4" — is the single most important piece of information here; recognizing famous vulnerable version strings from a banner is a core, fast recon skill.' },
-      { text: 'nc 10.10.102.10 21', why: 'Grabbing the raw service banner confirms the exact build before committing to an exploit — real engagements always verify the version before firing an exploit that could otherwise crash the service for no reason.' },
-      { text: 'exploit vsftpd-234-backdoor 10.10.102.10', why: 'This models sending the `:)` smiley trigger in the USER field, which the trojaned code interprets as a command to spawn a root shell listener on port 6200 — the real, documented mechanism behind CVE-2011-2523.' },
-      { text: 'Once the session opens, read /root/root.txt to capture the flag', why: 'Confirms full unauthenticated remote root — the maximum-impact outcome this famous backdoor is known for.' },
+      { text: 'nmap -sV -p 21 10.10.102.10', why: 'A version scan identifies the advertised service and banner. It does not establish that the installed binary came from the malicious archive; service banners can be incomplete, misleading, or intentionally changed.' },
+      { text: 'Start Metasploit with msfconsole and search vsftpd', why: 'The framework search lets you find the maintained module by the affected product instead of relying on a DarkWorld-only shortcut. This is the real console workflow used on Kali.' },
+      { text: 'Load the specific module: use exploit/unix/ftp/vsftpd_234_backdoor', why: 'The module targets the known historical backdoor behavior. Its presence in Metasploit is not proof that an arbitrary server runs the trojaned artifact.' },
+      { text: 'Review module requirements with show options', why: 'Inspect the target and port settings before sending anything. The module defaults to FTP port 21; RHOSTS is the target address.' },
+      { text: 'Set the authorized lab target: set RHOSTS 10.10.102.10, then run', why: 'The supplied host is explicitly the isolated, known-vulnerable training fixture. On a real assessment, validate scope and package provenance before testing a legacy target.' },
+      { text: 'After the simulated session opens, run whoami and cat /root/root.txt', why: 'Confirm the identity and retrieve the proof only after the module reports a session. The flag represents the lab outcome, not evidence that every version-matched host is exploitable.' },
     ],
     hints: [
-      'nmap -sV 10.10.102.10 — the version number is the whole lab.',
-      'nc 10.10.102.10 21 to confirm the raw banner reads exactly "vsftpd 2.3.4".',
-      'exploit vsftpd-234-backdoor 10.10.102.10 — models the famous `:)` smiley-face backdoor trigger (CVE-2011-2523).',
-      'Once the session opens you are root — check /root/root.txt for the flag.',
+      'Run nmap -sV -p 21 10.10.102.10, then start msfconsole.',
+      'Inside Metasploit: search vsftpd, use exploit/unix/ftp/vsftpd_234_backdoor, show options.',
+      'Set RHOSTS 10.10.102.10 and run. This target is a deliberately vulnerable historical fixture.',
+      'Verify the simulated session with whoami before reading /root/root.txt.',
     ],
     totalFlags: 1,
     attacker: attacker(),
     network: [
       {
         hostname: 'legacy10', ip: '10.10.102.10', os: 'CentOS 6',
-        exploitableAs: 'vsftpd-234-backdoor',
+        metasploitModule: {
+          path: 'exploit/unix/ftp/vsftpd_234_backdoor',
+          requiredOptions: [],
+          defaultOptions: { RPORT: '21' },
+        },
         services: [{ port: 21, name: 'ftp', version: 'vsftpd 2.3.4', banner: 'vsftpd 2.3.4 ready' }],
         users: [],
         root: dir({ root: dir({ 'root.txt': file('CVE-2011-2523 confirmed — the trojaned vsftpd 2.3.4 backdoor spawned a root shell on port 6200.\nflag{vsftpd_2_3_4_is_a_famous_backdoor_cve}\n') }) }),

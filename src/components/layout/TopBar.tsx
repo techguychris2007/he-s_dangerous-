@@ -4,6 +4,7 @@ import { MODULES, findModule, findLesson } from '../../data/curriculum';
 import { useLabsData } from '../../state/useLabsData';
 import { useProgress } from '../../state/progressStore';
 import { useTheme } from '../../state/theme';
+import { useSyncStatus } from '../../state/syncStatus';
 import { IconMenu, IconSun, IconMoon, IconBell, IconCheck, IconFlag } from './icons';
 
 /** completedLessons is keyed by lesson id, not slug — there's no direct id lookup in curriculum.ts,
@@ -17,6 +18,12 @@ function findLessonTitleById(lessonId: string): string | undefined {
 }
 
 const PAGE_TITLES: Record<string, string> = {
+  'siem-lab': 'Investigation lab',
+  'soc-portal': 'Security operations',
+  'code-portal': 'Code Portal',
+  'ml-portal': 'Machine Learning',
+  'build-portal': 'Build Portal',
+  library: 'Library',
   tasks: 'My tasks',
   schedule: 'Schedule',
   leaderboard: 'Leaderboard',
@@ -40,8 +47,8 @@ function usePageTitle(): string {
   if (parts[0] === 'roadmap') return 'Roadmap';
   if (parts[0] === 'my-learning') return 'My Learning';
   if (parts[0] === 'lab') return labsData?.findLab(parts[1])?.scenario.title ?? 'Lab';
-  if (parts[0] === 'module' && parts[3] === 'lesson') {
-    return findLesson(parts[1], parts[3] ? parts[4] : undefined)?.lesson.title ?? 'Lesson';
+  if (parts[0] === 'module' && parts[2] === 'lesson') {
+    return findLesson(parts[1], parts[3])?.lesson.title ?? 'Lesson';
   }
   if (parts[0] === 'module') return findModule(parts[1])?.title ?? 'Module';
   if (PAGE_TITLES[parts[0]]) return PAGE_TITLES[parts[0]];
@@ -72,13 +79,16 @@ function useRecentActivity(): Notification[] {
   }, [progress.labFlags, progress.completedLessons, labsData]);
 }
 
-export default function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
+export default function TopBar({ onMenuClick, menuOpen = false }: { onMenuClick: () => void; menuOpen?: boolean }) {
+  const sync = useSyncStatus();
   const title = usePageTitle();
   const location = useLocation();
   const { theme, toggle } = useTheme();
   const [notifOpen, setNotifOpen] = useState(false);
   const activity = useRecentActivity();
   const notifButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => { document.title = `${title} · DarkWorld`; }, [title]);
 
   useEffect(() => {
     setNotifOpen(false);
@@ -97,22 +107,28 @@ export default function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
   }, [notifOpen]);
 
   return (
-    <header className="h-14 shrink-0 border-b border-[var(--color-border)] bg-[var(--color-surface)] flex items-center gap-2 sm:gap-3 px-3.5 sm:px-5 relative">
+    <header className="surface-glass h-16 shrink-0 border-b border-[var(--color-border)] flex items-center gap-2 sm:gap-3 px-3.5 sm:px-5 relative shadow-[0_14px_40px_-34px_var(--color-heading)]">
       <button
         onClick={onMenuClick}
         className="lg:hidden w-9 h-9 rounded-lg flex items-center justify-center text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] shrink-0 touch-manipulation"
         aria-label="Toggle navigation"
+        aria-expanded={menuOpen}
+        aria-controls="platform-navigation"
       >
         <IconMenu className="w-5 h-5" />
       </button>
-      <h1 className="text-sm sm:text-base font-bold text-[var(--color-heading)] truncate min-w-0 flex-1">{title}</h1>
+      <div className="min-w-0 flex-1">
+        <div className="text-[10px] font-black uppercase tracking-[0.22em] text-[var(--color-accent-dim)]">DarkWorld Platform</div>
+        <div className="text-sm sm:text-lg font-black tracking-[-0.03em] text-[var(--color-heading)] truncate">{title}</div>
+      </div>
 
       <div className="ml-auto flex items-center gap-1 sm:gap-1.5 shrink-0">
+        {sync !== 'idle' && <span role="status" title={sync === 'local' ? 'Progress is saved on this device. Cloud sync will retry.' : 'Account progress sync'} className={`hidden md:inline-flex items-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1 mr-2 text-[10px] font-bold ${sync === 'local' ? 'text-[var(--color-warn)]' : 'text-[var(--color-text-dim)]'}`}>{sync === 'local' ? 'Saved locally' : sync === 'loading' ? 'Loading…' : sync === 'saving' ? 'Saving…' : 'Synced'}</span>}
         <button
           onClick={toggle}
           title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
           aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-          className="w-9 h-9 rounded-lg flex items-center justify-center text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-heading)] transition-colors touch-manipulation"
+          className="w-10 h-10 rounded-2xl premium-card flex items-center justify-center text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-heading)] transition-colors touch-manipulation"
         >
           {theme === 'dark' ? <IconSun className="w-4 h-4" /> : <IconMoon className="w-4 h-4" />}
         </button>
@@ -123,9 +139,9 @@ export default function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
             onClick={() => setNotifOpen((o) => !o)}
             title="Notifications"
             aria-label="Notifications"
-            aria-haspopup="true"
+            aria-controls="recent-activity-panel"
             aria-expanded={notifOpen}
-            className="w-9 h-9 rounded-lg flex items-center justify-center text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-heading)] transition-colors relative touch-manipulation"
+            className="w-10 h-10 rounded-2xl premium-card flex items-center justify-center text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-heading)] transition-colors relative touch-manipulation"
           >
             <IconBell className="w-4 h-4" />
             {activity.length > 0 && (
@@ -135,7 +151,7 @@ export default function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
           {notifOpen && (
             <>
               <div className="fixed inset-0 z-30" onClick={() => setNotifOpen(false)} />
-              <div role="menu" aria-label="Recent activity" className="absolute right-0 top-11 w-72 max-w-[calc(100vw-1.5rem)] rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-lg z-40 overflow-hidden">
+              <div id="recent-activity-panel" role="region" aria-label="Recent activity" className="premium-card absolute right-0 top-12 w-80 max-w-[calc(100vw-1.5rem)] rounded-2xl z-40 overflow-hidden">
                 <div className="px-3.5 py-2.5 border-b border-[var(--color-border)] text-xs font-bold uppercase tracking-wide text-[var(--color-text-dim)]">
                   Recent activity
                 </div>

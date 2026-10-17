@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { findModule } from '../data/curriculum';
+import { DEFENSIVE_MODULES } from '../data/defensiveCurriculum';
 import { SIEM_LABS } from '../labs/siemScenarios';
 import { labsForCategory } from '../data/labs';
 import { useProgress } from '../state/progressStore';
@@ -20,7 +21,7 @@ const TOOL_META: Record<string, { title: string; blurb: string }> = {
   tcpdump: { title: 'tcpdump — Packet Capture', blurb: 'Raw packet-level investigation — no log aggregation layer between you and the wire.' },
 };
 
-const SOC_MODULE_SLUGS = ['soc', 'soc-siem-platforms', 'soc-detection-engineering', 'soc-incident-response'];
+const SOC_MODULE_SLUGS = ['soc', 'soc-siem-platforms', 'soc-detection-engineering', 'soc-incident-response', 'forensics', ...DEFENSIVE_MODULES.map(mod => mod.slug)];
 
 export default function SocPortalPage() {
   const progress = useProgress();
@@ -31,7 +32,7 @@ export default function SocPortalPage() {
   );
   const totalLessons = useMemo(() => socModules.reduce((sum, m) => sum + m.lessons.length, 0), [socModules]);
   const terminalLabs = useMemo(
-    () => labsForCategory('SOC').filter((l) => l.scenario.network.length === 0),
+    () => labsForCategory('SOC'),
     [],
   );
 
@@ -56,19 +57,10 @@ export default function SocPortalPage() {
     <div className="min-h-screen" style={{ background: 'var(--color-bg)' }}>
       {/* hero */}
       <div
-        className="relative overflow-hidden border-b border-[var(--color-border)]"
-        style={{ background: 'linear-gradient(180deg, var(--color-navy) 0%, var(--color-navy-dim) 100%)' }}
+        className="portal-masthead relative overflow-hidden border-b border-[var(--color-border)]"
+        style={{ background: 'var(--color-navy)' }}
       >
-        <div
-          aria-hidden
-          className="absolute inset-0 opacity-[0.06] pointer-events-none"
-          style={{
-            backgroundImage:
-              'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)',
-            backgroundSize: '32px 32px',
-          }}
-        />
-        <div className="relative max-w-5xl mx-auto px-6 sm:px-8 py-10">
+<div className="relative max-w-5xl mx-auto px-6 sm:px-8 py-10">
           <div className="flex items-center justify-between mb-8">
             <Link to="/" className="flex items-center gap-2 text-sm font-semibold text-white/70 hover:text-white transition-colors">
               <Logo className="w-6 h-6" />
@@ -81,14 +73,15 @@ export default function SocPortalPage() {
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-3">SOC Portal</h1>
           <p className="text-white/70 max-w-2xl leading-relaxed mb-6">
-            Mostly real SIEM/analyst platform tooling, not a hacking terminal — {SIEM_LABS.length} labs run
+            Practice investigations in {SIEM_LABS.length} labs that run
             inside simulated Splunk, Microsoft Sentinel, IBM QRadar, Elastic Security, Suricata, Chronicle,
-            and tcpdump consoles, each one rebuilt from a real, publicly documented incident: the 2013 Target
-            breach, the 2016 Bangladesh Bank SWIFT heist, the 2020 SolarWinds/SUNBURST compromise, the 2023
-            Storm-0558 email breach, the 2020 Twitter insider breach, and Log4Shell mass exploitation among
-            them. A small set of {terminalLabs.length} terminal-based investigations rounds it out, for the
-            raw cat/grep log-reading work every analyst still does before ever opening a SIEM console.
+            and tcpdump consoles. Source-linked cases use independently reconstructed training evidence
+            to explore documented incidents, alongside original practice scenarios. Follow the evidence
+            through triage, scoping, intelligence, containment and recovery.
+            Another {terminalLabs.length} terminal investigations develop practical evidence analysis and
+            assessment skills alongside the SIEM workspaces.
           </p>
+          <Link to="/roadmap?track=defensive" className="mb-6 inline-flex rounded-lg border border-white/25 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/20">Follow the defensive security roadmap →</Link>
           <div className="flex flex-wrap gap-4">
             <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
               <div className="text-lg font-bold text-white">{lessonsDone}/{totalLessons}</div>
@@ -107,6 +100,12 @@ export default function SocPortalPage() {
       </div>
 
       <div className="max-w-5xl mx-auto px-6 sm:px-8 py-10">
+        <section className="mb-12" aria-labelledby="linked-investigations">
+          <p className="text-xs font-semibold uppercase tracking-widest text-[var(--color-accent-dim)] mb-2">Investigation casefiles</p>
+          <h2 id="linked-investigations" className="text-xl font-bold text-[var(--color-heading)]">Follow an incident from alert to verified recovery</h2>
+          <p className="mt-2 mb-5 text-sm leading-relaxed text-[var(--color-text-dim)]">Search the records in the existing consoles, select supporting evidence and submit a decision at each checkpoint. Progress is saved between sessions. Every case explains its public sources and reconstructed data.</p>
+          <div className="grid gap-4 lg:grid-cols-3">{SIEM_LABS.filter(lab => lab.investigation).map(lab => <SiemLabCard key={lab.id} lab={lab} />)}</div>
+        </section>
         {/* lessons — 4 modules */}
         <div className="mb-12">
           <div className="flex items-center gap-2 mb-1">
@@ -129,7 +128,7 @@ export default function SocPortalPage() {
                     <Link
                       key={lesson.id}
                       to={`/module/${mod.slug}/lesson/${lesson.slug}`}
-                      className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 hover:border-[var(--color-accent)]/60 hover:-translate-y-0.5 transition-all"
+                      className="premium-card premium-card-hover rounded-2xl p-4"
                     >
                       <div className="flex items-center justify-between mb-1.5">
                         <span className="text-xs font-mono text-[var(--color-text-dim)]">{lesson.minutes} min read</span>
@@ -147,7 +146,7 @@ export default function SocPortalPage() {
 
         {/* SIEM tool labs, grouped by tool */}
         {TOOL_ORDER.map((tool) => {
-          const labs = SIEM_LABS.filter((l) => l.tool === tool);
+          const labs = SIEM_LABS.filter((l) => l.tool === tool && !l.investigation);
           if (labs.length === 0) return null;
           const meta = TOOL_META[tool];
           return (
@@ -166,7 +165,7 @@ export default function SocPortalPage() {
           );
         })}
 
-        {/* the small, deliberately-limited set of terminal investigations */}
+        {/* Terminal investigations and assessment campaigns */}
         {terminalLabs.length > 0 && (
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -174,8 +173,8 @@ export default function SocPortalPage() {
               <h2 className="text-lg font-bold text-[var(--color-heading)]">Terminal Investigations</h2>
             </div>
             <p className="text-sm text-[var(--color-text-dim)] mb-4">
-              Raw cat/grep-style log reading — the groundwork every analyst still does by hand before a SIEM
-              correlation rule exists for a given pattern.
+              Investigate records with terminal tools, document findings, and complete the guided
+              assessment and verification phases.
             </p>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {terminalLabs.map((lab) => (

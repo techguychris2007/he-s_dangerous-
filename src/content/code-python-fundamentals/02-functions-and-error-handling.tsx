@@ -84,20 +84,26 @@ print(parse_port("not-a-port")) # 0 (the default), instead of crashing`}</CodeBl
       </Callout>
 
       <h2>Raising your own exceptions</h2>
-      <CodeBlock>{`def connect(host, port):
-    if not (0 <= port <= 65535):
-        raise ValueError(f"Invalid port: {port}")
-    # ... actual connection logic would go here
-    return f"connected to {host}:{port}"
+      <CodeBlock label="validate an endpoint without pretending a connection happened">{`def validate_endpoint(host: str, port: int) -> tuple[str, int]:
+    if not host.strip():
+        raise ValueError("host cannot be blank")
+    if not 1 <= port <= 65535:
+        raise ValueError(f"port must be between 1 and 65535, got {port}")
+    return host.strip(), port
 
 try:
-    connect("10.0.0.5", 99999)
-except ValueError as e:
-    print(f"Refused to connect: {e}")`}</CodeBlock>
+    endpoint = validate_endpoint("  lab-web.local  ", 443)
+    print(f"Validated input: {endpoint[0]}:{endpoint[1]}")
+    invalid_endpoint = validate_endpoint("lab-web.local", 99999)
+except ValueError as error:
+    print(f"Input rejected: {error}")`}</CodeBlock>
       <p>
-        Raising your own exceptions with a clear message is how you turn "the script silently did the wrong
-        thing" into "the script told you exactly what went wrong and where." You'll see this idea again,
-        much more fully developed, in the Advanced module when we build custom exception hierarchies.
+        This function validates an endpoint but deliberately does not connect to it. That separation makes
+        the behavior honest and testable: one function checks input; another performs network I/O. Raising
+        <code>ValueError</code> with context gives the caller a useful reason for rejecting the value. Catch
+        it at a boundary where you can respond, and avoid catching it too early if the caller needs to
+        decide whether to retry or ask for corrected input. Custom exception classes are useful later when
+        callers need to distinguish domain failures from ordinary conversion errors.
       </p>
 
       <h2>The finally block — cleanup that always runs</h2>

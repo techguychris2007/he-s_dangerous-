@@ -1,12 +1,11 @@
-/** Loads real CPython-in-WebAssembly (Pyodide) from a CDN the first time a learner runs Python code,
- *  then reuses the same in-memory interpreter for every subsequent run this session. Deliberately NOT
- *  bundled/precached with the rest of the app — it's a ~10-20MB runtime, and the whole point of the
- *  PWA's offline story is that everything else stays instant and small. Running Python code requires
- *  being online the first time; the browser's own HTTP cache (plus a runtime-caching rule in
- *  vite.config.ts) keeps it usable offline after that. */
+/** Loads CPython-in-WebAssembly (Pyodide) on demand and reuses one interpreter per page session.
+ *  Learners can explicitly prepare it while online: the PWA runtime cache then keeps the interpreter
+ *  and the packages used by DarkWorld's Python exercises available offline on this device. */
 
-const PYODIDE_VERSION = '314.0.3';
+export const PYODIDE_VERSION = '314.0.7';
 const PYODIDE_BASE = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`;
+export const PYODIDE_BASE_URL = PYODIDE_BASE;
+export const PYODIDE_CACHE_NAME = 'pyodide-runtime';
 
 interface PyodideInterface {
   runPythonAsync: (code: string) => Promise<unknown>;
@@ -45,6 +44,14 @@ export function isPyodideBooted(): boolean {
   return booted;
 }
 
+/** Initializes Python and downloads the third-party packages used by DarkWorld's data exercises.
+ *  Those package files are cached by the PWA's runtime route for later offline runs. */
+export async function prepareOfflinePythonRuntime(): Promise<void> {
+  const pyodide = await getPyodide();
+  await pyodide.loadPackagesFromImports('import numpy\nimport pandas');
+  await pyodide.runPythonAsync('import numpy\nimport pandas');
+}
+
 function loadScript(src: string): Promise<void> {
   return new Promise((resolve, reject) => {
     if (document.querySelector(`script[data-pyodide-loader="${src}"]`)) {
@@ -70,7 +77,11 @@ export function getPyodide(): Promise<PyodideInterface> {
       const instance = await window.loadPyodide({ indexURL: PYODIDE_BASE });
       booted = true;
       return instance;
-    })();
+    })().catch((error) => {
+      pyodidePromise = null;
+      document.querySelector(`script[data-pyodide-loader="${PYODIDE_BASE}pyodide.js"]`)?.remove();
+      throw error;
+    });
   }
   return pyodidePromise;
 }

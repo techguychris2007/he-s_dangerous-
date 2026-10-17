@@ -139,7 +139,7 @@ export default function InstructorDashboardPage() {
           {learnerCount === 0 ? (
             <div className="text-sm text-[var(--color-text-dim)]">No learners have signed in yet.</div>
           ) : (
-            <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-x-auto">
+            <div className="premium-card rounded-2xl overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="border-b border-[var(--color-border)]">
                   <tr>

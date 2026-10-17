@@ -12,6 +12,14 @@ export default function DebuggingWithGdb() {
         an exploit against it.
       </p>
 
+      <h2>Technical terms explained</h2>
+      <ul>
+        <li><strong>Debugger, breakpoint, and watchpoint:</strong> A debugger observes and controls program execution. A breakpoint stops execution at a selected location. A watchpoint stops when a watched value is accessed or changed, depending on its type and debugger support.</li>
+        <li><strong>Step, next, and continue:</strong> Stepping follows execution at a chosen granularity. In GDB, stepi advances one machine instruction; nexti generally steps over a call. Source-level step and next depend on debugging information. Continue resumes until another stop condition.</li>
+        <li><strong>Backtrace and debug symbols:</strong> A backtrace lists recovered active function calls. Debug symbols add names, types, and source locations. Optimized code, missing symbols, or stack corruption can make a backtrace incomplete or misleading.</li>
+        <li><strong>ASLR and runtime address:</strong> Address Space Layout Randomization (ASLR) varies memory locations across executions. A runtime address may differ from the address shown in static tools. Debugger configuration can also affect randomization, so record the settings used for an experiment.</li>
+      </ul>
+
       <h2>GDB basics: the core command set</h2>
       <CodeBlock label="the commands you'll use in nearly every session">{`gdb ./target              # launch gdb against a binary
 (gdb) break check_password  # set a breakpoint at a function name
@@ -154,6 +162,12 @@ Interceptor.attach(Module.getExportByName(null, "check_password"), {
         With static and dynamic analysis both covered, the next lesson turns to the classic vulnerability
         class this entire module has been building toward: the stack-based buffer overflow.
       </p>
+      <h2>Investigate a crash systematically</h2>
+      <p>Reproduce the failure with a recorded input, then inspect the stop reason, current instruction, registers, and backtrace. A segmentation fault indicates an invalid memory access, but does not by itself identify a buffer overflow. Determine which instruction accessed memory and how its address was computed. Set a breakpoint before that computation and rerun with the same input, inspecting the relevant pointer and length values. Use a watchpoint if you need to find where a value first changes. Record the binary version, arguments, environment, and debugger settings so another analyst can reproduce your observations.</p>
+      <Callout variant="tip">
+        <p><strong>Check your understanding:</strong> What would you inspect to distinguish an invalid data pointer from a corrupted return address?</p>
+      </Callout>
+
     </div>
   );
 }

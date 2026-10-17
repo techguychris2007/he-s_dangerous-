@@ -21,10 +21,10 @@ export default function Quiz({ questions, onComplete }: QuizProps) {
   const allAnswered = questions.every((q) => answers[q.id] !== undefined);
 
   return (
-    <div className="mt-10 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
+    <div className="mt-10 premium-card rounded-3xl p-6">
       <h3 className="text-lg font-semibold text-[var(--color-heading)] mb-1">Knowledge Check</h3>
       <p className="text-sm text-[var(--color-text-dim)] mb-6">
-        Answer all questions to mark this lesson complete.
+        Answer every question. Score at least 70% to complete the lesson; you can review and try again.
       </p>
       <div className="space-y-6">
         {questions.map((q, qi) => {
@@ -49,6 +49,7 @@ export default function Quiz({ questions, onComplete }: QuizProps) {
                     <button
                       key={ci}
                       disabled={submitted}
+                      aria-pressed={isChosen}
                       onClick={() => setAnswers((prev) => ({ ...prev, [q.id]: ci }))}
                       className={`w-full flex items-center gap-2 text-left text-sm px-3 py-2 rounded-lg border transition-colors ${cls} disabled:cursor-default`}
                     >
@@ -84,8 +85,10 @@ export default function Quiz({ questions, onComplete }: QuizProps) {
           Submit Answers
         </button>
       ) : (
-        <div className="mt-6 text-sm">
+        <div role="status" className="mt-6 text-sm">
           Score: <span className="text-[var(--color-accent-dim)] font-semibold">{score}/{questions.length}</span>
+          <p className="mt-2 text-[var(--color-text-dim)]">{score / questions.length >= 0.7 ? 'Checkpoint passed. Lesson complete.' : 'Review the explanations, then try again.'}</p>
+          <button onClick={() => { setAnswers({}); setSubmitted(false); }} className="mt-3 rounded-lg border border-[var(--color-border)] px-4 py-2 text-sm font-semibold">Try again</button>
         </div>
       )}
     </div>

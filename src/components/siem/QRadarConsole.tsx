@@ -29,7 +29,7 @@ function magnitudeColor(mag: number): string {
   if (mag >= 8) return 'bg-red-600';
   if (mag >= 6) return 'bg-orange-500';
   if (mag >= 4) return 'bg-yellow-500';
-  return 'bg-blue-500';
+  return 'bg-[var(--color-accent)]';
 }
 
 const IP_RE = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g;
@@ -63,6 +63,7 @@ export default function QRadarConsole({
 }) {
   const [query, setQuery] = useState('');
   const [ran, setRan] = useState(false);
+  const [appliedQuery, setAppliedQuery] = useState('');
   const [timeRange, setTimeRange] = useState('Last Hour');
   const [history, setHistory] = useState<string[]>([]);
   const [expanded, setExpanded] = useState<number | null>(null);
@@ -71,6 +72,7 @@ export default function QRadarConsole({
     if (!q.trim()) return;
     setQuery(q);
     setRan(true);
+    setAppliedQuery(q);
     const visible = scenario.entries.filter((e) => matchesQuery(e, q));
     visible.forEach((e) => {
       const flag = extractFlag(e.line);
@@ -82,7 +84,7 @@ export default function QRadarConsole({
     onTranscriptChange?.(next.join('\n\n'));
   };
 
-  const results = ran ? scenario.entries.filter((e) => matchesQuery(e, query)) : scenario.entries;
+  const results = ran ? scenario.entries.filter((e) => matchesQuery(e, appliedQuery)) : scenario.entries;
 
   return (
     <div className="flex flex-col h-full bg-[#f2f4f8] rounded-lg overflow-hidden border border-black/10 shadow-lg font-sans text-[#161616]">
@@ -120,7 +122,8 @@ export default function QRadarConsole({
         <div className="flex items-stretch gap-2">
           <input
             type="text"
-            value={query}
+            aria-label="Investigation query"
+              value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && run(query)}
             placeholder="SELECT * FROM events WHERE category = 'Authentication' LAST 1 HOURS"

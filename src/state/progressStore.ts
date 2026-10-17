@@ -80,6 +80,7 @@ const listeners = new Set<() => void>();
 function emitChange() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(currentState));
+    if (currentState.lastUserId) localStorage.setItem(`${STORAGE_KEY}.account.${currentState.lastUserId}`, JSON.stringify(currentState));
   } catch {
     // Ignore storage quota issues
   }
@@ -116,11 +117,12 @@ export const progressActions = {
       completedLessons: { ...s.completedLessons, [lessonId]: true },
     }));
   },
-  captureFlag: (labId: string, flag: string) => {
+  captureFlag: (labId: string, flag: string, totalFlags?: number) => {
     updateState((s) => {
       const existing = s.labFlags[labId] ?? [];
       if (existing.includes(flag)) return s;
-      return { ...s, ...withActivityToday(s), labFlags: { ...s.labFlags, [labId]: [...existing, flag] } };
+      const completedNow = totalFlags !== undefined && totalFlags > 0 && existing.length < totalFlags && existing.length + 1 >= totalFlags;
+      return { ...s, ...withActivityToday(s), labFlags: { ...s.labFlags, [labId]: [...existing, flag] }, labCompletedAt: completedNow && !s.labCompletedAt[labId] ? { ...s.labCompletedAt, [labId]: Date.now() } : s.labCompletedAt };
     });
   },
   recordQuizScore: (lessonId: string, score: number) => {
@@ -142,14 +144,19 @@ export const progressActions = {
       if (s.lastUserId === userId) {
         return s.learnerName ? s : { ...s, learnerName: fallbackName.trim() };
       }
+      let accountState: ProgressState = { ...EMPTY_STATE };
+      try {
+        if (s.lastUserId) localStorage.setItem(`${STORAGE_KEY}.account.${s.lastUserId}`, JSON.stringify(s));
+        const cached = localStorage.getItem(`${STORAGE_KEY}.account.${userId}`);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed.lastUserId === userId) accountState = { ...EMPTY_STATE, ...parsed };
+        }
+      } catch { /* A new identity always gets an isolated state, even if storage is unavailable. */ }
       return {
-        ...s,
+        ...accountState,
         lastUserId: userId,
-        learnerName: fallbackName.trim(),
-        activityDates: [],
-        codeTaskAttempts: {},
-        codeTaskHintsUsed: {},
-        codeTaskSolutionRevealed: {},
+        learnerName: accountState.learnerName || fallbackName.trim(),
       };
     });
   },
@@ -257,7 +264,7 @@ export const progressActions = {
 export interface ProgressApi extends ProgressState {
   completeLesson: (lessonId: string) => void;
   isLessonComplete: (lessonId: string) => boolean;
-  captureFlag: (labId: string, flag: string) => void;
+  captureFlag: (labId: string, flag: string, totalFlags?: number) => void;
   hasFlag: (labId: string, flag: string) => boolean;
   flagCount: (labId: string) => number;
   recordQuizScore: (lessonId: string, score: number) => void;

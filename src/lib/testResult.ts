@@ -28,5 +28,8 @@ export interface TestSummary {
 export function parseTestResult(stdout: string): TestSummary | null {
   const m = lastNonEmptyLine(stdout).match(RESULT_RE);
   if (!m) return null;
-  return { passed: Number(m[1]), total: Number(m[2]) };
+  const passed = Number(m[1]);
+  const total = Number(m[2]);
+  if (!Number.isSafeInteger(passed) || !Number.isSafeInteger(total) || total <= 0 || passed > total) return null;
+  return { passed, total };
 }

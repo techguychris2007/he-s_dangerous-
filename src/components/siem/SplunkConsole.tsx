@@ -40,13 +40,16 @@ export default function SplunkConsole({
   scenario,
   onFlagCaptured,
   onTranscriptChange,
+  onResults,
 }: {
   scenario: SiemLabScenario;
   onFlagCaptured: (flag: string) => void;
   onTranscriptChange?: (transcript: string) => void;
+  onResults?: (entries: SiemLabScenario['entries']) => void;
 }) {
   const [query, setQuery] = useState('');
   const [ran, setRan] = useState(false);
+  const [appliedQuery, setAppliedQuery] = useState('');
   const [timeRange, setTimeRange] = useState('Last 24 hours');
   const [history, setHistory] = useState<string[]>([]);
 
@@ -54,7 +57,9 @@ export default function SplunkConsole({
     if (!q.trim()) return;
     setQuery(q);
     setRan(true);
+    setAppliedQuery(q);
     const visible = scenario.entries.filter((e) => matchesQuery(e, q));
+    onResults?.(visible);
     visible.forEach((e) => {
       const flag = extractFlag(e.line);
       if (flag) onFlagCaptured(flag);
@@ -65,7 +70,7 @@ export default function SplunkConsole({
     onTranscriptChange?.(next.join('\n\n'));
   };
 
-  const results = ran ? scenario.entries.filter((e) => matchesQuery(e, query)) : scenario.entries;
+  const results = ran ? scenario.entries.filter((e) => matchesQuery(e, appliedQuery)) : scenario.entries;
   const heights = useMemo(() => histogramHeights(results), [results]);
 
   return (
@@ -86,6 +91,7 @@ export default function SplunkConsole({
             <span className="pl-3 text-[#ff6a00] font-mono text-sm shrink-0">Q</span>
             <input
               type="text"
+              aria-label="Investigation query"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && run(query)}

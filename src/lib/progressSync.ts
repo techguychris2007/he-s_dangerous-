@@ -15,8 +15,7 @@ interface UserProgressRow {
   code_task_solution_revealed: Record<string, boolean>;
 }
 
-/** Fetches the account's remote progress snapshot. Returns null on any failure (offline, table not
- *  yet migrated, RLS denial) — callers treat that as "nothing to merge" rather than an error state. */
+/** Null means a new account with no saved row. Errors must not be treated as empty progress. */
 export async function pullProgress(userId: string): Promise<Partial<SyncableProgress> | null> {
   const { data, error } = await supabase
     .from('user_progress')
@@ -26,7 +25,8 @@ export async function pullProgress(userId: string): Promise<Partial<SyncableProg
     .eq('user_id', userId)
     .maybeSingle<UserProgressRow>();
 
-  if (error || !data) return null;
+  if (error) throw new Error('Progress could not be loaded from the server.');
+  if (!data) return null;
   return {
     completedLessons: data.completed_lessons ?? {},
     labFlags: data.lab_flags ?? {},
@@ -44,8 +44,8 @@ export async function pullProgress(userId: string): Promise<Partial<SyncableProg
 
 /** Upserts the full local snapshot to the account's row. Returns false on any failure (offline, RLS,
  *  missing table, expired session) without throwing — callers decide whether/how to retry. */
-export async function pushProgress(userId: string, progress: SyncableProgress): Promise<boolean> {
-  const { error } = await supabase.from('user_progress').upsert({
+export async function pushProgress(userId: string, progress: SyncableProgress, signal?: AbortSignal): Promise<boolean> {
+  const request = supabase.from('user_progress').upsert({
     user_id: userId,
     completed_lessons: progress.completedLessons,
     lab_flags: progress.labFlags,
@@ -60,6 +60,7 @@ export async function pushProgress(userId: string, progress: SyncableProgress): 
     code_task_solution_revealed: progress.codeTaskSolutionRevealed,
     updated_at: new Date().toISOString(),
   });
+  const { error } = await (signal ? request.abortSignal(signal) : request);
   return !error;
 }
 
@@ -76,9 +77,11 @@ export async function pushProgressWithRetry(
   progress: SyncableProgress,
   retries = 2,
   delayMs = 4000,
+  signal?: AbortSignal,
 ): Promise<boolean> {
   for (let attempt = 0; attempt <= retries; attempt++) {
-    if (await pushProgress(userId, progress)) return true;
+    if (signal?.aborted) return false;
+    if (await pushProgress(userId, progress, signal)) return true;
     if (attempt < retries) await new Promise((resolve) => setTimeout(resolve, delayMs));
   }
   return false;

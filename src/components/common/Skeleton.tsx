@@ -9,7 +9,7 @@ export function SkeletonBlock({ className = '' }: { className?: string }) {
  *  "loading a list of accounts/entries" screens in this app need. */
 export function SkeletonRow({ className = '' }: { className?: string }) {
   return (
-    <div className={`rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 flex items-center gap-4 ${className}`}>
+    <div className={`premium-card rounded-2xl p-4 flex items-center gap-4 ${className}`}>
       <SkeletonBlock className="w-9 h-9 rounded-full shrink-0" />
       <div className="flex-1 min-w-0 flex flex-col gap-2">
         <SkeletonBlock className="h-3.5 w-1/3" />

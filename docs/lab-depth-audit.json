@@ -1,0 +1,96 @@
+{
+  "criterion": "Offensive category and (fewer than 2 proof flags OR fewer than 5 objectives). Structural depth indicator, not a manual quality verdict.",
+  "totalLabs": 669,
+  "upgradedLegacyLabs": 0,
+  "remainingCandidates": 391,
+  "newModules": [
+    {
+      "id": "advanced-pentest-methodology",
+      "title": "Advanced Pentest Methodology",
+      "lessons": 4
+    },
+    {
+      "id": "identity-trust-boundaries",
+      "title": "Identity & Trust Boundary Testing",
+      "lessons": 4
+    },
+    {
+      "id": "software-delivery-security",
+      "title": "Software Delivery & Workload Security",
+      "lessons": 4
+    },
+    {
+      "id": "post-exploitation-host",
+      "title": "Post-Exploitation: Host Assessment",
+      "lessons": 4
+    },
+    {
+      "id": "post-exploitation-operations",
+      "title": "Post-Exploitation: Lateral Access & Handback",
+      "lessons": 4
+    }
+  ],
+  "newLessonWords": 10280,
+  "newCampaigns": [],
+  "upgradesByCategory": [
+    {
+      "category": "Linux",
+      "count": 0
+    },
+    {
+      "category": "Network",
+      "count": 0
+    },
+    {
+      "category": "Web",
+      "count": 0
+    },
+    {
+      "category": "Active Directory",
+      "count": 0
+    },
+    {
+      "category": "Bug Bounty",
+      "count": 0
+    },
+    {
+      "category": "Cloud",
+      "count": 0
+    },
+    {
+      "category": "API",
+      "count": 0
+    },
+    {
+      "category": "Cryptography",
+      "count": 0
+    },
+    {
+      "category": "Binary Analysis",
+      "count": 0
+    },
+    {
+      "category": "Mobile",
+      "count": 0
+    },
+    {
+      "category": "Wireless",
+      "count": 0
+    },
+    {
+      "category": "IoT",
+      "count": 0
+    },
+    {
+      "category": "AI Security",
+      "count": 0
+    }
+  ],
+  "limitations": [
+    "Legacy initial exercises are preserved; the new assessment phase is shared across four privilege-path variants.",
+    "Engine integration checks replay every new campaign and every legacy follow-on extension; legacy extension tests seed original prerequisites rather than claim to replay all 414 original paths.",
+    "The browser engine is deterministic; production protocols, arbitrary code execution and native telemetry are not emulated.",
+    "Structural report validation is not expert narrative review."
+  ],
+  "upgradedLabs": []
+}

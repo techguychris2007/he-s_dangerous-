@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import Editor, { type Monaco } from '@monaco-editor/react';
 import type { editor as MonacoEditorNs } from 'monaco-editor';
 import type { ProjectFile } from '../../labs/projectTypes';
-import '../../lib/monacoLoader';
+import { javascriptDefaults } from '../../lib/monacoLoader';
 
 function readVsTheme(): 'vs-dark' | 'vs' {
   return document.documentElement.dataset.theme === 'light' ? 'vs' : 'vs-dark';
@@ -95,7 +95,7 @@ export default function MonacoProjectEditor({ initialFiles, activePath, onFileCh
 
         // JS/TS diagnostics would otherwise red-squiggle every reference to a global the test harness
         // provides (check/checkText/require/etc.) that isn't declared anywhere in the file itself.
-        monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({ noSemanticValidation: true, noSyntaxValidation: false });
+        javascriptDefaults.setDiagnosticsOptions({ noSemanticValidation: true, noSyntaxValidation: false });
 
         for (const file of initialFiles) {
           editableRef.current.set(file.path, file.editable);

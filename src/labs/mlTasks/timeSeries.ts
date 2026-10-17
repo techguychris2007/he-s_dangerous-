@@ -73,4 +73,41 @@ export const ML_TIME_SERIES_TASKS: CodeTask[] = [
       '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
       'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
   },
+
+  {
+    id: 'ml-ts-03',
+    title: 'Create Lag Features for Forecasting',
+    difficulty: 'Medium',
+    language: 'python',
+    category: 'ML: Time Series',
+    prompt:
+      'Write make_lags(series, lags) that converts a time series into supervised-learning rows. For each time t from lags to the end, ' +
+      'create features [series[t-lags], ..., series[t-1]] and target series[t]. Return (X, y).',
+    starterCode:
+      'def make_lags(series, lags):\n' +
+      '    # TODO: return X, y where X rows contain previous values and y contains the next value\n' +
+      '    pass\n',
+    hints: [
+      'Start the loop at index lags.',
+      'The feature window for time t is series[t-lags:t].',
+      'Append the window to X and series[t] to y.'
+    ],
+    solution:
+      'def make_lags(series, lags):\n' +
+      '    X, y = [], []\n' +
+      '    for t in range(lags, len(series)):\n' +
+      '        X.append(series[t-lags:t])\n' +
+      '        y.append(series[t])\n' +
+      '    return X, y\n',
+    testCode:
+      '__results__ = []\n' +
+      'def __check__(name, actual, expected):\n' +
+      '    __results__.append((name, actual == expected, actual, expected))\n\n' +
+      '__check__("lag two", make_lags([10,20,30,40], 2), ([[10,20],[20,30]], [30,40]))\n' +
+      '__check__("lag one", make_lags([1,2,4], 1), ([[1],[2]], [2,4]))\n' +
+      '__check__("not enough future rows", make_lags([1,2], 2), ([], []))\n\n' +
+      'for name, ok, actual, expected in __results__:\n' +
+      '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
+      'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
+  }
 ];

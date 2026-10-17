@@ -50,6 +50,7 @@ export default function ProjectConsole({ task, onAllTestsPassed, onFilesChange, 
   // racing a stale closure over the previous render's targetStates.
   const summariesRef = useRef<Record<string, TestSummary | null>>(Object.fromEntries(task.targets.map((t) => [t.id, null])));
   const firedRef = useRef(false);
+  const revisionRef = useRef(0);
 
   const showTree = task.files.length > 4 || task.files.some((f) => f.path.includes('/'));
   const domTarget = task.targets.find((t) => t.kind === 'dom');
@@ -65,6 +66,11 @@ export default function ProjectConsole({ task, onAllTestsPassed, onFilesChange, 
   );
 
   const handleFileChange = (path: string, content: string) => {
+    if (contentsRef.current[path] === content) return;
+    revisionRef.current++;
+    summariesRef.current = Object.fromEntries(task.targets.map(target => [target.id, null]));
+    firedRef.current = false;
+    setTargetStates(initialTargetStates(task));
     contentsRef.current[path] = content;
     onFilesChange?.(contentsRef.current);
     setContentsVersion((v) => v + 1);
@@ -73,11 +79,16 @@ export default function ProjectConsole({ task, onAllTestsPassed, onFilesChange, 
   const run = async (targetId: string, withTests: boolean) => {
     const target = task.targets.find((t) => t.id === targetId);
     if (!target) return;
+    const revision = revisionRef.current;
+    summariesRef.current[targetId] = null;
     if (withTests) onTestsAttempted?.();
     setTargetStates((s) => ({ ...s, [targetId]: { status: 'running', output: '', summary: null } }));
-    const result = await RUN_TARGET_RUNNERS[target.kind](currentFiles, target, withTests);
+    const result = await RUN_TARGET_RUNNERS[target.kind](currentFiles, target, withTests).catch(error => ({
+      stdout: '', stderr: error instanceof Error ? error.message : String(error), ok: false,
+    }));
+    if (revision !== revisionRef.current) return;
     const combined = [result.stdout, result.stderr].filter(Boolean).join(result.stdout && result.stderr ? '\n' : '');
-    const summary = withTests ? parseTestResult(result.stdout) : null;
+    const summary = withTests && result.ok ? parseTestResult(result.stdout) : null;
     setTargetStates((s) => ({
       ...s,
       [targetId]: {
@@ -101,7 +112,10 @@ export default function ProjectConsole({ task, onAllTestsPassed, onFilesChange, 
   };
 
   const reset = () => {
+    revisionRef.current++;
     contentsRef.current = initialContents(task.files);
+    onFilesChange?.(contentsRef.current);
+    setContentsVersion(version => version + 1);
     setTargetStates(initialTargetStates(task));
     summariesRef.current = Object.fromEntries(task.targets.map((t) => [t.id, null]));
     firedRef.current = false;

@@ -1,4 +1,5 @@
 import type { FsNode } from './vfs';
+import type { TrainingTool } from './preSecurityTools';
 
 export interface HttpRoutes {
   [path: string]: string;
@@ -135,7 +136,19 @@ export interface MsfModuleDef {
   scanOutput?: string;
 }
 
+/** Fictional trust material used only by the isolated Golden Ticket terminal teaching model. */
+export interface KerberosTicketLabDef {
+  domain: string;
+  domainSid: string;
+  krbtgtAes256Key: string;
+  privilegedUser: string;
+}
+
 export interface HostDef {
+  /** Simulation gate: this scoped follow-on host is provisioned only after initial evidence. */
+  requiresProof?: { flags: string[]; count: number };
+  /** Network segments reachable only from the named hosts; omitted on legacy flat networks. */
+  reachableFrom?: string[];
   hostname: string;
   ip: string;
   os: string;
@@ -158,6 +171,8 @@ export interface HostDef {
    *  (`use`/`set`/`run`) — a genuinely different, multi-step, realistic path to the same kind of outcome
    *  `exploitableAs` grants via its one-line shortcut. A host may define either, both, or neither. */
   metasploitModule?: MsfModuleDef;
+  /** Fictional domain details for a contained Kerberos ticket exercise; never a live credential. */
+  kerberosTicketLab?: KerberosTicketLabDef;
 }
 
 export interface AttackerBox {
@@ -213,4 +228,58 @@ export interface LabScenario {
    *  matching full-line key gets that verb's own realistic "not found"-style error (see WIN_COMMAND_ERRORS
    *  in engine.ts) rather than a generic one, since real `reg`/`wevtutil`/etc. errors look nothing alike. */
   winCommands?: Record<string, string>;
+  engagement?: EngagementDef;
+  /** Interactive target rendered from the same request state used by terminal curl commands. */
+  webApplication?: WebApplicationDef;
+  directoryMap?: DirectoryMapDef;
+  preSecurityTool?: TrainingTool | 'capstone';
+}
+
+export interface WebApplicationDef {
+  name: string;
+  ip: string;
+  kind: 'tenant-billing' | 'support-desk';
+  tagline: string;
+  token: string;
+  principal: string;
+  tenant: string;
+  records: { id: string; tenant: string; title: string; amount: string }[];
+  flags: { disclosure: string; escalation: string; impact: string; retest: string };
+}
+
+export interface LabEvent {
+  sequence: number;
+  kind: 'contact' | 'authentication' | 'privilege' | 'replication' | 'remediation' | 'cleanup';
+  hostIp: string;
+  actor: string;
+  detail: string;
+}
+
+export interface DirectoryMapDef {
+  domain: string;
+  description: string;
+  repairHostIp: string;
+  retestFlag: string;
+  nodes: { id: string; label: string; subtitle: string; kind: 'workstation' | 'account' | 'server' | 'controller'; hostIp?: string; actor?: string; x: number; y: number }[];
+  edges: { from: string; to: string; label: string; event: LabEvent['kind']; hostIp: string; actor?: string }[];
+}
+
+export interface EngagementDef {
+  version: 1;
+  origin: 'new-campaign' | 'depth-upgrade';
+  scope: string;
+  initialFlags: string[];
+  initialRequired: number;
+  followupIp: string;
+  followupUser: string;
+  followupPassword: string;
+  accessFlag: string;
+  reportFlag: string;
+  retestFlag: string;
+  cleanupFlag: string;
+  rootCause: string;
+  remediation: string;
+  privilegeCommand: string;
+  /** A transparent simulator reference solution, consumed by engine integration tests. */
+  walkthrough: string[];
 }

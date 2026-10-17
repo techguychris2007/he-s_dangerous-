@@ -56,11 +56,11 @@ export default function LessonLabCard({ labSlug }: { labSlug: string }) {
         </div>
         <div className="relative flex items-center gap-2 shrink-0">
           <Link
-            to={`/lab/${scenario.id}`}
+            to={`/lab/${entry.slug}`}
             className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold text-white/85 hover:text-white hover:bg-white/10 transition-colors"
           >
             <IconExternal className="w-3.5 h-3.5" />
-            Full screen
+            {scenario.webApplication || scenario.directoryMap ? 'Open visual workspace' : 'Full screen'}
           </Link>
           {done && (
             <button
@@ -72,9 +72,9 @@ export default function LessonLabCard({ labSlug }: { labSlug: string }) {
           )}
           <button
             onClick={() => setOpen((o) => !o)}
-            className="flex items-center gap-1.5 pl-2 pr-4 py-2 rounded-full bg-white text-blue-600 text-sm font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:shadow-md transition-all duration-150"
+            className="flex items-center gap-1.5 pl-2 pr-4 py-2 rounded-full bg-white text-[var(--color-accent-dim)] text-sm font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:shadow-md transition-all duration-150"
           >
-            <span className="w-5 h-5 rounded-full bg-blue-600/10 flex items-center justify-center">
+            <span className="w-5 h-5 rounded-full bg-[var(--color-accent)]/10 flex items-center justify-center">
               <IconFlag className="w-3 h-3" />
             </span>
             {open ? 'Close lab' : 'Open the lab'} &rarr;
@@ -87,7 +87,7 @@ export default function LessonLabCard({ labSlug }: { labSlug: string }) {
             <StepChecklist steps={scenario.objectives} title="Follow these steps" />
           </div>
           <div className="bg-[#0d1420] p-4 h-[420px]">
-            <Terminal scenario={scenario} onFlagCaptured={(flag) => progress.captureFlag(scenario.id, flag)} />
+            <Terminal scenario={scenario} onFlagCaptured={(flag) => progress.captureFlag(scenario.id, flag, scenario.totalFlags)} />
           </div>
         </div>
       )}

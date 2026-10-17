@@ -175,7 +175,7 @@ ORDER BY total_spent DESC;</pre>`,
         heading: 'Monitoring and retraining',
         body: `<p>Production ML systems track prediction distributions and, where possible, real outcomes
         over time, alerting when performance metrics drift outside expected bounds — triggering a
-        retraining cycle that starts the whole pipeline from Unit 10's previous lesson over again with
+        retraining cycle that starts the whole pipeline from the earlier data-preparation and evaluation stages over again with
         fresh data.</p>`,
       },
       {

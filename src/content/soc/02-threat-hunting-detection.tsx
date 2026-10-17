@@ -11,6 +11,14 @@ export default function ThreatHuntingDetection() {
         at all, working from a hypothesis instead of a ticket.
       </p>
 
+      <h2>Technical terms explained</h2>
+      <ul>
+        <li><strong>Hypothesis and baseline:</strong> A hunting hypothesis is a testable statement about possible attacker activity. A baseline describes expected behavior for a particular user, host, or service. Unusual activity is a lead to investigate, rather than proof of an attack.</li>
+        <li><strong>TTPs and behavioral detection:</strong> Tactics, Techniques, and Procedures (TTPs) describe an attacker's goals, methods, and specific implementation. Behavioral detection looks for actions and relationships, such as an office application starting a script interpreter, rather than only known file hashes.</li>
+        <li><strong>Enrichment and detection tuning:</strong> Enrichment adds context such as asset ownership, process ancestry, or account privileges. Tuning adjusts rules to reduce irrelevant alerts while retaining useful coverage. Suppressing every noisy result can create blind spots.</li>
+        <li><strong>Precision and recall:</strong> Precision is the share of generated alerts that are correct: true positives divided by all positive results. Recall is the share of actual malicious cases detected: true positives divided by true positives plus false negatives. Both depend on the test data and labeling quality.</li>
+      </ul>
+
       <h2>The hunting mindset: assume breach</h2>
       <p>
         A threat hunter starts from the assumption that an attacker is already inside, and existing
@@ -166,6 +174,12 @@ cat credential-harvest-log.txt        # the actual impact — which accounts nee
         The labs in this module put you in the analyst's chair for exactly this kind of work: a raw log,
         a vague alert, and the job of finding — and proving — what actually happened.
       </p>
+      <h2>Turn a hunt into a repeatable detection</h2>
+      <p>Start with the hypothesis that a compromised workstation uses a script interpreter to contact an unfamiliar external host. Identify endpoint process logs and network records, then connect them using host identity and time. Inspect the parent process, command line, destination, and user. A software updater may explain the same behavior, so compare known update activity before escalating. If you find a useful pattern, test it against both known malicious examples and normal workstations. Document required log fields, exceptions, and an investigation guide. A hunt that finds nothing should still record its time window and data gaps; missing endpoint logs do not demonstrate that the behavior never occurred.</p>
+      <Callout variant="tip">
+        <p><strong>Check your understanding:</strong> If a hunting query returns no results, how would you distinguish an absent threat from absent telemetry?</p>
+      </Callout>
+
     </div>
   );
 }

@@ -25,6 +25,11 @@ interface BannerConfig {
 }
 
 const BANNERS: Record<string, BannerConfig> = {
+  'advanced-pentest-methodology': { from: '#1a1029', to: '#68459a', pattern: 'scan' },
+  'identity-trust-boundaries': { from: '#09262a', to: '#167d80', pattern: 'circuit' },
+  'software-delivery-security': { from: '#10233e', to: '#3e65a3', pattern: 'grid' },
+  'post-exploitation-host': { from: '#22101a', to: '#9a4359', pattern: 'dots' },
+  'post-exploitation-operations': { from: '#291b0d', to: '#9a7133', pattern: 'circuit' },
   networking: { from: '#0f2a4a', to: '#1c4f82', pattern: 'circuit', photo: networkingPhoto, fit: 'cover' },
   linux: { from: '#0d1b12', to: '#1f4d2e', pattern: 'grid', photo: linuxPhoto, fit: 'cover' },
   recon: { from: '#0c2a2e', to: '#125e63', pattern: 'scan', photo: reconPhoto, fit: 'cover' },
@@ -112,8 +117,9 @@ export default function ModuleBanner({ icon, moduleId, className }: { icon: stri
         <rect width="400" height="160" fill={`url(#${gradId})`} />
         <rect width="400" height="160" fill={`url(#${patId})`} />
       </svg>
+      <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-white/5" />
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center text-white">
+        <span className="w-16 h-16 rounded-3xl border border-white/20 bg-white/[0.12] backdrop-blur-md flex items-center justify-center text-white shadow-[0_20px_50px_-24px_rgba(0,0,0,0.65)]">
           <ModuleIcon icon={icon} className="w-7 h-7" />
         </span>
       </div>

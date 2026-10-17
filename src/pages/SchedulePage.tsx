@@ -12,9 +12,9 @@ export default function SchedulePage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-14">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-14">
       <div className="gold-eyebrow mb-1.5 sm:mb-2">// suggested pacing</div>
-      <h1 className="text-2xl sm:text-3xl font-bold text-[var(--color-heading)] mb-2 sm:mb-3 flex items-center gap-2.5 sm:gap-3">
+      <h1 className="text-3xl sm:text-5xl font-black tracking-[-0.05em] text-[var(--color-heading)] mb-2 sm:mb-3 flex items-center gap-2.5 sm:gap-3">
         <IconCalendar className="w-6 h-6 sm:w-7 sm:h-7 text-[var(--color-accent)] shrink-0" /> Schedule
       </h1>
       <p className="text-sm sm:text-base text-[var(--color-text-dim)] mb-6 sm:mb-8 leading-relaxed max-w-2xl">
@@ -31,7 +31,7 @@ export default function SchedulePage() {
             <Link
               key={mod.id}
               to={`/module/${mod.slug}`}
-              className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 flex items-center gap-4 hover:border-[var(--color-accent)]/50 hover:shadow-sm transition-all"
+              className="premium-card rounded-2xl p-4 flex items-center gap-4 hover:border-[var(--color-accent)]/50 hover:shadow-sm transition-all"
             >
               <span
                 className={`w-9 h-9 rounded-lg text-xs font-bold flex items-center justify-center shrink-0 ${

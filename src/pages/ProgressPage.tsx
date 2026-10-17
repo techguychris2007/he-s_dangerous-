@@ -9,15 +9,20 @@ import { CPP_TASKS } from '../labs/cppTasks';
 import { JS_TASKS } from '../labs/jsTasks';
 import { SECURITY_TASKS } from '../labs/securityTasks';
 import { ML_TASKS } from '../labs/mlTasks';
-import { IconCheck, IconChart, IconFlask, IconCode, IconTrophy, IconArrowRight, ModuleIcon } from '../components/layout/icons';
+import { IconCheck, IconChart, IconFlask, IconCode, IconTrophy, IconArrowRight, IconLightning, ModuleIcon } from '../components/layout/icons';
 import StatCard from '../components/common/StatCard';
+import AchievementShelf from '../components/common/AchievementShelf';
 import DifficultyPill from '../components/common/DifficultyPill';
+import WorkspaceHeader from '../components/common/WorkspaceHeader';
 
 /** Every code-portal task registry combined, mirroring how CodePortalPage + MlPortalPage already
  *  compute their own totals — this is the same real task list, not a new invented count. */
 const ALL_CODE_TASKS = [...PYTHON_TASKS, ...CPP_TASKS, ...JS_TASKS, ...SECURITY_TASKS, ...ML_TASKS];
 
 const TRACK_LABEL: Record<string, string> = {
+  presecurity: 'Pre-security Track',
+  defensive: 'Defensive Security Track',
+  ml: 'Machine Learning Track',
   security: 'Offensive Security Track',
   programming: 'Programming Track',
 };
@@ -44,8 +49,8 @@ export default function ProgressPage() {
     let captured = 0;
     let done = 0;
     for (const [labId, flags] of Object.entries(progress.labFlags)) {
-      captured += flags.length;
       const lab = findLab(labId);
+      if (lab) captured += Math.min(flags.length, lab.scenario.totalFlags);
       if (lab && flags.length >= lab.scenario.totalFlags) {
         done++;
       }
@@ -64,16 +69,16 @@ export default function ProgressPage() {
   );
 
   const { quizzesTaken, avgQuizScore } = useMemo(() => {
-    const taken = Object.keys(progress.quizScores).length;
-    const avg = taken ? Math.round(Object.values(progress.quizScores).reduce((a, b) => a + b, 0) / taken) : 0;
+    const scores = allLessons.filter(lesson => lesson.quiz?.length && Number.isFinite(progress.quizScores[lesson.id])).map(lesson => Math.max(0, Math.min(100, progress.quizScores[lesson.id])));
+    const taken = scores.length;
+    const avg = taken ? Math.round(scores.reduce((a, b) => a + b, 0) / taken) : 0;
     return { quizzesTaken: taken, avgQuizScore: avg };
-  }, [progress.quizScores]);
+  }, [progress.quizScores, allLessons]);
 
   const streak = useMemo(() => computeStreak(progress.activityDates), [progress.activityDates]);
   const unlockedAchievements = useMemo(
     () => ACHIEVEMENTS.filter((a) => a.isUnlocked(progress)),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [progress.labFlags, progress.completedLessons, progress.activityDates],
+    [progress],
   );
 
   // Overall completion folds in every real, trackable unit of work — not just lessons/labs like the
@@ -110,38 +115,22 @@ export default function ProgressPage() {
       const done = mod.lessons.filter((l) => progress.isLessonComplete(l.id)).length;
       return { stage, mod, done, total: mod.lessons.length };
     });
-  const securityModules = trackModules.filter((m) => m.stage.track === 'security');
-  const programmingModules = trackModules.filter((m) => m.stage.track === 'programming');
+
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-14">
-      <div className="flex items-start justify-between flex-wrap gap-3 mb-6 sm:mb-8">
-        <div>
-          <div className="gold-eyebrow mb-1.5 sm:mb-2">// your progress</div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--color-heading)] mb-2">Progress</h1>
-          <p className="text-xs sm:text-sm text-[var(--color-text-dim)] max-w-xl leading-relaxed">
-            Real numbers pulled straight from your lessons, labs, code tasks, and quizzes — nothing here is
-            simulated.
-          </p>
-        </div>
-        {streak.current > 0 && (
-          <div className="flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 shrink-0">
-            <span className="text-lg leading-none">🔥</span>
-            <span className="text-sm font-bold text-[var(--color-heading)]">{streak.current}</span>
-            <span className="text-xs text-[var(--color-text-dim)]">day streak</span>
-          </div>
-        )}
-      </div>
+    <div className="progress-workspace max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-14">
+      <WorkspaceHeader eyebrow="DarkWorld / Learning record" title="Learning progress" description="See the progress behind your practice: lessons completed, challenges solved, and the subjects you are developing. Return to any chapter to keep building."><strong>{streak.current}</strong><span>{streak.current === 1 ? 'day of current practice streak' : 'days of current practice streak'}</span></WorkspaceHeader>
 
       {/* Overview: overall completion ring + the two highest-signal counts beside it. */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 flex flex-col items-center justify-center">
+        <div className="premium-card rounded-2xl p-6 flex flex-col items-center justify-center">
           <div className="relative w-32 h-32">
             <svg viewBox="0 0 120 120" className="w-32 h-32 -rotate-90">
               <circle cx="60" cy="60" r="54" fill="none" stroke="var(--color-surface-2)" strokeWidth="10" />
               <circle
                 cx="60" cy="60" r="54" fill="none" stroke="var(--color-accent)" strokeWidth="10" strokeLinecap="round"
                 strokeDasharray={`${dash} ${circumference}`}
+                opacity={scorePct > 0 ? 1 : 0}
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -152,7 +141,7 @@ export default function ProgressPage() {
           <div className="text-2xs text-[var(--color-text-dim)] mt-3 text-center">Lessons + labs + code tasks</div>
         </div>
         <StatCard icon={<IconChart className="w-5 h-5" />} color="var(--color-accent-2)" label="Lessons completed" value={`${completedLessons} / ${totalLessons}`} />
-        <StatCard icon={<IconFlask className="w-5 h-5" />} color="var(--color-accent)" label="Labs solved" value={`${labsDone} / ${LABS.length}`} />
+        <StatCard icon={<IconFlask className="w-5 h-5" />} color="var(--color-accent)" label="Terminal labs solved" value={`${labsDone} / ${LABS.length}`} />
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-10">
@@ -164,7 +153,7 @@ export default function ProgressPage() {
           <StatCard icon={<IconTrophy className="w-5 h-5" />} color="var(--color-gold)" label="Achievements" value={`${unlockedAchievements.length} / ${ACHIEVEMENTS.length}`} />
         </Link>
         <StatCard
-          icon={<span className="text-lg leading-none">🔥</span>}
+          icon={<IconLightning className="w-5 h-5" />}
           color="var(--color-warn)"
           label={streak.current > 0 ? 'Current streak' : 'Longest streak'}
           value={`${streak.current > 0 ? streak.current : streak.longest} day${(streak.current > 0 ? streak.current : streak.longest) === 1 ? '' : 's'}`}
@@ -173,35 +162,12 @@ export default function ProgressPage() {
 
       {/* Achievements teaser — only the unlocked ones, so this never turns into a wall of locked
           icons; the full grid (locked + unlocked) already lives on the Profile page. */}
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-base font-bold text-[var(--color-heading)]">Achievements</h2>
-        <Link to="/profile" className="text-xs font-semibold text-[var(--color-accent)] hover:underline">
-          View all &rarr;
-        </Link>
-      </div>
-      {unlockedAchievements.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-[var(--color-border)] p-4 mb-10 text-sm text-[var(--color-text-dim)]">
-          Capture your first flag or complete a lesson to unlock your first achievement.
-        </div>
-      ) : (
-        <div className="flex gap-3 mb-10 overflow-x-auto pb-1">
-          {unlockedAchievements.map((a) => (
-            <div
-              key={a.id}
-              title={a.description}
-              className="flex items-center gap-2.5 shrink-0 rounded-xl border border-[var(--color-gold)]/30 bg-[var(--color-gold-soft)] px-4 py-2.5"
-            >
-              <span className="text-xl leading-none">{a.icon}</span>
-              <span className="text-sm font-semibold text-[var(--color-gold-dim)] whitespace-nowrap">{a.title}</span>
-            </div>
-          ))}
-        </div>
-      )}
+      <AchievementShelf achievements={unlockedAchievements} total={ACHIEVEMENTS.length} />
 
       {/* Activity: a real 12-week contribution graph off activityDates, plus the most recently
           completed labs off labCompletedAt — both raw signals already recorded by progressStore. */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
-        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
+        <div className="premium-card rounded-2xl p-5">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-bold text-[var(--color-heading)]">Activity, last 12 weeks</h2>
             <span className="text-xs font-mono text-[var(--color-text-dim)]">Longest streak: {streak.longest}d</span>
@@ -230,7 +196,7 @@ export default function ProgressPage() {
           )}
         </div>
 
-        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
+        <div className="premium-card rounded-2xl p-5">
           <h2 className="text-sm font-bold text-[var(--color-heading)] mb-3">Recently completed labs</h2>
           {recentLabs.length === 0 ? (
             <div className="text-sm text-[var(--color-text-dim)]">
@@ -257,16 +223,13 @@ export default function ProgressPage() {
       </div>
 
       {/* Per-module, per-track breakdown — the real detail behind the summary numbers above. */}
-      {([
-        ['security', securityModules],
-        ['programming', programmingModules],
-      ] as const).map(([track, modules]) =>
+      {Object.entries(TRACK_LABEL).map(([track, label]) => { const modules = trackModules.filter(item => item.stage.track === track); return (
         modules.length === 0 ? null : (
           <section key={track} className="mb-10">
-            <h2 className="text-base font-bold text-[var(--color-heading)] mb-3">{TRACK_LABEL[track]}</h2>
+            <h2 className="text-base font-bold text-[var(--color-heading)] mb-3">{label}</h2>
             <div className="flex flex-col gap-2">
               {modules.map(({ mod, done, total }) => (
-                <details key={mod.slug} className="progress-accordion rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden">
+                <details key={mod.slug} className="progress-accordion premium-card rounded-2xl overflow-hidden">
                   <summary className="flex items-center gap-3 px-4 py-3 cursor-pointer select-none hover:bg-[var(--color-surface-2)] transition-colors">
                     <ModuleIcon icon={mod.icon} className="w-4 h-4 text-[var(--color-accent)] shrink-0" />
                     <span className="text-sm font-semibold text-[var(--color-heading)] flex-1 min-w-0 truncate">{mod.title}</span>
@@ -304,10 +267,9 @@ export default function ProgressPage() {
               ))}
             </div>
           </section>
-        ),
-      )}
+        )); })}
 
-      <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 text-sm text-[var(--color-text-dim)] leading-relaxed">
+      <div className="premium-card rounded-2xl p-5 text-sm text-[var(--color-text-dim)] leading-relaxed">
         Lessons, labs, quizzes, your streak, activity history, and achievements all sync to your account
         across devices — see your{' '}
         <Link to="/profile" className="text-[var(--color-accent)] hover:underline">

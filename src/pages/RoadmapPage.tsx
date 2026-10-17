@@ -1,198 +1,67 @@
-import { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { ROADMAP, findModule } from '../data/curriculum';
+import { labsForLesson } from '../data/lessonLabs';
 import { useProgress } from '../state/progressStore';
-import { ModuleIcon, IconCheck, IconLock, IconCrosshair } from '../components/layout/icons';
+import { useLabsData } from '../state/useLabsData';
+import { SIEM_LABS } from '../labs/siemScenarios';
+import { DEFENSIVE_MILESTONES } from '../data/defensiveCurriculum';
+import { ModuleIcon, IconCheck } from '../components/layout/icons';
 import type { RoadmapTrack } from '../types';
+import './learning-pages.css';
+import AcademyHero from '../components/common/AcademyHero';
 
-const TABS: { value: RoadmapTrack; label: string; blurb: string }[] = [
-  {
-    value: 'security',
-    label: 'Offensive Security',
-    blurb: 'Networking and Linux fundamentals up through red team, cloud, and bug bounty tradecraft.',
-  },
-  {
-    value: 'programming',
-    label: 'Programming',
-    blurb: 'Python, C++, and JavaScript — general-purpose programming practice, independent of any security or ML track.',
-  },
-  {
-    value: 'ml',
-    label: 'Machine Learning',
-    blurb: 'The full ML Portal curriculum, from Python/statistics foundations through neural networks, NLP, and MLOps.',
-  },
+const PATHS: { value: RoadmapTrack; label: string; title: string; blurb: string; focus: string }[] = [
+  { value: 'presecurity', label: 'Pre-security', title: 'Pre-security roadmap', blurb: 'Understand computers, networks, operating systems, and safe lab practice. Build the habits and vocabulary you will use in every investigation.', focus: 'No prior experience needed' },
+  { value: 'security', label: 'Offensive security', title: 'Learn to test. Learn to prove.', blurb: 'Move from reconnaissance and application testing to complete assessments, evidence, post-exploitation, and responsible handback.', focus: 'Start after pre-security foundations' },
+  { value: 'defensive', label: 'Defensive security', title: 'From first alert to strategic defense.', blurb: 'Develop through SOC triage, investigation, threat hunting, detection engineering, incident leadership, and security architecture.', focus: 'Five progressive career milestones' },
+  { value: 'programming', label: 'Programming', title: 'Build tools you understand.', blurb: 'Study practical Python, JavaScript, and C++ to automate work, inspect data, and reason about software.', focus: 'Practical coding exercises' },
+  { value: 'ml', label: 'Machine learning', title: 'Explore data. Understand models.', blurb: 'A progression through data preparation, statistics, learning algorithms, evaluation, and production systems.', focus: 'Foundations through applied machine learning' },
 ];
 
 export default function RoadmapPage() {
+  const [params, setParams] = useSearchParams();
+  const active = PATHS.find(path => path.value === params.get('track')) ?? PATHS[0];
   const progress = useProgress();
-  const [track, setTrack] = useState<RoadmapTrack>('security');
+  const labsData = useLabsData();
+  const stages = ROADMAP.filter(stage => stage.track === active.value);
+  const lessons = stages.flatMap(stage => findModule(stage.moduleSlug)?.lessons ?? []);
+  const lessonsDone = lessons.filter(lesson => progress.isLessonComplete(lesson.id)).length;
+  const minutes = lessons.reduce((sum, lesson) => sum + lesson.minutes, 0);
+  const nextStage = stages.find(stage => {
+    const mod = findModule(stage.moduleSlug);
+    return mod && mod.lessons.some(lesson => !progress.isLessonComplete(lesson.id));
+  });
 
-  const stages = useMemo(() => ROADMAP.filter((s) => s.track === track), [track]);
-  const activeTab = useMemo(() => TABS.find((t) => t.value === track)!, [track]);
-
-  // Real per-stage numbers, computed once so both the summary bar and the node list agree.
-  const stageInfo = useMemo(
-    () =>
-      stages.map((stage) => {
+  return <div className="learning-page roadmap-page mx-auto max-w-6xl px-4 py-8 sm:px-7 sm:py-12">
+    <nav aria-label="Learning paths" className="learning-path-nav">
+      {PATHS.map(path => <button key={path.value} onClick={() => setParams({ track: path.value })} aria-pressed={active.value === path.value} className={`rounded-lg border px-3.5 py-2.5 text-xs font-semibold transition ${active.value === path.value ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/10 text-[var(--color-accent-dim)]' : 'border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-dim)] hover:text-[var(--color-heading)]'}`}>{path.label}</button>)}
+    </nav>
+    <AcademyHero eyebrow={'Learning path / ' + active.label} title={active.title} description={active.blurb}
+      stats={[{label: 'Modules in this path', value: stages.length}, {label: 'Lessons complete', value: lessonsDone + ' / ' + lessons.length}, {label: 'Lesson study time', value: minutes ? Math.ceil(minutes / 60) + ' hours' : 'Self-paced'}]}
+      action={{title: nextStage?.title ?? 'Keep your skills sharp', detail: active.focus, to: nextStage ? '/module/' + nextStage.moduleSlug : '/labs', label: nextStage ? (lessonsDone ? 'Continue learning' : 'Start this chapter') : 'Explore practice labs'}} />
+    <div className="academy-section-heading"><h2 className="">The curriculum</h2><span className="text-xs text-[var(--color-text-dim)]">Self-paced · all modules open</span></div>
+    <div className="learning-module-list">
+      {stages.map((stage, index) => {
         const mod = findModule(stage.moduleSlug);
-        const totalLessons = mod?.lessons.length ?? 0;
-        const doneLessons = mod ? mod.lessons.filter((l) => progress.isLessonComplete(l.id)).length : 0;
-        const available = stage.status === 'available';
-        const complete = available && totalLessons > 0 && doneLessons === totalLessons;
-        return { stage, mod, totalLessons, doneLessons, available, complete };
-      }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [stages, progress.completedLessons],
-  );
-
-  const { currentIndex, stagesComplete, availableCount, lessonsTotal, lessonsDone } = useMemo(() => {
-    const curIdx = stageInfo.findIndex((s) => s.available && !s.complete);
-    const completeCount = stageInfo.filter((s) => s.complete).length;
-    const availCount = stageInfo.filter((s) => s.available).length;
-    const total = stageInfo.reduce((sum, s) => sum + s.totalLessons, 0);
-    const done = stageInfo.reduce((sum, s) => sum + s.doneLessons, 0);
-    return {
-      currentIndex: curIdx,
-      stagesComplete: completeCount,
-      availableCount: availCount,
-      lessonsTotal: total,
-      lessonsDone: done,
-    };
-  }, [stageInfo]);
-
-  return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-14">
-      <div className="gold-eyebrow mb-1.5 sm:mb-2">// curriculum</div>
-      <h1 className="text-2xl sm:text-3xl font-bold text-[var(--color-heading)] mb-2 sm:mb-3">Learning Path</h1>
-
-      <div className="flex flex-wrap gap-2 mb-4">
-        {TABS.map((tab) => (
-          <button
-            key={tab.value}
-            onClick={() => setTrack(tab.value)}
-            aria-pressed={track === tab.value}
-            className={`px-4 py-2 rounded-full text-sm font-semibold border transition-colors ${
-              track === tab.value
-                ? 'bg-[var(--color-accent)] border-[var(--color-accent)] text-white'
-                : 'border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-dim)] hover:text-[var(--color-heading)] hover:border-[var(--color-accent)]/50'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      <p className="text-[var(--color-text-dim)] mb-6 leading-relaxed max-w-2xl">
-        {activeTab.blurb} Follow the path top to bottom; each stop unlocks lessons
-        {track === 'security' ? ' with an embedded guided lab' : ''}. Every available stop is open in
-        any order — the marker below just suggests where to pick up.
-      </p>
-
-      <div className="flex flex-wrap gap-3 mb-12">
-        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3">
-          <div className="text-lg font-bold text-[var(--color-heading)]">{stagesComplete}/{availableCount}</div>
-          <div className="text-2xs text-[var(--color-text-dim)] uppercase tracking-wide">Stops complete</div>
-        </div>
-        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3">
-          <div className="text-lg font-bold text-[var(--color-heading)]">{lessonsDone}/{lessonsTotal}</div>
-          <div className="text-2xs text-[var(--color-text-dim)] uppercase tracking-wide">Lessons complete</div>
-        </div>
-      </div>
-
-      <div className="relative">
-        <div className="absolute left-1/2 top-4 bottom-4 w-1 -translate-x-1/2 bg-[var(--color-border)] rounded-full hidden md:block" />
-        <div className="absolute left-6 top-4 bottom-4 w-1 bg-[var(--color-border)] rounded-full md:hidden" />
-        {/* Progress fill over the spine, up to (but not past) the current stop — shows real distance
-            traveled instead of just a series of independent node colors. */}
-        {currentIndex > 0 && (
-          <>
-            <div
-              className="absolute left-1/2 top-4 -translate-x-1/2 w-1 bg-[var(--color-accent)] rounded-full hidden md:block"
-              style={{ height: `${(currentIndex / stages.length) * 100}%` }}
-            />
-            <div
-              className="absolute left-6 top-4 w-1 bg-[var(--color-accent)] rounded-full md:hidden"
-              style={{ height: `${(currentIndex / stages.length) * 100}%` }}
-            />
-          </>
-        )}
-
-        <div className="flex flex-col gap-8">
-          {stageInfo.map(({ stage, mod, totalLessons, doneLessons, available, complete }, i) => {
-            const leftSide = i % 2 === 0;
-            const isHere = i === currentIndex;
-
-            const nodeColor = complete
-              ? 'bg-[var(--color-success)] border-[var(--color-success)] text-white'
-              : available
-              ? 'bg-[var(--color-accent)] border-[var(--color-accent)] text-white'
-              : 'bg-[var(--color-surface)] border-[var(--color-border)] text-[var(--color-text-dim)]';
-
-            return (
-              <div key={stage.title} className="relative md:flex md:items-center md:justify-center">
-                <div
-                  className={`absolute left-6 md:left-1/2 top-1/2 md:top-1/2 -translate-y-1/2 -translate-x-1/2 w-11 h-11 rounded-full border-2 flex items-center justify-center shrink-0 z-10 ${nodeColor} ${
-                    isHere ? 'here-pulse-ring' : ''
-                  }`}
-                >
-                  {complete ? (
-                    <IconCheck className="w-5 h-5" />
-                  ) : available ? (
-                    <ModuleIcon icon={mod?.icon ?? 'flag'} className="w-5 h-5" />
-                  ) : (
-                    <IconLock className="w-4.5 h-4.5" />
-                  )}
-                </div>
-
-                <div
-                  className={`ml-16 md:ml-0 md:w-[calc(50%-3.5rem)] ${
-                    leftSide ? 'md:mr-auto md:pr-0' : 'md:ml-auto md:order-2'
-                  }`}
-                >
-                  <div
-                    className={`rounded-xl border p-4 transition-colors ${
-                      isHere
-                        ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/5'
-                        : available
-                        ? 'border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-accent)]/50'
-                        : 'border-dashed border-[var(--color-border)] bg-[var(--color-surface-2)]/60'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <span className="text-xs font-mono text-[var(--color-text-dim)]">Stop {i + 1}</span>
-                      {isHere && (
-                        <span className="pill bg-[var(--color-accent)]/15 text-[var(--color-accent)] flex items-center gap-1">
-                          <IconCrosshair className="w-3 h-3" /> You are here
-                        </span>
-                      )}
-                      {complete && <span className="pill bg-[var(--color-success)]/15 text-[var(--color-success)]">Complete</span>}
-                      {!available && <span className="pill bg-[var(--color-surface-2)] text-[var(--color-text-dim)]">Coming soon</span>}
-                    </div>
-                    {stage.href || stage.moduleSlug ? (
-                      <Link
-                        to={stage.href ?? `/module/${stage.moduleSlug}`}
-                        className="font-bold text-[var(--color-heading)] hover:text-[var(--color-accent-2)] block mb-1"
-                      >
-                        {stage.title}
-                      </Link>
-                    ) : (
-                      <div className="font-bold text-[var(--color-text-dim)] mb-1">{stage.title}</div>
-                    )}
-                    {mod && totalLessons > 0 && (
-                      <div className="text-xs text-[var(--color-text-dim)] mb-1.5 font-mono">
-                        {doneLessons}/{totalLessons} lessons complete
-                      </div>
-                    )}
-                    <div className="text-xs text-[var(--color-text-dim)]">
-                      Source: {stage.sourceBooks.join(', ')}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+        const done = mod?.lessons.filter(lesson => progress.isLessonComplete(lesson.id)).length ?? 0;
+        const complete = Boolean(mod?.lessons.length && done === mod.lessons.length);
+        const milestone = DEFENSIVE_MILESTONES.find(item => item.moduleSlug === stage.moduleSlug);
+        const requiredLessons = milestone?.requiredModuleSlugs.flatMap(slug => findModule(slug)?.lessons ?? []) ?? [];
+        const requiredLabs = [...new Set(requiredLessons.flatMap(lesson => labsForLesson(lesson.id)))];
+        const solvedLabs = requiredLabs.filter(id => { const total = labsData?.findLab(id)?.scenario.totalFlags ?? SIEM_LABS.find(lab => lab.id === id)?.totalFlags; return total !== undefined && progress.flagCount(id) >= total; }).length;
+        const learned = requiredLessons.filter(lesson => progress.isLessonComplete(lesson.id) && (!lesson.quiz?.length || (progress.quizScores[lesson.id] ?? 0) >= 70)).length;
+        const ready = Boolean(milestone && requiredLessons.length && learned === requiredLessons.length && solvedLabs === requiredLabs.length);
+        return <section key={stage.title} className="roadmap-module">
+          <Link to={stage.href ?? `/module/${stage.moduleSlug}`} className="learning-module-row group">
+            <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border text-sm font-bold ${complete ? 'border-[var(--color-success)]/30 bg-[var(--color-success)]/10 text-[var(--color-success)]' : 'border-[var(--color-border)] bg-[var(--color-surface-2)] text-[var(--color-accent-dim)]'}`}>{complete ? <IconCheck className="h-4 w-4" /> : String(index + 1).padStart(2, '0')}</span>
+            <div className="min-w-0 flex-1"><div className="mb-1.5 flex flex-wrap items-center gap-2"><span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-text-dim)]">{stage === nextStage ? 'Up next' : complete ? 'Completed' : 'Learning module'}</span>{mod && <span className="text-[10px] text-[var(--color-text-dim)]">· {mod.lessons.length} lessons</span>}</div><h3 className="learning-module-title">{stage.title}</h3><p className="learning-module-description">{mod?.description ?? stage.sourceBooks.join(' · ')}</p>{mod && <div className="learning-module-progress"><progress className="h-1.5 w-28 accent-[var(--color-accent)]" value={done} max={mod.lessons.length} aria-label={`${stage.title} lesson completion`} /><span className="text-[10px] text-[var(--color-text-dim)]">{done}/{mod.lessons.length} complete</span></div>}</div>
+            <ModuleIcon icon={mod?.icon ?? 'route'} className="mt-1 hidden h-5 w-5 text-[var(--color-text-dim)] sm:block" />
+          </Link>
+          {milestone && <div className="border-t border-[var(--color-border)] bg-[var(--color-accent)]/5 px-5 py-5 sm:px-6"><div className="mb-2 flex flex-wrap items-center justify-between gap-2"><h4 className="text-sm font-bold text-[var(--color-accent-dim)]">{milestone.title}</h4><span className="rounded-full border border-[var(--color-border)] px-2 py-1 text-[10px] font-semibold text-[var(--color-heading)]">{ready ? 'Curriculum milestone achieved' : 'Milestone in progress'}</span></div><ul className="space-y-1 text-xs leading-6 text-[var(--color-text-dim)]">{milestone.criteria.map(criterion => <li key={criterion}>• {criterion}</li>)}</ul><p className="mt-3 text-[11px] text-[var(--color-text-dim)]">{learned}/{requiredLessons.length} prerequisite lessons and quizzes · {solvedLabs}/{requiredLabs.length} practice labs complete</p></div>}
+        </section>;
+      })}
     </div>
-  );
+    {active.value === 'defensive' && <p className="mt-6 text-xs leading-6 text-[var(--color-text-dim)]">Milestones describe curriculum progress and practice outcomes. Real SOC responsibilities also depend on supervised experience, your employer’s role definitions, and assessment of your judgment.</p>}
+    {active.value === 'presecurity' && <div className="mt-8 grid gap-4 sm:grid-cols-2">{[['security', 'Explore offensive security', 'Test systems and document their trust boundaries.'], ['defensive', 'Explore defensive security', 'Investigate alerts and protect critical services.']].map(([track, title, text]) => <Link key={track} to={`/roadmap?track=${track}`} className="learning-next-path"><h3 className="mb-2 font-semibold text-[var(--color-heading)]">{title} →</h3><p className="text-xs text-[var(--color-text-dim)]">{text}</p></Link>)}</div>}
+  </div>;
 }

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import AppLayout from './components/layout/AppLayout';
 import InstallPrompt from './components/layout/InstallPrompt';
@@ -6,6 +6,7 @@ import { ProgressContext, useProgressState, useProgress } from './state/progress
 import { AuthContext, useAuthState, useAuth } from './state/authStore';
 import { pullProgress, pushProgressWithRetry } from './lib/progressSync';
 import { isInstructor } from './lib/instructorConfig';
+import { setSyncStatus } from './state/syncStatus';
 
 // ─── Eagerly loaded: auth flow + shell pages needed on first render ──────────
 import LoginPage from './pages/LoginPage';
@@ -46,8 +47,9 @@ const InstructorDashboardPage = lazy(() => import('./pages/InstructorDashboardPa
 // ─── Shared route-level spinner ───────────────────────────────────────────────
 function PageLoader() {
   return (
-    <div className="min-h-[60vh] w-full flex items-center justify-center">
-      <div className="w-6 h-6 rounded-full border-2 border-[#c9a15f] border-t-transparent animate-spin" />
+    <div role="status" aria-live="polite" className="min-h-[60vh] w-full flex flex-col gap-4 items-center justify-center">
+      <div aria-hidden="true" className="w-6 h-6 rounded-full border-2 border-[#c9a15f] border-t-transparent animate-spin motion-reduce:animate-none" />
+      <p className="text-sm text-[var(--color-text-dim)]">Loading your workspace…</p>
     </div>
   );
 }
@@ -66,14 +68,15 @@ function RequireLogin({ children }: { children: React.ReactNode }) {
 function RequireInstructor({ children }: { children: React.ReactNode }) {
   const auth = useAuth();
   if (auth.loading) return <FullScreenLoader />;
-  if (!isInstructor(auth.user?.email)) return <Navigate to="/" replace />;
+  if (!isInstructor(auth.user)) return <Navigate to="/" replace />;
   return <>{children}</>;
 }
 
 function FullScreenLoader() {
   return (
-    <div className="min-h-screen w-full flex items-center justify-center" style={{ background: '#0a1420' }}>
-      <div className="w-8 h-8 rounded-full border-2 border-[#c9a15f] border-t-transparent animate-spin" />
+    <div role="status" className="min-h-screen w-full flex flex-col gap-4 items-center justify-center" style={{ background: '#0a1420' }}>
+      <div aria-hidden="true" className="w-8 h-8 rounded-full border-2 border-[#c9a15f] border-t-transparent animate-spin motion-reduce:animate-none" />
+      <p className="text-sm text-slate-300">Opening DarkWorld…</p>
     </div>
   );
 }
@@ -111,22 +114,37 @@ function SyncAuthToProgress() {
 function ProgressSync() {
   const auth = useAuth();
   const progress = useProgress();
-  const pulledForUser = useRef<string | null>(null);
-  const pushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [readyUserId, setReadyUserId] = useState<string | null>(null);
+  const userId = auth.user?.id;
 
   useEffect(() => {
-    if (!auth.user) {
-      pulledForUser.current = null;
-      return;
-    }
-    if (pulledForUser.current === auth.user.id) return;
-    pulledForUser.current = auth.user.id;
-    pullProgress(auth.user.id).then((remote) => {
-      if (remote) progress.mergeFromRemote(remote);
-    });
-    // progress.mergeFromRemote is stable (useCallback), safe to omit from deps.
+    setReadyUserId(null);
+    if (!userId || progress.lastUserId !== userId) { setSyncStatus('idle'); return; }
+    let cancelled = false;
+    let loading = false;
+    let retry: ReturnType<typeof setTimeout> | undefined;
+      const hydrate = async () => {
+        if (cancelled || loading) return;
+        clearTimeout(retry);
+      loading = true;
+      setReadyUserId(null);
+      setSyncStatus(navigator.onLine ? 'loading' : 'local');
+      try {
+        if (!navigator.onLine) throw new Error('Offline');
+        const remote = await pullProgress(userId);
+        if (cancelled) return;
+        if (remote) progress.mergeFromRemote(remote);
+        setReadyUserId(userId);
+        setSyncStatus('saved');
+      } catch {
+        if (!cancelled) { setSyncStatus('local'); retry = setTimeout(hydrate, 15000); }
+      } finally { loading = false; }
+    };
+    void hydrate();
+    window.addEventListener('online', hydrate);
+    return () => { cancelled = true; clearTimeout(retry); window.removeEventListener('online', hydrate); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auth.user]);
+  }, [userId, progress.lastUserId]);
 
   const {
     completedLessons,
@@ -155,48 +173,22 @@ function ProgressSync() {
     codeTaskSolutionRevealed,
   };
   useEffect(() => {
-    if (!auth.user) return;
-    const userId = auth.user.id;
-    if (pushTimer.current) clearTimeout(pushTimer.current);
-    pushTimer.current = setTimeout(() => {
-      if (navigator.onLine) pushProgressWithRetry(userId, syncableProgress);
+    if (!userId || readyUserId !== userId || progress.lastUserId !== userId) return;
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      if (!navigator.onLine) { setSyncStatus('local'); return; }
+      setSyncStatus('saving');
+      try {
+        const saved = await pushProgressWithRetry(userId, syncableProgress, 2, 4000, controller.signal);
+        if (!controller.signal.aborted) setSyncStatus(saved ? 'saved' : 'local');
+      } catch { if (!controller.signal.aborted) setSyncStatus('local'); }
     }, 2000);
     return () => {
-      if (pushTimer.current) clearTimeout(pushTimer.current);
+      clearTimeout(timer);
+      controller.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auth.user, completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt, completedCodeTasks, leaderboardOptIn, activityDates, codeTaskAttempts, codeTaskHintsUsed, codeTaskSolutionRevealed]);
-
-  useEffect(() => {
-    if (!auth.user) return;
-    const userId = auth.user.id;
-    const onOnline = () => pushProgressWithRetry(userId, syncableProgress);
-    window.addEventListener('online', onOnline);
-    return () => window.removeEventListener('online', onOnline);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auth.user, completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt, completedCodeTasks, leaderboardOptIn, activityDates, codeTaskAttempts, codeTaskHintsUsed, codeTaskSolutionRevealed]);
-
-  return null;
-}
-
-function LockPortraitOrientation() {
-  useEffect(() => {
-    try {
-      if (
-        typeof window !== 'undefined' &&
-        window.matchMedia('(display-mode: standalone)').matches &&
-        'screen' in window &&
-        'orientation' in window.screen
-      ) {
-        const orientation = window.screen.orientation as ScreenOrientation & { lock?: (mode: string) => Promise<void> };
-        if (orientation && typeof orientation.lock === 'function') {
-          orientation.lock('portrait').catch(() => {});
-        }
-      }
-    } catch {
-      // Handled safely
-    }
-  }, []);
+  }, [userId, readyUserId, progress.lastUserId, completedLessons, labFlags, quizScores, bookmarkedLabs, labCompletedAt, completedCodeTasks, leaderboardOptIn, activityDates, codeTaskAttempts, codeTaskHintsUsed, codeTaskSolutionRevealed]);
 
   return null;
 }
@@ -208,7 +200,6 @@ function App() {
   return (
     <ProgressContext.Provider value={progress}>
       <AuthContext.Provider value={auth}>
-        <LockPortraitOrientation />
         <SyncAuthToProgress />
         <ProgressSync />
         <InstallPrompt />

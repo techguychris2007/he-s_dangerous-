@@ -49,9 +49,11 @@ export interface Achievement {
   id: string;
   title: string;
   description: string;
-  icon: string;
+  icon: AchievementIconName;
   isUnlocked: (progress: ProgressState) => boolean;
 }
+
+export type AchievementIconName = 'flag' | 'book' | 'target' | 'trophy' | 'crown' | 'code' | 'brain' | 'check' | 'certificate' | 'bookmark' | 'shield' | 'lightning' | 'star' | 'map' | 'medal';
 
 function labsCompletedCount(progress: ProgressState): number {
   return Object.keys(progress.labCompletedAt).length;
@@ -60,100 +62,100 @@ function labsCompletedCount(progress: ProgressState): number {
 export const ACHIEVEMENTS: Achievement[] = [
   {
     id: 'first-blood',
-    title: 'First Blood',
+    title: 'First Flag',
     description: 'Capture your first flag.',
-    icon: '🚩',
+    icon: 'flag',
     isUnlocked: (p) => Object.values(p.labFlags).some((flags) => flags.length > 0),
   },
   {
     id: 'first-lesson',
     title: 'Getting Started',
     description: 'Complete your first lesson.',
-    icon: '📖',
+    icon: 'book',
     isUnlocked: (p) => Object.values(p.completedLessons).some(Boolean),
   },
   {
     id: 'ten-labs',
-    title: 'Script Kiddie No More',
+    title: 'Lab Practitioner',
     description: 'Fully complete 10 labs.',
-    icon: '🎯',
+    icon: 'target',
     isUnlocked: (p) => labsCompletedCount(p) >= 10,
   },
   {
     id: 'fifty-labs',
     title: 'Half Century',
     description: 'Fully complete 50 labs.',
-    icon: '🏆',
+    icon: 'trophy',
     isUnlocked: (p) => labsCompletedCount(p) >= 50,
   },
   {
     id: 'hundred-labs',
     title: 'Centurion',
     description: 'Fully complete 100 labs.',
-    icon: '👑',
+    icon: 'crown',
     isUnlocked: (p) => labsCompletedCount(p) >= 100,
   },
   {
     id: 'coder',
     title: 'Coder',
     description: 'Pass 10 Code Portal exercises.',
-    icon: '💻',
+    icon: 'code',
     isUnlocked: (p) => Object.values(p.completedCodeTasks).filter(Boolean).length >= 10,
   },
   {
     id: 'master-coder',
     title: 'Master Coder',
     description: 'Pass 50 Code Portal exercises.',
-    icon: '🧠',
+    icon: 'brain',
     isUnlocked: (p) => Object.values(p.completedCodeTasks).filter(Boolean).length >= 50,
   },
   {
     id: 'perfect-score',
     title: 'Perfect Score',
     description: 'Score 100% on any quiz.',
-    icon: '💯',
+    icon: 'check',
     isUnlocked: (p) => Object.values(p.quizScores).some((s) => s >= 100),
   },
   {
     id: 'quiz-master',
     title: 'Quiz Master',
     description: 'Complete 10 lesson quizzes.',
-    icon: '🎓',
+    icon: 'certificate',
     isUnlocked: (p) => Object.keys(p.quizScores).length >= 10,
   },
   {
     id: 'bookworm',
     title: 'Bookworm',
     description: 'Bookmark 5 labs to revisit.',
-    icon: '🔖',
+    icon: 'bookmark',
     isUnlocked: (p) => Object.values(p.bookmarkedLabs).filter(Boolean).length >= 5,
   },
   {
     id: 'on-fire',
     title: 'On Fire',
     description: 'Reach a 3-day activity streak.',
-    icon: '🔥',
+    icon: 'shield',
     isUnlocked: (p) => computeStreak(p.activityDates).longest >= 3,
   },
   {
     id: 'unstoppable',
     title: 'Unstoppable',
     description: 'Reach a 7-day activity streak.',
-    icon: '⚡',
+    icon: 'lightning',
     isUnlocked: (p) => computeStreak(p.activityDates).longest >= 7,
   },
   {
     id: 'legendary',
     title: 'Legendary',
     description: 'Reach a 30-day activity streak.',
-    icon: '🌟',
+    icon: 'star',
     isUnlocked: (p) => computeStreak(p.activityDates).longest >= 30,
   },
   {
     id: 'jack-of-all-trades',
     title: 'Jack of All Trades',
     description: 'Complete at least one lab in every category.',
-    icon: '🗺️',
+    icon: 'map',
     isUnlocked: (p) => {
       const categories = new Set<string>();
       for (const slug of Object.keys(p.labCompletedAt)) {
@@ -167,7 +169,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     id: 'category-master',
     title: 'Category Master',
     description: 'Fully complete every lab in one category.',
-    icon: '🥇',
+    icon: 'medal',
     isUnlocked: (p) =>
       LAB_CATEGORIES.some((cat) => {
         const inCategory = labsForCategory(cat);
@@ -178,7 +180,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     id: 'completionist',
     title: 'Completionist',
     description: `Fully complete all ${LABS.length} labs.`,
-    icon: '🏅',
+    icon: 'certificate',
     isUnlocked: (p) => labsCompletedCount(p) >= LABS.length,
   },
 ];

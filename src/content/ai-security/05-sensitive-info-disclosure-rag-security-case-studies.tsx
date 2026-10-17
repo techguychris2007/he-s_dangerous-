@@ -6,7 +6,7 @@ export default function SensitiveInfoDisclosureRagSecurityCaseStudies() {
     <div className="prose-hh">
       <h1>Sensitive Information Disclosure, RAG Security & Case Studies</h1>
       <p>
-        This closing lesson covers LLM06 (Sensitive Information Disclosure) — what a fully legitimate,
+        This lesson covers LLM02:2025 (Sensitive Information Disclosure) — what a fully legitimate,
         untampered, non-jailbroken model can still leak simply by doing exactly what it was trained to do —
         the security-specific risks unique to Retrieval-Augmented Generation (RAG) systems, and a set of
         further real-world incidents that tie this entire module together.
@@ -88,7 +88,7 @@ def answer_question(user_query, tenant_id):
         A system prompt often contains more than instructions — real deployments frequently embed API keys,
         internal tool names, business logic (pricing rules, eligibility criteria), or competitive information
         directly in the prompt text for convenience. Every technique from Lesson 2 that extracts a system
-        prompt turns that convenience into a direct LLM06 finding — which is why sensitive configuration
+        prompt turns that convenience into a direct LLM02:2025 finding — which is why sensitive configuration
         belongs in the application layer behind the model, never in text the model itself might be persuaded
         to repeat back.
       </p>

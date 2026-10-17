@@ -3,18 +3,19 @@ import { Navigate, useParams, Link } from 'react-router-dom';
 import { findBook, booksInTrack } from '../data/books';
 import PdfViewer, { type PdfViewerHandle } from '../components/books/PdfViewer';
 import AiReadingCompanion from '../components/books/AiReadingCompanion';
-import { IconExternal, IconSearch, IconFlask } from '../components/layout/icons';
+import { IconBook, IconCheck, IconDownload, IconExternal, IconFlask, IconSearch } from '../components/layout/icons';
 import { SECURITY_TASKS, BOOK_LAB_TASK_IDS } from '../labs/securityTasks';
 
 /** Runs the search across pages with limited concurrency instead of one-at-a-time (too slow for a
  *  300+ page book) or all-at-once (hundreds of simultaneous pdf.js calls at once). */
-async function searchAllPages(viewer: PdfViewerHandle, query: string, onProgress: (done: number, total: number) => void) {
+async function searchAllPages(viewer: PdfViewerHandle, query: string, onProgress: (done: number, total: number) => void, shouldStop: () => boolean) {
   const total = viewer.numPages;
   const lowerQuery = query.toLowerCase();
   const matches: number[] = [];
   const CONCURRENCY = 12;
   let done = 0;
   for (let start = 1; start <= total; start += CONCURRENCY) {
+    if (shouldStop()) return [];
     const pageNums = Array.from({ length: Math.min(CONCURRENCY, total - start + 1) }, (_, i) => start + i);
     await Promise.all(
       pageNums.map(async (p) => {
@@ -31,13 +32,29 @@ async function searchAllPages(viewer: PdfViewerHandle, query: string, onProgress
 export default function BookReaderPage() {
   const { bookId } = useParams();
   const book = bookId ? findBook(bookId) : undefined;
+  const localPdfUrl = book?.filename ? '/books/' + book.filename : null;
   const viewerRef = useRef<PdfViewerHandle>(null);
+  const [offlineBookState, setOfflineBookState] = useState<'checking' | 'ready' | 'saved' | 'saving' | 'error' | 'unsupported'>('checking');
+  const [offlineBookMessage, setOfflineBookMessage] = useState('');
+  const [online, setOnline] = useState(() => navigator.onLine);
+
+  useEffect(() => {
+    const updateNetwork = () => setOnline(navigator.onLine);
+    window.addEventListener('online', updateNetwork);
+    window.addEventListener('offline', updateNetwork);
+    return () => {
+      window.removeEventListener('online', updateNetwork);
+      window.removeEventListener('offline', updateNetwork);
+    };
+  }, []);
 
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [searching, setSearching] = useState(false);
   const [searchProgress, setSearchProgress] = useState({ done: 0, total: 0 });
   const [results, setResults] = useState<number[] | null>(null);
+  const [searchError, setSearchError] = useState('');
+  const searchRunRef = useRef(0);
 
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [voiceURI, setVoiceURI] = useState('');
@@ -102,10 +119,12 @@ export default function BookReaderPage() {
   useEffect(() => {
     // reset per-book state when navigating between books
     currentBookIdRef.current = bookId;
+    searchRunRef.current++;
     stopRef.current = true;
     window.speechSynthesis.cancel();
     setReadState('idle');
     setResults(null);
+    setSearchError('');
     setQuery('');
     setSearchOpen(false);
     setSearching(false);
@@ -117,12 +136,149 @@ export default function BookReaderPage() {
     boilerplateRef.current = new Set();
   }, [bookId]);
 
+  useEffect(() => {
+    let cancelled = false;
+    setOfflineBookMessage('');
+    if (!localPdfUrl || !('caches' in window)) {
+      setOfflineBookState('unsupported');
+      return () => { cancelled = true; };
+    }
+    setOfflineBookState('checking');
+    void caches.open('dw-books-offline-v1')
+      .then(cache => cache.match(new URL(localPdfUrl, window.location.href)))
+      .then(response => {
+        if (!cancelled) setOfflineBookState(response?.status === 200 ? 'saved' : 'ready');
+      })
+      .catch(() => { if (!cancelled) setOfflineBookState('ready'); });
+    return () => { cancelled = true; };
+  }, [localPdfUrl]);
+
   if (!book) return <Navigate to="/library" replace />;
-  // Link-only books (no cached PDF) have no in-app reader — send visitors straight to the
-  // official source instead of rendering a broken viewer.
   if (!book.filename) {
-    window.location.replace(book.officialUrl);
-    return null;
+    const siblings = booksInTrack(book.track);
+    const index = siblings.findIndex((b) => b.id === book.id);
+    const prevBook = index > 0 ? siblings[index - 1] : undefined;
+    const nextBook = index >= 0 && index < siblings.length - 1 ? siblings[index + 1] : undefined;
+
+    return (
+      <div className="min-h-screen" style={{ background: 'var(--color-bg)' }}>
+        <div
+          className="relative overflow-hidden border-b border-[var(--color-border)]"
+          style={{ background: 'linear-gradient(180deg, var(--color-navy) 0%, var(--color-navy-dim) 100%)' }}
+        >
+          <div
+            aria-hidden
+            className="absolute inset-0 opacity-[0.06] pointer-events-none"
+            style={{
+              backgroundImage:
+                'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)',
+              backgroundSize: '32px 32px',
+            }}
+          />
+          <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+            <Link to={`/library?track=${book.track}`} className="text-sm font-semibold text-white/70 hover:text-white transition-colors">
+              &larr; Back to Library
+            </Link>
+            <div className="mt-8 grid lg:grid-cols-[1fr_320px] gap-8 items-end">
+              <div>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {book.track === 'security' && <span className="pill bg-white text-[var(--color-navy)] font-bold">#{book.order}</span>}
+                  {book.stage && <span className="pill bg-white/10 text-white/80 border border-white/20">{book.stage}</span>}
+                  <span className="pill bg-[var(--color-warn)]/20 text-[var(--color-warn)] border border-[var(--color-warn)]/30">
+                    Official source required
+                  </span>
+                </div>
+                <h1 className="text-3xl sm:text-5xl font-black tracking-[-0.05em] text-white mb-3">{book.title}</h1>
+                <p className="text-white/70 text-base leading-7 max-w-3xl">{book.subtitle}</p>
+                <p className="text-white/55 text-sm mt-3 font-mono" dangerouslySetInnerHTML={{ __html: book.author }} />
+              </div>
+              <div className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-2xl">
+                <div className="w-14 h-14 rounded-2xl bg-[var(--color-accent)]/20 border border-[var(--color-accent)]/30 flex items-center justify-center mb-4">
+                  <IconBook className="w-7 h-7 text-[var(--color-accent-dim)]" />
+                </div>
+                <div className="text-xs uppercase tracking-[0.16em] text-white/50 mb-2">Availability</div>
+                <p className="text-sm text-white/75 leading-6">
+                  This title is listed in the roadmap, but it is not cached because the catalog does not have a redistributable PDF to serve safely.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+          <div className="grid lg:grid-cols-[1fr_320px] gap-6">
+            <div className="premium-card rounded-3xl p-6 sm:p-8">
+              <h2 className="text-xl font-black tracking-[-0.03em] text-[var(--color-heading)] mb-3">Why this opens from the official source</h2>
+              <p className="text-sm sm:text-base text-[var(--color-text-dim)] leading-7 mb-5">{book.description}</p>
+              <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg)] p-5">
+                <div className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--color-text-dim)] mb-2">Caching policy</div>
+                <p className="text-sm text-[var(--color-text-dim)] leading-6">
+                  DarkWorld caches books only when the source is public domain or the license clearly permits redistribution of the exact file. For this title, the safe path is to keep the learner in the Library for context, then send them to the official publisher, author, or project page.
+                </p>
+              </div>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <a
+                  href={book.officialUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-2xl bg-[var(--color-accent)] px-5 py-3 text-sm font-bold text-white hover:brightness-110 transition"
+                >
+                  Open official source <IconExternal className="w-4 h-4" />
+                </a>
+                <a
+                  href={book.licenseUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 text-sm font-bold text-[var(--color-heading)] hover:border-[var(--color-accent)]/60 transition"
+                >
+                  View license/source note <IconExternal className="w-4 h-4" />
+                </a>
+              </div>
+            </div>
+
+            <aside className="space-y-4">
+              <div className="premium-card rounded-3xl p-5">
+                <div className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--color-text-dim)] mb-3">Reader status</div>
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-[var(--color-warn)]/15 border border-[var(--color-warn)]/30 flex items-center justify-center">
+                    <IconExternal className="w-5 h-5 text-[var(--color-warn)]" />
+                  </div>
+                  <div>
+                    <div className="font-black text-[var(--color-heading)]">Not cached</div>
+                    <div className="text-xs text-[var(--color-text-dim)]">Use the official source</div>
+                  </div>
+                </div>
+              </div>
+              <div className="premium-card rounded-3xl p-5">
+                <div className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--color-text-dim)] mb-3">Roadmap position</div>
+                <p className="text-sm text-[var(--color-text-dim)] leading-6">
+                  {book.stage ? `${book.stage}, book #${book.order}.` : `Programming shelf, book #${book.order}.`} Return here after reading to continue the sequence.
+                </p>
+              </div>
+            </aside>
+          </div>
+
+          {(prevBook || nextBook) && (
+            <div className="mt-6 premium-card rounded-3xl p-5 flex items-center justify-between gap-4 text-sm">
+              {prevBook ? (
+                <Link to={`/library/${prevBook.id}`} className="text-[var(--color-text-dim)] hover:text-[var(--color-heading)] transition-colors">
+                  &larr; #{prevBook.order} {prevBook.title}
+                </Link>
+              ) : (
+                <span />
+              )}
+              {nextBook ? (
+                <Link to={`/library/${nextBook.id}`} className="font-semibold text-[var(--color-accent)] hover:underline text-right">
+                  Next: #{nextBook.order} {nextBook.title} &rarr;
+                </Link>
+              ) : (
+                <span />
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    );
   }
 
   const fileUrl = `/books/${book.filename}`;
@@ -134,8 +290,37 @@ export default function BookReaderPage() {
     .map((taskId) => SECURITY_TASKS.find((t) => t.id === taskId))
     .filter((t): t is NonNullable<typeof t> => Boolean(t));
 
+  const saveBookForOffline = async () => {
+    if (!localPdfUrl || offlineBookState === 'saving' || !('caches' in window)) return;
+    if (!online) {
+      setOfflineBookState('error');
+      setOfflineBookMessage('Connect to the internet once to save this book for offline reading.');
+      return;
+    }
+    setOfflineBookState('saving');
+    setOfflineBookMessage('');
+    try {
+      const response = await fetch(localPdfUrl, { credentials: 'same-origin' });
+      if (response.status !== 200 || !response.ok || !response.headers.get('content-type')?.includes('pdf')) {
+        throw new Error('The PDF could not be downloaded completely.');
+      }
+      const cache = await caches.open('dw-books-offline-v1');
+      await cache.put(new URL(localPdfUrl, window.location.href), response.clone());
+      setOfflineBookState('saved');
+      setOfflineBookMessage('Saved in this browser. You can read this book offline on this device.');
+    } catch {
+      setOfflineBookState('error');
+      setOfflineBookMessage('Could not save the book. Check your connection or available device storage and try again.');
+    }
+  };
+
   const runSearch = async () => {
-    if (!viewerRef.current || !query.trim()) return;
+    if (!viewerRef.current || !query.trim() || searching) return;
+    if (!viewerRef.current.numPages) {
+      setSearchError('Wait for the book to finish loading, then try your search again.');
+      return;
+    }
+    const searchRun = ++searchRunRef.current;
     // viewerRef points at the same PdfViewer instance across book navigation (it isn't remounted),
     // so a search that's still in flight when the visitor jumps to another book would otherwise keep
     // reading that new book's pages under the old query and silently overwrite this book's search
@@ -143,15 +328,20 @@ export default function BookReaderPage() {
     // search was started for.
     const requestedBookId = bookId;
     setSearching(true);
+    setSearchError('');
     setSearchProgress({ done: 0, total: viewerRef.current.numPages });
     setResults(null);
-    const matches = await searchAllPages(viewerRef.current, query.trim(), (done, total) => {
-      if (currentBookIdRef.current !== requestedBookId) return;
-      setSearchProgress({ done, total });
-    });
-    if (currentBookIdRef.current !== requestedBookId) return;
-    setResults(matches);
-    setSearching(false);
+    try {
+      const matches = await searchAllPages(viewerRef.current, query.trim(), (done, total) => {
+        if (currentBookIdRef.current !== requestedBookId || searchRun !== searchRunRef.current) return;
+        setSearchProgress({ done, total });
+      }, () => currentBookIdRef.current !== requestedBookId || searchRun !== searchRunRef.current);
+      if (currentBookIdRef.current === requestedBookId && searchRun === searchRunRef.current) setResults(matches);
+    } catch {
+      if (currentBookIdRef.current === requestedBookId && searchRun === searchRunRef.current) setSearchError('Some pages could not be searched. Please retry after the book loads.');
+    } finally {
+      if (currentBookIdRef.current === requestedBookId && searchRun === searchRunRef.current) setSearching(false);
+    }
   };
 
   const speakPage = async (pageNum: number): Promise<void> => {
@@ -203,13 +393,24 @@ export default function BookReaderPage() {
       <div className="border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 sm:px-6 py-3 sm:py-4">
         <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
           <div>
-            <Link to="/library" className="text-xs font-semibold text-[var(--color-accent)] hover:underline mb-1 inline-block">
+            <Link to={`/library?track=${book.track}`} className="text-xs font-semibold text-[var(--color-accent)] hover:underline mb-1 inline-block">
               &larr; Back to Library
             </Link>
             <h1 className="text-lg font-bold text-[var(--color-heading)]">{book.title}</h1>
             <p className="text-xs text-[var(--color-text-dim)]" dangerouslySetInnerHTML={{ __html: `${book.subtitle} — ${book.author}` }} />
           </div>
           <div className="flex items-center gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={saveBookForOffline}
+                disabled={offlineBookState === 'checking' || offlineBookState === 'saving' || offlineBookState === 'unsupported' || offlineBookState === 'saved' || !online}
+              className="px-3.5 py-2 rounded-lg border border-[var(--color-gold)]/45 bg-[var(--color-gold-soft)] text-sm font-semibold text-[var(--color-gold-dim)] hover:brightness-105 disabled:cursor-default disabled:opacity-80 transition"
+            >
+              <span className="inline-flex items-center gap-1.5">
+                {offlineBookState === 'saved' ? <IconCheck className="w-4 h-4" /> : <IconDownload className="w-4 h-4" />}
+                {offlineBookState === 'checking' ? 'Checking…' : offlineBookState === 'saving' ? 'Saving…' : offlineBookState === 'saved' ? 'Saved offline' : offlineBookState === 'unsupported' ? 'Offline save unavailable' : offlineBookState === 'error' ? 'Retry offline save' : 'Save for offline'}
+              </span>
+            </button>
             <button
               onClick={() => setSearchOpen((v) => !v)}
               aria-pressed={searchOpen}
@@ -242,10 +443,11 @@ export default function BookReaderPage() {
               download={book.filename}
               className="px-4 py-2 rounded-lg bg-[var(--color-accent)] text-white text-sm font-semibold hover:brightness-110 transition"
             >
-              Download PDF ({book.fileSizeMb} MB)
+              <span className="inline-flex items-center gap-1.5"><IconDownload className="w-4 h-4" /> Download PDF ({book.fileSizeMb} MB)</span>
             </a>
           </div>
         </div>
+        {offlineBookMessage && <p role="status" aria-live="polite" className="max-w-6xl mx-auto mt-2 text-xs text-[var(--color-text-dim)]">{offlineBookMessage}</p>}
 
         {/* Copyright & attribution notice — required by every license on this shelf, and the
             clearest signal to any visitor (including the rights holder) that this is a licensed
@@ -362,6 +564,7 @@ export default function BookReaderPage() {
               </button>
             </div>
             <div className="flex-1 min-w-[200px]">
+              {searchError && <p role="alert" className="text-sm text-[var(--color-danger)]">{searchError}</p>}
               {searching && (
                 <span className="text-xs text-[var(--color-text-dim)] font-mono">
                   Searching page {searchProgress.done}/{searchProgress.total}&hellip;

@@ -41,7 +41,7 @@ const ANNOUNCEMENTS: Announcement[] = [
 
 export default function AnnouncementsPage() {
   return (
-    <div className="max-w-3xl mx-auto px-8 py-14">
+    <div className="max-w-5xl mx-auto px-8 py-14">
       <div className="gold-eyebrow mb-2">// changelog</div>
       <h1 className="text-3xl font-bold text-[var(--color-heading)] mb-3 flex items-center gap-3">
         <IconMegaphone className="w-7 h-7 text-[var(--color-accent)]" /> Announcements
@@ -52,7 +52,7 @@ export default function AnnouncementsPage() {
 
       <div className="flex flex-col gap-4">
         {ANNOUNCEMENTS.map((a, i) => (
-          <div key={i} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
+          <div key={i} className="premium-card rounded-2xl p-5">
             <div className="text-2xs font-mono font-bold uppercase tracking-widest text-[var(--color-accent-dim)] mb-1.5">{a.date}</div>
             <h2 className="font-semibold text-[var(--color-heading)] text-sm mb-1.5">{a.title}</h2>
             <p className="text-sm text-[var(--color-text-dim)] leading-relaxed">{a.body}</p>

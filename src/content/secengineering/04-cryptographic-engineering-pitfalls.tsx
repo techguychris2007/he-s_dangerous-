@@ -12,6 +12,14 @@ export default function CryptographicEngineeringPitfalls() {
         covered in the first place.
       </p>
 
+      <h2>Technical terms explained</h2>
+      <ul>
+        <li><strong>Encryption, encoding, and hashing:</strong> Encryption protects confidentiality using a key. Encoding changes representation, such as Base64, and provides no secrecy. A cryptographic hash produces a fixed-size digest; an ordinary hash alone does not authenticate a message or safely store passwords.</li>
+        <li><strong>AEAD and authentication tag:</strong> Authenticated Encryption with Associated Data (AEAD) protects encrypted content and verifies integrity, including specified unencrypted metadata. The authentication tag is the value checked before accepting the message; failed verification must cause rejection.</li>
+        <li><strong>Nonce, IV, and salt:</strong> A nonce is a value whose reuse rules depend on the cryptographic scheme. An Initialization Vector (IV) initializes an encryption mode. A salt is a non-secret value used in password hashing to prevent identical passwords from producing identical stored hashes. These values are not interchangeable.</li>
+        <li><strong>KDF and key lifecycle:</strong> A Key Derivation Function (KDF) derives keys from input material. Password storage needs a purpose-built password-hashing scheme with an appropriate work factor. A key lifecycle includes generation, storage, access control, rotation, and retirement.</li>
+      </ul>
+
       <h2>"Don't roll your own crypto" — and why that's not enough advice alone</h2>
       <p>
         This is famous advice for good reason, but it's incomplete: using a well-vetted algorithm
@@ -137,6 +145,12 @@ Cache-timing attacks      — inferring secret data from CPU cache access patter
         and much of this course — into a set of recurring patterns behind why security systems fail in
         practice, again and again, across completely different technologies.
       </p>
+      <h2>Review an encrypted-record design</h2>
+      <p>For a service storing private records, choose an established authenticated encryption implementation and document its nonce requirements. For AES-GCM, nonce reuse under the same key can break security; a design needs a reliable uniqueness strategy across concurrent workers and restarts. Bind relevant context, such as a record identifier and format version, as associated data where appropriate, and reject the entire message if authentication fails. Keep keys separate from ciphertext and restrict who can retrieve them. Plan how old records remain readable during rotation. Encryption does not replace access control: a service allowed to decrypt everything can still disclose everything if its authorization fails.</p>
+      <Callout variant="tip">
+        <p><strong>Check your understanding:</strong> How would concurrent writers avoid nonce reuse, and what should happen when an authentication tag fails?</p>
+      </Callout>
+
     </div>
   );
 }

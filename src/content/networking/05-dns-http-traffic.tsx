@@ -66,10 +66,11 @@ Accept: */*
 
       <Callout variant="warn">
         <p>
-          <strong>Passive recon comes before active recon.</strong> DNS lookups, WHOIS, certificate
-          transparency logs (crt.sh), and search engine dorking gather intelligence without ever sending a
-          packet to the target's infrastructure. Active scanning (nmap, directory brute-forcing) touches
-          their systems and must be explicitly authorized. We draw this line precisely in Module 3.
+          <strong>Record where your observation came from.</strong> Existing search results and certificate
+          transparency records usually avoid direct target contact, but queries still contact their data
+          providers. DNS resolution can contact recursive or authoritative infrastructure; it is not
+          automatically invisible or target-free. Direct service probes need the designated lab scope.
+          An indexed observation can also be stale, so distinguish published evidence from a current check.
         </p>
       </Callout>
 

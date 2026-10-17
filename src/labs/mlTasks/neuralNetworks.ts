@@ -240,4 +240,66 @@ export const ML_NEURAL_NETWORKS_TASKS: CodeTask[] = [
       '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
       'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
   },
+  {
+    id: 'ml-nn-07',
+    title: 'Implement Scaled Dot-Product Attention',
+    difficulty: 'Hard',
+    language: 'python',
+    category: 'ML: Neural Networks',
+    prompt: 'Implement attend(query, keys, values, key_mask=None) for one query and a sequence of key/value vectors. Compute scaled dot-product scores, apply a numerically stable softmax over allowed keys, and return the weighted sum of value vectors. Validate dimensions and reject a mask that hides every key. This small exercise isolates the central operation used inside transformer attention; it is intentionally pure Python so each step is visible.',
+    starterCode:
+      'import math\n\n' +
+      'QUERY = [0.0, 0.0]\n' +
+      'KEYS = [[1.0, 0.0], [0.0, 1.0], [1.0, 1.0]]\n' +
+      'VALUES = [[1.0, 0.0], [0.0, 1.0], [4.0, 4.0]]\n' +
+      'MASK = [True, True, False]\n\n' +
+      'def attend(query, keys, values, key_mask=None):\n' +
+      '    # Check that keys and values have one vector per sequence position.\n' +
+      '    # Check every query, key, and value vector has a compatible nonzero width.\n' +
+      '    # Score each key with dot(query, key) / sqrt(query_width).\n' +
+      '    # Ignore masked keys, then compute stable softmax weights.\n' +
+      '    # Return the weighted sum for each value dimension.\n' +
+      '    pass\n',
+    hints: [
+      'Subtract the largest allowed score before calling math.exp; the softmax result is unchanged and safer numerically.',
+      'The output width comes from each value vector, which need not equal the query width.',
+      'With a zero query, all unmasked scores are equal, so attention averages the allowed value vectors.',
+    ],
+    solution:
+      'import math\n\n' +
+      'def attend(query, keys, values, key_mask=None):\n' +
+      '    if not query or not keys or len(keys) != len(values):\n' +
+      '        raise ValueError("query, keys, and values must be non-empty and aligned")\n' +
+      '    key_width, value_width = len(query), len(values[0])\n' +
+      '    if not value_width or any(len(key) != key_width for key in keys):\n' +
+      '        raise ValueError("key dimensions must match query dimensions")\n' +
+      '    if any(len(value) != value_width for value in values):\n' +
+      '        raise ValueError("value vectors must have equal width")\n' +
+      '    allowed = [True] * len(keys) if key_mask is None else list(key_mask)\n' +
+      '    if len(allowed) != len(keys) or not any(allowed):\n' +
+      '        raise ValueError("mask must allow at least one key")\n' +
+      '    indices = [i for i, keep in enumerate(allowed) if keep]\n' +
+      '    scores = [sum(a * b for a, b in zip(query, keys[i])) / math.sqrt(key_width) for i in indices]\n' +
+      '    peak = max(scores)\n' +
+      '    exps = [math.exp(score - peak) for score in scores]\n' +
+      '    total = sum(exps)\n' +
+      '    weights = [value / total for value in exps]\n' +
+      '    return [sum(weight * values[i][column] for weight, i in zip(weights, indices)) for column in range(value_width)]\n',
+    testCode:
+      '__results__ = []\n' +
+      'def __check__(name, actual, expected):\n' +
+      '    ok = len(actual) == len(expected) and all(abs(a-b) < 1e-8 for a,b in zip(actual,expected))\n' +
+      '    __results__.append((name,ok,actual,expected))\n' +
+      'def __raises__(name, fn):\n' +
+      '    try: fn(); __results__.append((name,False,"no error",None))\n' +
+      '    except ValueError: __results__.append((name,True,None,None))\n\n' +
+      '__check__("mask excludes the third value", attend(QUERY,KEYS,VALUES,MASK), [0.5,0.5])\n' +
+      '__check__("unmasked zero-query average", attend(QUERY,KEYS,VALUES), [5.0/3.0,5.0/3.0])\n' +
+      '__check__("single allowed key", attend(QUERY,KEYS,VALUES,[False,True,False]), [0.0,1.0])\n' +
+      '__raises__("all keys masked", lambda:attend(QUERY,KEYS,VALUES,[False,False,False]))\n' +
+      '__raises__("mismatched key width", lambda:attend(QUERY,[[1.0],[2.0],[3.0]],VALUES))\n' +
+      'for name,ok,actual,expected in __results__:\n' +
+      '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}")\n' +
+      'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
+  },
 ];

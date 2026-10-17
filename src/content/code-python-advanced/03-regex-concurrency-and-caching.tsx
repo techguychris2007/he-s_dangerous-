@@ -41,7 +41,7 @@ print(is_strong_password("alllowercase1!")) # False — no uppercase`}</CodeBloc
       </Callout>
 
       <h2>Named groups — pulling structured fields out of a match</h2>
-      <CodeBlock label="re.match with named groups">{`log_pattern = re.compile(r"(?P<ip>[\\d.]+) - - \\[(?P<time>[^\\]]+)\\] \"(?P<method>\\w+) (?P<path>\\S+)"
+      <CodeBlock label="re.match with named groups">{`log_pattern = re.compile(r'(?P<ip>[\\d.]+) - - \\[(?P<time>[^\\]]+)\\] "(?P<method>\\w+) (?P<path>\\S+)')
 
 m = log_pattern.match('203.0.113.5 - - [01/Jan/2024:09:00:00] "GET /admin')
 if m:

@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { TerminalEngine, COMMAND_LATENCY_MS, type OutLine } from '../../labs/engine';
+import { useEffect, useImperativeHandle, useRef, useState, type Ref } from 'react';
+import { TerminalEngine, COMMAND_LATENCY_MS, type OutLine, type LabSnapshot } from '../../labs/engine';
 import type { LabScenario } from '../../labs/types';
 
 interface DisplayLine extends OutLine {
@@ -7,13 +7,18 @@ interface DisplayLine extends OutLine {
 }
 
 interface TerminalProps {
+  ref?: Ref<TerminalHandle>;
   scenario: LabScenario;
   onFlagCaptured: (flag: string) => void;
   /** Fires with the full session transcript (input + output, plain text) on every change — lets a
    *  parent (the AI lab tutor) see the learner's real terminal activity without owning any of the
    *  terminal's own rendering/state. */
   onTranscriptChange?: (transcript: string) => void;
+  onStateChange?: (snapshot: LabSnapshot) => void;
+  onBusyChange?: (busy: boolean) => void;
 }
+
+export interface TerminalHandle { executeCommand: (command: string) => void }
 
 let idCounter = 0;
 
@@ -28,8 +33,9 @@ const KIND_CLASS: Record<OutLine['kind'], string> = {
   muted: 'text-[var(--term-muted)]',
 };
 
-export default function Terminal({ scenario, onFlagCaptured, onTranscriptChange }: TerminalProps) {
-  const engineRef = useRef<TerminalEngine>(new TerminalEngine(scenario));
+export default function Terminal({ ref, scenario, onFlagCaptured, onTranscriptChange, onStateChange, onBusyChange }: TerminalProps) {
+  const [initialEngine] = useState(() => new TerminalEngine(scenario));
+  const engineRef = useRef<TerminalEngine>(initialEngine);
   const [lines, setLines] = useState<DisplayLine[]>([
     { id: idCounter++, kind: 'system', text: `Connected to lab environment: ${scenario.title}` },
     { id: idCounter++, kind: 'muted', text: `Type 'help' for commands, 'objectives' to see goals, 'hint' if stuck.` },
@@ -38,7 +44,6 @@ export default function Terminal({ scenario, onFlagCaptured, onTranscriptChange 
   const [historyList, setHistoryList] = useState<string[]>([]);
   const [historyPos, setHistoryPos] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const pendingRevealRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -49,6 +54,10 @@ export default function Terminal({ scenario, onFlagCaptured, onTranscriptChange 
   // bottom" spuriously false for the exact case it needs to catch: someone parked at the bottom who
   // just submitted a command that immediately appended output.
   const isNearBottomRef = useRef(true);
+  const onStateChangeRef = useRef(onStateChange);
+  onStateChangeRef.current = onStateChange;
+
+  useEffect(() => { onBusyChange?.(busy); }, [busy, onBusyChange]);
 
   useEffect(() => {
     onTranscriptChange?.(lines.map((l) => (l.kind === 'input' ? l.text : `  ${l.text}`)).join('\n'));
@@ -62,6 +71,7 @@ export default function Terminal({ scenario, onFlagCaptured, onTranscriptChange 
       pendingRevealRef.current = null;
     }
     engineRef.current = new TerminalEngine(scenario);
+    onStateChangeRef.current?.(engineRef.current.getSnapshot());
     setLines([
       { id: idCounter++, kind: 'system', text: `Connected to lab environment: ${scenario.title}` },
       { id: idCounter++, kind: 'muted', text: `Type 'help' for commands, 'objectives' to see goals, 'hint' if stuck.` },
@@ -69,6 +79,7 @@ export default function Terminal({ scenario, onFlagCaptured, onTranscriptChange 
     setHistoryList([]);
     setHistoryPos(null);
     setBusy(false);
+    setInput('');
   }, [scenario]);
 
   useEffect(() => {
@@ -91,10 +102,11 @@ export default function Terminal({ scenario, onFlagCaptured, onTranscriptChange 
   // output (or the next thing anyone types) would yank them back down mid-scroll while they're
   // reading earlier output, exactly the thing a real terminal never does to you.
   useEffect(() => {
-    if (isNearBottomRef.current) bottomRef.current?.scrollIntoView({ block: 'end' });
+    const viewport = scrollRef.current;
+    if (isNearBottomRef.current && viewport) viewport.scrollTop = viewport.scrollHeight;
   }, [lines]);
 
-  const focusInput = () => inputRef.current?.focus();
+  const focusInput = () => inputRef.current?.focus({ preventScroll: true });
 
   const submit = (raw: string) => {
     if (busy) return;
@@ -115,6 +127,7 @@ export default function Terminal({ scenario, onFlagCaptured, onTranscriptChange 
     // away, exactly when the real command would take effect); only REVEALING the output is
     // delayed, the same way a real nmap/hydra/hashcat run makes you wait before printing results.
     const result = engine.run(raw, (flag) => onFlagCaptured(flag));
+    onStateChangeRef.current?.(engine.getSnapshot());
     const firstWord = raw.trim().split(/\s+/)[0]?.toLowerCase();
     const latency = isPassword ? 0 : (COMMAND_LATENCY_MS[firstWord] ?? 0);
 
@@ -140,6 +153,11 @@ export default function Terminal({ scenario, onFlagCaptured, onTranscriptChange 
       reveal();
     }
   };
+
+  useImperativeHandle(ref, () => ({ executeCommand: (command: string) => {
+    if (busy || engineRef.current.isAwaitingPassword()) return;
+    submit(command);
+  } }));
 
   const applyCompletion = (candidates: string[]) => {
     if (candidates.length === 0) return;
@@ -167,6 +185,22 @@ export default function Terminal({ scenario, onFlagCaptured, onTranscriptChange 
       { id: idCounter++, kind: 'input', text: `${engineRef.current.getPrompt()} ${input}` },
       { id: idCounter++, kind: 'muted', text: candidates.join('  ') },
     ]);
+  };
+
+  const runShortcut = (command: string) => {
+    if (busy || engineRef.current.isAwaitingPassword()) return;
+    submit(command);
+    focusInput();
+  };
+
+  const clearTerminal = () => {
+    if (pendingRevealRef.current) {
+      clearTimeout(pendingRevealRef.current);
+      pendingRevealRef.current = null;
+      setBusy(false);
+    }
+    setLines([]);
+    focusInput();
   };
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -211,7 +245,10 @@ export default function Terminal({ scenario, onFlagCaptured, onTranscriptChange 
         pendingRevealRef.current = null;
         setBusy(false);
       }
-      setLines((prev) => [...prev, { id: idCounter++, kind: 'input', text: `${engineRef.current.getPrompt()} ${input}^C` }]);
+      const engine = engineRef.current;
+      const interruptedInput = engine.isAwaitingPassword() ? '' : input;
+      setLines((prev) => [...prev, { id: idCounter++, kind: 'input', text: `${engine.getPrompt()} ${interruptedInput}^C` }]);
+      engine.cancelAuthentication();
       setInput('');
     }
   };
@@ -220,19 +257,56 @@ export default function Terminal({ scenario, onFlagCaptured, onTranscriptChange 
 
   return (
     <div
-      className="flex flex-col h-full bg-[var(--term-bg)] border-2 border-[var(--color-accent)]/50 rounded-lg overflow-hidden font-mono text-xs sm:text-sm shadow-[0_0_40px_-12px_var(--color-accent)]"
+      className="flex flex-col h-full min-h-0 min-w-0 bg-[var(--term-bg)] border border-[var(--color-accent)]/40 rounded-xl overflow-hidden font-mono text-xs sm:text-sm shadow-[0_0_40px_-12px_var(--color-accent)]"
       onClick={focusInput}
     >
       <div className="flex items-center gap-1.5 px-3 py-2 bg-[#15171c] border-b border-[var(--color-accent)]/30">
-        <span className="w-3 h-3 rounded-full bg-[#ff5f56]" />
-        <span className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
-        <span className="w-3 h-3 rounded-full bg-[#27c93f]" />
-        <span className="ml-3 text-xs text-[#c9a15f] truncate">{scenario.attacker.hostname} — bash</span>
+        <span className="text-xs text-[var(--term-input)] truncate">{scenario.attacker.hostname} — bash</span>
+        <div className="ml-auto hidden sm:flex items-center gap-1">
+          {['help', 'hint', 'objectives'].map(command => (
+            <button
+              key={command}
+              type="button"
+              onClick={(event) => { event.stopPropagation(); runShortcut(command); }}
+              disabled={busy || engineRef.current.isAwaitingPassword()}
+              className="rounded-md border border-white/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--term-muted)] hover:border-[var(--color-accent)]/50 hover:text-[var(--term-output)] disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {command}
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={(event) => { event.stopPropagation(); clearTerminal(); }}
+            className="rounded-md border border-white/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--term-muted)] hover:border-[var(--color-accent)]/50 hover:text-[var(--term-output)]"
+          >
+            clear
+          </button>
+        </div>
         {busy && <span className="ml-auto text-2xs text-[var(--term-muted)] animate-pulse shrink-0">running&hellip;</span>}
+      </div>
+      <div className="grid grid-cols-4 gap-1 border-b border-[var(--color-accent)]/20 bg-[#11141a] p-1.5 sm:hidden">
+        {['help', 'hint', 'objectives'].map(command => (
+          <button
+            key={command}
+            type="button"
+            onClick={(event) => { event.stopPropagation(); runShortcut(command); }}
+            disabled={busy || engineRef.current.isAwaitingPassword()}
+            className="rounded-md border border-white/10 px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--term-muted)] disabled:opacity-40"
+          >
+            {command === 'objectives' ? 'goals' : command}
+          </button>
+        ))}
+        <button
+          type="button"
+          onClick={(event) => { event.stopPropagation(); clearTerminal(); }}
+          className="rounded-md border border-white/10 px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--term-muted)]"
+        >
+          clear
+        </button>
       </div>
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto p-2.5 sm:p-3 space-y-0.5 min-h-0"
+        className="flex-1 overflow-y-auto overscroll-contain p-2.5 sm:p-3 space-y-0.5 min-h-0"
         role="log"
         aria-live="polite"
         aria-label={`${scenario.attacker.hostname} terminal output`}
@@ -242,14 +316,18 @@ export default function Terminal({ scenario, onFlagCaptured, onTranscriptChange 
             {l.text}
           </pre>
         ))}
+        {lines.length === 0 && (
+          <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3 text-xs leading-relaxed text-[var(--term-muted)]">
+            Terminal cleared. Type <span className="text-[var(--term-output)]">help</span>, use the shortcut buttons, or continue your current command sequence.
+          </div>
+        )}
         {/* Always mounted, even while busy — a real terminal buffers type-ahead input instead of
             discarding keystrokes typed while a foreground command is still running; submit() already
             no-ops on Enter while busy, so typed text just waits here until the prompt returns. */}
         <div className="flex items-center gap-1.5 sm:gap-2">
-          <span className="text-[var(--term-system)] shrink-0 text-xs sm:text-sm font-semibold">{isPassword ? '' : busy ? '' : engineRef.current.getPrompt()}</span>
+          <span className="text-[var(--term-system)] max-w-[55%] break-all text-xs sm:text-sm font-semibold">{isPassword ? '' : busy ? '' : engineRef.current.getPrompt()}</span>
           <input
             ref={inputRef}
-            autoFocus
             type={isPassword ? 'password' : 'text'}
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -260,8 +338,14 @@ export default function Terminal({ scenario, onFlagCaptured, onTranscriptChange 
             autoComplete="off"
             autoCapitalize="off"
           />
+          <button
+            type="button"
+            onClick={(event) => { event.stopPropagation(); focusInput(); }}
+            className="sm:hidden rounded-md border border-white/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--term-muted)]"
+          >
+            focus
+          </button>
         </div>
-        <div ref={bottomRef} />
       </div>
     </div>
   );

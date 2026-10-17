@@ -6,17 +6,17 @@ export default function CloudNativeDetectionAndLogging() {
     <div className="prose-hh">
       <h1>Cloud-Native Detection & Logging</h1>
       <p>
-        Every attack technique in this module leaves a trace in cloud-native logs — if those logs are actually
+        Some activities in this module can produce supported cloud-native audit events when the relevant collection is
         enabled, retained, and monitored. This lesson covers the defensive side: what CloudTrail/Activity
         Log/Cloud Audit Logs actually capture, and the detection patterns built on top of them, extending the
         SOC modules' methodology into the cloud control plane specifically.
       </p>
 
       <h2>The cloud control-plane log: a fundamentally different log source</h2>
-      <CodeBlock label="what CloudTrail (AWS's equivalent exists in every major cloud) actually records">{`Every single API call made against an AWS account -- not network traffic,
-not application logs, but every management-plane action: who called
-CreateUser, who called AssumeRole, who called GetObject on a specific S3
-bucket, from what source IP, using what credential, at what timestamp.
+      <CodeBlock label="what CloudTrail (AWS's equivalent exists in every major cloud) actually records">{`Supported audit events under the configured collection: management events
+include operations such as CreateUser and AssumeRole. Object reads such as
+GetObject require relevant data-event collection; they are not guaranteed
+by event history alone. Coverage, region and retention must be checked.
 
 {
   "eventName": "AssumeRole",
@@ -27,10 +27,11 @@ bucket, from what source IP, using what credential, at what timestamp.
       <Callout variant="tip">
         <p>
           This is a genuinely distinct log category from anything in the SOC modules' original material — not
-          network telemetry, not host-based EDR, but a complete record of every CONTROL-PLANE action taken
+          network telemetry, not host-based EDR, but records of supported control-plane actions within configured coverage
           against the cloud account itself. A sophisticated attacker who never touches a single running
           instance (working entirely through the API — creating access keys, assuming roles, modifying IAM
-          policies) leaves essentially no trace anywhere EXCEPT this log source.
+          policies) may require cloud audit evidence for attribution. Identity-provider, application and other
+          service telemetry can also contribute; do not assume CloudTrail is the only possible source.
         </p>
       </Callout>
 

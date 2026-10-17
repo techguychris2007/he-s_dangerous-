@@ -4,8 +4,10 @@ import { MODULES } from '../data/curriculum';
 import { useProgress } from '../state/progressStore';
 import { useAuth } from '../state/authStore';
 import { ACHIEVEMENTS, computeStreak } from '../data/achievements';
-import { IconUser, IconFlag, IconCheck, IconBookmark, IconCode, IconLock } from '../components/layout/icons';
+import { IconUser, IconFlag, IconCheck, IconBookmark, IconCode, IconLightning, IconLock } from '../components/layout/icons';
 import StatCard from '../components/common/StatCard';
+import DarkWorldBadge from '../components/common/DarkWorldBadge';
+import AchievementMark from '../components/common/AchievementMark';
 
 const POINTS: Record<string, number> = { Easy: 10, Medium: 20, Hard: 30 };
 
@@ -45,13 +47,13 @@ function GuestUpgradeCard() {
   }
 
   return (
-    <div className="rounded-xl border border-[var(--color-gold)]/40 bg-[var(--color-gold-soft)] p-5 mb-8">
+    <div className="premium-card rounded-2xl border border-[var(--color-gold)]/40 bg-[var(--color-gold-soft)] p-5 mb-8">
       <div className="flex items-center gap-2 text-sm font-bold text-[var(--color-gold-dim)] mb-1">
         <IconLock className="w-4 h-4" /> Guest account — save your progress
       </div>
       <p className="text-xs text-[var(--color-text-dim)] leading-relaxed mb-4">
         You're signed in as a guest. Your progress is saving to this browser, but adding an email and
-        password lets you log in from other devices and guarantees you never lose your flags or streak.
+        password lets you sign in from other devices and recover progress that has synced to your account.
       </p>
       <form onSubmit={submit} className="flex flex-col sm:flex-row gap-2.5">
         <input
@@ -85,7 +87,7 @@ function GuestUpgradeCard() {
         <button
           type="submit"
           disabled={submitting}
-          className="px-4 py-2.5 rounded-lg bg-[var(--color-gold)] text-[#241a08] text-sm font-semibold hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed transition shrink-0"
+          className="px-4 py-2.5 rounded-lg bg-[var(--color-accent)] text-white text-sm font-semibold hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed transition shrink-0"
         >
           {submitting ? 'Saving…' : 'Save my progress'}
         </button>
@@ -142,8 +144,7 @@ export default function ProfilePage() {
     const unlocked = ACHIEVEMENTS.filter((a) => a.isUnlocked(progress));
     const sorted = [...ACHIEVEMENTS].sort((a, b) => Number(b.isUnlocked(progress)) - Number(a.isUnlocked(progress)));
     return { unlockedAchievements: unlocked, sortedAchievements: sorted };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [progress.labFlags, progress.completedLessons, progress.activityDates]);
+  }, [progress]);
 
   const { attemptedTaskIds, avgAttemptsPerSolve, cleanSolveRate, solvedTaskIds, cleanSolves, noSolutionSolves } = useMemo(() => {
     const attempted = Object.keys(progress.codeTaskAttempts);
@@ -164,19 +165,22 @@ export default function ProfilePage() {
   }, [progress.codeTaskAttempts, progress.completedCodeTasks, progress.codeTaskHintsUsed, progress.codeTaskSolutionRevealed]);
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-14">
-      <div className="gold-eyebrow mb-1.5 sm:mb-2">// your progress</div>
-      <h1 className="text-2xl sm:text-3xl font-bold text-[var(--color-heading)] mb-6 sm:mb-8">Profile</h1>
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-14">
+      <div className="premium-card rounded-3xl p-6 sm:p-8 mb-8">
+        <div className="gold-eyebrow mb-1.5 sm:mb-2">// your progress</div>
+        <h1 className="text-3xl sm:text-5xl font-black tracking-[-0.05em] text-[var(--color-heading)] mb-2">Profile</h1>
+        <p className="text-sm text-[var(--color-text-dim)] max-w-2xl leading-relaxed">Your learning identity, achievements, lab evidence, and progress signals in one clean portfolio view.</p>
+      </div>
 
       {auth.isGuest && <GuestUpgradeCard />}
 
-      <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 flex items-center gap-4 mb-8 flex-wrap">
+      <div className="premium-card premium-card-hover rounded-3xl p-6 flex items-center gap-4 mb-8 flex-wrap">
         <span className="w-16 h-16 rounded-full bg-[var(--color-accent)] text-white text-2xl font-bold flex items-center justify-center shrink-0">
           {initial}
         </span>
         <div className="min-w-0 flex-1">
           <div className="text-lg font-bold text-[var(--color-heading)] truncate">{progress.learnerName}</div>
-          <div className="text-sm text-[var(--color-text-dim)]">Cybersecurity &middot; Offensive Security track</div>
+          <div className="text-sm text-[var(--color-text-dim)]">DarkWorld Academy &middot; Cybersecurity learner</div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <div className="flex items-center gap-1.5 rounded-full border border-[var(--color-gold)]/40 bg-[var(--color-gold-soft)] px-3.5 py-1.5">
@@ -185,12 +189,17 @@ export default function ProfilePage() {
           </div>
           {streak.current > 0 && (
             <div className="flex items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3.5 py-1.5">
-              <span className="text-sm leading-none">🔥</span>
+              <IconLightning className="h-4 w-4 text-[var(--color-gold-dim)]" />
               <span className="text-sm font-bold text-[var(--color-heading)]">{streak.current}</span>
               <span className="text-xs text-[var(--color-text-dim)]">day streak</span>
             </div>
           )}
         </div>
+      </div>
+
+      <div className="mb-8 flex flex-wrap items-center gap-5 premium-card rounded-2xl border border-[var(--color-gold)]/30 p-5">
+        <DarkWorldBadge className="h-28 w-28 shrink-0" />
+        <div className="min-w-0 flex-1"><p className="mb-1 text-[10px] font-semibold uppercase tracking-widest text-[var(--color-accent-dim)]">Our community mark</p><h2 className="text-lg font-bold text-[var(--color-heading)]">DarkWorld Learning Guild</h2><p className="mt-2 text-xs leading-6 text-[var(--color-text-dim)]">A shared identity for curious builders, testers, and defenders. Use this platform badge alongside your own portfolio; individual lab certificates record your learning progress.</p><a href={`${import.meta.env.BASE_URL}darkworld-badge.svg`} download="darkworld-learning-guild.svg" className="mt-3 inline-block text-xs font-semibold text-[var(--color-accent)]">Download the badge →</a></div>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
@@ -203,7 +212,7 @@ export default function ProfilePage() {
         <StatCard
           label={streak.current > 0 ? 'Current streak' : 'Longest streak'}
           value={`${streak.current > 0 ? streak.current : streak.longest} day${(streak.current > 0 ? streak.current : streak.longest) === 1 ? '' : 's'}`}
-          icon={<span className="text-lg leading-none">🔥</span>}
+          icon={<IconLightning className="w-5 h-5" />}
           color="var(--color-warn)"
         />
       </div>
@@ -215,24 +224,25 @@ export default function ProfilePage() {
             {unlockedAchievements.length}/{ACHIEVEMENTS.length} unlocked
           </span>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
           {sortedAchievements.map((a) => {
             const unlocked = a.isUnlocked(progress);
             return (
               <div
                 key={a.id}
-                className={`rounded-xl border p-4 flex items-start gap-3 transition-colors ${
+                className={`min-h-[104px] rounded-lg border p-3.5 flex items-start gap-3 transition-colors ${
                   unlocked
-                    ? 'border-[var(--color-gold)]/50 bg-[var(--color-gold-soft)]'
-                    : 'border-[var(--color-border)] bg-[var(--color-surface)] opacity-50'
+                    ? 'border-[var(--color-accent)]/25 bg-[var(--color-surface)]'
+                    : 'border-[var(--color-border)] bg-[var(--color-bg)]'
                 }`}
               >
-                <span className="text-2xl leading-none shrink-0" aria-hidden>
-                  {unlocked ? a.icon : '🔒'}
-                </span>
+                <AchievementMark icon={a.icon} unlocked={unlocked} size="md" />
                 <div className="min-w-0">
                   <div className="text-sm font-bold text-[var(--color-heading)] leading-tight">{a.title}</div>
                   <div className="text-xs text-[var(--color-text-dim)] leading-snug mt-0.5">{a.description}</div>
+                  <div className={`mt-2 text-[9px] font-black uppercase tracking-[.14em] ${unlocked ? 'text-[var(--color-accent)]' : 'text-[var(--color-text-dim)]'}`}>
+                    {unlocked ? 'Awarded' : 'Locked'}
+                  </div>
                 </div>
               </div>
             );
@@ -249,7 +259,7 @@ export default function ProfilePage() {
           how often you got there without leaning on a hint or the reference solution.
         </p>
         {attemptedTaskIds.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-[var(--color-border)] p-4 text-sm text-[var(--color-text-dim)]">
+          <div className="premium-card rounded-2xl border-dashed p-4 text-sm text-[var(--color-text-dim)]">
             Attempt a Code Portal task to start building this picture.
           </div>
         ) : (
@@ -269,7 +279,7 @@ export default function ProfilePage() {
         )}
       </div>
 
-      <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 text-sm text-[var(--color-text-dim)] leading-relaxed">
+      <div className="premium-card rounded-2xl p-5 text-sm text-[var(--color-text-dim)] leading-relaxed">
         Everything here — lessons, labs, quizzes, your streak, achievements, and Code Portal learning-insight
         stats — syncs to your account, so it follows you across devices as long as you're signed in. Your
         display name is taken straight from your account rather than stored separately.

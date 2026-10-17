@@ -3,6 +3,11 @@ import type * as LabsModule from '../data/labs';
 
 let cached: typeof LabsModule | null = null;
 let pending: Promise<typeof LabsModule> | null = null;
+const RETRY_EVENT = 'darkworld:retry-labs';
+
+export function retryLabsData() {
+  window.dispatchEvent(new Event(RETRY_EVENT));
+}
 
 /** Lazily loads src/data/labs.ts — which statically imports every scenario pack (100+ files, ~2.5MB
  *  of scenario content: network topologies, filesystem trees, objectives, hints, full solutions) —
@@ -23,15 +28,22 @@ let pending: Promise<typeof LabsModule> | null = null;
 export function useLabsData(): typeof LabsModule | null {
   const [mod, setMod] = useState<typeof LabsModule | null>(cached);
   useEffect(() => {
-    if (cached) return;
-    if (!pending) pending = import('../data/labs');
     let cancelled = false;
-    pending.then((m) => {
-      cached = m;
-      if (!cancelled) setMod(m);
-    });
+    const load = () => {
+      if (cached) { setMod(cached); return; }
+      if (!pending) pending = import('../data/labs');
+      pending.then(m => {
+        cached = m;
+        if (!cancelled) setMod(m);
+      }).catch(() => { pending = null; });
+    };
+    load();
+    window.addEventListener('online', load);
+    window.addEventListener(RETRY_EVENT, load);
     return () => {
       cancelled = true;
+      window.removeEventListener('online', load);
+      window.removeEventListener(RETRY_EVENT, load);
     };
   }, []);
   return mod;

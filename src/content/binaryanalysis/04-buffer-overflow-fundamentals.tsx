@@ -11,6 +11,14 @@ export default function BufferOverflowFundamentals() {
         reading disassembly all come together here.
       </p>
 
+      <h2>Technical terms explained</h2>
+      <ul>
+        <li><strong>Buffer, bounds, and overflow:</strong> A buffer is a region reserved for data. Its bounds define the valid positions within that region. A buffer overflow writes beyond those bounds; an out-of-bounds read is a different error that can disclose data or crash.</li>
+        <li><strong>Offset and memory corruption:</strong> An offset is a distance from a reference point, often measured in bytes. Memory corruption means data is changed outside the intended object or lifetime. An offset measured in one build may change with architecture, compiler settings, or surrounding code.</li>
+        <li><strong>Stack canary, NX, and PIE:</strong> A stack canary is a value checked to detect some stack overwrites. Non-Executable (NX) memory prevents instruction execution from designated pages. Position-Independent Executable (PIE) code allows an executable's base address to vary with ASLR. Each addresses a different part of an attack.</li>
+        <li><strong>Use-after-free and exploitability:</strong> A use-after-free accesses an object after its allocation has been released. Exploitability asks whether a bug can produce a meaningful security impact under the actual environment and mitigations. A reproducible crash is evidence of a bug, rather than proof of arbitrary code execution.</li>
+      </ul>
+
       <h2>The vulnerable pattern</h2>
       <CodeBlock label="a classic vulnerable C function">{`void vulnerable_function(char *user_input) {
     char buffer[64];
@@ -18,7 +26,8 @@ export default function BufferOverflowFundamentals() {
 }`}</CodeBlock>
       <p>
         <code>strcpy</code> copies until it hits a null terminator, with zero regard for the destination
-        buffer's actual size. If <code>user_input</code> is longer than 64 bytes, the extra bytes keep
+        buffer's actual size. If <code>user_input</code> has 64 or more nonzero characters, its copied
+        terminator already needs a byte beyond this 64-byte object; further bytes keep
         writing past the end of <code>buffer</code> — directly into adjacent stack memory.
       </p>
 
@@ -26,10 +35,11 @@ export default function BufferOverflowFundamentals() {
       <CodeBlock label="recall the stack layout from lesson 2">{`[ buffer (64 bytes) ][ saved RBP (8 bytes) ][ return address (8 bytes) ]
      ^ overflow starts here, writes upward through each region in turn`}</CodeBlock>
       <p>
-        Send exactly 64 bytes and you fill the buffer with no overflow. Send 72 bytes and you've also
-        overwritten the saved RBP. Send more, and you overwrite the <strong>return address</strong> — the
-        exact value the CPU jumps to when the function returns. Control that value, and you control where
-        execution goes next.
+        This diagram is illustrative, not a guaranteed compiler layout. A 64-byte array can hold at most
+        63 nonzero characters plus a terminator under this string-copy contract. Padding, canaries,
+        optimization, architecture and frame-pointer decisions affect neighboring storage. Measure the
+        actual build before stating a saved-register or return-address offset. Corruption of a return
+        address also does not by itself establish usable execution control under the active protections.
       </p>
 
       <h2>Finding the exact offset</h2>
@@ -46,12 +56,13 @@ pattern (say, byte offset 76) — that tells you EXACTLY how many bytes precede 
 return address, with no guesswork.`}</CodeBlock>
       <CodeBlock label="doing this for real with pwntools instead of by hand">{`from pwn import *
 
-pattern = cyclic(200)                 # generate a 200-byte non-repeating pattern
+pattern = cyclic(200, n=8)            # choose an 8-byte unique subsequence size explicitly
 # ... send that pattern to the vulnerable program's input, let it crash ...
 
-crashed_value = 0x6161386161374161      # the value GDB shows in $rip after the crash
-offset = cyclic_find(crashed_value)      # pwntools looks up exactly where that 8 bytes
-                                            # falls in the pattern — this is the real offset`}</CodeBlock>
+fragment = pattern[72:80]             # a worked lookup example, not an observed crash
+offset = cyclic_find(fragment, n=8)   # matching n=8 returns 72 for these bytes
+# For a real fixture, recover the actual matching bytes from the fault context.
+# RIP itself may not contain the pattern, especially for a noncanonical target.`}</CodeBlock>
       <p>
         Notice the two related but distinct bug shapes that get you here: a classic unbounded
         <code> strcpy</code>/<code>gets</code> call is one, but off-by-one errors (a loop bound written as
@@ -65,29 +76,24 @@ offset = cyclic_find(crashed_value)      # pwntools looks up exactly where that 
       <h2>From crash to control</h2>
       <CodeBlock label="the exploit payload structure, once the offset is known">{`[ 76 bytes of padding/junk ][ 8-byte address you want RIP to become ]
 
-If you point that address at your own injected shellcode sitting earlier in the buffer,
-execution jumps there instead of returning normally — arbitrary code now runs.`}</CodeBlock>
+This is an illustrative shape for a deliberately configured fixture. The actual offset,
+address validity and execution permissions must be established from that build.
+A corrupted return value does not by itself prove arbitrary code execution.`}</CodeBlock>
 
-      <h2>The heap's version of the same bug</h2>
+      <h2>Heap bounds and allocator context</h2>
       <p>
-        Everything above is the STACK-based overflow. Buffers allocated dynamically (<code>malloc</code>)
-        live on the heap instead, which has no return address sitting conveniently nearby — but heap
-        allocators store their own bookkeeping metadata (chunk size, pointers linking free chunks together)
-        immediately adjacent to the allocated data itself. Overflow a heap buffer and you corrupt that
-        metadata instead of a return address, which a corrupted allocator can be tricked into using as a
-        write-what-where primitive the next time it allocates or frees a chunk — a different mechanism
-        arriving at a similar outcome: attacker-controlled memory corruption. Heap exploitation is
-        substantially more involved than the stack case this lesson covers (allocator internals vary by
-        implementation and change between versions), which is exactly why the stack case is always taught
-        first — the underlying instinct, "unchecked write past a buffer's boundary corrupts something the
-        program trusts," is identical either way.
+        Dynamically allocated buffers have bounds and lifetimes just like other objects. An overflow can
+        damage neighboring application data or allocator state, depending on the actual layout.
+        Metadata placement and integrity checks vary by allocator and version; historical unlink
+        examples are not universal recipes. A crash does not establish an arbitrary-write primitive.
+        Identify the violated bound, allocation lifetime and observed effect before claiming impact.
       </p>
 
       <h2>Why this doesn't work as easily anymore — modern mitigations</h2>
-      <CodeBlock label="the protections every modern system has by default">{`Stack canaries (/GS on Windows, -fstack-protector on Linux)
-  — a random value placed right before the return address; checked before returning.
-    If an overflow overwrote it, the value won't match and the program aborts safely
-    BEFORE the corrupted return address is ever used.
+      <CodeBlock label="common protections — verify the actual build and runtime">{`Stack canaries (/GS on Windows, -fstack-protector on Linux)
+  — a guard included in selected protected stack frames; layout depends on the build.
+    A failed guard check terminates that execution before normal return.
+    It does not detect every overwrite, disclosure or lifetime error.
 
 NX / DEP (No-eXecute / Data Execution Prevention)
   — marks the stack as non-executable, so even if you redirect execution to
@@ -98,26 +104,23 @@ ASLR (Address Space Layout Randomization)
     so an attacker can't reliably predict an address to jump to.
 
 PIE (Position-Independent Executable)
-  — the equivalent of ASLR applied to the MAIN executable itself, not just its libraries.
-    Without PIE, the binary's own code always loads at the same fixed address even with
-    ASLR on elsewhere — a common oversight that leaves a reliable jump target available.`}</CodeBlock>
+  — a build property allowing the executable to be relocated.
+    ASLR is a separate runtime policy; inspect both rather than treating PIE as ASLR itself.`}</CodeBlock>
       <Callout variant="tip">
         <p>
-          Modern exploit development is largely about defeating this specific set of protections together —
-          techniques like ROP (Return-Oriented Programming, chaining together existing code fragments
-          already present in the binary or its libraries instead of injecting new shellcode) exist
-          specifically to bypass NX/DEP without needing to execute anything new from the stack at all. Each
-          protection has its own known bypass approach rather than being individually unbreakable:
+          Analyze the actual bug and active protection layers together. Code reuse such as ROP can be
+          relevant to particular control-flow failures, while modern control-flow checks impose further
+          constraints. No mitigation label implies a universal bypass or a proof that the program is safe.
+          Treat each proposed effect as a hypothesis that needs evidence from the specific fixture:
         </p>
       </Callout>
-      <CodeBlock label="how each mitigation actually gets defeated in practice">{`Stack canary  -> needs an INFORMATION LEAK to read the canary's value before overwriting it
-                 (e.g. a format-string bug, or a separate vulnerability that discloses stack memory),
-                 or a byte-by-byte brute force if the target forks/restarts with the same canary each time
+      <CodeBlock label="protection limits to evaluate in the actual fixture">{`Stack canary  -> guards selected stack-corruption paths; not all data or heap errors.
+                 Any proposed bypass depends on the exact corruption and available observations.
 NX/DEP        -> ROP: reuse existing executable code already mapped in the process (libc functions,
                  gadgets ending in a ret instruction) instead of injecting new shellcode onto a now-non-executable stack
-ASLR/PIE      -> needs an information leak to learn ONE real runtime address, then compute every other
-                 address as an offset from it (libraries/binaries load at a randomized BASE, but the
-                 relative layout of code within them stays fixed)`}</CodeBlock>
+ASLR/PIE      -> an observed address may identify a mapping base when its build/offset is known.
+                 It does not automatically identify every independently randomized mapping;
+                 usable effects depend on the actual bug, binary and additional protections.`}</CodeBlock>
       <p>
         This is exactly why real-world exploit chains are rarely "one buffer overflow, one shellcode" — they
         typically combine an information-disclosure bug (to defeat ASLR/canaries) with the memory-corruption
@@ -155,6 +158,12 @@ ASLR/PIE      -> needs an information leak to learn ONE real runtime address, th
         With the vulnerability mechanics understood, the final lesson in this module ties it together with
         a practical introduction to writing a minimal working exploit.
       </p>
+      <h2>Reason about the boundary before the crash</h2>
+      <p>An eight-byte character array can store at most seven single-byte characters plus a null terminator when used as a C string. Copying eight characters and then writing a terminator requires nine bytes. The first incorrect write may alter another variable, trigger a protection check, or appear harmless depending on the actual layout. Do not assume every local buffer sits directly beside a return address. In a controlled local exercise, compare input length with allocation size and inspect the first invalid access using a debugger or memory diagnostic tool. Fix the length handling and verify both boundary-size input and oversized input. A mitigation can stop an exploitation path while the underlying bounds error remains.</p>
+      <Callout variant="tip">
+        <p><strong>Check your understanding:</strong> Why can an input that fits eight visible characters still overflow an eight-byte C string buffer?</p>
+      </Callout>
+
     </div>
   );
 }

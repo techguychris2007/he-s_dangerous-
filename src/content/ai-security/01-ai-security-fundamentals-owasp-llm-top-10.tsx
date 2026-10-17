@@ -25,16 +25,18 @@ export default function AiSecurityFundamentalsOwaspLlmTop10() {
       </p>
 
       <h2>The OWASP Top 10 for LLM Applications: a working map</h2>
-      <CodeBlock label="the categories this module walks through, and which lesson covers each">{`LLM01 Prompt Injection                LLM06 Sensitive Information Disclosure
-LLM02 Insecure Output Handling          LLM07 Insecure Plugin Design
-LLM03 Training Data Poisoning            LLM08 Excessive Agency
-LLM04 Model Denial of Service             LLM09 Overreliance
-LLM05 Supply Chain Vulnerabilities          LLM10 Model Theft
-
-  Lesson 2 -> LLM01 (prompt injection & jailbreaking)
-  Lesson 3 -> LLM02, LLM07, LLM08 (output handling, plugins, agentic tool misuse)
-  Lesson 4 -> LLM03, LLM05, LLM10 (poisoning, supply chain, model theft)
-  Lesson 5 -> LLM06, LLM09 (information disclosure, real-world case studies)`}</CodeBlock>
+      <CodeBlock label="OWASP Top 10 for LLM Applications — 2025 edition">{`LLM01 Prompt Injection
+LLM02 Sensitive Information Disclosure
+LLM03 Supply Chain
+LLM04 Data and Model Poisoning
+LLM05 Improper Output Handling
+LLM06 Excessive Agency
+LLM07 System Prompt Leakage
+LLM08 Vector and Embedding Weaknesses
+LLM09 Misinformation
+LLM10 Unbounded Consumption`}</CodeBlock>
+      <p>These identifiers refer to the 2025 edition. Older publications use different numbers;
+        match the named risk and edition when reading a historical report.</p>
       <Callout variant="tip">
         <p>
           OWASP publishes this list the same way it publishes the web application Top 10 you already know —

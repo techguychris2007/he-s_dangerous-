@@ -1,171 +1,194 @@
+import { lazy } from 'react';
 import type { ModuleMeta, RoadmapStage } from '../types';
+import { KALI_OFFENSIVE_MODULES, KALI_OFFENSIVE_ROADMAP } from './kaliFoundationsCurriculum';
+import { curriculumModule } from '../content/curriculumDefinition';
+import { modernNetworkingLessons } from '../content/kali-foundations/modern-networking';
+import { modernLinuxLessons, modernWebLessons } from '../content/kali-foundations/modern-systems-web';
+import { exploitationBinaryLessons } from '../content/exploitation-foundations/binary';
+import { exploitationNetworkLessons, exploitationEngineeringLessons, exploitationCryptoLessons } from '../content/exploitation-foundations/network-security';
+import { cloudFoundation } from '../content/cloud/cloudContinuation';
+import { COLLECTION_EXTENSIONS, MODERN_DATABASE_MODULE } from './modernCollectionCurriculum';
+import { ADVANCED_OFFENSIVE_MODULES, ADVANCED_OFFENSIVE_ROADMAP } from './advancedOffensiveCurriculum';
+import { PRE_SECURITY_MODULES, PRE_SECURITY_ROADMAP } from './preSecurityCurriculum';
+import { DEFENSIVE_MODULES, DEFENSIVE_ROADMAP } from './defensiveCurriculum';
 
-import OsiTcpIp from '../content/networking/01-osi-tcpip';
-import IpSubnetting from '../content/networking/02-ip-subnetting';
-import TcpUdpHandshake from '../content/networking/03-tcp-udp-handshake';
-import PortsServices from '../content/networking/04-ports-services';
-import DnsHttpTraffic from '../content/networking/05-dns-http-traffic';
-import Ipv6FundamentalsAndTransition from '../content/networking/06-ipv6-fundamentals-and-transition';
-import NetworkSegmentationVlansAndFirewalls from '../content/networking/07-network-segmentation-vlans-and-firewalls';
-import RoutingFundamentalsAndAttacks from '../content/networking/08-routing-fundamentals-and-attacks';
+const OsiTcpIp = lazy(() => import('../content/networking/01-osi-tcpip'));
+const IpSubnetting = lazy(() => import('../content/networking/02-ip-subnetting'));
+const TcpUdpHandshake = lazy(() => import('../content/networking/03-tcp-udp-handshake'));
+const PortsServices = lazy(() => import('../content/networking/04-ports-services'));
+const DnsHttpTraffic = lazy(() => import('../content/networking/05-dns-http-traffic'));
+const Ipv6FundamentalsAndTransition = lazy(() => import('../content/networking/06-ipv6-fundamentals-and-transition'));
+const NetworkSegmentationVlansAndFirewalls = lazy(() => import('../content/networking/07-network-segmentation-vlans-and-firewalls'));
+const RoutingFundamentalsAndAttacks = lazy(() => import('../content/networking/08-routing-fundamentals-and-attacks'));
 
-import FilesystemNavigation from '../content/linux/01-filesystem-navigation';
-import UsersPermissions from '../content/linux/02-users-permissions';
-import ProcessesNetworkingCli from '../content/linux/03-processes-networking-cli';
-import BashScripting from '../content/linux/04-bash-scripting';
-import AttackOpsManagement from '../content/linux/05-attack-ops-management';
-import LinuxLoggingAndAuditing from '../content/linux/06-linux-logging-and-auditing';
-import KernelExploitationAndPrivescDeepDive from '../content/linux/07-kernel-exploitation-and-privesc-deep-dive';
-import LinuxHardeningAndDefenseInDepth from '../content/linux/08-linux-hardening-and-defense-in-depth';
+const FilesystemNavigation = lazy(() => import('../content/linux/01-filesystem-navigation'));
+const UsersPermissions = lazy(() => import('../content/linux/02-users-permissions'));
+const ProcessesNetworkingCli = lazy(() => import('../content/linux/03-processes-networking-cli'));
+const BashScripting = lazy(() => import('../content/linux/04-bash-scripting'));
+const AttackOpsManagement = lazy(() => import('../content/linux/05-attack-ops-management'));
+const LinuxLoggingAndAuditing = lazy(() => import('../content/linux/06-linux-logging-and-auditing'));
+const KernelExploitationAndPrivescDeepDive = lazy(() => import('../content/linux/07-kernel-exploitation-and-privesc-deep-dive'));
+const LinuxHardeningAndDefenseInDepth = lazy(() => import('../content/linux/08-linux-hardening-and-defense-in-depth'));
 
-import PassiveReconOsint from '../content/recon/01-passive-recon-osint';
-import ActiveScanningNmap from '../content/recon/02-active-scanning-nmap';
-import ServiceEnumeration from '../content/recon/03-service-enumeration';
-import CredentialAttacks from '../content/recon/04-credential-attacks';
-import EnumerationMethodology from '../content/recon/05-enumeration-methodology';
-import WebReconAndSubdomainEnumerationAtScale from '../content/recon/06-web-recon-and-subdomain-enumeration-at-scale';
-import CloudAssetDiscoveryAndAttackSurfaceMapping from '../content/recon/07-cloud-asset-discovery-and-attack-surface-mapping';
-import ReconAutomationAndReporting from '../content/recon/08-recon-automation-and-reporting';
+const PassiveReconOsint = lazy(() => import('../content/recon/01-passive-recon-osint'));
+const ActiveScanningNmap = lazy(() => import('../content/recon/02-active-scanning-nmap'));
+const ServiceEnumeration = lazy(() => import('../content/recon/03-service-enumeration'));
+const CredentialAttacks = lazy(() => import('../content/recon/04-credential-attacks'));
+const EnumerationMethodology = lazy(() => import('../content/recon/05-enumeration-methodology'));
+const WebReconAndSubdomainEnumerationAtScale = lazy(() => import('../content/recon/06-web-recon-and-subdomain-enumeration-at-scale'));
+const CloudAssetDiscoveryAndAttackSurfaceMapping = lazy(() => import('../content/recon/07-cloud-asset-discovery-and-attack-surface-mapping'));
+const ReconAutomationAndReporting = lazy(() => import('../content/recon/08-recon-automation-and-reporting'));
 
-import PythonRefresher from '../content/python/01-python-refresher';
-import PortScanner from '../content/python/02-port-scanner';
-import ReconAutomation from '../content/python/03-recon-automation';
-import BruteforcersExploits from '../content/python/04-bruteforcers-exploits';
-import PacketSniffing from '../content/python/05-packet-sniffing';
+const PythonRefresher = lazy(() => import('../content/python/01-python-refresher'));
+const PortScanner = lazy(() => import('../content/python/02-port-scanner'));
+const ReconAutomation = lazy(() => import('../content/python/03-recon-automation'));
+const BruteforcersExploits = lazy(() => import('../content/python/04-bruteforcers-exploits'));
+const PacketSniffing = lazy(() => import('../content/python/05-packet-sniffing'));
 
-import OwaspTop10 from '../content/webapp/01-owasp-top-10';
-import SqlInjection from '../content/webapp/02-sql-injection';
-import XssSessionAttacks from '../content/webapp/03-xss-session-attacks';
-import IdorBusinessLogic from '../content/webapp/04-idor-business-logic';
-import SsrfXxeDeserialization from '../content/webapp/05-ssrf-xxe-deserialization';
+const OwaspTop10 = lazy(() => import('../content/webapp/01-owasp-top-10'));
+const SqlInjection = lazy(() => import('../content/webapp/02-sql-injection'));
+const XssSessionAttacks = lazy(() => import('../content/webapp/03-xss-session-attacks'));
+const IdorBusinessLogic = lazy(() => import('../content/webapp/04-idor-business-logic'));
+const SsrfXxeDeserialization = lazy(() => import('../content/webapp/05-ssrf-xxe-deserialization'));
 
-import RedteamVsPentest from '../content/redteam/01-redteam-vs-pentest';
-import InternalNetworkAttacks from '../content/redteam/02-internal-network-attacks';
-import ActiveDirectoryFundamentals from '../content/redteam/03-active-directory-fundamentals';
-import KerberosAdPrivesc from '../content/redteam/04-kerberos-ad-privesc';
-import C2AndPersistence from '../content/redteam/05-c2-and-persistence';
+const RedteamVsPentest = lazy(() => import('../content/redteam/01-redteam-vs-pentest'));
+const InternalNetworkAttacks = lazy(() => import('../content/redteam/02-internal-network-attacks'));
+const ActiveDirectoryFundamentals = lazy(() => import('../content/redteam/03-active-directory-fundamentals'));
+const KerberosAdPrivesc = lazy(() => import('../content/redteam/04-kerberos-ad-privesc'));
+const C2AndPersistence = lazy(() => import('../content/redteam/05-c2-and-persistence'));
 
-import HowBugBountyWorks from '../content/bugbounty/01-how-bug-bounty-works';
-import ReconAtScale from '../content/bugbounty/02-recon-at-scale';
-import WritingReports from '../content/bugbounty/03-writing-reports';
-import SkillsAndRoadmap from '../content/bugbounty/04-skills-and-roadmap';
-import BusinessLogicChaining from '../content/bugbounty/05-business-logic-chaining';
+const HowBugBountyWorks = lazy(() => import('../content/bugbounty/01-how-bug-bounty-works'));
+const ReconAtScale = lazy(() => import('../content/bugbounty/02-recon-at-scale'));
+const WritingReports = lazy(() => import('../content/bugbounty/03-writing-reports'));
+const SkillsAndRoadmap = lazy(() => import('../content/bugbounty/04-skills-and-roadmap'));
+const BusinessLogicChaining = lazy(() => import('../content/bugbounty/05-business-logic-chaining'));
 
-import ApiSecurityFundamentals from '../content/api-security/01-api-security-fundamentals';
-import BolaBflaMassAssignment from '../content/api-security/02-bola-bfla-mass-assignment';
-import JwtAttacks from '../content/api-security/03-jwt-attacks';
-import GraphqlAttacks from '../content/api-security/04-graphql-attacks';
+const ApiSecurityFundamentals = lazy(() => import('../content/api-security/01-api-security-fundamentals'));
+const BolaBflaMassAssignment = lazy(() => import('../content/api-security/02-bola-bfla-mass-assignment'));
+const JwtAttacks = lazy(() => import('../content/api-security/03-jwt-attacks'));
+const GraphqlAttacks = lazy(() => import('../content/api-security/04-graphql-attacks'));
 
-import CryptoAttacksFieldGuide from '../content/crypto-attacks/01-crypto-attacks-field-guide';
-import PaddingOracleAttacks from '../content/crypto-attacks/02-padding-oracle-attacks';
-import EcbAndHashLengthExtension from '../content/crypto-attacks/03-ecb-and-hash-length-extension';
-import HashCrackingStrategy from '../content/crypto-attacks/04-hash-cracking-strategy';
+const CryptoAttacksFieldGuide = lazy(() => import('../content/crypto-attacks/01-crypto-attacks-field-guide'));
+const PaddingOracleAttacks = lazy(() => import('../content/crypto-attacks/02-padding-oracle-attacks'));
+const EcbAndHashLengthExtension = lazy(() => import('../content/crypto-attacks/03-ecb-and-hash-length-extension'));
+const HashCrackingStrategy = lazy(() => import('../content/crypto-attacks/04-hash-cracking-strategy'));
 
-import SocFundamentals from '../content/soc/01-soc-fundamentals';
-import ThreatHuntingDetection from '../content/soc/02-threat-hunting-detection';
-import AttackCoverageMapping from '../content/soc/03-attack-coverage-mapping';
-import C2Detection from '../content/soc/04-c2-detection';
+const SocFundamentals = lazy(() => import('../content/soc/01-soc-fundamentals'));
+const ThreatHuntingDetection = lazy(() => import('../content/soc/02-threat-hunting-detection'));
+const AttackCoverageMapping = lazy(() => import('../content/soc/03-attack-coverage-mapping'));
+const C2Detection = lazy(() => import('../content/soc/04-c2-detection'));
 
-import WhatIsASiem from '../content/soc-siem/01-what-is-a-siem';
-import CorrelationRules from '../content/soc-siem/02-correlation-rules';
-import RealSiemPlatformsCompared from '../content/soc-siem/03-real-siem-platforms-compared';
-import LogOnboardingAndVolume from '../content/soc-siem/04-log-onboarding-and-volume';
+const WhatIsASiem = lazy(() => import('../content/soc-siem/01-what-is-a-siem'));
+const CorrelationRules = lazy(() => import('../content/soc-siem/02-correlation-rules'));
+const RealSiemPlatformsCompared = lazy(() => import('../content/soc-siem/03-real-siem-platforms-compared'));
+const LogOnboardingAndVolume = lazy(() => import('../content/soc-siem/04-log-onboarding-and-volume'));
 
-import WritingTuningDetectionRules from '../content/soc-detection/01-writing-tuning-detection-rules';
-import Ueba from '../content/soc-detection/02-ueba';
-import ThreatIntelIntegration from '../content/soc-detection/03-threat-intel-integration';
-import SigmaRules from '../content/soc-detection/04-sigma-rules';
+const WritingTuningDetectionRules = lazy(() => import('../content/soc-detection/01-writing-tuning-detection-rules'));
+const Ueba = lazy(() => import('../content/soc-detection/02-ueba'));
+const ThreatIntelIntegration = lazy(() => import('../content/soc-detection/03-threat-intel-integration'));
+const SigmaRules = lazy(() => import('../content/soc-detection/04-sigma-rules'));
 
-import IncidentInvestigationMethodology from '../content/soc-ir/01-incident-investigation-methodology';
-import SoarAutomation from '../content/soc-ir/02-soar-automation';
-import ComplianceReporting from '../content/soc-ir/03-compliance-reporting';
-import LandmarkIncidentCaseStudies from '../content/soc-ir/04-landmark-incident-case-studies';
+const IncidentInvestigationMethodology = lazy(() => import('../content/soc-ir/01-incident-investigation-methodology'));
+const SoarAutomation = lazy(() => import('../content/soc-ir/02-soar-automation'));
+const ComplianceReporting = lazy(() => import('../content/soc-ir/03-compliance-reporting'));
+const LandmarkIncidentCaseStudies = lazy(() => import('../content/soc-ir/04-landmark-incident-case-studies'));
 
-import ForensicsFundamentals from '../content/forensics/01-forensics-fundamentals';
-import MemoryArtifactAnalysis from '../content/forensics/02-memory-artifact-analysis';
-import LogsAndNetworkArtifacts from '../content/forensics/03-logs-and-network-artifacts';
-import DiskForensicsAndFileSystemAnalysis from '../content/forensics/04-disk-forensics-and-file-system-analysis';
-import MemoryForensicsWithVolatility from '../content/forensics/05-memory-forensics-with-volatility';
-import ForensicReportingLegalAndCaseStudies from '../content/forensics/06-forensic-reporting-legal-and-case-studies';
+const ForensicsFundamentals = lazy(() => import('../content/forensics/01-forensics-fundamentals'));
+const MemoryArtifactAnalysis = lazy(() => import('../content/forensics/02-memory-artifact-analysis'));
+const LogsAndNetworkArtifacts = lazy(() => import('../content/forensics/03-logs-and-network-artifacts'));
+const DiskForensicsAndFileSystemAnalysis = lazy(() => import('../content/forensics/04-disk-forensics-and-file-system-analysis'));
+const MemoryForensicsWithVolatility = lazy(() => import('../content/forensics/05-memory-forensics-with-volatility'));
+const ForensicReportingLegalAndCaseStudies = lazy(() => import('../content/forensics/06-forensic-reporting-legal-and-case-studies'));
 
-import CloudSecurityFundamentals from '../content/cloud/01-cloud-security-fundamentals';
-import IamAndMisconfiguration from '../content/cloud/02-iam-and-misconfiguration';
-import ContainersAndIacSecrets from '../content/cloud/03-containers-and-iac-secrets';
-import IdentityFederationAndCrossAccountAttacks from '../content/cloud/04-identity-federation-and-cross-account-attacks';
-import CloudNativeDetectionAndLogging from '../content/cloud/05-cloud-native-detection-and-logging';
-import CspmAndClosingCaseStudies from '../content/cloud/06-cspm-and-closing-case-studies';
+const CloudSecurityFundamentals = lazy(() => import('../content/cloud/01-cloud-security-fundamentals'));
+const IamAndMisconfiguration = lazy(() => import('../content/cloud/02-iam-and-misconfiguration'));
+const ContainersAndIacSecrets = lazy(() => import('../content/cloud/03-containers-and-iac-secrets'));
+const IdentityFederationAndCrossAccountAttacks = lazy(() => import('../content/cloud/04-identity-federation-and-cross-account-attacks'));
+const CloudNativeDetectionAndLogging = lazy(() => import('../content/cloud/05-cloud-native-detection-and-logging'));
+const CspmAndClosingCaseStudies = lazy(() => import('../content/cloud/06-cspm-and-closing-case-studies'));
 
-import GrcFundamentals from '../content/securityplus/01-grc-fundamentals';
-import CryptographyFundamentals from '../content/securityplus/02-cryptography-fundamentals';
-import IamDeepDive from '../content/securityplus/03-iam-deep-dive';
-import SecurityArchitecture from '../content/securityplus/04-security-architecture';
-import IncidentResponseBcdr from '../content/securityplus/05-incident-response-bcdr';
+const GrcFundamentals = lazy(() => import('../content/securityplus/01-grc-fundamentals'));
+const CryptographyFundamentals = lazy(() => import('../content/securityplus/02-cryptography-fundamentals'));
+const IamDeepDive = lazy(() => import('../content/securityplus/03-iam-deep-dive'));
+const SecurityArchitecture = lazy(() => import('../content/securityplus/04-security-architecture'));
+const IncidentResponseBcdr = lazy(() => import('../content/securityplus/05-incident-response-bcdr'));
 
-import BinaryFormatsStaticAnalysis from '../content/binaryanalysis/01-binary-formats-static-analysis';
-import AssemblyStackCrashCourse from '../content/binaryanalysis/02-assembly-stack-crash-course';
-import DebuggingWithGdb from '../content/binaryanalysis/03-debugging-with-gdb';
-import BufferOverflowFundamentals from '../content/binaryanalysis/04-buffer-overflow-fundamentals';
-import IntroExploitDevelopment from '../content/binaryanalysis/05-intro-exploit-development';
+const BinaryFormatsStaticAnalysis = lazy(() => import('../content/binaryanalysis/01-binary-formats-static-analysis'));
+const AssemblyStackCrashCourse = lazy(() => import('../content/binaryanalysis/02-assembly-stack-crash-course'));
+const DebuggingWithGdb = lazy(() => import('../content/binaryanalysis/03-debugging-with-gdb'));
+const BufferOverflowFundamentals = lazy(() => import('../content/binaryanalysis/04-buffer-overflow-fundamentals'));
+const IntroExploitDevelopment = lazy(() => import('../content/binaryanalysis/05-intro-exploit-development'));
 
-import StaticMalwareAnalysis from '../content/malware/01-static-malware-analysis';
-import DynamicAnalysisSandboxing from '../content/malware/02-dynamic-analysis-sandboxing';
-import PersistenceMechanisms from '../content/malware/03-persistence-mechanisms';
-import NetworkIndicatorsC2 from '../content/malware/04-network-indicators-c2';
-import AntiAnalysisEvasion from '../content/malware/05-anti-analysis-evasion';
+const StaticMalwareAnalysis = lazy(() => import('../content/malware/01-static-malware-analysis'));
+const DynamicAnalysisSandboxing = lazy(() => import('../content/malware/02-dynamic-analysis-sandboxing'));
+const PersistenceMechanisms = lazy(() => import('../content/malware/03-persistence-mechanisms'));
+const NetworkIndicatorsC2 = lazy(() => import('../content/malware/04-network-indicators-c2'));
+const AntiAnalysisEvasion = lazy(() => import('../content/malware/05-anti-analysis-evasion'));
 
-import SyntaxAndDataStructures from '../content/code-python-fundamentals/01-syntax-and-data-structures';
-import FunctionsAndErrorHandling from '../content/code-python-fundamentals/02-functions-and-error-handling';
-import StringsAndTextProcessing from '../content/code-python-fundamentals/03-strings-and-text-processing';
+const SyntaxAndDataStructures = lazy(() => import('../content/code-python-fundamentals/01-syntax-and-data-structures'));
+const FunctionsAndErrorHandling = lazy(() => import('../content/code-python-fundamentals/02-functions-and-error-handling'));
+const StringsAndTextProcessing = lazy(() => import('../content/code-python-fundamentals/03-strings-and-text-processing'));
 
-import OopBasics from '../content/code-python-oop/01-oop-basics';
-import InheritanceAndPolymorphism from '../content/code-python-oop/02-inheritance-and-polymorphism';
-import AdvancedOop from '../content/code-python-oop/03-advanced-oop';
+const OopBasics = lazy(() => import('../content/code-python-oop/01-oop-basics'));
+const InheritanceAndPolymorphism = lazy(() => import('../content/code-python-oop/02-inheritance-and-polymorphism'));
+const AdvancedOop = lazy(() => import('../content/code-python-oop/03-advanced-oop'));
 
-import DecoratorsAndClosures from '../content/code-python-advanced/01-decorators-and-closures';
-import GeneratorsAndContextManagers from '../content/code-python-advanced/02-generators-and-context-managers';
-import RegexConcurrencyAndCaching from '../content/code-python-advanced/03-regex-concurrency-and-caching';
+const DecoratorsAndClosures = lazy(() => import('../content/code-python-advanced/01-decorators-and-closures'));
+const GeneratorsAndContextManagers = lazy(() => import('../content/code-python-advanced/02-generators-and-context-managers'));
+const RegexConcurrencyAndCaching = lazy(() => import('../content/code-python-advanced/03-regex-concurrency-and-caching'));
 
-import MobileAppArchitectureAndAttackSurface from '../content/mobile/01-mobile-app-architecture-and-attack-surface';
-import StaticAnalysisOfAndroidApps from '../content/mobile/02-static-analysis-of-android-apps';
-import DynamicAnalysisAndInstrumentation from '../content/mobile/03-dynamic-analysis-and-instrumentation';
-import InsecureDataStorageAndCommunication from '../content/mobile/04-insecure-data-storage-and-communication';
-import IosFundamentalsAndMobileApiBackends from '../content/mobile/05-ios-fundamentals-and-mobile-api-backends';
-import MobileMalwareAndBankingTrojans from '../content/mobile/06-mobile-malware-and-banking-trojans';
-import MobileDeviceManagementAndEnterpriseSecurity from '../content/mobile/07-mobile-device-management-and-enterprise-security';
-import MobilePentestMethodologyAndReporting from '../content/mobile/08-mobile-pentest-methodology-and-reporting';
+const PythonFilesAndSerialization = lazy(() => import('../content/code-python-practice/01-files-and-serialization'));
+const PythonProjectsAndCli = lazy(() => import('../content/code-python-practice/02-projects-cli-and-environments'));
+const PythonTestingAndTypes = lazy(() => import('../content/code-python-practice/03-testing-debugging-and-types'));
+const ComplexityAndHashing = lazy(() => import('../content/programming-algorithms/01-complexity-arrays-and-hashing'));
+const LinearAndTreeStructures = lazy(() => import('../content/programming-algorithms/02-linear-structures-and-trees'));
+const GraphsAndAlgorithms = lazy(() => import('../content/programming-algorithms/03-graphs-search-and-dynamic-programming'));
+const SoftwareDesignAndTesting = lazy(() => import('../content/programming-engineering/01-design-testing-and-refactoring'));
+const DatabasesAndTransactions = lazy(() => import('../content/programming-engineering/02-databases-and-transactions'));
+const SystemsAndNetworking = lazy(() => import('../content/programming-engineering/03-systems-networking-and-apis'));
+const ProductionReliability = lazy(() => import('../content/programming-engineering/04-production-reliability-and-delivery'));
 
-import Fundamentals80211AndAttackSurface from '../content/wireless/01-802-11-fundamentals-and-attack-surface';
-import EncryptionAndHandshakeCapture from '../content/wireless/02-encryption-and-handshake-capture';
-import CrackingHandshakesAndWpa3 from '../content/wireless/03-cracking-handshakes-and-wpa3';
-import RogueApsAndEvilTwinAttacks from '../content/wireless/04-rogue-aps-and-evil-twin-attacks';
-import BluetoothAndBleSecurity from '../content/wireless/05-bluetooth-and-ble-security';
-import EnterpriseWireless8021xEapRadius from '../content/wireless/06-enterprise-wireless-802-1x-eap-radius';
-import WirelessIdsAndDefensiveMonitoring from '../content/wireless/07-wireless-ids-and-defensive-monitoring';
-import CellularSecurityFundamentalsAndSynthesis from '../content/wireless/08-cellular-security-fundamentals-and-synthesis';
+const MobileAppArchitectureAndAttackSurface = lazy(() => import('../content/mobile/01-mobile-app-architecture-and-attack-surface'));
+const StaticAnalysisOfAndroidApps = lazy(() => import('../content/mobile/02-static-analysis-of-android-apps'));
+const DynamicAnalysisAndInstrumentation = lazy(() => import('../content/mobile/03-dynamic-analysis-and-instrumentation'));
+const InsecureDataStorageAndCommunication = lazy(() => import('../content/mobile/04-insecure-data-storage-and-communication'));
+const IosFundamentalsAndMobileApiBackends = lazy(() => import('../content/mobile/05-ios-fundamentals-and-mobile-api-backends'));
+const MobileMalwareAndBankingTrojans = lazy(() => import('../content/mobile/06-mobile-malware-and-banking-trojans'));
+const MobileDeviceManagementAndEnterpriseSecurity = lazy(() => import('../content/mobile/07-mobile-device-management-and-enterprise-security'));
+const MobilePentestMethodologyAndReporting = lazy(() => import('../content/mobile/08-mobile-pentest-methodology-and-reporting'));
 
-import IotArchitectureAndAttackSurface from '../content/iot/01-iot-architecture-and-attack-surface';
-import FirmwareExtractionAndStaticAnalysis from '../content/iot/02-firmware-extraction-and-static-analysis';
-import HardwareHackingUartJtagSpi from '../content/iot/03-hardware-hacking-uart-jtag-spi';
-import EmbeddedWebInterfacesAndCommonVulns from '../content/iot/04-embedded-web-interfaces-and-common-vulns';
-import IotBotnetsMiraiAndBeyond from '../content/iot/05-iot-botnets-mirai-and-beyond';
-import IotProtocolsZigbeeZwaveMqtt from '../content/iot/06-iot-protocols-zigbee-zwave-mqtt';
-import IndustrialControlSystemsAndScadaSecurity from '../content/iot/07-industrial-control-systems-and-scada-security';
-import IotTestingMethodologyAndCompliance from '../content/iot/08-iot-testing-methodology-and-compliance';
+const Fundamentals80211AndAttackSurface = lazy(() => import('../content/wireless/01-802-11-fundamentals-and-attack-surface'));
+const EncryptionAndHandshakeCapture = lazy(() => import('../content/wireless/02-encryption-and-handshake-capture'));
+const CrackingHandshakesAndWpa3 = lazy(() => import('../content/wireless/03-cracking-handshakes-and-wpa3'));
+const RogueApsAndEvilTwinAttacks = lazy(() => import('../content/wireless/04-rogue-aps-and-evil-twin-attacks'));
+const BluetoothAndBleSecurity = lazy(() => import('../content/wireless/05-bluetooth-and-ble-security'));
+const EnterpriseWireless8021xEapRadius = lazy(() => import('../content/wireless/06-enterprise-wireless-802-1x-eap-radius'));
+const WirelessIdsAndDefensiveMonitoring = lazy(() => import('../content/wireless/07-wireless-ids-and-defensive-monitoring'));
+const CellularSecurityFundamentalsAndSynthesis = lazy(() => import('../content/wireless/08-cellular-security-fundamentals-and-synthesis'));
 
-import AiSecurityFundamentalsOwaspLlmTop10 from '../content/ai-security/01-ai-security-fundamentals-owasp-llm-top-10';
-import PromptInjectionAndJailbreaking from '../content/ai-security/02-prompt-injection-and-jailbreaking';
-import InsecureOutputHandlingAndExcessiveAgency from '../content/ai-security/03-insecure-output-handling-and-excessive-agency';
-import TrainingDataPoisoningModelTheftSupplyChain from '../content/ai-security/04-training-data-poisoning-model-theft-supply-chain';
-import SensitiveInfoDisclosureRagSecurityCaseStudies from '../content/ai-security/05-sensitive-info-disclosure-rag-security-case-studies';
-import AdversarialMachineLearningEvasion from '../content/ai-security/06-adversarial-machine-learning-evasion';
-import AiGovernanceRedTeamingSafetyEvaluation from '../content/ai-security/07-ai-governance-red-teaming-safety-evaluation';
-import SecuringAiAgentsMultiAgentSystems from '../content/ai-security/08-securing-ai-agents-multi-agent-systems';
+const IotArchitectureAndAttackSurface = lazy(() => import('../content/iot/01-iot-architecture-and-attack-surface'));
+const FirmwareExtractionAndStaticAnalysis = lazy(() => import('../content/iot/02-firmware-extraction-and-static-analysis'));
+const HardwareHackingUartJtagSpi = lazy(() => import('../content/iot/03-hardware-hacking-uart-jtag-spi'));
+const EmbeddedWebInterfacesAndCommonVulns = lazy(() => import('../content/iot/04-embedded-web-interfaces-and-common-vulns'));
+const IotBotnetsMiraiAndBeyond = lazy(() => import('../content/iot/05-iot-botnets-mirai-and-beyond'));
+const IotProtocolsZigbeeZwaveMqtt = lazy(() => import('../content/iot/06-iot-protocols-zigbee-zwave-mqtt'));
+const IndustrialControlSystemsAndScadaSecurity = lazy(() => import('../content/iot/07-industrial-control-systems-and-scada-security'));
+const IotTestingMethodologyAndCompliance = lazy(() => import('../content/iot/08-iot-testing-methodology-and-compliance'));
 
-import SecurityEconomics from '../content/secengineering/01-security-economics';
-import SecureDesignPrinciples from '../content/secengineering/02-secure-design-principles';
-import ThreatModeling from '../content/secengineering/03-threat-modeling';
-import CryptographicEngineeringPitfalls from '../content/secengineering/04-cryptographic-engineering-pitfalls';
-import WhySystemsFailCaseStudies from '../content/secengineering/05-why-systems-fail-case-studies';
+const AiSecurityFundamentalsOwaspLlmTop10 = lazy(() => import('../content/ai-security/01-ai-security-fundamentals-owasp-llm-top-10'));
+const PromptInjectionAndJailbreaking = lazy(() => import('../content/ai-security/02-prompt-injection-and-jailbreaking'));
+const InsecureOutputHandlingAndExcessiveAgency = lazy(() => import('../content/ai-security/03-insecure-output-handling-and-excessive-agency'));
+const TrainingDataPoisoningModelTheftSupplyChain = lazy(() => import('../content/ai-security/04-training-data-poisoning-model-theft-supply-chain'));
+const SensitiveInfoDisclosureRagSecurityCaseStudies = lazy(() => import('../content/ai-security/05-sensitive-info-disclosure-rag-security-case-studies'));
+const AdversarialMachineLearningEvasion = lazy(() => import('../content/ai-security/06-adversarial-machine-learning-evasion'));
+const AiGovernanceRedTeamingSafetyEvaluation = lazy(() => import('../content/ai-security/07-ai-governance-red-teaming-safety-evaluation'));
+const SecuringAiAgentsMultiAgentSystems = lazy(() => import('../content/ai-security/08-securing-ai-agents-multi-agent-systems'));
+
+const SecurityEconomics = lazy(() => import('../content/secengineering/01-security-economics'));
+const SecureDesignPrinciples = lazy(() => import('../content/secengineering/02-secure-design-principles'));
+const ThreatModeling = lazy(() => import('../content/secengineering/03-threat-modeling'));
+const CryptographicEngineeringPitfalls = lazy(() => import('../content/secengineering/04-cryptographic-engineering-pitfalls'));
+const WhySystemsFailCaseStudies = lazy(() => import('../content/secengineering/05-why-systems-fail-case-studies'));
 
 export const MODULES: ModuleMeta[] = [
   {
@@ -238,7 +261,7 @@ export const MODULES: ModuleMeta[] = [
     lessons: [
       { id: 'rec-1', slug: 'passive-recon-osint', title: 'Passive Recon & OSINT Fundamentals', summary: 'WHOIS, certificate transparency, dorking — before you send a single packet.', minutes: 12, Content: PassiveReconOsint },
       { id: 'rec-2', slug: 'active-scanning-nmap', title: 'Active Scanning with Nmap', summary: 'The scan workflow and flags you\'ll use on every engagement.', minutes: 15, Content: ActiveScanningNmap },
-      { id: 'rec-3', slug: 'service-enumeration', title: 'Service Enumeration: HTTP, FTP, SSH, SMB', summary: 'Turning open ports into footholds.', minutes: 16, Content: ServiceEnumeration },
+      { id: 'rec-3', slug: 'service-enumeration', title: 'Service Enumeration: HTTP, FTP, SSH, SMB', summary: 'Turn open ports into safe, scoped service hypotheses by reading banners, versions, defaults, and evidence before attempting access.', minutes: 16, Content: ServiceEnumeration },
       { id: 'rec-4', slug: 'credential-attacks', title: 'Credential Attacks: Wordlists & Brute Forcing', summary: 'rockyou, hydra, spraying, and knowing when to stop.', minutes: 13, Content: CredentialAttacks },
       { id: 'rec-5', slug: 'enumeration-methodology', title: 'Putting It Together: The Enumeration Methodology', summary: 'Recon -> foothold -> privesc -> report, as one repeatable loop.', minutes: 10, Content: EnumerationMethodology },
       { id: 'rec-6', slug: 'web-recon-and-subdomain-enumeration-at-scale', title: 'Web Reconnaissance & Subdomain Enumeration at Scale', summary: 'Certificate transparency, DNS permutation, and screenshot-based triage across thousands of hosts.', minutes: 13, Content: WebReconAndSubdomainEnumerationAtScale },
@@ -265,7 +288,7 @@ export const MODULES: ModuleMeta[] = [
     icon: 'python',
     lessons: [
       { id: 'py-1', slug: 'python-refresher', title: 'Python Fundamentals for Security Work', summary: 'The subset of Python you need fluent to write tools fast.', minutes: 11, Content: PythonRefresher },
-      { id: 'py-2', slug: 'port-scanner', title: 'Building a TCP Port Scanner from Scratch', summary: 'Sockets, connect_ex, and multithreading with ThreadPoolExecutor.', minutes: 14, Content: PortScanner },
+      { id: 'py-2', slug: 'port-scanner', title: 'Building a TCP Port Scanner from Scratch', summary: 'Use sockets, connect_ex, timeouts, and ThreadPoolExecutor to build a bounded scanner that separates closed ports from failed checks.', minutes: 14, Content: PortScanner },
       { id: 'py-3', slug: 'recon-automation', title: 'Automating Recon with Requests & Threading', summary: 'Directory brute-forcing and HTML parsing at scale.', minutes: 13, Content: ReconAutomation },
       { id: 'py-4', slug: 'bruteforcers-exploits', title: 'Writing Brute-Forcers & Simple Exploit PoCs', summary: 'HTTP/SSH brute-forcers and the shape of a real exploit script.', minutes: 13, Content: BruteforcersExploits },
       {
@@ -290,8 +313,8 @@ export const MODULES: ModuleMeta[] = [
     icon: 'web',
     lessons: [
       { id: 'web-1', slug: 'owasp-top-10', title: 'The OWASP Top 10: A Working Map', summary: 'The category system that structures every web app test.', minutes: 11, Content: OwaspTop10 },
-      { id: 'web-2', slug: 'sql-injection', title: 'Injection Deep Dive: SQL Injection', summary: 'Detection, UNION-based extraction, and blind SQLi.', minutes: 15, Content: SqlInjection },
-      { id: 'web-3', slug: 'xss-session-attacks', title: 'XSS & Session Attacks', summary: 'Reflected/stored/DOM XSS, cookies, and CSRF.', minutes: 14, Content: XssSessionAttacks },
+      { id: 'web-2', slug: 'sql-injection', title: 'Injection Deep Dive: SQL Injection', summary: 'Detect SQL injection carefully, then understand UNION-based extraction, blind techniques, impact proof, and safe reporting limits.', minutes: 15, Content: SqlInjection },
+      { id: 'web-3', slug: 'xss-session-attacks', title: 'XSS & Session Attacks', summary: 'Understand reflected, stored, and DOM XSS, how cookies and sessions are affected, and why CSRF is a different browser-trust issue.', minutes: 14, Content: XssSessionAttacks },
       { id: 'web-4', slug: 'idor-business-logic', title: 'Authentication, IDOR & Business Logic Flaws', summary: 'The highest effort-to-payout category in bug bounty.', minutes: 13, Content: IdorBusinessLogic },
       {
         id: 'web-5', slug: 'ssrf-xxe-deserialization', title: 'SSRF, XXE & Insecure Deserialization', summary: 'Advanced categories: the server acting on your behalf.', minutes: 13, Content: SsrfXxeDeserialization,
@@ -314,8 +337,8 @@ export const MODULES: ModuleMeta[] = [
     sourceBooks: ['The Hacker Playbook 3'],
     icon: 'shield',
     lessons: [
-      { id: 'rt-1', slug: 'redteam-vs-pentest', title: 'Red Team vs. Pentest: Methodology & OPSEC', summary: 'Objective-driven engagements and operational security discipline.', minutes: 11, Content: RedteamVsPentest },
-      { id: 'rt-2', slug: 'internal-network-attacks', title: 'Internal Network Attacks & Lateral Movement', summary: 'Credential reuse, pass-the-hash, and pivoting.', minutes: 13, Content: InternalNetworkAttacks },
+      { id: 'rt-1', slug: 'redteam-vs-pentest', title: 'Red Team vs. Pentest: Methodology & OPSEC', summary: 'Learn how red-team engagements are scoped around objectives, operating rules, telemetry expectations, stop conditions, and cleanup discipline.', minutes: 11, Content: RedteamVsPentest },
+      { id: 'rt-2', slug: 'internal-network-attacks', title: 'Internal Network Attacks & Lateral Movement', summary: 'Understand internal movement through credential reuse, pass-the-hash, pivoting, segmentation boundaries, and evidence that proves lateral access.', minutes: 13, Content: InternalNetworkAttacks },
       { id: 'rt-3', slug: 'active-directory-fundamentals', title: 'Active Directory Fundamentals & Enumeration', summary: 'Domains, OUs, groups, and BloodHound attack-path mapping.', minutes: 14, Content: ActiveDirectoryFundamentals },
       { id: 'rt-4', slug: 'kerberos-ad-privesc', title: 'Kerberos Attacks & AD Privilege Escalation', summary: 'Kerberoasting, AS-REP Roasting, and the path to Domain Admin.', minutes: 14, Content: KerberosAdPrivesc },
       {
@@ -595,9 +618,9 @@ export const MODULES: ModuleMeta[] = [
     sourceBooks: ['Practical Binary Analysis', 'Hacking: The Art of Exploitation'],
     icon: 'binary',
     lessons: [
-      { id: 'bin-1', slug: 'binary-formats-static-analysis', title: 'Binary Formats & Static Analysis Fundamentals', summary: 'ELF/PE structure, file/strings/objdump, and entropy analysis.', minutes: 12, Content: BinaryFormatsStaticAnalysis },
+      { id: 'bin-1', slug: 'binary-formats-static-analysis', title: 'Binary Formats & Static Analysis Fundamentals', summary: 'Read ELF and PE structure with file, strings, objdump, and entropy clues so static triage has evidence rather than guesses.', minutes: 12, Content: BinaryFormatsStaticAnalysis },
       { id: 'bin-2', slug: 'assembly-stack-crash-course', title: 'x86 Assembly & the Stack: A Crash Course', summary: 'Registers, stack frames, and reading disassembly patterns.', minutes: 14, Content: AssemblyStackCrashCourse },
-      { id: 'bin-3', slug: 'debugging-with-gdb', title: 'Dynamic Analysis: Debugging with GDB', summary: 'Breakpoints, watchpoints, and live memory inspection.', minutes: 13, Content: DebuggingWithGdb },
+      { id: 'bin-3', slug: 'debugging-with-gdb', title: 'Dynamic Analysis: Debugging with GDB', summary: 'Use breakpoints, watchpoints, registers, stack views, and live memory inspection to explain exactly why a binary changed behavior.', minutes: 13, Content: DebuggingWithGdb },
       { id: 'bin-4', slug: 'buffer-overflow-fundamentals', title: 'Buffer Overflow Fundamentals', summary: 'The classic stack-smashing vulnerability, and the mitigations built against it.', minutes: 14, Content: BufferOverflowFundamentals },
       {
         id: 'bin-5', slug: 'intro-exploit-development', title: 'Introduction to Exploit Development', summary: 'The full workflow, shellcode, bad characters, and a minimal Python exploit.', minutes: 13, Content: IntroExploitDevelopment,
@@ -621,7 +644,7 @@ export const MODULES: ModuleMeta[] = [
     icon: 'bug',
     lessons: [
       { id: 'mal-1', slug: 'static-malware-analysis', title: 'Static Malware Analysis Fundamentals', summary: 'Triage order, PE header red flags, entropy, imports, and YARA rules.', minutes: 13, Content: StaticMalwareAnalysis },
-      { id: 'mal-2', slug: 'dynamic-analysis-sandboxing', title: 'Dynamic Analysis & Sandboxing', summary: 'Safe detonation, process/file/registry/network monitoring, decoding PowerShell.', minutes: 13, Content: DynamicAnalysisSandboxing },
+      { id: 'mal-2', slug: 'dynamic-analysis-sandboxing', title: 'Dynamic Analysis & Sandboxing', summary: 'Detonate malware safely in a controlled lab, monitor process, file, registry, and network behavior, and decode suspicious PowerShell carefully.', minutes: 13, Content: DynamicAnalysisSandboxing },
       { id: 'mal-3', slug: 'persistence-mechanisms', title: 'Persistence Mechanisms', summary: 'Windows and Linux persistence, the investigator\'s systematic checklist.', minutes: 12, Content: PersistenceMechanisms },
       { id: 'mal-4', slug: 'network-indicators-c2', title: 'Network Indicators & C2 Communication Analysis', summary: 'C2 architectures, reading beacons, encoding layers, and IOC extraction.', minutes: 13, Content: NetworkIndicatorsC2 },
       {
@@ -674,7 +697,7 @@ export const MODULES: ModuleMeta[] = [
     lessons: [
       { id: 'cpy-1', slug: 'syntax-and-data-structures', title: 'Python Syntax & Data Structures, From Zero', summary: 'Variables, lists, dicts, sets, and control flow.', minutes: 14, Content: SyntaxAndDataStructures },
       { id: 'cpy-2', slug: 'functions-and-error-handling', title: 'Functions, Exceptions & Defensive Scripting', summary: 'Writing functions and handling bad input without crashing.', minutes: 12, Content: FunctionsAndErrorHandling },
-      { id: 'cpy-3', slug: 'strings-and-text-processing', title: 'Strings, Text Processing & the re Module', summary: 'String methods, slicing, and regular expressions.', minutes: 13, Content: StringsAndTextProcessing },
+      { id: 'cpy-3', slug: 'strings-and-text-processing', title: 'Strings, Text Processing & the re Module', summary: 'Use string methods, slicing, and regular expressions to extract security data from logs without losing malformed or suspicious records.', minutes: 13, Content: StringsAndTextProcessing },
     ],
   },
   {
@@ -708,9 +731,55 @@ export const MODULES: ModuleMeta[] = [
     sourceBooks: ['Fluent Python'],
     icon: 'code',
     lessons: [
-      { id: 'cpy-7', slug: 'decorators-and-closures', title: 'Closures & Decorators', summary: 'Wrapping functions with extra behavior, cleanly.', minutes: 14, Content: DecoratorsAndClosures },
-      { id: 'cpy-8', slug: 'generators-and-context-managers', title: 'Generators, Iterators & Context Managers', summary: 'Lazy evaluation and guaranteed cleanup.', minutes: 13, Content: GeneratorsAndContextManagers },
-      { id: 'cpy-9', slug: 'regex-concurrency-and-caching', title: 'Advanced Regex, Concurrency & Caching', summary: 'Lookaheads, asyncio.gather, and lru_cache.', minutes: 14, Content: RegexConcurrencyAndCaching },
+      { id: 'cpy-7', slug: 'decorators-and-closures', title: 'Closures & Decorators', summary: 'Use decorators to wrap functions with logging, authorization, timing, or validation while keeping behavior testable and understandable.', minutes: 14, Content: DecoratorsAndClosures },
+      { id: 'cpy-8', slug: 'generators-and-context-managers', title: 'Generators, Iterators & Context Managers', summary: 'Use generators and context managers for lazy processing and guaranteed cleanup of files, sockets, locks, and other security-relevant resources.', minutes: 13, Content: GeneratorsAndContextManagers },
+      { id: 'cpy-9', slug: 'regex-concurrency-and-caching', title: 'Advanced Regex, Concurrency & Caching', summary: 'Apply advanced regex, asyncio.gather, and lru_cache while understanding concurrency limits, cache correctness, and error handling.', minutes: 14, Content: RegexConcurrencyAndCaching },
+    ],
+  },
+  {
+    id: 'code-python-practice',
+    slug: 'code-python-practice',
+    title: 'Code Portal: Building Python Programs',
+    subtitle: 'Files, structured data, modules, command-line tools, tests, and type hints',
+    description: 'Move from short examples to maintainable Python programs: read and write files safely, validate JSON and CSV, organize packages, configure environments, build command-line interfaces, test behavior, and use static typing to make contracts clearer.',
+    status: 'available',
+    sourceBooks: ['Python Crash Course', 'Automate the Boring Stuff with Python'],
+    icon: 'code',
+    lessons: [
+      { id: 'cpy-10', slug: 'files-and-serialization', title: 'Files, Paths, JSON & CSV', summary: 'Use pathlib and context managers, choose text encodings, validate structured data, and write files atomically.', minutes: 20, Content: PythonFilesAndSerialization },
+      { id: 'cpy-11', slug: 'projects-cli-and-environments', title: 'Modules, Environments & Command-Line Programs', summary: 'Turn scripts into reproducible projects with imports, virtual environments, argparse, configuration, and safe entry points.', minutes: 20, Content: PythonProjectsAndCli },
+      { id: 'cpy-12', slug: 'testing-debugging-and-types', title: 'Testing, Debugging & Type Hints', summary: 'Build reliable tests, inspect failures, design testable functions, and express data contracts with modern type annotations.', minutes: 22, Content: PythonTestingAndTypes },
+    ],
+  },
+  {
+    id: 'programming-algorithms',
+    slug: 'programming-algorithms',
+    title: 'Programming: Data Structures & Algorithms',
+    subtitle: 'Reason about correctness, runtime, memory, and useful abstractions',
+    description: 'Learn why common data structures behave as they do, how to choose them from a workload, and how to implement and test searches, sorts, traversals, and dynamic programs instead of memorizing recipes.',
+    status: 'available',
+    sourceBooks: ['Open Source Society University Computer Science', 'TheAlgorithms/Python', 'Coding Interview University'],
+    icon: 'code',
+    lessons: [
+      { id: 'prog-algo-1', slug: 'complexity-arrays-and-hashing', title: 'Big-O, Arrays & Hash Tables', summary: 'Measure how work grows, understand Python list costs, and use hash maps and sets deliberately.', minutes: 24, Content: ComplexityAndHashing },
+      { id: 'prog-algo-2', slug: 'linear-structures-and-trees', title: 'Stacks, Queues, Linked Structures & Trees', summary: 'Choose linear structures for access patterns, then understand binary search trees, heaps, and traversal.', minutes: 24, Content: LinearAndTreeStructures },
+      { id: 'prog-algo-3', slug: 'graphs-search-and-dynamic-programming', title: 'Graphs, Search, Sorting & Dynamic Programming', summary: 'Model relationships as graphs and learn BFS, DFS, shortest paths, sorting, recursion, and memoization.', minutes: 28, Content: GraphsAndAlgorithms },
+    ],
+  },
+  {
+    id: 'programming-engineering',
+    slug: 'programming-engineering',
+    title: 'Programming: Software & Systems Engineering',
+    subtitle: 'Design, databases, networks, and production reliability',
+    description: 'Connect programming fundamentals to real services: make code easier to change, preserve data correctness, understand processes and HTTP, and build observable systems that handle failure and controlled delivery.',
+    status: 'available',
+    sourceBooks: ['Open Source Society University Computer Science', 'System Design Primer', 'OWASP Cheat Sheet Series'],
+    icon: 'code',
+    lessons: [
+      { id: 'prog-eng-1', slug: 'design-testing-and-refactoring', title: 'Design, Testing & Refactoring', summary: 'Separate responsibilities, define interfaces, use composition, and improve code without changing behavior.', minutes: 22, Content: SoftwareDesignAndTesting },
+      { id: 'prog-eng-2', slug: 'databases-and-transactions', title: 'SQL, Transactions & Data Access', summary: 'Understand relational data, parameterized queries, constraints, transactions, indexes, and consistency.', minutes: 24, Content: DatabasesAndTransactions },
+      { id: 'prog-eng-3', slug: 'systems-networking-and-apis', title: 'Processes, Networking & HTTP APIs', summary: 'Trace a request through processes, sockets, DNS, TCP, TLS, HTTP, and an application boundary.', minutes: 24, Content: SystemsAndNetworking },
+      { id: 'prog-eng-4', slug: 'production-reliability-and-delivery', title: 'Production Reliability, Queues & Delivery', summary: 'Design for timeouts, retries, idempotency, bounded work, caching, observability, containers, and CI.', minutes: 24, Content: ProductionReliability },
     ],
   },
   {
@@ -838,21 +907,64 @@ export const MODULES: ModuleMeta[] = [
   },
 ];
 
+// Continuation modules follow the existing curriculum without renumbering existing lessons.
+MODULES.push(...ADVANCED_OFFENSIVE_MODULES);
+MODULES.splice(MODULES.findIndex(module => module.slug === 'webapp') + 1, 0, MODERN_DATABASE_MODULE);
+MODULES.push(...KALI_OFFENSIVE_MODULES);
+MODULES.unshift(...PRE_SECURITY_MODULES);
+MODULES.push(...DEFENSIVE_MODULES);
+
+// Extend the established modules without changing existing routes or progress IDs.
+for (const addition of [
+  ...COLLECTION_EXTENSIONS,
+  { slug: 'networking', lessons: modernNetworkingLessons, sources: ['IETF protocol specifications', 'Nmap / iproute2 / nftables manuals'] },
+  { slug: 'linux', lessons: modernLinuxLessons, sources: ['Linux kernel and permissions manuals', 'OpenSSH manuals'] },
+  { slug: 'webapp', lessons: modernWebLessons, sources: ['OWASP guidance', 'IETF OAuth and JWT security guidance', 'MDN browser documentation'] },
+  { slug: 'binaryanalysis', lessons: exploitationBinaryLessons, sources: ['Hacking: The Art of Exploitation (historical concepts)', 'Current GCC / Clang / GDB documentation'] },
+  { slug: 'networking', lessons: exploitationNetworkLessons, sources: ['Socket API and Python documentation'] },
+  { slug: 'secengineering', lessons: exploitationEngineeringLessons, sources: ['Linux object/path resolution contracts'] },
+  { slug: 'crypto-attacks', lessons: exploitationCryptoLessons, sources: ['OWASP password storage', 'Current cryptography APIs', 'NIST cryptographic standards'] },
+]) {
+  const module = MODULES.find(item => item.slug === addition.slug);
+  if (module) {
+    module.lessons.push(...curriculumModule(module, addition.lessons).lessons);
+    module.sourceBooks.push(...addition.sources);
+  }
+}
+
+const cloudModule = MODULES.find(module => module.slug === 'cloud');
+if (cloudModule) {
+  cloudModule.subtitle = 'Cloud foundations, IAM, storage, workloads and investigations';
+  cloudModule.description = 'Learn cloud accounts and APIs, then study IAM policies, storage permissions, workload credentials, network paths, audit events and secret lifecycle with concrete examples and practice.';
+  const first = cloudModule.lessons.find(lesson => lesson.id === 'cloud-1');
+  if (first) Object.assign(first, {
+    summary: cloudFoundation.summary, minutes: cloudFoundation.minutes,
+    prerequisite: cloudFoundation.prerequisite, objectives: cloudFoundation.outcomes,
+    quiz: curriculumModule(cloudModule, [cloudFoundation]).lessons[0].quiz,
+  });
+  const order = ['cloud-1', ...Array.from({ length: 9 }, (_, i) => 'cloud-modern-' + (i + 1)), 'cloud-2', 'cloud-3', 'cloud-4', 'cloud-5', 'cloud-6'];
+  cloudModule.lessons.sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
+}
+
+// Prerequisite C semantics precede assembly; diagnostic depth follows its core lesson.
+const binaryTeachingOrder = ['binary-depth-1', 'binary-depth-2', 'bin-1', 'bin-2', 'bin-3', 'binary-depth-3', 'bin-4', 'binary-depth-4', 'bin-5', 'binary-depth-5'];
+MODULES.find(module => module.slug === 'binaryanalysis')?.lessons.sort((a, b) => {
+  const rank = (id: string) => { const index = binaryTeachingOrder.indexOf(id); return index < 0 ? binaryTeachingOrder.length : index; };
+  return rank(a.id) - rank(b.id);
+});
+
 export const ROADMAP: RoadmapStage[] = [
+  ...PRE_SECURITY_ROADMAP,
   { title: 'Networking Fundamentals', status: 'available', moduleSlug: 'networking', sourceBooks: ['Cybersecurity Essentials', 'Security+ Get Certified Get Ahead'], track: 'security' },
   { title: 'Linux Basics for Hackers', status: 'available', moduleSlug: 'linux', sourceBooks: ['Linux Basics for Hackers'], track: 'security' },
   { title: 'Reconnaissance & Enumeration', status: 'available', moduleSlug: 'recon', sourceBooks: ['RTFM', 'The Hacker Playbook 3'], track: 'security' },
   { title: 'Python & Black Hat Python', status: 'available', moduleSlug: 'python', sourceBooks: ['Black Hat Python'], track: 'security' },
   { title: 'Web Application Hacking', status: 'available', moduleSlug: 'webapp', sourceBooks: ['The Web Application Hacker\'s Handbook', 'PortSwigger Web Security Academy'], track: 'security' },
+  { title: MODERN_DATABASE_MODULE.title, status: MODERN_DATABASE_MODULE.status, moduleSlug: MODERN_DATABASE_MODULE.slug, sourceBooks: MODERN_DATABASE_MODULE.sourceBooks, track: 'security' },
   { title: 'Red Teaming & Active Directory', status: 'available', moduleSlug: 'redteam', sourceBooks: ['The Hacker Playbook 3'], track: 'security' },
   { title: 'Bug Bounty Methodology', status: 'available', moduleSlug: 'bugbounty', sourceBooks: ['Real-World Bug Hunting', 'Bug Bounty Bootcamp'], track: 'security' },
   { title: 'API Security', status: 'available', moduleSlug: 'api-security', sourceBooks: ['OWASP API Security Top 10', 'Real-World Bug Hunting'], track: 'security' },
   { title: 'Applied Cryptography Attacks', status: 'available', moduleSlug: 'crypto-attacks', sourceBooks: ['Serious Cryptography', 'The Web Application Hacker\'s Handbook'], track: 'security' },
-  { title: 'SOC Fundamentals & Threat Hunting', status: 'available', moduleSlug: 'soc', sourceBooks: ['Blue Team Handbook', 'The Practice of Network Security Monitoring'], track: 'security' },
-  { title: 'SIEM Platforms & Log Management', status: 'available', moduleSlug: 'soc-siem-platforms', sourceBooks: ['Blue Team Handbook', 'The Practice of Network Security Monitoring'], track: 'security' },
-  { title: 'Detection Engineering & UEBA', status: 'available', moduleSlug: 'soc-detection-engineering', sourceBooks: ['Blue Team Handbook', 'The Practice of Network Security Monitoring'], track: 'security' },
-  { title: 'Incident Response, SOAR & Compliance', status: 'available', moduleSlug: 'soc-incident-response', sourceBooks: ['Blue Team Handbook', 'The Practice of Network Security Monitoring'], track: 'security' },
-  { title: 'Digital Forensics', status: 'available', moduleSlug: 'forensics', sourceBooks: ['The Art of Memory Forensics', 'Practical Malware Analysis'], track: 'security' },
   { title: 'Cloud Security', status: 'available', moduleSlug: 'cloud', sourceBooks: ['Cloud security fundamentals'], track: 'security' },
   { title: 'Security+ Deep Dive', status: 'available', moduleSlug: 'securityplus', sourceBooks: ['CompTIA Security+ Get Certified Get Ahead'], track: 'security' },
   { title: 'Binary Analysis & Reverse Engineering', status: 'available', moduleSlug: 'binaryanalysis', sourceBooks: ['Practical Binary Analysis', 'Hacking: The Art of Exploitation'], track: 'security' },
@@ -862,11 +974,17 @@ export const ROADMAP: RoadmapStage[] = [
   { title: 'Wireless & Wi-Fi Hacking', status: 'available', moduleSlug: 'wireless', sourceBooks: ['Hacking Exposed Wireless', 'RTFM'], track: 'security' },
   { title: 'IoT & Embedded Security', status: 'available', moduleSlug: 'iot', sourceBooks: ['The Hardware Hacking Handbook', 'Practical IoT Hacking'], track: 'security' },
   { title: 'AI & LLM Security', status: 'available', moduleSlug: 'ai-security', sourceBooks: ['OWASP Top 10 for LLM Applications', 'NIST AI RMF'], track: 'security' },
-  { title: 'Guided Hands-On Labs (142 labs)', status: 'available', href: '/labs', sourceBooks: ['Applied practice across every module above'], track: 'security' },
+  ...ADVANCED_OFFENSIVE_ROADMAP,
+  ...KALI_OFFENSIVE_ROADMAP,
+  { title: 'Hands-On Pentest & Analysis Labs', status: 'available', href: '/labs', sourceBooks: ['Applied practice across every module above'], track: 'security' },
+  ...DEFENSIVE_ROADMAP,
 
   { title: 'Code Portal: Python Fundamentals', status: 'available', moduleSlug: 'code-python-fundamentals', sourceBooks: ['Python Crash Course'], track: 'programming' },
   { title: 'Code Portal: Python OOP', status: 'available', moduleSlug: 'code-python-oop', sourceBooks: ['Fluent Python'], track: 'programming' },
   { title: 'Code Portal: Advanced Python', status: 'available', moduleSlug: 'code-python-advanced', sourceBooks: ['Fluent Python'], track: 'programming' },
+  { title: 'Building Python Programs', status: 'available', moduleSlug: 'code-python-practice', sourceBooks: ['Python Crash Course', 'Automate the Boring Stuff with Python'], track: 'programming' },
+  { title: 'Data Structures & Algorithms', status: 'available', moduleSlug: 'programming-algorithms', sourceBooks: ['OSSU Computer Science', 'TheAlgorithms/Python'], track: 'programming' },
+  { title: 'Software & Systems Engineering', status: 'available', moduleSlug: 'programming-engineering', sourceBooks: ['System Design Primer', 'OWASP Cheat Sheet Series'], track: 'programming' },
   { title: 'Code Portal: C++ & JavaScript Practice', status: 'available', href: '/code-portal', sourceBooks: ['Code Portal practice tasks'], track: 'programming' },
 
   { title: 'Foundations: Python, NumPy, Pandas & Math', status: 'available', href: '/ml-lesson/python-basics', sourceBooks: ['GCI World Pre-Lecture & Sessions 2-4'], track: 'ml' },

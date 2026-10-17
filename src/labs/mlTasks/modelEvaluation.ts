@@ -174,4 +174,49 @@ export const ML_MODEL_EVALUATION_TASKS: CodeTask[] = [
       '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}")\n' +
       'print(f"__RESULT__ {sum(1 for _,ok in __results__ if ok)}/{len(__results__)}")\n',
   },
+
+  {
+    id: 'ml-eval-06',
+    title: 'Choose the Right Evaluation Metric',
+    difficulty: 'Easy',
+    language: 'python',
+    category: 'ML: Model Evaluation',
+    prompt:
+      'Write choose_metric(problem_type, risk) to pick a practical first metric. Return rmse for regression, accuracy for balanced classification, ' +
+      'f1 for imbalanced classification, recall when missing positives is costly, and precision when false alarms are costly.',
+    starterCode:
+      'def choose_metric(problem_type, risk):\n' +
+      '    # TODO: return rmse, accuracy, f1, recall, or precision\n' +
+      '    pass\n',
+    hints: [
+      'Lowercase both arguments.',
+      'Regression uses error magnitude: rmse.',
+      'For classification, risk should override balance when it mentions missing positives or false alarms.'
+    ],
+    solution:
+      'def choose_metric(problem_type, risk):\n' +
+      '    p = problem_type.lower()\n' +
+      '    r = risk.lower()\n' +
+      '    if p == "regression":\n' +
+      '        return "rmse"\n' +
+      '    if "missing positives" in r or "false negative" in r:\n' +
+      '        return "recall"\n' +
+      '    if "false alarms" in r or "false positive" in r:\n' +
+      '        return "precision"\n' +
+      '    if "imbalanced" in r:\n' +
+      '        return "f1"\n' +
+      '    return "accuracy"\n',
+    testCode:
+      '__results__ = []\n' +
+      'def __check__(name, actual, expected):\n' +
+      '    __results__.append((name, actual == expected, actual, expected))\n\n' +
+      '__check__("regression", choose_metric("regression", "normal"), "rmse")\n' +
+      '__check__("balanced", choose_metric("classification", "balanced classes"), "accuracy")\n' +
+      '__check__("imbalanced", choose_metric("classification", "imbalanced fraud"), "f1")\n' +
+      '__check__("miss costly", choose_metric("classification", "missing positives is costly"), "recall")\n' +
+      '__check__("alarm costly", choose_metric("classification", "false alarms are costly"), "precision")\n\n' +
+      'for name, ok, actual, expected in __results__:\n' +
+      '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
+      'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
+  }
 ];

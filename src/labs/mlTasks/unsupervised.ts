@@ -165,4 +165,41 @@ export const ML_UNSUPERVISED_TASKS: CodeTask[] = [
       '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}")\n' +
       'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
   },
+
+  {
+    id: 'ml-unsup-06',
+    title: 'Assign Points to Nearest Centroid',
+    difficulty: 'Medium',
+    language: 'python',
+    category: 'ML: Unsupervised Learning',
+    prompt:
+      'Write assign_clusters(points, centroids) for 2D points. Return a list where each element is the index of the nearest centroid. ' +
+      'This is the assignment step inside k-means and the foundation for understanding clustering behavior.',
+    starterCode:
+      'def assign_clusters(points, centroids):\n' +
+      '    # TODO: return the nearest centroid index for each point\n' +
+      '    pass\n',
+    hints: [
+      'Use squared distance; the nearest centroid is the same without taking the square root.',
+      'Loop over every point, compute distances to every centroid, and choose the smallest.',
+      'min(range(len(centroids)), key=...) is a compact way to return the best index.'
+    ],
+    solution:
+      'def assign_clusters(points, centroids):\n' +
+      '    assignments = []\n' +
+      '    for px, py in points:\n' +
+      '        best = min(range(len(centroids)), key=lambda i: (px-centroids[i][0])**2 + (py-centroids[i][1])**2)\n' +
+      '        assignments.append(best)\n' +
+      '    return assignments\n',
+    testCode:
+      '__results__ = []\n' +
+      'def __check__(name, actual, expected):\n' +
+      '    __results__.append((name, actual == expected, actual, expected))\n\n' +
+      '__check__("two clusters", assign_clusters([[0,0],[2,0],[10,10]], [[1,0],[10,10]]), [0,0,1])\n' +
+      '__check__("single centroid", assign_clusters([[5,5],[7,8]], [[0,0]]), [0,0])\n' +
+      '__check__("nearest second", assign_clusters([[9,9]], [[0,0],[10,10]]), [1])\n\n' +
+      'for name, ok, actual, expected in __results__:\n' +
+      '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
+      'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
+  }
 ];

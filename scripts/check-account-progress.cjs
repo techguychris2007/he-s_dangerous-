@@ -1,0 +1,40 @@
+require('./register-typescript.cjs');
+const assert = require('node:assert/strict');
+const storage = new Map();
+global.localStorage = {
+  getItem: key => storage.get(key) ?? null,
+  setItem: (key, value) => storage.set(key, value),
+};
+const { progressActions } = require('../src/state/progressStore.ts');
+const snapshot = () => JSON.parse(storage.get('hackerhub.progress.v1'));
+progressActions.syncIdentity('learner-a', 'Learner A');
+progressActions.completeLesson('foundation-1');
+progressActions.captureFlag('lab-a', 'flag{account_a}');
+progressActions.recordQuizScore('foundation-1', 100);
+progressActions.setLeaderboardOptIn(true);
+progressActions.markLabCompleted('lab-a');
+progressActions.syncIdentity('learner-b', 'Learner B');
+assert.deepEqual(snapshot().completedLessons, {}, 'New account must not inherit lesson progress');
+assert.deepEqual(snapshot().labFlags, {}, 'New account must not inherit evidence');
+assert.deepEqual(snapshot().labCompletedAt, {}, 'New account must not inherit credential dates');
+assert.equal(snapshot().leaderboardOptIn, false, 'Consent must remain account-specific');
+progressActions.completeLesson('foundation-2');
+progressActions.syncIdentity('learner-a', 'Learner A');
+assert.equal(snapshot().completedLessons['foundation-1'], true, 'Returning learner retains offline progress');
+assert.equal(snapshot().completedLessons['foundation-2'], undefined, 'Returning learner cannot inherit another account');
+assert.deepEqual(snapshot().labFlags['lab-a'], ['flag{account_a}']);
+assert.equal(snapshot().quizScores['foundation-1'], 100);
+assert.equal(snapshot().leaderboardOptIn, true);
+console.log('Account progress isolation and offline restoration passed.');
+progressActions.captureFlag('dated-lab', 'flag{first}', 2);
+assert.equal(snapshot().labCompletedAt['dated-lab'], undefined);
+progressActions.captureFlag('dated-lab', 'flag{first}', 2);
+assert.equal(snapshot().labCompletedAt['dated-lab'], undefined, 'Duplicate evidence must not complete a lab');
+progressActions.captureFlag('dated-lab', 'flag{second}', 2);
+const completionTime = snapshot().labCompletedAt['dated-lab'];
+assert.ok(Number.isFinite(completionTime));
+progressActions.captureFlag('dated-lab', 'flag{second}', 2);
+assert.equal(snapshot().labCompletedAt['dated-lab'], completionTime, 'Exports and duplicate captures must retain the actual completion time');
+progressActions.mergeFromRemote({ labFlags: { 'legacy-undated': ['flag{historical}'] } });
+assert.equal(snapshot().labCompletedAt['legacy-undated'], undefined, 'Loading historical evidence must not invent its date');
+console.log('Completion dates follow distinct proof thresholds and preserve undated legacy evidence.');

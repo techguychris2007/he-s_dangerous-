@@ -13,6 +13,14 @@ export default function WhySystemsFailCaseStudies() {
         yet.
       </p>
 
+      <h2>Technical terms explained</h2>
+      <ul>
+        <li><strong>Root cause and contributing factor:</strong> A root cause is an underlying condition whose correction helps prevent recurrence. A contributing factor makes an incident more likely or more damaging. The immediate trigger, such as clicking a malicious link, can hide deeper problems with privileges, isolation, or recovery.</li>
+        <li><strong>Supply chain and transitive trust:</strong> A software supply chain includes dependencies, build tools, distribution systems, and maintainers. Transitive trust occurs when trusting one component also grants influence to the components it depends on. A signed artifact shows a signing relationship, rather than proving safe behavior.</li>
+        <li><strong>OAuth scope and bearer token:</strong> An OAuth scope describes requested or granted access within an authorization system. A bearer token can generally be used by whoever possesses it, subject to its validity and server checks. Excessive scopes or long-lived tokens increase the impact of theft.</li>
+        <li><strong>Detection, containment, and recovery:</strong> Detection identifies a possible incident. Containment limits further harm. Recovery restores trustworthy service. A post-incident review connects evidence to corrective actions, owners, and checks that the changes reduce the failure mode.</li>
+      </ul>
+
       <h2>Pattern 1: the human factor is the actual attack surface</h2>
       <p>
         Nearly every intrusion chain in this course started with a human decision, not a purely technical
@@ -120,6 +128,12 @@ Full-scope incident, disproportionate to how "small" the original shortcut felt`
           incentives, managing complexity, and assuming failure is possible — applied consistently, to
           systems that never stop changing.
         </p>
+      </Callout>
+
+      <h2>Turn a case study into engineering changes</h2>
+      <p>Consider a third-party integration whose stolen token allows access to customer records. Trace how the token was issued, which scopes it held, where it was stored, and what evidence showed misuse. Revoke the affected token and investigate accesses made before revocation; revocation cannot undo already downloaded records. Then address the enabling conditions with narrower scopes, restricted secret access, lifecycle controls, and monitoring appropriate to the integration. Assign each action an owner and a validation step. Distinguish established facts from unanswered questions so the review improves the system without treating an unproven theory as the root cause.</p>
+      <Callout variant="tip">
+        <p><strong>Check your understanding:</strong> Which change reduces the chance of token theft, and which reduces the impact if theft still occurs?</p>
       </Callout>
 
       <h2>Course complete</h2>
