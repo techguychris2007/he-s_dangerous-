@@ -39,12 +39,14 @@ const PdfViewer = forwardRef<PdfViewerHandle, PdfViewerProps>(function PdfViewer
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [editingPage, setEditingPage] = useState(false);
   const [pageInput, setPageInput] = useState('1');
+  const [loadAttempt, setLoadAttempt] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     setStatus('loading');
     setNumPages(0);
     setCurrentPage(1);
+    docRef.current = null;
     renderedRef.current = new Set();
     pageElsRef.current = [];
     const loadingTask = pdfjsLib.getDocument({ url });
@@ -66,33 +68,37 @@ const PdfViewer = forwardRef<PdfViewerHandle, PdfViewerProps>(function PdfViewer
       cancelled = true;
       loadingTask.destroy();
     };
-  }, [url]);
+  }, [url, loadAttempt]);
 
   const renderPage = async (index: number) => {
     if (renderedRef.current.has(index) || !docRef.current) return;
     renderedRef.current.add(index);
-    const page = await docRef.current.getPage(index + 1);
+    const document = docRef.current;
+    try {
+    const page = await document.getPage(index + 1);
+    if (docRef.current !== document) return;
     const canvas = pageElsRef.current[index]?.querySelector('canvas');
-    if (!canvas) return;
+    if (!canvas) { renderedRef.current.delete(index); return; }
     // Render at devicePixelRatio so text stays crisp on HiDPI/Retina displays — without this,
     // the canvas's backing pixel buffer matches CSS pixels 1:1 and the browser has to upscale
     // it for a >1x-density screen, which is exactly what reads as "blurry."
     const dpr = window.devicePixelRatio || 1;
-    const cssViewport = page.getViewport({ scale: SCALE });
     const renderViewport = page.getViewport({ scale: SCALE * dpr });
     canvas.width = renderViewport.width;
     canvas.height = renderViewport.height;
-    canvas.style.width = `${cssViewport.width}px`;
-    canvas.style.height = `${cssViewport.height}px`;
+    canvas.style.width = '100%';
+    canvas.style.height = 'auto';
     const context = canvas.getContext('2d');
     if (!context) return;
-    try {
       await page.render({ canvas, canvasContext: context, viewport: renderViewport }).promise;
     } catch (err) {
       // pdf.js throws RenderingCancelledException by design when the owning document is destroyed
       // mid-render — which happens on every book switch while a page is still rendering (the `url`
       // effect above calls loadingTask.destroy() on cleanup). Expected, not a real error.
-      if (!(err instanceof Error && err.name === 'RenderingCancelledException')) throw err;
+      if (docRef.current === document && !(err instanceof Error && err.name === 'RenderingCancelledException')) {
+        renderedRef.current.delete(index);
+        setStatus('error');
+      }
     }
   };
 
@@ -100,21 +106,11 @@ const PdfViewer = forwardRef<PdfViewerHandle, PdfViewerProps>(function PdfViewer
     if (status !== 'ready' || !containerRef.current) return;
     const observer = new IntersectionObserver(
       (entries) => {
-        let bestIndex = -1;
-        let bestRatio = 0;
         for (const entry of entries) {
           const index = Number((entry.target as HTMLElement).dataset.pageIndex);
           if (entry.isIntersecting) {
             renderPage(index);
-            if (entry.intersectionRatio > bestRatio) {
-              bestRatio = entry.intersectionRatio;
-              bestIndex = index;
-            }
           }
-        }
-        if (bestIndex >= 0) {
-          setCurrentPage(bestIndex + 1);
-          onPageChange?.(bestIndex + 1, numPages);
         }
       },
       // root: null (the browser viewport) — not containerRef.current. The container's CSS asks
@@ -131,10 +127,29 @@ const PdfViewer = forwardRef<PdfViewerHandle, PdfViewerProps>(function PdfViewer
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, numPages]);
 
+  useEffect(() => {
+    if (status !== 'ready') return;
+    const visiblePages = new Map<number, number>();
+    const observer = new IntersectionObserver(entries => {
+      for (const entry of entries) {
+        const index = Number((entry.target as HTMLElement).dataset.pageIndex);
+        if (entry.isIntersecting) visiblePages.set(index, entry.intersectionRect.height);
+        else visiblePages.delete(index);
+      }
+      const mostVisible = [...visiblePages].sort((a, b) => b[1] - a[1] || a[0] - b[0])[0];
+      if (mostVisible) {
+        setCurrentPage(mostVisible[0] + 1);
+        onPageChange?.(mostVisible[0] + 1, numPages);
+      }
+    }, { threshold: [0, .25, .5, .75, 1] });
+    for (const element of pageElsRef.current) if (element) observer.observe(element);
+    return () => observer.disconnect();
+  }, [status, numPages, onPageChange]);
+
   const goToPage = useCallback(
     (pageNum: number) => {
       const clamped = Math.min(Math.max(1, Math.round(pageNum)), Math.max(1, numPages));
-      pageElsRef.current[clamped - 1]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      pageElsRef.current[clamped - 1]?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'start' });
     },
     [numPages],
   );
@@ -180,8 +195,9 @@ const PdfViewer = forwardRef<PdfViewerHandle, PdfViewerProps>(function PdfViewer
 
   if (status === 'error') {
     return (
-      <div className="flex items-center justify-center h-full text-sm text-[var(--color-danger)] p-10">
-        Could not load this PDF. Try the download button instead.
+      <div role="alert" className="flex flex-col items-center justify-center gap-4 h-full text-sm text-[var(--color-danger)] p-10">
+        <p>Could not load this PDF. Retry or use the download button.</p>
+        <button onClick={() => setLoadAttempt(attempt => attempt + 1)} className="rounded-lg border border-[var(--color-border)] px-4 py-2 text-[var(--color-heading)]">Retry loading</button>
       </div>
     );
   }
@@ -199,7 +215,7 @@ const PdfViewer = forwardRef<PdfViewerHandle, PdfViewerProps>(function PdfViewer
               }}
               data-page-index={index}
               className="shadow-lg rounded bg-white"
-              style={{ width: pageSize.width, minHeight: pageSize.height }}
+              style={{ width: pageSize.width, maxWidth: '100%', aspectRatio: `${pageSize.width} / ${pageSize.height}` }}
             >
               <canvas className="block" />
             </div>

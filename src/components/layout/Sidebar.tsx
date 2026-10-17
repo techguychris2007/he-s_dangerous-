@@ -1,13 +1,12 @@
 import { useMemo } from 'react';
 import { NavLink, useParams, useNavigate } from 'react-router-dom';
-import { MODULES, findModule } from '../../data/curriculum';
+import { ROADMAP, findModule } from '../../data/curriculum';
 import { useLabsData } from '../../state/useLabsData';
 import { useProgress } from '../../state/progressStore';
 import { useAuth } from '../../state/authStore';
 import { isInstructor } from '../../lib/instructorConfig';
 import Logo from './Logo';
 import {
-  ModuleIcon,
   IconDashboard,
   IconFlask,
   IconChart,
@@ -68,12 +67,15 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
   }, [progress.labFlags, labsData]);
 
   return (
-    <aside className="w-72 shrink-0 h-full overflow-y-auto border-r border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-5 flex flex-col">
-      <NavLink to="/" onClick={onNavigate} className="flex items-center gap-2.5 px-2 mb-1.5">
-        <Logo className="w-7 h-7 shrink-0" />
-        <span className="font-extrabold text-[var(--color-heading)] tracking-tight text-lg">DarkWorld</span>
+    <aside className="surface-glass w-72 shrink-0 h-full overflow-y-auto border-r border-[var(--color-border)] px-4 py-5 flex flex-col shadow-[18px_0_60px_-52px_var(--color-heading)]">
+      <NavLink to="/" onClick={onNavigate} className="group flex items-center gap-3 rounded-2xl px-2.5 py-2 mb-2 bg-gradient-to-r from-[var(--color-surface-2)] to-transparent border border-[var(--color-border)]/70 shadow-[0_18px_45px_rgba(0,0,0,0.16)]">
+        <Logo className="w-12 h-12 shrink-0 transition-transform duration-300 group-hover:scale-105" />
+        <span className="min-w-0">
+          <span className="block font-black text-[var(--color-heading)] tracking-[-0.06em] text-2xl leading-none">DarkWorld</span>
+          <span className="mt-1 block text-[9px] font-black uppercase tracking-[0.24em] text-[var(--color-accent-dim)]">Cyber Academy</span>
+        </span>
       </NavLink>
-      <div className="px-2 mb-5 text-xs text-[var(--color-text-dim)] leading-snug">
+      <div className="px-2 mb-5 text-xs font-medium text-[var(--color-text-dim)] leading-snug">
         Hands-on cybersecurity learning platform
       </div>
 
@@ -152,7 +154,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
         <NavLink to="/feedback" onClick={onNavigate} className={navItemClass}>
           <IconMail className="w-4 h-4" /> Feedback
         </NavLink>
-        {isInstructor(auth.user?.email) && (
+        {isInstructor(auth.user) && (
           <>
             <NavSectionLabel>Instructor</NavSectionLabel>
             <NavLink to="/instructor" onClick={onNavigate} className={navItemClass}>
@@ -229,12 +231,19 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
             <div className="px-2 mb-2 text-2xs font-mono font-bold uppercase tracking-widest text-[var(--color-text-dim)]">
               Modules
             </div>
-            <div className="flex flex-col gap-0.5">
-              {MODULES.map((mod) => (
-                <NavLink key={mod.id} to={`/module/${mod.slug}`} onClick={onNavigate} className={navItemClass}>
-                  <ModuleIcon icon={mod.icon} className="w-4 h-4 text-[var(--color-accent)]" />
-                  <span className="truncate">{mod.title}</span>
-                </NavLink>
+            <div className="flex flex-col gap-2">
+              {([['presecurity', 'Pre-security'], ['security', 'Offensive security'], ['defensive', 'Defensive security'], ['programming', 'Programming']] as const).map(([track, label]) => (
+                <details key={track} className="rounded-lg border border-[var(--color-border)]">
+                  <summary className="cursor-pointer px-3 py-2.5 text-xs font-semibold text-[var(--color-heading)]">{label}</summary>
+                  <div className="px-1 pb-2">
+                    <NavLink to={`/roadmap?track=${track}`} onClick={onNavigate} className="block px-3 py-2 text-xs font-semibold text-[var(--color-accent)]">Explore this path →</NavLink>
+                    {ROADMAP.filter(stage => stage.track === track && stage.moduleSlug).map(stage => (
+                      <NavLink key={stage.moduleSlug} to={`/module/${stage.moduleSlug}`} onClick={onNavigate} className={navItemClass}>
+                        <span className="text-xs leading-relaxed">{stage.title}</span>
+                      </NavLink>
+                    ))}
+                  </div>
+                </details>
               ))}
             </div>
           </>
@@ -242,7 +251,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
       </div>
 
       <div className="border-t border-[var(--color-border)] pt-3 mt-3 flex items-center gap-2.5 px-2">
-        <NavLink to="/profile" onClick={onNavigate} className="flex items-center gap-2.5 min-w-0 flex-1 group">
+        <NavLink to="/profile" onClick={onNavigate} className="premium-card premium-card-hover flex items-center gap-2.5 min-w-0 flex-1 group rounded-2xl p-2">
           <span className="w-8 h-8 rounded-full bg-[var(--color-accent)] text-white text-xs font-bold flex items-center justify-center shrink-0">
             {initial}
           </span>

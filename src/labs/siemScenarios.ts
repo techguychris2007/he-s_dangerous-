@@ -1,6 +1,12 @@
 import type { SiemLabScenario } from './siemTypes';
+import { CLOUTHAUS_BREACH } from './scenarios/siem-narrative-clouthaus';
+import { DEFENSIVE_INVESTIGATIONS } from './scenarios/defensive-investigations';
 
 export const SIEM_LABS: SiemLabScenario[] = [
+  ...DEFENSIVE_INVESTIGATIONS,
+  // ── Narrative / Gamified Investigation Labs (Story-first) ────────────────────
+  CLOUTHAUS_BREACH,
+
   // ───────────────────────── Suricata ─────────────────────────
   {
     id: 'siem-suricata-target-2013',
@@ -378,11 +384,11 @@ export const SIEM_LABS: SiemLabScenario[] = [
       'User and Entity Behavior Analytics (UEBA) works by learning what "normal" looks like for a specific person, ' +
       'then flagging deviations — the classic example being "impossible travel": a login from one country, ' +
       'followed by another login from a location no real person could have physically reached in the time between ' +
-      'the two sign-ins. That is exactly what this queue shows for one employee account.',
+      'the two sign-ins. This queue shows that pattern for one employee account. IP geolocation describes a network exit point, not necessarily the person: investigate VPNs, proxies, device identity and session context before confirming compromise.',
     objectives: [
       { text: 'Query SigninLogs for the affected user', why: 'Sign-in logs carry both timestamp and geolocation for every authentication — the two fields UEBA needs to compute physical plausibility.' },
       { text: 'Compare the location and timestamp of consecutive sign-ins', why: 'The math is simple once you see both events side by side: distance divided by time available has to be physically possible for a real human traveler.' },
-      { text: 'Capture the flag confirming the impossible-travel finding', why: 'This is one of the highest-confidence UEBA detections that exists — there is no legitimate explanation for one person being in two countries within minutes of each other.' },
+      { text: 'Capture the anomaly evidence and document the next verification step', why: 'VPNs, proxies and geolocation errors can create benign travel anomalies. Correlate device and session evidence, check approved network exits and verify with the account owner before deciding whether access was unauthorized.' },
     ],
     hints: ['SigninLogs | where UserPrincipalName == "r.alvarez@meridiancorp.example"', 'impossible'],
     totalFlags: 1,
@@ -398,8 +404,8 @@ export const SIEM_LABS: SiemLabScenario[] = [
         line:
           'IMPOSSIBLE TRAVEL: r.alvarez signed in from Accra, Ghana at 08:45 and again from Kyiv, Ukraine at 09:03 — a ' +
           'straight-line distance of roughly 6,000 km in 18 minutes, physically impossible for any real traveler. The ' +
-          'second sign-in also came from an unrecognized device, strongly indicating the account credentials (not the ' +
-          'device) were what actually made the trip. flag{sentinel_impossible_travel_ghana_to_kyiv_18_minutes}',
+          'second sign-in reports an unrecognized device. This warrants investigation, but VPN/proxy routing, geolocation error and session context must be checked before confirming compromise. ' +
+          'flag{sentinel_impossible_travel_ghana_to_kyiv_18_minutes}',
       },
     ],
   },
@@ -987,174 +993,171 @@ export const SIEM_LABS: SiemLabScenario[] = [
     ],
   },
 
-  // ───────────────────────── SIEM Essentials (mechanics, not incidents) ─────────────────────────
+  // ───────────────────────── Real-world SIEM investigations ─────────────────────────
   {
     id: 'siem-splunk-log-normalization-essentials',
-    title: 'SIEM Essentials: Log Normalization Across Formats',
-    difficulty: 'Easy',
+    title: 'Splunk: Maersk/NotPetya — Normalizing Global Outage Evidence',
+    difficulty: 'Medium',
     tool: 'splunk',
-    datasetLabel: 'index=raw_ingest — mixed device formats',
+    datasetLabel: 'index=maersk_notpetya — mixed AD, endpoint and firewall logs',
     briefing:
-      'Different devices speak completely different log languages — a firewall and a Windows server describe ' +
-      '"this connection was blocked" and "this login failed" in totally unrelated formats. A SIEM\'s single most ' +
-      'foundational job is normalization: converting every source into one common, searchable schema so a single ' +
-      'query can correlate across all of them at once. This lab has you find the normalized event that ties two ' +
-      'raw, differently-formatted logs together.',
+      'This investigation is modeled on the 2017 NotPetya outbreak that crippled Maersk and forced a global ' +
+      'rebuild of thousands of systems. In a real crisis, the hardest first step is often not a clever detection ' +
+      'rule but joining incompatible evidence: Windows events, endpoint telemetry and firewall logs all describing ' +
+      'the same destructive spread. Use Splunk normalization to tie raw formats into one incident story.',
     objectives: [
-      { text: 'Search for the raw firewall log entry', why: 'Seeing a device\'s native, unprocessed log format first is what makes normalization\'s value obvious by contrast.' },
-      { text: 'Search for the raw Windows log entry', why: 'A completely different vendor format, describing a related event from the same source IP, is exactly the kind of pairing normalization exists to unify.' },
-      { text: 'Find the normalized event and capture the flag', why: 'This is the entire point of a SIEM\'s ingestion pipeline: two unrelated-looking raw formats become one searchable, joinable record on a shared field like src_ip.' },
+      { text: 'Search the raw Windows event showing PsExec-style remote execution', why: 'NotPetya spread through Windows administrative mechanisms after initial supply-chain execution.' },
+      { text: 'Search the raw firewall log showing SMB fan-out from the same host', why: 'The network view proves the activity was not isolated to one endpoint.' },
+      { text: 'Find the normalized incident event and capture the flag', why: 'A real SOC needs normalized fields to correlate host and network evidence during a fast-moving outage.' },
     ],
-    hints: ['RAW FIREWALL LOG', 'RAW WINDOWS LOG', 'NORMALIZED EVENT'],
+    hints: ['RAW WINDOWS LOG', 'RAW FIREWALL LOG', 'NORMALIZED INCIDENT'],
     totalFlags: 1,
     entries: [
-      { timestamp: '09:14:01', line: 'RAW FIREWALL LOG (native vendor format): deny tcp src=203.0.113.5 dst=10.10.5.20 dport=22 action=DENY' },
-      { timestamp: '09:14:03', line: 'RAW WINDOWS LOG (native EventLog XML format): EventID=4625 Account Name: jsmith Workstation Name: WKSTN-02 Failed Logon Source Network Address: 203.0.113.5' },
+      { timestamp: '2017-06-27 10:02:11', line: 'RAW WINDOWS LOG (native EventLog): host=FIN-KYIV-042 EventID=4688 NewProcessName=C:\\Windows\\System32\\psexecsvc.exe Parent=perfc.dat Account=NT AUTHORITY\\SYSTEM' },
+      { timestamp: '2017-06-27 10:02:14', line: 'RAW FIREWALL LOG (vendor text): allow tcp source 10.44.8.42 destination 10.44.0.0/16 service microsoft-ds port 445 bytes_out=884201 action=permit' },
+      { timestamp: '2017-06-27 10:03:02', line: 'RAW ENDPOINT LOG: host FIN-KYIV-042 file_write path=C:\\Windows\\perfc.dat behavior=mbr_overwrite_attempt verdict=malicious' },
       {
-        timestamp: '09:14:04',
+        timestamp: '2017-06-27 10:04:40',
         line:
-          'NORMALIZED EVENT (common schema): src_ip=203.0.113.5 dest_ip=10.10.5.20 action=denied, src_ip=203.0.113.5 ' +
-          'user=jsmith event=failed_logon — both raw logs above, despite completely different native formats, now ' +
-          'share the identical src_ip field and can be correlated in a single query. This is exactly what SIEM ' +
-          'normalization solves. flag{siem_normalization_unifies_firewall_and_windows_schemas}',
+          'NORMALIZED INCIDENT: src_host=FIN-KYIV-042 src_ip=10.44.8.42 process=psexecsvc.exe payload=perfc.dat ' +
+          'network_fanout=SMB_445 mbr_overwrite=true incident=NotPetya-style destructive spread. Host, firewall and ' +
+          'endpoint records now share normalized src_host/src_ip fields, allowing one search to reconstruct the ' +
+          'real-world Maersk-style outage path. flag{maersk_notpetya_normalized_host_network_evidence}',
       },
     ],
   },
   {
     id: 'siem-sentinel-correlation-rule-tuning',
-    title: 'SIEM Essentials: Tuning a Brute-Force Correlation Rule',
+    title: 'Microsoft Sentinel: Okta/Lapsus$ — Tuning MFA Fatigue and Support Access',
     difficulty: 'Medium',
     tool: 'sentinel',
-    datasetLabel: 'CorrelationRuleEngine — 2 candidate triggers',
+    datasetLabel: 'SigninLogs + HelpdeskAccess — January 2022',
     briefing:
-      'A correlation rule as simple as "25 failed logins in 2 minutes" sounds foolproof, until it fires on a ' +
-      'misconfigured internal service retrying a stale password every couple of seconds. Tuning a rule is just as ' +
-      'much about correctly EXCLUDING known, ticketed, legitimate noise as it is about catching real attacks — get ' +
-      'the exclusions wrong and analysts either drown in false positives or, worse, add an exclusion broad enough ' +
-      'to hide a real attack.',
+      'This investigation is modeled on the 2022 Okta support-provider compromise disclosed after Lapsus$ posted ' +
+      'screenshots of internal access. The analyst problem is subtle: many MFA prompts and support actions are ' +
+      'routine noise, but a short window of suspicious support-console activity against customer tenants needs ' +
+      'escalation. Tune the rule to keep the real signal.',
     objectives: [
-      { text: 'Review the internal service account burst', why: 'A high-volume failure burst from an internal, already-ticketed source is the classic false-positive shape a correlation rule needs to be tuned around.' },
-      { text: 'Review the external burst against multiple accounts', why: 'Multiple different accounts targeted from one external, reputation-flagged source in a short window is what an untuned rule and a properly-tuned one should both still catch.' },
-      { text: 'Capture the flag on the tuning summary distinguishing the two', why: 'This is the actual skill of detection engineering: not writing the rule, but correctly separating real signal from noise that merely resembles it.' },
+      { text: 'Review the noisy MFA retry pattern from an already-ticketed service account', why: 'Real SOCs must suppress documented noise without hiding attacker behavior.' },
+      { text: 'Review support-console access outside the normal geography and workflow', why: 'The real incident centered on support access that could affect customer tenants.' },
+      { text: 'Capture the flag on the tuned true-positive summary', why: 'Detection engineering is deciding which suspicious-looking event remains actionable after context is added.' },
     ],
-    hints: ['svc_scheduler', 'Tor-associated', 'TRUE POSITIVE'],
+    hints: ['svc_scheduler', 'support-console', 'TRUE POSITIVE'],
     totalFlags: 1,
     entries: [
       {
-        timestamp: '14:02',
+        timestamp: '2022-01-21 18:02',
         eventType: 'CandidateTrigger',
         line:
-          'user=svc_scheduler src_ip=10.10.1.9 (internal) 42 failed logins in 90 seconds — investigated previously: ' +
-          'a known misconfigured scheduled job retrying an expired password every 2 seconds, ticket INC-4471 already ' +
-          'open, correctly EXCLUDED from this correlation rule via a documented tuning exception.',
+          'user=svc_scheduler app=legacy_batch_worker 42 MFA retries in 90 seconds from src_ip=10.10.1.9 — known internal ' +
+          'automation breakage, ticket INC-4471 open, excluded only for this user/app/source combination.',
       },
       {
-        timestamp: '14:05',
+        timestamp: '2022-01-21 18:11',
         eventType: 'CandidateTrigger',
-        line: 'users=jsmith,agarcia,mwong src_ip=185.220.101.9 (external, Tor-associated range) 31 failed logins across 3 different accounts in 100 seconds',
+        line: 'user=support_analyst_17 app=support-console src_geo=unknown_vpn target_tenants=5 action=reset_mfa,view_customer_session risk=high',
       },
       {
-        timestamp: '14:06',
+        timestamp: '2022-01-21 18:14',
         eventType: 'TuningSummary',
         line:
-          'TUNING SUMMARY: the svc_scheduler burst above is a known, ticketed, internal false positive correctly ' +
-          'excluded by an allow-list exception; the external burst from a Tor-associated range against 3 different ' +
-          'accounts is the TRUE POSITIVE this rule exists to catch. flag{sentinel_correlation_rule_tuned_true_positive_vs_known_noise}',
+          'TUNING SUMMARY: exclude the known svc_scheduler MFA loop narrowly, but escalate support_analyst_17 because ' +
+          'support-console activity from an unusual network touched multiple customer tenants in the Lapsus$/Okta-style ' +
+          'investigation window. TRUE POSITIVE. flag{okta_lapsus_support_console_true_positive_after_tuning}',
       },
     ],
   },
   {
     id: 'siem-chronicle-threat-intel-ioc-match',
-    title: 'SIEM Essentials: Threat Intelligence IOC Matching',
+    title: 'Chronicle: 3CX Supply-Chain IOC Match',
     difficulty: 'Medium',
     tool: 'chronicle',
-    datasetLabel: 'NETWORK_CONNECTION events + threat intel feed',
+    datasetLabel: 'NETWORK_CONNECTION events + vendor IOC feed, March 2023',
     briefing:
-      'On its own, an outbound connection to some external IP is completely unremarkable — SIEMs handle millions ' +
-      'of these a day. What turns an ordinary connection into a finding is correlating it against an ingested ' +
-      'threat intelligence feed of known-malicious IPs, domains, and file hashes. This lab has you find the one ' +
-      'connection in an otherwise clean queue that matches a live IOC feed entry.',
+      'This investigation is modeled on the 2023 3CX desktop application supply-chain compromise. Many endpoints ' +
+      'made normal software-update traffic, but a subset contacted domains later published as campaign indicators. ' +
+      'Use Chronicle-style search to match outbound connections against the ingested threat-intelligence feed.',
     objectives: [
-      { text: 'Search NETWORK_CONNECTION events for the last hour', why: 'Confirms the full set of outbound connections before narrowing to the one that matters.' },
-      { text: 'Cross-reference each destination against the ingested threat intelligence feed', why: 'This is the entire value of threat intel integration: a destination with zero other suspicious characteristics still gets flagged because someone else already confirmed it was malicious.' },
-      { text: 'Capture the flag on the confirmed IOC match', why: 'A matched IOC feed hit is a real, ready-to-act-on finding with far higher confidence than most behavioral heuristics alone.' },
+      { text: 'Search NETWORK_CONNECTION events from desktop softphone clients', why: 'Supply-chain investigations start with affected software populations.' },
+      { text: 'Cross-reference destinations against the campaign IOC feed', why: 'Threat intelligence turns a normal-looking outbound request into an actionable lead.' },
+      { text: 'Capture the flag on the confirmed 3CX IOC match', why: 'A matched campaign indicator gives analysts a concrete host list for containment and triage.' },
     ],
-    hints: ['metadata.event_type = "NETWORK_CONNECTION"', 'threat intelligence feed', 'CommunityThreatFeed'],
+    hints: ['metadata.event_type = "NETWORK_CONNECTION"', '3CX', 'THREAT_INTEL_MATCH'],
     totalFlags: 1,
     entries: [
-      { timestamp: '20:01', eventType: 'NETWORK_CONNECTION', line: 'src=WKSTN-055 dest=13.107.42.14:443 msg="Outbound HTTPS to a known Microsoft CDN range — no IOC match"' },
-      { timestamp: '20:04', eventType: 'NETWORK_CONNECTION', line: 'src=WKSTN-071 dest=151.101.1.69:443 msg="Outbound HTTPS to a known Fastly CDN range — no IOC match"' },
-      { timestamp: '20:09', eventType: 'NETWORK_CONNECTION', line: 'src=WKSTN-088 dest=185.220.101.204:443 msg="Outbound HTTPS to an uncategorized host — checking against threat intelligence feed"' },
+      { timestamp: '2023-03-29 08:01', eventType: 'NETWORK_CONNECTION', line: 'src=WKSTN-055 process=3CXDesktopApp.exe dest=msedge.api.cdp.microsoft.com:443 msg="Known Microsoft service — no IOC match"' },
+      { timestamp: '2023-03-29 08:04', eventType: 'NETWORK_CONNECTION', line: 'src=WKSTN-071 process=3CXDesktopApp.exe dest=akamaiedge.net:443 msg="CDN traffic — no IOC match"' },
+      { timestamp: '2023-03-29 08:09', eventType: 'NETWORK_CONNECTION', line: 'src=WKSTN-088 process=3CXDesktopApp.exe dest=akamaicontainer.com:443 msg="Unusual domain observed from signed softphone process — checking feed"' },
       {
-        timestamp: '20:09',
+        timestamp: '2023-03-29 08:09',
         eventType: 'THREAT_INTEL_MATCH',
         line:
-          'destination IP 185.220.101.204 MATCHES an entry in the ingested threat intelligence feed (source: ' +
-          'CommunityThreatFeed, tag: "Cobalt Strike C2", confidence: high, first_seen: 3 days ago) — this connection ' +
-          'has no other suspicious characteristic on its own and would have gone completely unnoticed without the ' +
-          'threat intelligence feed correlation. flag{chronicle_threat_intel_feed_match_confirmed_c2}',
+          'destination domain akamaicontainer.com MATCHES the ingested 3CX supply-chain IOC feed (tag: 3CX campaign, ' +
+          'confidence: high, first_seen: 2023-03-29). The connection came from the signed desktop application, making ' +
+          'this a supply-chain triage hit rather than ordinary browsing noise. flag{chronicle_3cx_supply_chain_ioc_match_confirmed}',
       },
     ],
   },
   {
     id: 'siem-qradar-soar-automated-response',
-    title: 'SIEM Essentials: SOAR Automated Response Playbook',
-    difficulty: 'Medium',
+    title: 'IBM QRadar: Norsk Hydro — Ransomware Response Playbook',
+    difficulty: 'Hard',
     tool: 'qradar',
-    datasetLabel: 'SOAR playbook execution log',
+    datasetLabel: 'SOAR playbook execution log — LockerGoga-style outbreak',
     briefing:
-      'Detecting a threat and actually doing something about it are two different problems. SOAR (Security ' +
-      'Orchestration, Automation and Response) closes that gap by automatically executing a pre-approved playbook ' +
-      'the instant a high-confidence alert fires — no analyst has to be awake, available, or fast enough to react ' +
-      'in real time.',
+      'This investigation is modeled on the 2019 Norsk Hydro ransomware incident, where rapid containment and a ' +
+      'transparent response helped the company keep operating manually while systems were rebuilt. The lab uses a ' +
+      'QRadar/SOAR-style playbook to review the response steps an analyst must verify after a ransomware trigger.',
     objectives: [
-      { text: 'Review the triggering detection event', why: 'A SOAR playbook only ever runs off a specific, named trigger — confirming what fired it is the starting point of any playbook review.' },
-      { text: 'Review every automated action the playbook executed', why: 'A well-designed playbook chains multiple actions (disable, block, reset, ticket) so no single missed step leaves a gap a human would have had to remember manually.' },
-      { text: 'Capture the flag comparing automated response time to manual response time', why: 'The real value of SOAR is measured in this exact comparison — seconds of automated response versus the real-world average delay of a human analyst reacting manually.' },
+      { text: 'Review the ransomware trigger event', why: 'A response playbook must be tied to a high-confidence detection, not vague fear.' },
+      { text: 'Review containment actions across identity, network and endpoint controls', why: 'Ransomware response fails when only one control is changed and lateral movement continues.' },
+      { text: 'Capture the flag on the response summary', why: 'The transferable real-world lesson is fast containment, evidence preservation and business-continuity handoff.' },
     ],
-    hints: ['SOAR PLAYBOOK', 'disabled user account', '8 seconds'],
+    hints: ['LockerGoga', 'SOAR PLAYBOOK', 'business continuity'],
     totalFlags: 1,
     entries: [
-      { timestamp: '03:14:02', severity: 'Critical', line: 'trigger=impossible_travel_alert user=jsmith source=SOAR_ENGINE msg="High-confidence alert received, executing playbook PB-0042"' },
+      { timestamp: '2019-03-19 00:48:02', severity: 'Critical', line: 'trigger=LockerGoga-style ransomware host=PLANT-FILE-02 source=QRADAR msg="Mass file rename and ransom note creation detected, executing playbook PB-RANSOM-2019"' },
       {
-        timestamp: '03:14:10',
+        timestamp: '2019-03-19 00:48:19',
         severity: 'Critical',
         line:
-          'SOAR PLAYBOOK EXECUTED (PB-0042): actions_taken = [1) disabled user account jsmith, 2) blocked source IP ' +
-          'at the perimeter firewall, 3) forced a password reset, 4) created incident ticket INC-5502] — all four ' +
-          'actions completed automatically in under 8 seconds, versus an estimated 22-minute average manual response ' +
-          'time for the same four actions performed by a human analyst. flag{qradar_soar_playbook_automated_response_confirmed}',
+          'SOAR PLAYBOOK EXECUTED (PB-RANSOM-2019): actions_taken = [1) isolate PLANT-FILE-02 EDR network, 2) disable ' +
+          'suspected operator account, 3) block SMB between production VLANs, 4) preserve ransom note and process tree, ' +
+          '5) open business-continuity bridge for manual plant operations]. This mirrors the Norsk Hydro lesson: ' +
+          'contain quickly, preserve evidence, and keep operations moving while recovery proceeds. ' +
+          'flag{qradar_norsk_hydro_ransomware_response_playbook_verified}',
       },
     ],
   },
   {
     id: 'siem-elastic-pci-dss-compliance-report',
-    title: 'SIEM Essentials: Compliance Reporting for a PCI-DSS Audit',
-    difficulty: 'Easy',
+    title: 'Elastic Security: TJX 2007 — PCI Log Review Failure',
+    difficulty: 'Medium',
     tool: 'elastic',
-    datasetLabel: 'compliance-report-* — quarterly audit',
+    datasetLabel: 'pci-audit-* — cardholder-data environment',
     briefing:
-      'Detection and response are only half of what a SIEM is actually used for day to day — compliance ' +
-      'frameworks like PCI-DSS, HIPAA, and SOC 2 explicitly require organizations to review and retain ' +
-      'authentication logs for the systems handling regulated data. Generating that report on demand, with a ' +
-      'clean audit trail, is a routine but essential SIEM function.',
+      'This investigation is modeled on the TJX breach disclosed in 2007, where attackers stole tens of millions ' +
+      'of payment-card records after weaknesses around wireless security, data handling and monitoring. This lab ' +
+      'puts the learner in the audit seat: use Elastic to find the PCI log-review gap that would have left cardholder ' +
+      'data access anomalies buried instead of escalated.',
     objectives: [
-      { text: 'Search for the quarterly compliance report event', why: 'Compliance reporting is itself a loggable, auditable SIEM action — confirming the report was actually generated (and by whom) matters as much as its contents.' },
-      { text: 'Confirm the specific requirement this report satisfies', why: 'PCI-DSS Requirement 10.6 (daily log review) is a concrete, citable control — being able to name the exact requirement a report satisfies is what makes it useful to an auditor.' },
-      { text: 'Capture the flag on the report summary', why: 'A generated, retained report with a clear record of what was reviewed and what (if anything) needed follow-up is the tangible deliverable a PCI-DSS assessor actually asks to see.' },
+      { text: 'Search cardholder-data access events', why: 'PCI investigations start with access to regulated data, not generic security noise.' },
+      { text: 'Find the missing daily log-review record', why: 'A control that is not reviewed or retained cannot support an audit or a timely investigation.' },
+      { text: 'Capture the flag on the audit finding', why: 'The real lesson is that compliance evidence should expose operational monitoring failures before a breach does.' },
     ],
-    hints: ['event.category: "compliance_report"', 'PCI-DSS', 'Requirement 10.6'],
+    hints: ['cardholder_data', 'PCI-DSS', 'daily log review'],
     totalFlags: 1,
     entries: [
-      { timestamp: 'Q2 2026', eventType: 'compliance_report', line: 'report_type=quarterly_access_review scope=card_data_environment generated_by=soc_analyst_002' },
+      { timestamp: '2007-01-11 01:15', eventType: 'cardholder_data', line: 'source=STORE-WIFI-SEGMENT user=svc_pos_query action=bulk_select table=cardholder_data rows=481022 reviewed=false' },
+      { timestamp: '2007-01-12 02:40', eventType: 'cardholder_data', line: 'source=STORE-WIFI-SEGMENT user=svc_pos_query action=bulk_select table=track_data_archive rows=392104 reviewed=false' },
       {
-        timestamp: 'Q2 2026',
-        eventType: 'compliance_report',
+        timestamp: '2007-01-31',
+        eventType: 'pci_audit_finding',
         line:
-          'PCI-DSS COMPLIANCE REPORT (Requirement 10.6 — daily log review, aggregated quarterly): 14,220 ' +
-          'authentication events reviewed for the card-data environment this quarter; 3 privileged access events ' +
-          'flagged for manual review, all confirmed legitimate against open change-management tickets; report ' +
-          'generated and retained for the required 12-month audit trail. flag{elastic_pci_dss_compliance_report_generated}',
+          'PCI-DSS AUDIT FINDING: cardholder_data bulk access events from the store wireless segment were retained ' +
+          'but not reviewed daily; reviewed=false persisted for repeated high-volume reads. In a TJX-style breach, ' +
+          'this missing log-review control delays detection of payment-card data theft. ' +
+          'flag{elastic_tjx_pci_log_review_gap_cardholder_data_access}',
       },
     ],
   },

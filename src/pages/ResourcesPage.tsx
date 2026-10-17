@@ -1,4 +1,7 @@
-import { IconBook, IconExternal } from '../components/layout/icons';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { IconArrowRight, IconBook } from '../components/layout/icons';
+import './resources.css';
 
 interface ResourceGroup {
   title: string;
@@ -179,52 +182,28 @@ const TOOLS: ResourceGroup[] = [
   },
 ];
 
-function Group({ group }: { group: ResourceGroup }) {
-  return (
-    <div className="mb-5">
-      <div className="text-xs font-bold uppercase tracking-wide text-[var(--color-accent-dim)] mb-2">{group.title}</div>
-      <div className="flex flex-col gap-1.5">
-        {group.items.map((item) => (
-          <div key={item.name} className="flex items-start justify-between gap-3 text-sm py-1.5 border-b border-[var(--color-border)] last:border-0">
-            <span className="font-medium text-[var(--color-heading)]">{item.name}</span>
-            <span className="text-[var(--color-text-dim)] text-xs text-right shrink-0 max-w-[55%]">{item.note}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function Panel({ icon, title, groups }: { icon: React.ReactNode; title: string; groups: ResourceGroup[] }) {
-  return (
-    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 mb-6">
-      <div className="flex items-center gap-2 mb-4">
-        {icon}
-        <h2 className="text-sm font-bold text-[var(--color-heading)] uppercase tracking-wide">{title}</h2>
-      </div>
-      {groups.map((g) => (
-        <Group key={g.title} group={g} />
-      ))}
-    </div>
-  );
-}
+const COLLECTIONS = [
+  { id: 'books', label: 'Reading list', title: 'The reading room', description: 'Books to deepen your understanding alongside the lessons. Choose a subject that supports your current practice.', groups: BOOKS },
+  { id: 'sites', label: 'Sites & communities', title: 'Beyond the classroom', description: 'Learning platforms, research, and reference sources to explore alongside your work.', groups: SITES },
+  { id: 'tools', label: 'Tool directory', title: 'Know your toolkit', description: 'Find the tools mentioned in the curriculum and understand the purpose each one serves.', groups: TOOLS },
+] as const;
 
 export default function ResourcesPage() {
-  return (
-    <div className="max-w-4xl mx-auto px-8 py-14">
-      <div className="gold-eyebrow mb-2">// keep learning</div>
-      <h1 className="text-3xl font-bold text-[var(--color-heading)] mb-3 flex items-center gap-3">
-        <IconBook className="w-7 h-7 text-[var(--color-accent)]" /> Resources
-      </h1>
-      <p className="text-[var(--color-text-dim)] mb-8 leading-relaxed max-w-2xl">
-        Every book, site, and real tool referenced throughout this course, gathered in one place. Nothing
-        here is affiliate-linked or sponsored — this is the same reading list a working practitioner would
-        hand you. <span className="inline-flex items-center gap-1 text-[var(--color-text-dim)]"><IconExternal className="w-3.5 h-3.5" /> None of these are hyperlinked deliberately — search for the exact name, since URLs change.</span>
-      </p>
-
-      <Panel icon={<IconBook className="w-4 h-4 text-[var(--color-accent)]" />} title="Recommended Books" groups={BOOKS} />
-      <Panel icon={<IconBook className="w-4 h-4 text-[var(--color-accent)]" />} title="Sites & Communities" groups={SITES} />
-      <Panel icon={<IconBook className="w-4 h-4 text-[var(--color-accent)]" />} title="Real Tools Referenced In This Course" groups={TOOLS} />
-    </div>
-  );
+  const [collection, setCollection] = useState<string>('books');
+  const [search, setSearch] = useState('');
+  const active = COLLECTIONS.find(item => item.id === collection) ?? COLLECTIONS[0];
+  const query = search.trim().toLowerCase();
+  const groups = active.groups.map(group => ({ ...group, items: group.items.filter(item => (item.name + ' ' + item.note + ' ' + group.title).toLowerCase().includes(query)) })).filter(group => group.items.length);
+  const count = groups.reduce((sum, group) => sum + group.items.length, 0);
+  return <div className="resource-page mx-auto max-w-6xl px-4 py-8 sm:px-7 sm:py-12">
+    <header className="resource-masthead">
+      <div><p className="resource-eyebrow">DarkWorld / Field notes</p><h1>Security resources</h1><p className="resource-introduction">Good practice starts with good sources. Explore the books, communities, and tools referenced across your learning journey.</p></div>
+      <aside><IconBook className="h-6 w-6" /><h2>Keep a book beside your lab.</h2><p>Use these references to explore a question in more depth, then return to your lesson and put it into practice.</p><Link to="/library">Open the platform library<IconArrowRight className="h-4 w-4" /></Link><small>Availability and access vary by title.</small></aside>
+    </header>
+    <div className="resource-controls"><nav aria-label="Resource collections">{COLLECTIONS.map(item => <button key={item.id} onClick={() => { setCollection(item.id); setSearch(''); }} aria-pressed={collection === item.id}>{item.label}<span>{item.groups.reduce((sum, group) => sum + group.items.length, 0)}</span></button>)}</nav><input type="search" aria-label="Search resources" value={search} onChange={event => setSearch(event.target.value)} placeholder="Search titles, authors, or topics…" /></div>
+    <div className="resource-section-heading"><div><h2>{active.title}</h2><p>{active.description}</p></div><span>{count} {count === 1 ? 'reference' : 'references'}</span></div>
+    {groups.map((group, index) => <section key={group.title} className="resource-group" aria-labelledby={'resource-group-' + index}><div className="resource-group-heading"><span>{String(index + 1).padStart(2, '0')}</span><h3 id={'resource-group-' + index}>{group.title}</h3></div><div className={collection === 'books' ? 'resource-book-grid' : 'resource-directory'}>{group.items.map((item, itemIndex) => <article key={item.name} className="resource-item">{collection === 'books' && <div className="resource-book-mark" aria-hidden="true"><span>DW</span><i>{String(itemIndex + 1).padStart(2, '0')}</i></div>}<div><h4>{item.name}</h4><p>{item.note}</p></div></article>)}</div></section>)}
+    {count === 0 && <div className="resource-empty"><h3>No references found</h3><p>Try a broader subject or a different title.</p><button onClick={() => setSearch('')}>Clear search</button></div>}
+    <footer className="resource-footer">Reference titles are listed by name. Search the exact title or tool name to find its publisher or official documentation.</footer>
+  </div>;
 }

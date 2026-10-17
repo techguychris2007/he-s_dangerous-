@@ -42,7 +42,7 @@ const FAQS: { q: string; a: string }[] = [
 
 export default function HelpFaqPage() {
   return (
-    <div className="max-w-3xl mx-auto px-8 py-14">
+    <div className="max-w-5xl mx-auto px-8 py-14">
       <div className="gold-eyebrow mb-2">// support</div>
       <h1 className="text-3xl font-bold text-[var(--color-heading)] mb-3 flex items-center gap-3">
         <IconHelp className="w-7 h-7 text-[var(--color-accent)]" /> Help &amp; FAQ
@@ -53,7 +53,7 @@ export default function HelpFaqPage() {
 
       <div className="flex flex-col gap-3">
         {FAQS.map((item) => (
-          <details key={item.q} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 group">
+          <details key={item.q} className="premium-card rounded-2xl p-4 group">
             <summary className="font-semibold text-[var(--color-heading)] text-sm cursor-pointer list-none flex items-center justify-between gap-3">
               {item.q}
               <span className="text-[var(--color-text-dim)] group-open:rotate-45 transition-transform text-lg leading-none">+</span>
@@ -63,7 +63,7 @@ export default function HelpFaqPage() {
         ))}
       </div>
 
-      <div className="mt-8 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 flex items-center justify-between gap-4 flex-wrap">
+      <div className="mt-8 premium-card rounded-2xl p-5 flex items-center justify-between gap-4 flex-wrap">
         <div>
           <div className="text-sm font-semibold text-[var(--color-heading)] mb-0.5">Didn't find your answer?</div>
           <p className="text-xs text-[var(--color-text-dim)]">Report a bug, flag something wrong in a lesson, or suggest an improvement — it goes straight into a real inbox.</p>

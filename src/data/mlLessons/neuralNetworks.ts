@@ -10,28 +10,52 @@ export const NEURAL_NETWORKS_LESSONS: MlLesson[] = [
     sections: [
       {
         heading: 'The simplest possible neural network',
-        body: `<p>A perceptron computes a weighted sum of its inputs, adds a bias, and passes the result
-        through a step function: output 1 if the sum is positive, 0 otherwise. It's a linear classifier —
-        structurally, it's logistic regression with a hard threshold instead of a smooth sigmoid.</p>`,
+        body: `<p>A perceptron is a binary decision rule built from a weighted sum. For input features
+        <code>x = (x₁, …, xₚ)</code>, weights <code>w = (w₁, …, wₚ)</code>, and bias <code>b</code>, it first
+        calculates <code>z = w₁x₁ + … + wₚxₚ + b</code>, or compactly <code>w·x + b</code>. Each weight says
+        how strongly and in which direction a feature changes the score; the bias shifts the decision
+        boundary even when all features are zero.</p><p>The step activation converts that score into a class: predict 1
+        when z is greater than or equal to zero, otherwise predict 0. For example, with w=[2,−1] and
+        b=−0.5, x=[1,0] gives z=1.5 and class 1, while x=[0,1] gives z=−1.5 and class 0. The rule returns
+        a class directly, not a probability or confidence. It is a linear classifier because the boundary
+        <code>w·x+b=0</code> is a straight line in two dimensions and a hyperplane in more dimensions.</p>`,
       },
       {
         heading: 'What it can and can\'t learn',
-        body: `<p>A single perceptron can only separate data with a straight line (or hyperplane) — it can
-        learn AND, OR, and NOT, but famously <em>cannot</em> learn XOR, since no single straight line
-        separates XOR's outputs. This limitation is exactly why deeper networks exist.</p>`,
+        body: `<p>The perceptron succeeds when one straight boundary can separate all positive examples
+        from all negative examples. With binary inputs, AND has one positive point [1,1] and three
+        negative points; a line can isolate that corner. OR has one negative point [0,0] and three
+        positive points; a line can isolate that corner too. A NOT gate has only one input and is
+        separated by a threshold on that input.</p><p>XOR labels [0,0] and [1,1] as 0, and [0,1] and
+        [1,0] as 1. On a plane, the two positive points sit on opposite corners, with negative points
+        between them. Any straight line that puts one positive corner on one side puts the other positive
+        corner on the wrong side. No choice of perceptron weights fixes this because the limitation is
+        representational, not a poor training run. Always distinguish “the optimizer did not find a
+        solution” from “the model family cannot represent one.”</p>`,
       },
       {
         heading: 'From one neuron to a network',
-        body: `<p>Stacking perceptron-like units into layers, with a smooth (differentiable) activation
-        function instead of a hard step, is what turns "a single linear classifier" into a
-        <strong>multi-layer perceptron</strong> capable of learning nonlinear boundaries like XOR.</p>`,
+        body: `<p>A multi-layer perceptron composes affine transformations with nonlinear activations.
+        A hidden layer can create intermediate features; a later layer combines them into the final
+        score. For XOR, one hidden unit can respond to “at least one input is on” while another responds
+        to “both inputs are on”; an output unit can combine those signals so exactly-one-input cases
+        become positive. Training learns these intermediate boundaries from data.</p><p>Modern networks
+        usually use differentiable activations such as ReLU or tanh in hidden layers because gradients
+        can guide weight updates. A hard step has derivative zero almost everywhere, so ordinary gradient
+        descent cannot train it effectively. A hidden layer does not guarantee a useful solution: the
+        network still needs suitable data, loss, initialization, and optimization. It also introduces more
+        parameters and can overfit, so compare it against a simple baseline and inspect held-out performance.</p>`,
       },
       {
         heading: 'Worked example: a perceptron for AND',
-        body: `<p>With weights [1, 1] and bias -1.5: input [1,1] gives 1+1-1.5=0.5 &gt; 0 &rarr; output 1.
-        Input [1,0] gives 1+0-1.5=-0.5 &le; 0 &rarr; output 0. Input [0,0] gives -1.5 &rarr; output 0. Only
-        when both inputs are 1 does the weighted sum clear the -1.5 bias — exactly the logical AND
-        truth table, and exactly the weights the coding challenge below hands you to verify.</p>`,
+        body: `<p>Let x₁ and x₂ be binary inputs and choose w=[1,1], b=−1.5. For [0,0], z=0+0−1.5=−1.5,
+        so the output is 0. For [1,0], z=1+0−1.5=−0.5, so the output is 0. For [0,1], z=0+1−1.5=−0.5,
+        so the output is 0. For [1,1], z=1+1−1.5=0.5, so the output is 1. These four calculations
+        reproduce the AND truth table.</p><p>The bias controls the threshold: with positive unit weights, the
+        total input must reach at least 1.5. If the prediction rule uses z≥0, equality is positive; if it
+        uses z&gt;0, equality is negative. State that convention because it changes boundary cases. The lab
+        asks you to implement the score and threshold, then test all four inputs and verify that a correct
+        result comes from the complete truth table, not a single example.</p>`,
       },
     ],
   },
@@ -221,6 +245,54 @@ export const NEURAL_NETWORKS_LESSONS: MlLesson[] = [
         during training (half-scale, half the units) would be systematically smaller than at inference time
         (full scale, all units) — exactly the mismatch inverted dropout, implemented in the coding challenge
         below, is designed to avoid.</p>`,
+      },
+    ],
+  },
+  {
+    id: 'attention-transformers',
+    title: 'Self-Attention and Transformer Models',
+    source: 'Dive into Deep Learning · Deep Learning with Python',
+    unit: 'neural-networks',
+    challengeTaskId: 'ml-nn-07',
+    sections: [
+      {
+        heading: 'Why attention changed sequence modeling',
+        body: `<p>An RNN carries information step by step, so a long-range relationship must travel through many updates. Self-attention lets each token compare itself directly with the other tokens in the same sequence. In “the animal did not cross because it was tired,” a model can relate “it” to “animal” without compressing the entire sentence into one recurrent state.</p><p>A transformer is built from attention and feed-forward layers. It does not inherently know word order, so it adds positional information to token representations. Encoder-style models build contextual representations of an input; decoder-style models predict the next token; encoder-decoder models transform an input sequence into an output sequence.</p>` ,
+      },
+      {
+        heading: 'Queries, keys, and values',
+        body: `<p>Each input representation is projected into a query, key, and value. A query asks what information is useful at this position. Keys describe what each position offers, and values carry the information to combine. The scaled dot-product attention calculation is <code>softmax(QKᵀ / √dₖ)V</code>. The dot product measures compatibility; dividing by the square root of key width keeps scores from growing too large; softmax turns scores into weights that sum to one; and the weighted values create a context-aware representation.</p><p>For one query with scores [2, 1, 0], softmax assigns the largest weight to the first key. The result is a weighted average, not a hard selection. Attention masks can exclude padding tokens or, in autoregressive generation, future positions. A row with every key masked is invalid and must be handled explicitly.</p>` ,
+      },
+      {
+        heading: 'A small, runnable attention implementation',
+        body: `<p>This pure-Python exercise uses short vectors to expose the operation. Real implementations use matrix multiplication on accelerators, multiple heads, batched tensors, and fused kernels; the code below is for understanding, not production speed.</p><pre><code>import math
+
+def softmax(values):
+    peak = max(values)
+    exponentials = [math.exp(value - peak) for value in values]
+    total = sum(exponentials)
+    return [value / total for value in exponentials]
+
+def attend(query, keys, values, key_mask=None):
+    width = len(query)
+    scores = [sum(q * k for q, k in zip(query, key)) / math.sqrt(width)
+              for key in keys]
+    allowed = key_mask or [True] * len(keys)
+    if len(allowed) != len(keys) or not any(allowed):
+        raise ValueError("at least one key must be available")
+    selected = [i for i, is_allowed in enumerate(allowed) if is_allowed]
+    weights = softmax([scores[i] for i in selected])
+    return [sum(weight * values[i][column]
+                for weight, i in zip(weights, selected))
+            for column in range(len(values[0]))]</code></pre><p>The softmax subtracts its largest score before exponentiation. This leaves the mathematical result unchanged while reducing overflow risk. The lab asks you to implement and test this pattern, including masks and malformed shapes.</p>` ,
+      },
+      {
+        heading: 'Multi-head attention and positional information',
+        body: `<p>One attention head may focus on nearby words while another focuses on agreement, entities, or longer-range context. Multi-head attention learns separate query/key/value projections, applies attention in parallel, concatenates the head outputs, and projects them back to the model width. Residual connections and normalization help deep stacks train reliably. Feed-forward blocks then transform each position independently after contextual mixing.</p><p>Position can be represented with fixed sinusoidal values or learned embeddings. A causal mask prevents a decoder position from seeing tokens that come later in the target. Without that mask during next-token training, the model could cheat by reading the answer it is supposed to predict.</p>` ,
+      },
+      {
+        heading: 'Pretraining, fine-tuning, and evaluation',
+        body: `<p>Large transformer models are usually pretrained on broad data with a self-supervised objective, then adapted for a task. Fine-tuning updates some or all parameters with task data; parameter-efficient methods update smaller adapter components. A pretrained model can reduce data and compute needs, but it does not remove the need for clean splits, a relevant evaluation set, privacy review, bias checks, and misuse analysis.</p><p>For text generation, evaluate more than fluency. Check factuality, refusal behavior where relevant, robustness to input variation, latency, cost, and task-specific success. Keep prompts, model versions, tokenization, decoding parameters, and evaluation data versioned so a result can be reproduced. Treat generated text as model output, not ground truth.</p>` ,
       },
     ],
   },

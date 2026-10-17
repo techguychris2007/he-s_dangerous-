@@ -73,30 +73,31 @@ get_secret_data({"authenticated": False})  # raises PermissionError`}</CodeBlock
 
       <h2>Decorators that take their own arguments</h2>
       <p>
-        Sometimes the decorator itself needs configuration — <code>@rate_limit(3)</code> instead of just{' '}
-        <code>@rate_limit</code>. This needs one extra layer of nesting: a function that takes the
+        Sometimes the decorator itself needs configuration — <code>@call_cap(3)</code> instead of just{' '}
+        <code>@call_cap</code>. This needs one extra layer of nesting: a function that takes the
         decorator's arguments and <em>returns</em> the actual decorator.
       </p>
-      <CodeBlock label="a decorator factory">{`def rate_limit(max_calls):
+      <CodeBlock label="a process-local call cap, not a time-window rate limiter">{`def call_cap(max_calls):
     def decorator(func):          # this is the actual decorator
         calls = [0]                 # a mutable closure variable, shared across all calls
         def wrapper(*args, **kwargs):
             if calls[0] >= max_calls:
-                raise RuntimeError("Rate limit exceeded")
+                raise RuntimeError("Call cap exceeded")
             calls[0] += 1
             return func(*args, **kwargs)
         return wrapper
     return decorator
 
-@rate_limit(3)
+@call_cap(3)
 def ping(host):
     return f"pong from {host}"
 
 ping("a"); ping("b"); ping("c")   # fine
-ping("d")                          # raises RuntimeError — 4th call exceeds the limit`}</CodeBlock>
+ping("d")                          # raises RuntimeError — calls never reset`}</CodeBlock>
+      <p>A true rate limiter measures calls over a time window or token bucket. It must define whether the quota is per account, process, or whole service, and coordinate across workers when needed. This closure never resets and is not thread-safe, so it demonstrates a decorator factory without pretending to enforce a production traffic policy.</p>
       <Callout variant="tip">
         <p>
-          Trace the nesting carefully: <code>rate_limit(3)</code> runs immediately and returns{' '}
+          Trace the nesting carefully: <code>call_cap(3)</code> runs immediately and returns{' '}
           <code>decorator</code>. THEN <code>@decorator</code> is applied to <code>ping</code>, running{' '}
           <code>decorator(ping)</code>, which returns <code>wrapper</code>. Every subsequent call to{' '}
           <code>ping(...)</code> is really a call to that <code>wrapper</code>.
@@ -105,13 +106,13 @@ ping("d")                          # raises RuntimeError — 4th call exceeds th
 
       <h2>Class-based decorators: when a decorator needs to hold real state</h2>
       <p>
-        The <code>rate_limit</code> decorator above smuggled its counter into a closure using a one-item list
+        The <code>call_cap</code> decorator above smuggled its counter into a closure using a one-item list
         (<code>calls = [0]</code>) — a common but slightly awkward workaround, since a plain integer in a
         closure can't be reassigned from the inner function directly. A class-based decorator, using{' '}
         <code>__call__</code> to make an instance itself callable, often reads more clearly once a decorator
         needs to track real state:
       </p>
-      <CodeBlock label="the same rate limiter, as a class instead of nested closures">{`class RateLimit:
+      <CodeBlock label="the same call cap, as a class instead of nested closures">{`class CallCap:
     def __init__(self, max_calls):
         self.max_calls = max_calls
         self.calls = 0
@@ -119,19 +120,19 @@ ping("d")                          # raises RuntimeError — 4th call exceeds th
     def __call__(self, func):
         def wrapper(*args, **kwargs):
             if self.calls >= self.max_calls:
-                raise RuntimeError("Rate limit exceeded")
+                raise RuntimeError("Call cap exceeded")
             self.calls += 1
             return func(*args, **kwargs)
         return wrapper
 
-@RateLimit(3)
+@CallCap(3)
 def ping(host):
     return f"pong from {host}"`}</CodeBlock>
       <p>
-        <code>@RateLimit(3)</code> first creates a <code>RateLimit</code> instance, then Python applies it as
-        the decorator by calling that instance — which is exactly what <code>__call__</code> enables. Reach
-        for this style once a decorator's internal state is complex enough that a plain closure variable
-        starts feeling like a workaround rather than a natural fit.
+        <code>@CallCap(3)</code> first creates a <code>CallCap</code> instance, then Python applies it as
+        the decorator by calling that instance — which is exactly what <code>__call__</code> enables. This
+        class is still a permanent per-process cap. A real limiter needs a clock, a window algorithm,
+        synchronization, and often shared storage across service workers.
       </p>
 
       <h2>functools.wraps — preserving the original function's identity</h2>

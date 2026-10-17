@@ -10,7 +10,7 @@ import CodeConsole from '../components/code/CodeConsole';
 import CyberLabAI from '../components/labs/CyberLabAI';
 import LabComments from '../components/labs/LabComments';
 import DifficultyPill from '../components/common/DifficultyPill';
-import { IconCheck, IconCode, IconDownload } from '../components/layout/icons';
+import { IconCheck, IconCode, IconDownload, IconFlask, IconLightning } from '../components/layout/icons';
 import type { CodeLanguage, CodeTask } from '../labs/codeTypes';
 
 const ALL_CODE_TASKS = [...PYTHON_TASKS, ...CPP_TASKS, ...JS_TASKS, ...ML_TASKS, ...SECURITY_TASKS];
@@ -30,7 +30,7 @@ function downloadTaskCode(task: CodeTask, code: string) {
   const ext = EXTENSION_BY_LANGUAGE[task.language];
   const c = COMMENT_PREFIX_BY_LANGUAGE[task.language];
   const filename = `${slugify(task.title)}.${ext}`;
-  const header = [`${c} ${task.title}`, `${c} ${task.category} · ${task.difficulty}`, `${c} Solved on DarkWorld (darkworld app) — ${new Date().toISOString().slice(0, 10)}`, ''].join('\n');
+  const header = [`${c} ${task.title}`, `${c} ${task.category} · ${task.difficulty}`, `${c} Code exported from DarkWorld — ${new Date().toISOString().slice(0, 10)}`, ''].join('\n');
   const blob = new Blob([header + code.trimEnd() + '\n'], { type: 'text/plain;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -68,28 +68,60 @@ export default function CodeTaskPage() {
   const backHref = isMlTask ? '/ml-portal' : isSecurityTask ? '/library' : '/code-portal';
   const backLabel = isMlTask ? 'ML Portal' : isSecurityTask ? 'Library' : 'Code Portal';
 
+  const languageLabel = task.language === 'cpp' ? 'C++' : task.language === 'javascript' ? 'JavaScript' : 'Python';
+
   return (
-    <div className="h-full flex flex-col lg:flex-row">
-      <div className="lg:w-96 shrink-0 border-b lg:border-b-0 lg:border-r border-[var(--color-border)] bg-[var(--color-surface)] px-4 sm:px-6 py-4 sm:py-6 overflow-y-auto">
+    <div className="h-full flex flex-col lg:flex-row bg-[var(--color-bg)]">
+      <aside className="lg:w-[27rem] shrink-0 border-b lg:border-b-0 lg:border-r border-[var(--color-border)] bg-[var(--color-surface)]/95 px-4 sm:px-6 py-4 sm:py-6 overflow-y-auto">
         <Link
           to={backHref}
-          className="text-xs font-semibold text-[var(--color-accent)] hover:underline mb-3 inline-block"
+          className="text-xs font-bold text-[var(--color-accent)] hover:underline mb-5 inline-block"
         >
           &larr; Back to {backLabel}
         </Link>
-        <div className="flex items-center gap-2 mb-2 flex-wrap">
-          <DifficultyPill difficulty={task.difficulty} />
-          <span className="pill bg-[var(--color-surface-2)] text-[var(--color-text-dim)] flex items-center gap-1">
-            <IconCode className="w-3 h-3" /> {task.category}
-          </span>
-          {done && (
-            <span className="pill bg-[var(--color-success)]/15 text-[var(--color-success)] flex items-center gap-1">
-              <IconCheck className="w-3 h-3" /> Solved
-            </span>
-          )}
+
+        <div className="relative overflow-hidden rounded-3xl border border-[var(--color-border)] bg-[var(--color-bg)] p-5 shadow-[0_24px_70px_-55px_rgba(15,23,42,0.9)] mb-5">
+          <div
+            aria-hidden
+            className="absolute inset-0 opacity-[0.06]"
+            style={{
+              backgroundImage:
+                'linear-gradient(rgba(37,99,235,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(37,99,235,0.6) 1px, transparent 1px)',
+              backgroundSize: '24px 24px',
+            }}
+          />
+          <div className="relative">
+            <div className="flex items-center gap-2 mb-4 flex-wrap">
+              <DifficultyPill difficulty={task.difficulty} />
+              <span className="pill bg-[var(--color-accent)]/15 text-[var(--color-accent)] border border-[var(--color-accent)]/25 flex items-center gap-1">
+                <IconCode className="w-3 h-3" /> {languageLabel}
+              </span>
+              {done && (
+                <span className="pill bg-[var(--color-success)]/15 text-[var(--color-success)] border border-[var(--color-success)]/25 flex items-center gap-1">
+                  <IconCheck className="w-3 h-3" /> Solved
+                </span>
+              )}
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-black tracking-[-0.04em] text-[var(--color-heading)] mb-3">{task.title}</h1>
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-[var(--color-text-dim)]">
+              <IconFlask className="w-3.5 h-3.5 text-[var(--color-accent)]" />
+              {task.category}
+            </div>
+          </div>
         </div>
-        <h1 className="text-xl sm:text-2xl font-bold text-[var(--color-heading)] mb-2 sm:mb-3">{task.title}</h1>
-        <p className="text-xs sm:text-sm text-[var(--color-text-dim)] leading-relaxed mb-4 sm:mb-5 whitespace-pre-line">{task.prompt}</p>
+
+        <div className="rounded-3xl border border-[var(--color-border)] bg-[var(--color-bg)] p-5 mb-4">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-9 h-9 rounded-2xl bg-[var(--color-accent)]/10 border border-[var(--color-accent)]/20 flex items-center justify-center">
+              <IconLightning className="w-4 h-4 text-[var(--color-accent)]" />
+            </div>
+            <div>
+              <div className="text-sm font-black text-[var(--color-heading)]">Your mission</div>
+              <div className="text-[11px] text-[var(--color-text-dim)]">Read the brief, code the function, pass the tests.</div>
+            </div>
+          </div>
+          <p className="text-sm text-[var(--color-text-dim)] leading-7 whitespace-pre-line">{task.prompt}</p>
+        </div>
 
         <button
           onClick={() =>
@@ -100,14 +132,14 @@ export default function CodeTaskPage() {
             })
           }
           disabled={hintIndex >= task.hints.length}
-          className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] text-xs font-semibold text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-heading)] disabled:opacity-50 transition-colors"
+          className="w-full px-4 py-3 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg)] text-sm font-bold text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-heading)] disabled:opacity-50 transition-colors"
         >
           {hintIndex === 0 ? 'Show a hint' : hintIndex >= task.hints.length ? 'No more hints' : 'Next hint'}
         </button>
         {hintIndex > 0 && (
-          <div className="mt-2 space-y-1.5">
+          <div className="mt-3 space-y-2">
             {task.hints.slice(0, hintIndex).map((h, i) => (
-              <div key={i} className="text-xs bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2.5 py-2 text-[var(--color-text)] leading-relaxed">
+              <div key={i} className="text-sm bg-[var(--color-accent)]/5 border border-[var(--color-accent)]/15 rounded-2xl px-4 py-3 text-[var(--color-text)] leading-6">
                 {h}
               </div>
             ))}
@@ -121,45 +153,61 @@ export default function CodeTaskPage() {
               return !v;
             })
           }
-          className="w-full mt-3 px-3 py-2 rounded-lg border border-[var(--color-border)] text-xs font-semibold text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-heading)] transition-colors"
+          className="w-full mt-3 px-4 py-3 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg)] text-sm font-bold text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-heading)] transition-colors"
         >
           {showSolution ? 'Hide solution' : 'Reveal solution'}
         </button>
         {showSolution && (
-          <pre className="mt-2 text-xs font-mono bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg p-3 leading-relaxed whitespace-pre-wrap break-words max-h-72 overflow-y-auto text-[var(--color-text)]">
+          <pre className="mt-3 text-xs font-mono bg-[var(--term-bg)] border border-[var(--color-border)] rounded-2xl p-4 leading-relaxed whitespace-pre-wrap break-words max-h-72 overflow-y-auto text-white">
             {task.solution}
           </pre>
         )}
 
         <button
           onClick={() => downloadTaskCode(task, currentCodeRef.current || task.starterCode)}
-          className="w-full mt-3 px-3 py-2 rounded-lg border border-[var(--color-border)] text-xs font-semibold text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-heading)] transition-colors flex items-center justify-center gap-1.5"
+          className="w-full mt-3 px-4 py-3 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg)] text-sm font-bold text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-heading)] transition-colors flex items-center justify-center gap-1.5"
           title={`Download your code as a .${EXTENSION_BY_LANGUAGE[task.language]} file — ready to commit to your own GitHub repo`}
         >
           <IconDownload className="w-3.5 h-3.5" /> Download code (.{EXTENSION_BY_LANGUAGE[task.language]})
         </button>
 
         {done && (
-          <div className="mt-5 flex items-center gap-2 text-sm font-semibold text-[var(--color-success)]">
-            <IconCheck className="w-4 h-4" /> All tests passing — nice work!
+          <div className="mt-5 flex items-center gap-3 rounded-2xl border border-[var(--color-success)]/25 bg-[var(--color-success)]/10 px-4 py-3 text-sm font-bold text-[var(--color-success)]">
+            <span className="w-8 h-8 rounded-full bg-[var(--color-success)] text-white flex items-center justify-center shrink-0">
+              <IconCheck className="w-4 h-4" />
+            </span>
+            All tests passing — nice work!
           </div>
         )}
 
         <LabComments labId={task.id} />
-      </div>
+      </aside>
 
-      <div className="flex-1 min-h-[420px] p-4">
-        <CodeConsole
-          language={task.language}
-          starterCode={task.starterCode}
-          testCode={task.testCode}
-          onAllTestsPassed={() => progress.completeCodeTask(task.id)}
-          onTestsAttempted={() => progress.recordCodeTaskAttempt(task.id)}
-          onCodeChange={(code) => {
-            currentCodeRef.current = code;
-          }}
-        />
-      </div>
+      <main className="flex-1 min-h-[420px] p-4 sm:p-6 bg-[linear-gradient(180deg,var(--color-bg)_0%,var(--color-surface)_100%)]">
+        <div className="h-full max-w-[1500px] mx-auto flex flex-col gap-4">
+          <div className="rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 flex flex-wrap items-center justify-between gap-3 shadow-sm">
+            <div>
+              <div className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--color-text-dim)]">Workspace</div>
+              <div className="text-sm font-black text-[var(--color-heading)]">Implement, run, debug, and pass the tests</div>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-[var(--color-text-dim)]">
+              <span className="pill bg-[var(--color-surface-2)] text-[var(--color-text-dim)]">{languageLabel}</span>
+              <span className="pill bg-[var(--color-surface-2)] text-[var(--color-text-dim)]">Auto-graded</span>
+            </div>
+          </div>
+          <CodeConsole
+            key={task.id}
+            language={task.language}
+            starterCode={task.starterCode}
+            testCode={task.testCode}
+            onAllTestsPassed={() => progress.completeCodeTask(task.id)}
+            onTestsAttempted={() => progress.recordCodeTaskAttempt(task.id)}
+            onCodeChange={(code) => {
+              currentCodeRef.current = code;
+            }}
+          />
+        </div>
+      </main>
 
       <CyberLabAI
         key={task.id}

@@ -1,52 +1,54 @@
-import type { LabEntry } from '../data/labs';
-import type { ObjectiveStep } from '../labs/types';
+import type { LabScenario } from '../labs/types';
+
+export interface ReportLabEntry {
+  slug: string;
+  scenario: Pick<LabScenario, 'id' | 'title' | 'category' | 'difficulty' | 'totalFlags' | 'briefing' | 'objectives'>;
+}
+type LabEntry = ReportLabEntry;
 
 export const CATEGORY_HASHTAGS: Record<string, string[]> = {
-  Linux: ['LinuxSecurity', 'PrivilegeEscalation'],
-  Network: ['NetworkSecurity', 'Nmap'],
-  Web: ['WebSecurity', 'AppSec', 'BugBounty'],
-  'Active Directory': ['ActiveDirectory', 'RedTeam', 'Kerberos'],
-  'Bug Bounty': ['BugBounty', 'BugBountyTips'],
-  Cloud: ['CloudSecurity', 'AWS'],
-  SOC: ['BlueTeam', 'ThreatHunting', 'SOC'],
-  Forensics: ['DFIR', 'DigitalForensics'],
-  'Security+': ['SecurityPlus', 'GRC'],
-  'Binary Analysis': ['ReverseEngineering', 'ExploitDev'],
-  Malware: ['MalwareAnalysis', 'ThreatIntel'],
+  Linux: ['LinuxSecurity', 'PrivilegeEscalation'], Network: ['NetworkSecurity'],
+  Web: ['WebSecurity', 'AppSec'], 'Active Directory': ['ActiveDirectory', 'IdentitySecurity'],
+  'Bug Bounty': ['BugBounty'], Cloud: ['CloudSecurity'], SOC: ['BlueTeam', 'SOC'],
+  Forensics: ['DFIR', 'DigitalForensics'], 'Security+': ['SecurityPlus', 'GRC'],
+  'Binary Analysis': ['ReverseEngineering'], Malware: ['MalwareAnalysis'],
   'Security Engineering': ['SecurityEngineering', 'AppSec'],
 };
 
-function objectiveText(o: string | ObjectiveStep): string {
-  return typeof o === 'string' ? o : o.text;
+export type FindingSeverity = 'Informational' | 'Low' | 'Medium' | 'High' | 'Critical';
+export interface LabFinding {
+  id: string;
+  title: string;
+  severity: FindingSeverity;
+  affectedAsset: string;
+  evidence: string;
+  impact: string;
+  remediation: string;
+  retest: string;
 }
 
-function objectiveWhy(o: string | ObjectiveStep): string | undefined {
-  return typeof o === 'string' ? undefined : o.why;
+export interface LabReportEvidence {
+  executiveSummary: string;
+  scope: string;
+  methodology: string;
+  findings: LabFinding[];
+  cleanup: string;
+  reflection: string;
 }
 
-function extractCve(...sources: string[]): string | null {
-  for (const s of sources) {
-    const m = s.match(/CVE-\d{4}-\d+/i);
-    if (m) return m[0].toUpperCase();
-  }
-  return null;
-}
-
-function truncate(str: string, maxLen: number): string {
-  if (str.length <= maxLen) return str;
-  return str.slice(0, Math.max(0, maxLen - 1)).trimEnd() + '…';
-}
-
-function hookLine(briefing: string, maxLen: number): string {
-  const firstSentence = briefing.split(/(?<=\.)\s+/)[0] ?? briefing;
-  return truncate(firstSentence, maxLen);
-}
+export const EMPTY_REPORT: LabReportEvidence = {
+  executiveSummary: '', scope: '', methodology: '', findings: [], cleanup: '', reflection: '',
+};
 
 export interface LabWriteupOptions {
   learnerName?: string | null;
   labsCompletedTotal?: number;
   labsInModuleTotal?: number;
   moduleTitle?: string;
+  /** Completion timestamp from progress, never the export timestamp. */
+  completedAt?: number;
+  capturedFlags?: number;
+  evidence?: LabReportEvidence;
 }
 
 export interface LabWriteup {
@@ -56,73 +58,124 @@ export interface LabWriteup {
   hashtags: string[];
 }
 
+export function completionDate(value?: number): string {
+  if (!value || !Number.isFinite(value) || Number.isNaN(new Date(value).getTime())) return 'Not recorded';
+  return new Date(value).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
+}
+
+/** Stable display reference, not a signature or a credential verification token. */
+export function labRecordReference(entry: LabEntry, opts: LabWriteupOptions): string {
+  const seed = `${opts.learnerName ?? 'Learner'}|${entry.scenario.id}|${opts.completedAt ?? 'undated'}`;
+  let hash = 2166136261;
+  for (let i = 0; i < seed.length; i++) hash = Math.imul(hash ^ seed.charCodeAt(i), 16777619) >>> 0;
+  return `DW-${hash.toString(16).toUpperCase().padStart(8, '0')}`;
+}
+
+export function completionStatus(entry: LabEntry, opts: LabWriteupOptions): { count: number; complete: boolean } {
+  const count = Number.isFinite(opts.capturedFlags) ? Math.min(entry.scenario.totalFlags, Math.max(0, Math.floor(opts.capturedFlags!))) : 0;
+  return { count, complete: entry.scenario.totalFlags > 0 && count >= entry.scenario.totalFlags };
+}
+
+/** Scenario objectives describe the exercise, never automatically become findings or claims. */
 export function buildLabWriteup(entry: LabEntry, opts: LabWriteupOptions = {}): LabWriteup {
   const { scenario } = entry;
-  const objectives = scenario.objectives.map(objectiveText);
-  const whys = scenario.objectives.map(objectiveWhy).filter((w): w is string => Boolean(w));
-  const cve = extractCve(scenario.title, scenario.briefing);
-  const cveAlreadyInTitle = cve ? scenario.title.toUpperCase().includes(cve) : false;
-  const hashtags = ['CyberSecurity', 'EthicalHacking', 'InfoSec', 'DarkWorld', ...(CATEGORY_HASHTAGS[scenario.category] ?? [])];
-  const hashtagLine = hashtags.map((h) => `#${h}`).join(' ');
-  const dateStr = new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
-
-  const keyTakeaway = whys.sort((a, b) => b.length - a.length)[0];
-  const cveLine = cve && !cveAlreadyInTitle ? ` (${cve})` : '';
-
-  // ---------- LinkedIn ----------
-  const linkedinSteps = objectives.slice(0, 4).map((t) => `• ${t}`).join('\n');
+  const report = opts.evidence ?? EMPTY_REPORT;
+  const { count, complete } = completionStatus(entry, opts);
+  const hashtags = ['CyberSecurity', 'DarkWorld', ...(CATEGORY_HASHTAGS[scenario.category] ?? ['InfoSec'])];
+  const describe = (value: string) => value.trim() || '_Not documented by the learner._';
+  const outcome = complete ? 'Completed' : 'Practiced';
+  const objectiveTexts = scenario.objectives
+    .slice(0, 3)
+    .map((objective) => (typeof objective === 'string' ? objective : objective.text).replace(/\s+/g, ' ').trim())
+    .filter(Boolean);
+  const categoryLabel = scenario.category;
+  const difficultySentence = scenario.difficulty.toLowerCase();
+  const article = /^[aeiou]/i.test(difficultySentence) ? 'an' : 'a';
+  const documentedFindings = report.findings.filter((finding) =>
+    [finding.title, finding.evidence, finding.impact, finding.remediation].some((value) => value.trim()),
+  );
+  const skillsPracticed = [
+    `${categoryLabel} concept practice`,
+    'Evidence handling',
+    'Lab boundary discipline',
+    complete ? 'Completion validation' : 'Progress tracking',
+  ];
+  const scopeSummary = report.scope.trim() || `This was a controlled DarkWorld simulation focused on ${categoryLabel} skills. No real external systems were targeted.`;
+  const methodologySummary = report.methodology.trim() || (objectiveTexts.length
+    ? `I worked through the guided objectives, validated observations against the simulated environment, and recorded proof points only when the lab accepted the evidence.\n\nKey focus areas:\n${objectiveTexts.map((objective) => `• ${objective}`).join('\n')}`
+    : 'I worked through the guided objectives, validated observations against the simulated environment, and recorded proof points only when the lab accepted the evidence.');
+  const learningSummary = report.reflection.trim() || `This exercise strengthened my practical process for ${categoryLabel} analysis: read the lab boundary, test carefully, verify evidence, and separate confirmed results from assumptions.`;
+  const findingSummary = documentedFindings.length
+    ? documentedFindings.slice(0, 3).map((finding, index) => `${index + 1}. ${finding.title.trim() || 'Documented finding'}${finding.severity ? ` (${finding.severity})` : ''}`).join('\n')
+    : complete
+      ? 'Detailed evidence notes were kept in my notebook. For this public update, I am sharing the learning outcome and the controlled scope rather than sensitive-looking technical claims.'
+      : 'This is an in-progress learning update. I am still collecting evidence before turning observations into clearer evidence notes.';
+  const nextStep = complete
+    ? 'My next step is to repeat the workflow in a related lab and compare how the same evidence process changes across different environments.'
+    : 'My next step is to finish the remaining proof points, then turn the evidence into a cleaner evidence note.';
   const linkedin = [
-    `Completed: ${scenario.title}${cveLine}`,
+    `${outcome} a DarkWorld cybersecurity lab: ${scenario.title}`,
     '',
-    hookLine(scenario.briefing, 240),
+    `I worked through ${article} ${difficultySentence} ${categoryLabel} scenario on DarkWorld, focused on building practical, evidence-led security habits in a safe simulated environment.`,
     '',
-    'Approach:',
-    linkedinSteps,
-    ...(objectives.length > 4 ? [`• …and ${objectives.length - 4} more step(s)`] : []),
-    ...(keyTakeaway ? ['', `Key takeaway: "${truncate(keyTakeaway, 260)}"`] : []),
+    `Progress: ${count}/${scenario.totalFlags} proof point${scenario.totalFlags === 1 ? '' : 's'}${complete ? ' captured' : ' recorded so far'} | Recorded completion: ${completionDate(opts.completedAt)}`,
     '',
-    `${scenario.difficulty} difficulty · ${scenario.category} · ${scenario.totalFlags} flag${scenario.totalFlags > 1 ? 's' : ''} captured`,
+    'Why this lab mattered',
+    report.executiveSummary.trim() || `This exercise was useful because it forced me to slow down, validate each step, and explain what the evidence supports instead of treating the final flag as the whole story.`,
     '',
-    opts.labsCompletedTotal
-      ? `Continuing to build hands-on offensive-security experience through DarkWorld — ${opts.labsCompletedTotal} labs completed so far${
-          opts.moduleTitle ? ` in the ${opts.moduleTitle} track` : ''
-        }.`
-      : `Continuing to build hands-on, in-browser offensive-security experience through DarkWorld — real recon-to-impact chains, not multiple-choice quizzes.`,
+    'Scope and boundaries',
+    scopeSummary,
     '',
-    hashtagLine,
+    'How I approached it',
+    methodologySummary,
+    '',
+    'Skills practiced',
+    skillsPracticed.map((skill) => `• ${skill}`).join('\n'),
+    '',
+    'Evidence notes',
+    findingSummary,
+    '',
+    'Reflection and next step',
+    learningSummary,
+    '',
+    nextStep,
+    '',
+    'This post reflects controlled training practice. It is a portfolio note about learning progress, not a claim of authorization to test real systems or an independent professional certification.',
+    ...(opts.labsCompletedTotal ? [`${opts.labsCompletedTotal} training labs completed in my learning record.`] : []),
+    '',
+    hashtags.map((tag) => `#${tag}`).join(' '),
   ].join('\n');
-
-  // ---------- Twitter / X (<=280 chars) ----------
-  const twHashtags = `#CyberSecurity #${(CATEGORY_HASHTAGS[scenario.category] ?? ['InfoSec'])[0]}`;
-  const twPrefix = `\u{1F6A9} Solved "${scenario.title}"${cveLine} (${scenario.difficulty}) — `;
-  const twSuffix = ` ${scenario.totalFlags}/${scenario.totalFlags} flags. ${twHashtags}`;
-  const twBudget = 280 - twPrefix.length - twSuffix.length;
-  const twitter = `${twPrefix}${truncate(hookLine(scenario.briefing, twBudget), Math.max(0, twBudget))}${twSuffix}`;
-
-  // ---------- Markdown / portfolio ----------
-  const mdObjectives = scenario.objectives
-    .map((o, i) => {
-      const text = objectiveText(o);
-      const why = objectiveWhy(o);
-      return why ? `${i + 1}. **${text}**\n   → ${why}` : `${i + 1}. ${text}`;
-    })
-    .join('\n');
-
+  const suffix = ` | ${count}/${scenario.totalFlags} flags in a simulated lab. #DarkWorld #CyberSecurity`;
+  const prefix = `${outcome}: ${scenario.title}`;
+  const budget = 280 - suffix.length;
+  const twitter = `${prefix.length > budget ? prefix.slice(0, budget - 3) + '...' : prefix}${suffix}`;
+  const findings = report.findings.length ? report.findings.flatMap((finding, index) => [
+    `### F-${String(index + 1).padStart(2, '0')}: ${finding.title.trim() || 'Untitled finding'}`,
+    `**Severity (learner assessed):** ${finding.severity}`, `**Affected asset:** ${finding.affectedAsset.trim() || 'Not documented'}`,
+    '', '**Evidence and reproduction**', describe(finding.evidence),
+    '', '**Observed impact**', describe(finding.impact),
+    '', '**Concept takeaway**', describe(finding.remediation),
+    '', '**What I would verify next**', describe(finding.retest), '',
+  ]) : ['No learner-authored findings have been added.', ''];
   const markdown = [
-    `## Lab: ${scenario.title}${cveLine}`,
-    '',
-    `**Category:** ${scenario.category} · **Difficulty:** ${scenario.difficulty} · **Flags:** ${scenario.totalFlags}/${scenario.totalFlags} · **Date:** ${dateStr}`,
-    ...(opts.learnerName ? [`**Learner:** ${opts.learnerName}`] : []),
-    '',
-    '### Scenario',
-    scenario.briefing,
-    '',
-    '### Methodology',
-    mdObjectives,
-    '',
-    '### Environment',
-    '_Completed inside DarkWorld, a browser-based offensive-security training platform — every step above was run against a simulated network and filesystem in an isolated, authorized lab environment._',
+    `# ${scenario.title}`, '', '## Training evidence notes',
+    `**Prepared by:** ${opts.learnerName?.trim() || 'Learner'}`,
+    `**Reference:** ${labRecordReference(entry, opts)}`,
+    `**Category:** ${scenario.category} | **Difficulty:** ${scenario.difficulty}`,
+    `**Recorded completion (UTC):** ${completionDate(opts.completedAt)}`,
+    `**Progress:** ${count}/${scenario.totalFlags} flags | ${complete ? 'Complete in learning record' : 'In progress'}`, '',
+    '## 1. Executive summary', describe(report.executiveSummary), '',
+    '## 2. Lab boundary and limitations', describe(report.scope), '',
+    'All targets are part of the DarkWorld simulation. These notes do not establish authorization for external systems.', '',
+    '## 3. Steps followed and evidence', describe(report.methodology), '',
+    '## 4. Concept evidence and supporting observations', ...findings,
+    '## 5. Notes to remember', describe(report.cleanup), '',
+    '## 6. Reflection and next steps', describe(report.reflection), '',
+    '## Appendix A. Exercise briefing', scenario.briefing, '',
+    '### Intended learning objectives',
+    ...scenario.objectives.map((objective, index) => `${index + 1}. ${typeof objective === 'string' ? objective : objective.text}`), '',
+    '## Record provenance',
+    'Flag counts and completion dates come from the learner\'s saved progress and can be edited locally. Findings and evidence are learner-authored. Objectives describe the exercise; they do not prove specific actions were performed. This is a portfolio training note, not an independently verified assessment or professional certification.', '',
   ].join('\n');
-
   return { linkedin, twitter, markdown, hashtags };
 }

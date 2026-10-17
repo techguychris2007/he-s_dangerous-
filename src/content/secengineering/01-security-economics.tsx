@@ -12,6 +12,14 @@ export default function SecurityEconomics() {
         failure, and whoever controls the budget to prevent it, are very often different people.
       </p>
 
+      <h2>Technical terms explained</h2>
+      <ul>
+        <li><strong>Asset, threat, vulnerability, and risk:</strong> An asset is something valuable, such as customer records or service availability. A threat is a potential cause of harm. A vulnerability is a weakness a threat could exploit. Risk combines the likelihood of harm with its consequences in a specific context.</li>
+        <li><strong>Externality and incentive:</strong> An externality is a cost or benefit experienced by someone outside the decision that created it. An incentive is a reason to choose a behavior. Rewarding release speed without accounting for incident costs can encourage teams to defer security work.</li>
+        <li><strong>Residual risk and risk treatment:</strong> Residual risk is what remains after controls are applied. Risk treatment can reduce, avoid, share, or accept risk. Acceptance should have an accountable owner and a review date; insurance shares some financial consequences but does not restore lost data.</li>
+        <li><strong>Expected loss and opportunity cost:</strong> Expected loss is a planning estimate based on probability and impact. Opportunity cost is the benefit forgone by choosing one investment over another. Estimates are uncertain, so compare a range of plausible outcomes rather than treating a single number as a prediction.</li>
+      </ul>
+
       <h2>The core insight: misaligned incentives</h2>
       <CodeBlock label="a pattern you'll recognize from nearly every lab in this course">{`Who benefits from cutting a security corner?    -> usually whoever ships faster/cheaper
 Who bears the cost when it goes wrong?           -> usually someone else: customers, a different
@@ -116,6 +124,12 @@ years of exposure — often far larger in aggregate than what Company X itself p
         the design patterns that hold up well specifically because they account for these economic and
         human realities, not just the theoretical threat model.
       </p>
+      <h2>Compare a control with its business cost</h2>
+      <p>Suppose a service has an estimated 10% annual chance of an incident costing $200,000. Its simplified annual expected loss is $20,000. A $6,000 control estimated to halve that probability reduces expected loss to $10,000, giving an estimated $4,000 annual net benefit before maintenance and user costs. These are illustrative assumptions, not measured certainty. Repeat the calculation for lower and higher probabilities, and account for severe consequences that money alone cannot capture. State who owns the remaining risk and how you will check that the control actually works. This turns a request for budget into a decision with explicit assumptions and accountability.</p>
+      <Callout variant="tip">
+        <p><strong>Check your understanding:</strong> Which assumption would most change this investment decision, and how could you gather evidence for it?</p>
+      </Callout>
+
     </div>
   );
 }

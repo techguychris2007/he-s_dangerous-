@@ -218,41 +218,44 @@ export const batch16MixedLabs: LabScenario[] = [
       'second executable stream is tucked inside the same innocuous text file, invisible to a normal ' +
       'directory listing but fully executable if directly invoked by path.',
     objectives: [
-      { text: 'cat dir-r-listing.txt', why: 'A normal directory listing shows nothing unusual about meeting_notes.txt -- only the specific /r-style enumeration that explicitly lists alternate data streams reveals the second, hidden stream living inside the same file.' },
-      { text: 'cat sysmon-event-15-filestream.txt', why: 'Sysmon Event ID 15 (FileCreateStreamHash) is one of the most valuable real detection signals for ADS abuse specifically because it fires the moment a named stream is created -- confirming exactly when the hidden payload was written and its hash, not just that it currently exists.' },
+      { text: 'dir /r meeting_notes.txt', why: 'A normal directory listing shows nothing unusual about meeting_notes.txt -- only the specific /r-style enumeration that explicitly lists alternate data streams reveals the second, hidden stream living inside the same file.' },
+      { text: 'Query the Sysmon operational log for Event ID 15 with wevtutil', why: 'Sysmon Event ID 15 (FileCreateStreamHash) is one of the most valuable real detection signals for ADS abuse specifically because it fires the moment a named stream is created -- confirming exactly when the hidden payload was written and its hash, not just that it currently exists.' },
     ],
     hints: [
-      'cat dir-r-listing.txt',
-      'cat sysmon-event-15-filestream.txt',
+      'dir /r meeting_notes.txt',
+      'wevtutil qe Microsoft-Windows-Sysmon/Operational /q:"*[System[(EventID=15)]]" /f:text',
     ],
     totalFlags: 1,
     attacker: analyst({
-      root: dir({
-        'dir-r-listing.txt': file(
-          'C:\\Users\\jchen\\Documents> dir /r meeting_notes.txt\n' +
-            ' Directory of C:\\Users\\jchen\\Documents\n' +
-            '\n' +
-            '07/29/2026  09:14 AM               412 meeting_notes.txt\n' +
-            '                                241,664 meeting_notes.txt:svchost_update.exe:$DATA\n' +
-            '\n' +
-            '-- a normal "dir" with no /r flag shows only the 412-byte default stream -- Explorer never\n' +
-            '   displays alternate streams at all, and they add nothing to the file\'s reported size --\n' +
-            '   the hidden stream is directly executable via its full filename:streamname path --\n',
-        ),
-        'sysmon-event-15-filestream.txt': file(
-          'Sysmon Event ID 15 (FileCreateStreamHash), workstation WKSTN-JCHEN-04:\n' +
-            '  2026-07-29 09:14:07  TargetFilename: C:\\Users\\jchen\\Documents\\meeting_notes.txt:svchost_update.exe\n' +
-            '  Hash: SHA256=9f2a7c41e8b0d3f5c9a1b6e8a4d9f7b2c5e1a8d4f6b9c3e7a2d1c6e8a4d9f7b2\n' +
-            '  Image: C:\\Users\\jchen\\Downloads\\quarterly_report.exe (the process that WROTE the stream)\n' +
-            '\n' +
-            '--- ANALYST NOTE: Event ID 15 fires the moment a named alternate data stream is created,\n' +
-            '    regardless of whether the stream is later hidden from a normal directory listing -- it is\n' +
-            '    one of the few reliable detection signals for ADS abuse precisely because it captures the\n' +
-            '    write event itself, not just the artifact left behind afterward.\n' +
-            '    flag{ntfs_ads_hidden_payload_sysmon_event15_filecreatestreamhash} ---\n',
-        ),
-      }),
+      root: dir({}),
     }),
+    winCommands: {
+      'dir /r meeting_notes.txt':
+        ' Directory of C:\\Users\\jchen\\Documents\n' +
+        '\n' +
+        '07/29/2026  09:14 AM               412 meeting_notes.txt\n' +
+        '                                241,664 meeting_notes.txt:svchost_update.exe:$DATA\n' +
+        '\n' +
+        '-- a normal "dir" with no /r flag shows only the 412-byte default stream -- Explorer never\n' +
+        '   displays alternate streams at all, and they add nothing to the file\'s reported size --\n' +
+        '   the hidden stream is directly executable via its full filename:streamname path --',
+      'wevtutil qe Microsoft-Windows-Sysmon/Operational /q:"*[System[(EventID=15)]]" /f:text':
+        'Event[0]:\n' +
+        '  Log Name: Microsoft-Windows-Sysmon/Operational\n' +
+        '  Event ID: 15\n' +
+        '  Task: FileCreateStreamHash\n' +
+        '  Date: 2026-07-29T09:14:07.000Z\n' +
+        '  Computer: WKSTN-JCHEN-04\n' +
+        '    TargetFilename: C:\\Users\\jchen\\Documents\\meeting_notes.txt:svchost_update.exe\n' +
+        '    Hash: SHA256=9f2a7c41e8b0d3f5c9a1b6e8a4d9f7b2c5e1a8d4f6b9c3e7a2d1c6e8a4d9f7b2\n' +
+        '    Image: C:\\Users\\jchen\\Downloads\\quarterly_report.exe (the process that WROTE the stream)\n' +
+        '\n' +
+        '--- ANALYST NOTE: Event ID 15 fires the moment a named alternate data stream is created,\n' +
+        '    regardless of whether the stream is later hidden from a normal directory listing -- it is\n' +
+        '    one of the few reliable detection signals for ADS abuse precisely because it captures the\n' +
+        '    write event itself, not just the artifact left behind afterward.\n' +
+        '    flag{ntfs_ads_hidden_payload_sysmon_event15_filecreatestreamhash} ---',
+    },
     network: [],
   },
 

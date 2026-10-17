@@ -27,20 +27,20 @@ function normalize(step: StepInput): GuidedStep {
 
 export default function StepChecklist({ steps, title = 'Guided Steps', autoCheckedCount = 0, variant = 'default' }: StepChecklistProps) {
   const items = steps.map(normalize);
-  const [checked, setChecked] = useState<boolean[]>(() => items.map(() => false));
+  const [checked, setChecked] = useState<(boolean | null)[]>(() => items.map(() => null));
   const prominent = variant === 'prominent';
 
   // `steps` can change (e.g. navigating directly from one lab/lesson to another without this
   // component unmounting, since the route component instance is reused). Without this, `checked`
   // would keep stale completion state from the previous set of steps.
   useEffect(() => {
-    setChecked(items.map(() => false));
+    setChecked(items.map(() => null));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [steps]);
 
-  const toggle = (i: number) => setChecked((c) => c.map((v, idx) => (idx === i ? !v : v)));
+  const toggle = (i: number) => setChecked(c => c.map((value, index) => index === i ? !(value ?? isAutoChecked(i)) : value));
   const isAutoChecked = (i: number) => i < autoCheckedCount;
-  const isDone = (i: number) => checked[i] || isAutoChecked(i);
+  const isDone = (i: number) => checked[i] ?? isAutoChecked(i);
   const doneCount = items.filter((_, i) => isDone(i)).length;
 
   return (
@@ -63,7 +63,7 @@ export default function StepChecklist({ steps, title = 'Guided Steps', autoCheck
       <ul className={prominent ? 'space-y-3.5' : 'space-y-2.5'}>
         {items.map((step, i) => {
           const done = isDone(i);
-          const auto = isAutoChecked(i) && !checked[i];
+          const auto = isAutoChecked(i) && checked[i] == null;
           return (
             <li key={i}>
               <button

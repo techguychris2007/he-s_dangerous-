@@ -25,12 +25,13 @@ iOS:
   - Apps distributed as IPA (iOS App Store Package) — a signed ZIP containing a Mach-O binary,
     resources, and Info.plist (the iOS equivalent of AndroidManifest.xml)
   - Every app runs inside an Apple-enforced sandbox with a per-app container directory
-  - Code signing is mandatory and enforced at the OS level — unlike Android, running an unsigned or
-    improperly-signed binary is blocked by the OS itself, not just a store policy`}</CodeBlock>
+  - Code signing and platform entitlement/sandbox policy constrain execution and access.
+    Android packages also require signing; store distribution and package signing are separate controls.`}</CodeBlock>
       <p>
-        This single distribution difference — Android's tolerance for sideloading versus iOS's hard code-signing
-        requirement — is why the overwhelming majority of real-world mobile malware targets Android: it's not that
-        Android's sandbox is weaker, it's that the installation gatekeeper is optional rather than OS-enforced.
+        Both platforms enforce signing and application isolation, with different distribution,
+        entitlement and device-policy models. Sideloading is not permission to run an unsigned Android
+        package. Assess the actual OS version, build, device state and installation policy rather than
+        explaining malware prevalence through one assumed platform difference.
       </p>
 
       <h2>The OWASP Mobile Top 10: a working map</h2>

@@ -197,4 +197,38 @@ export const ML_REGRESSION_TASKS: CodeTask[] = [
       '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}")\n' +
       'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
   },
+
+  {
+    id: 'ml-reg-07',
+    title: 'Train-Test Split Without Leakage',
+    difficulty: 'Easy',
+    language: 'python',
+    category: 'ML: Regression',
+    prompt:
+      'Write chronological_split(rows, test_size) where rows is already sorted by time. Return (train, test) without shuffling: ' +
+      'the final test_size rows must become the test set. This is the safer split for forecasting and production logs because future examples must not leak into training.',
+    starterCode:
+      'def chronological_split(rows, test_size):\n' +
+      '    # TODO: return (train_rows, test_rows), with the last test_size rows held out\n' +
+      '    pass\n',
+    hints: [
+      'The split index is len(rows) - test_size.',
+      'Training rows come before the split index; test rows start at the split index.',
+      'Return two lists as a tuple.'
+    ],
+    solution:
+      'def chronological_split(rows, test_size):\n' +
+      '    split = len(rows) - test_size\n' +
+      '    return rows[:split], rows[split:]\n',
+    testCode:
+      '__results__ = []\n' +
+      'def __check__(name, actual, expected):\n' +
+      '    __results__.append((name, actual == expected, actual, expected))\n\n' +
+      '__check__("basic", chronological_split([1,2,3,4,5], 2), ([1,2,3], [4,5]))\n' +
+      '__check__("one test", chronological_split(["jan","feb","mar"], 1), (["jan","feb"], ["mar"]))\n' +
+      '__check__("all test", chronological_split([1,2], 2), ([], [1,2]))\n\n' +
+      'for name, ok, actual, expected in __results__:\n' +
+      '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
+      'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
+  }
 ];

@@ -146,6 +146,7 @@ class StaticAuthProvider(AuthProvider):
         return self.credentials.get(username) == password
 
 # AuthProvider()  # TypeError! Can't instantiate a class with unimplemented abstract methods.`}</CodeBlock>
+      <Callout variant="warn"><p><code>StaticAuthProvider</code> is deliberately a toy test double that demonstrates an interface, not an authentication design. Real applications should delegate verification to a maintained authentication framework using a dedicated password hash, per-user salt, request throttling, secure session management, and a protected account recovery flow. Never store plaintext passwords.</p></Callout>
       <p>
         An abstract base class is a contract: "anything claiming to be an AuthProvider MUST implement{' '}
         <code>authenticate</code>." Python enforces this at the moment you try to create an instance — you

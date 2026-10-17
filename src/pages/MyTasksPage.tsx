@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { LABS, LABS_IN_ROADMAP_ORDER } from '../data/labs';
 import { useProgress } from '../state/progressStore';
 import LabCard from '../components/labs/LabCard';
+import WorkspaceHeader from '../components/common/WorkspaceHeader';
 
 type Filter = 'all' | 'in-progress' | 'not-started' | 'completed';
 
@@ -11,6 +12,8 @@ export default function MyTasksPage() {
   const progress = useProgress();
   const [filter, setFilter] = useState<Filter>('all');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [search, setSearch] = useState('');
+  const [savedOnly, setSavedOnly] = useState(false);
 
   // Compute status for each lab — memoized on labFlags so it doesn't redo on unrelated state changes
   const labStatuses = useMemo(() => {
@@ -41,13 +44,11 @@ export default function MyTasksPage() {
     [labStatuses],
   );
 
-  const filtered = useMemo(
-    () =>
-      filter === 'all'
-        ? LABS_IN_ROADMAP_ORDER
-        : LABS_IN_ROADMAP_ORDER.filter((l) => labStatuses.get(l.scenario.id) === filter),
-    [filter, labStatuses],
-  );
+  const filtered = useMemo(() => LABS_IN_ROADMAP_ORDER.filter(lab => {
+    const matchesStatus = filter === 'all' || labStatuses.get(lab.scenario.id) === filter;
+    const matchesSearch = (lab.scenario.title + ' ' + lab.scenario.category + ' ' + lab.scenario.difficulty).toLowerCase().includes(search.trim().toLowerCase());
+    return matchesStatus && matchesSearch && (!savedOnly || progress.bookmarkedLabs[lab.scenario.id]);
+  }), [filter, labStatuses, search, savedOnly, progress.bookmarkedLabs]);
 
   const visible = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount]);
   const hasMore = visibleCount < filtered.length;
@@ -58,15 +59,10 @@ export default function MyTasksPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-14">
-      <div className="gold-eyebrow mb-1.5 sm:mb-2">// assigned to you</div>
-      <h1 className="text-2xl sm:text-3xl font-bold text-[var(--color-heading)] mb-2 sm:mb-3">My Tasks</h1>
-      <p className="text-sm sm:text-base text-[var(--color-text-dim)] mb-6 sm:mb-8 leading-relaxed max-w-2xl">
-        Every lab in the curriculum, tracked as a task with your real progress. Nothing here is graded by
-        anyone else — the percentage is exactly how many flags you have captured in your own browser.
-      </p>
-
-      <div className="flex flex-wrap gap-2 mb-8">
+    <div className="task-board max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-14">
+      <WorkspaceHeader eyebrow="DarkWorld / Practice desk" title="Practice tasks" description="Find a challenge, follow the evidence, and build confidence through hands-on practice. Your saved work and progress are always close by."><strong>{counts.completed} / {counts.all}</strong><span>terminal labs completed</span></WorkspaceHeader>
+      <div className="mb-5 flex flex-wrap items-center gap-3"><input type="search" aria-label="Search tasks" placeholder="Search labs, categories, or difficulty…" value={search} onChange={event => {setSearch(event.target.value); setVisibleCount(PAGE_SIZE);}} className="min-w-0 flex-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm text-[var(--color-heading)]" /><button aria-pressed={savedOnly} onClick={() => {setSavedOnly(value => !value);setVisibleCount(PAGE_SIZE);}} className="rounded-lg border border-[var(--color-border)] px-4 py-3 text-sm text-[var(--color-heading)]">{savedOnly ? 'Saved labs only ✓' : 'Show saved labs'}</button></div>
+      <div className="task-board-filters">
         {(
           [
             ['all', 'All'],
@@ -92,12 +88,12 @@ export default function MyTasksPage() {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-10 text-center text-[var(--color-text-dim)]">
-          Nothing in this list yet.
+        <div className="premium-card rounded-2xl p-10 text-center text-[var(--color-text-dim)]">
+          <p>No labs match these filters.</p><button onClick={() => {setSearch('');setSavedOnly(false);handleSetFilter('all');}} className="mt-3 font-semibold text-[var(--color-accent-dim)] underline">Clear all filters</button>
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="task-board-list">
             {visible.map((lab) => (
               <LabCard key={lab.slug} lab={lab} variant="task" />
             ))}

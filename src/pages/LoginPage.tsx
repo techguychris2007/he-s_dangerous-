@@ -1,13 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../state/authStore';
+import { useLabsData } from '../state/useLabsData';
 import Logo from '../components/layout/Logo';
 import AgencyBackdrop from '../components/layout/AgencyBackdrop';
 import { IconUser, IconLock, IconMail } from '../components/layout/icons';
-
-// Hardcoded fallback counts to keep main bundle small (~0KB lab import)
-const FALLBACK_TOTAL_LABS = 597;
-const FALLBACK_TOTAL_FLAGS = 759;
 
 type Mode = 'signin' | 'signup' | 'reset';
 
@@ -20,17 +17,17 @@ function StampButton({ children, disabled, ...rest }: React.ButtonHTMLAttributes
       disabled={disabled}
       className="group relative w-full mt-1 px-4 py-3.5 font-mono tracking-[0.25em] uppercase text-sm disabled:opacity-45 disabled:cursor-not-allowed transition-transform active:scale-[0.98] overflow-hidden"
       style={{
-        background: '#0d1420',
-        color: '#c9a15f',
-        border: '1px solid #c9a15f',
-        boxShadow: '0 0 0 3px #06090f, 0 0 0 4px #c9a15f55, 0 10px 24px -10px rgba(0,0,0,0.7)',
+        background: '#142638',
+        color: '#79d0d5',
+        border: '1px solid #79d0d5',
+        boxShadow: '0 0 0 3px #06090f, 0 0 0 4px #79d0d555, 0 10px 24px -10px rgba(0,0,0,0.7)',
       }}
     >
       <span
         aria-hidden
         className="absolute inset-y-0 -left-1/3 w-1/3 opacity-0 group-hover:opacity-100 group-disabled:opacity-0 transition-opacity"
         style={{
-          background: 'linear-gradient(90deg, transparent, rgba(201,161,95,0.35), transparent)',
+          background: 'linear-gradient(90deg, transparent, rgba(121,208,213,0.35), transparent)',
           animation: disabled ? 'none' : 'stamp-sweep 1.1s ease-in-out infinite',
         }}
       />
@@ -47,14 +44,14 @@ function StampButton({ children, disabled, ...rest }: React.ButtonHTMLAttributes
 
 export default function LoginPage() {
   const auth = useAuth();
+  const labsData = useLabsData();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const initialMode: Mode = searchParams.get('mode') === 'signup' ? 'signup' : 'signin';
-  const [mode, setMode] = useState<Mode>(initialMode);
+  const mode: Mode = searchParams.get('mode') === 'signup' ? 'signup' : searchParams.get('mode') === 'reset' ? 'reset' : 'signin';
 
-  const totalLabs = FALLBACK_TOTAL_LABS;
-  const totalFlags = FALLBACK_TOTAL_FLAGS;
+  const totalLabs = labsData?.LABS.length ?? '…';
+  const totalFlags = labsData?.TOTAL_FLAGS ?? '…';
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -71,20 +68,23 @@ export default function LoginPage() {
   }, [auth.loading, auth.user, navigate]);
 
   const switchMode = (next: Mode) => {
-    setMode(next);
+    if (submitting || guestSubmitting) return;
+    setSearchParams(next === 'signin' ? {} : { mode: next });
+    setPassword(''); setConfirmPassword('');
     setError(null);
     setInfo(null);
   };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting || guestSubmitting) return;
     setError(null);
     setInfo(null);
 
     if (mode === 'reset') {
       if (!email.trim()) return setError('Enter your email address.');
       setSubmitting(true);
-      const { error: resetError } = await auth.sendPasswordReset(email.trim());
+      const { error: resetError } = await auth.sendPasswordReset(email.trim()).catch(() => ({error: 'Could not connect. Check your connection and try again.'}));
       setSubmitting(false);
       if (resetError) return setError(resetError);
       setInfo('Password reset email sent — check your inbox for a link.');
@@ -98,11 +98,12 @@ export default function LoginPage() {
       if (password !== confirmPassword) return setError('Passwords do not match.');
 
       setSubmitting(true);
-      const { error: signUpError, needsEmailConfirm } = await auth.signUp(email.trim(), password, fullName.trim());
+      const { error: signUpError, needsEmailConfirm } = await auth.signUp(email.trim(), password, fullName.trim()).catch(() => ({error: 'Could not create your account. Check your connection and retry.', needsEmailConfirm: false}));
       setSubmitting(false);
       if (signUpError) return setError(signUpError);
       if (needsEmailConfirm) {
-        switchMode('signin');
+        setSearchParams({});
+        setPassword(''); setConfirmPassword('');
         setInfo('Account created — check your email to confirm it before signing in.');
         return;
       }
@@ -114,34 +115,35 @@ export default function LoginPage() {
     if (!email.trim()) return setError('Enter your email address.');
     if (!password) return setError('Enter your password.');
     setSubmitting(true);
-    const { error: signInError } = await auth.signIn(email.trim(), password);
+    const { error: signInError } = await auth.signIn(email.trim(), password).catch(() => ({error: 'Could not sign in. Check your connection and retry.'}));
     setSubmitting(false);
     if (signInError) return setError(signInError);
     navigate('/', { replace: true });
   };
 
   const continueAsGuest = async () => {
+    if (guestSubmitting || submitting) return;
     setError(null);
     setInfo(null);
     setGuestSubmitting(true);
-    const { error: guestError } = await auth.signInAsGuest();
+    const { error: guestError } = await auth.signInAsGuest().catch(() => ({error: 'Could not start a guest session. Check your connection and retry.'}));
     setGuestSubmitting(false);
     if (guestError) return setError(guestError);
     navigate('/', { replace: true });
   };
 
   return (
-    <div className="min-h-screen w-full flex bg-[#060d16]">
+    <div className="min-h-screen w-full flex bg-[#0d1824]">
       {/* ---------- brand panel (large screens only) ---------- */}
-      <div className="hidden lg:flex lg:w-[42%] relative overflow-hidden items-center border-r border-[#c9a15f2e]">
+      <div className="hidden lg:flex lg:w-[42%] relative overflow-hidden items-center border-r border-[#79d0d52e]">
         <AgencyBackdrop />
         <div className="relative px-12 xl:px-16 reveal" style={{ '--reveal-delay': '0s' } as React.CSSProperties}>
           <Link to="/welcome" className="inline-flex items-center gap-2.5 mb-14">
-            <Logo className="w-8 h-8" />
+            <Logo className="w-14 h-14" />
             <span
-              className="font-serif text-xl tracking-wide"
+              className="font-display text-3xl font-black tracking-[-0.04em]"
               style={{
-                backgroundImage: 'linear-gradient(180deg, #f3e3bd 0%, #c9a15f 60%, #8f7136 100%)',
+                backgroundImage: 'linear-gradient(180deg, #d1eff0 0%, #79d0d5 60%, #4b929a 100%)',
                 WebkitBackgroundClip: 'text',
                 backgroundClip: 'text',
                 color: 'transparent',
@@ -150,7 +152,7 @@ export default function LoginPage() {
               DARKWORLD
             </span>
           </Link>
-          <h2 className="font-serif text-3xl xl:text-4xl leading-tight text-white mb-5">
+          <h2 className="font-display text-3xl xl:text-4xl leading-tight text-white mb-5">
             Offensive &amp; defensive
             <br />
             security, hands-on.
@@ -161,11 +163,11 @@ export default function LoginPage() {
           </p>
           <div className="flex items-center gap-8">
             <div>
-              <div className="text-2xl font-extrabold text-white">{totalLabs}+</div>
+              <div className="text-2xl font-extrabold text-white">{totalLabs}</div>
               <div className="text-2xs font-mono uppercase tracking-[0.2em] text-[#7c93ae] mt-1">Hands-on labs</div>
             </div>
             <div>
-              <div className="text-2xl font-extrabold text-white">{totalFlags}+</div>
+              <div className="text-2xl font-extrabold text-white">{totalFlags}</div>
               <div className="text-2xs font-mono uppercase tracking-[0.2em] text-[#7c93ae] mt-1">Flags to capture</div>
             </div>
           </div>
@@ -182,9 +184,9 @@ export default function LoginPage() {
         className="relative w-full max-w-[440px] rounded-2xl px-7 py-8 sm:px-9 sm:py-10 reveal"
         style={{
           '--reveal-delay': '0.1s',
-          background: 'linear-gradient(180deg, #16283b 0%, #101f30 100%)',
-          border: '1px solid #c9a15f88',
-          boxShadow: '0 0 0 1px rgba(201,161,95,0.15), 0 0 60px -12px rgba(63,140,255,0.35), 0 30px 60px -20px rgba(0,0,0,0.6)',
+          background: 'linear-gradient(180deg, #20394d 0%, #142638 100%)',
+          border: '1px solid #79d0d588',
+          boxShadow: '0 0 0 1px rgba(121,208,213,0.15), 0 0 60px -12px rgba(63,140,255,0.35), 0 30px 60px -20px rgba(0,0,0,0.6)',
         } as React.CSSProperties}
       >
         <Link
@@ -198,17 +200,17 @@ export default function LoginPage() {
           <div
             className="w-16 h-16 rounded-xl flex items-center justify-center mb-4 lg:hidden"
             style={{
-              background: 'linear-gradient(180deg, #1c2f45 0%, #0e1826 100%)',
-              border: '1px solid #c9a15f66',
+              background: 'linear-gradient(180deg, #20394d 0%, #142638 100%)',
+              border: '1px solid #79d0d566',
               boxShadow: 'inset 0 0 18px rgba(63,140,255,0.25), 0 0 22px -6px rgba(63,140,255,0.5)',
             }}
           >
-            <Logo className="w-9 h-9" />
+            <Logo className="w-14 h-14" />
           </div>
           <h1
-            className="font-serif text-3xl tracking-wide lg:hidden"
+            className="font-display text-3xl tracking-wide lg:hidden"
             style={{
-              backgroundImage: 'linear-gradient(180deg, #f3e3bd 0%, #c9a15f 60%, #8f7136 100%)',
+              backgroundImage: 'linear-gradient(180deg, #d1eff0 0%, #79d0d5 60%, #4b929a 100%)',
               WebkitBackgroundClip: 'text',
               backgroundClip: 'text',
               color: 'transparent',
@@ -216,7 +218,7 @@ export default function LoginPage() {
           >
             DARKWORLD
           </h1>
-          <p className="font-serif text-[13px] tracking-[0.2em] uppercase text-[#8fa7c4] mt-1">
+          <p className="font-display text-[13px] tracking-[0.2em] uppercase text-[#8fa7c4] mt-1">
             {mode === 'signup' ? 'Create your account' : mode === 'reset' ? 'Reset your password' : 'Sign in'}
           </p>
         </div>
@@ -224,15 +226,17 @@ export default function LoginPage() {
         {mode !== 'reset' && (
           <div
             className="flex items-center rounded-lg p-1 mb-6"
-            style={{ background: 'rgba(6,13,22,0.55)', border: '1px solid #c9a15f4d' }}
+            style={{ background: 'rgba(6,13,22,0.55)', border: '1px solid #79d0d54d' }}
           >
             <button
               type="button"
               onClick={() => switchMode('signin')}
+              disabled={submitting || guestSubmitting}
+              aria-pressed={mode === 'signin'}
               className="flex-1 py-2 rounded-md text-xs font-semibold tracking-wide uppercase transition"
               style={
                 mode === 'signin'
-                  ? { background: 'linear-gradient(180deg, #e9c98a 0%, #c9a15f 100%)', color: '#241a08' }
+                  ? { background: 'linear-gradient(180deg, #b0e4e7 0%, #79d0d5 100%)', color: '#142638' }
                   : { color: '#8fa7c4' }
               }
             >
@@ -241,10 +245,12 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => switchMode('signup')}
+              disabled={submitting || guestSubmitting}
+              aria-pressed={mode === 'signup'}
               className="flex-1 py-2 rounded-md text-xs font-semibold tracking-wide uppercase transition"
               style={
                 mode === 'signup'
-                  ? { background: 'linear-gradient(180deg, #e9c98a 0%, #c9a15f 100%)', color: '#241a08' }
+                  ? { background: 'linear-gradient(180deg, #b0e4e7 0%, #79d0d5 100%)', color: '#142638' }
                   : { color: '#8fa7c4' }
               }
             >
@@ -257,49 +263,58 @@ export default function LoginPage() {
           {mode === 'signup' && (
             <label
               className="flex items-center gap-3 px-4 py-3 rounded-lg"
-              style={{ background: 'rgba(6,13,22,0.55)', border: '1px solid #c9a15f4d' }}
+              style={{ background: 'rgba(6,13,22,0.55)', border: '1px solid #79d0d54d' }}
             >
-              <IconUser className="w-4 h-4 text-[#c9a15f] shrink-0" />
+              <IconUser className="w-4 h-4 text-[#79d0d5] shrink-0" />
               <span className="sr-only">Full name</span>
               <input
                 autoFocus
                 value={fullName}
+                autoComplete="name"
+                required
+                disabled={submitting || guestSubmitting}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="Full name"
-                className="flex-1 min-w-0 bg-transparent outline-none text-sm text-[#e8edf5] placeholder:text-[#5f7284]"
+                className="flex-1 min-w-0 bg-transparent outline-none text-sm text-[#e8edf5] placeholder:text-[#9db5c7]"
               />
             </label>
           )}
 
           <label
             className="flex items-center gap-3 px-4 py-3 rounded-lg"
-            style={{ background: 'rgba(6,13,22,0.55)', border: '1px solid #c9a15f4d' }}
+            style={{ background: 'rgba(6,13,22,0.55)', border: '1px solid #79d0d54d' }}
           >
-            <IconMail className="w-4 h-4 text-[#c9a15f] shrink-0" />
+            <IconMail className="w-4 h-4 text-[#79d0d5] shrink-0" />
             <span className="sr-only">Email address</span>
             <input
               autoFocus={mode !== 'signup'}
               type="email"
+              autoComplete="email"
+              required
+              disabled={submitting || guestSubmitting}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Email address"
-              className="flex-1 min-w-0 bg-transparent outline-none text-sm text-[#e8edf5] placeholder:text-[#5f7284]"
+              className="flex-1 min-w-0 bg-transparent outline-none text-sm text-[#e8edf5] placeholder:text-[#9db5c7]"
             />
           </label>
 
           {mode !== 'reset' && (
             <label
               className="flex items-center gap-3 px-4 py-3 rounded-lg"
-              style={{ background: 'rgba(6,13,22,0.55)', border: '1px solid #c9a15f4d' }}
+              style={{ background: 'rgba(6,13,22,0.55)', border: '1px solid #79d0d54d' }}
             >
-              <IconLock className="w-4 h-4 text-[#c9a15f] shrink-0" />
+              <IconLock className="w-4 h-4 text-[#79d0d5] shrink-0" />
               <span className="sr-only">{mode === 'signup' ? 'Password (min. 6 characters)' : 'Password'}</span>
               <input
                 type="password"
                 value={password}
+                autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+                required
+                disabled={submitting || guestSubmitting}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder={mode === 'signup' ? 'Password (min. 6 characters)' : 'Password'}
-                className="flex-1 min-w-0 bg-transparent outline-none text-sm text-[#e8edf5] placeholder:text-[#5f7284]"
+                className="flex-1 min-w-0 bg-transparent outline-none text-sm text-[#e8edf5] placeholder:text-[#9db5c7]"
               />
             </label>
           )}
@@ -307,16 +322,19 @@ export default function LoginPage() {
           {mode === 'signup' && (
             <label
               className="flex items-center gap-3 px-4 py-3 rounded-lg"
-              style={{ background: 'rgba(6,13,22,0.55)', border: '1px solid #c9a15f4d' }}
+              style={{ background: 'rgba(6,13,22,0.55)', border: '1px solid #79d0d54d' }}
             >
-              <IconLock className="w-4 h-4 text-[#c9a15f] shrink-0" />
+              <IconLock className="w-4 h-4 text-[#79d0d5] shrink-0" />
               <span className="sr-only">Confirm password</span>
               <input
                 type="password"
                 value={confirmPassword}
+                autoComplete="new-password"
+                required
+                disabled={submitting || guestSubmitting}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Confirm password"
-                className="flex-1 min-w-0 bg-transparent outline-none text-sm text-[#e8edf5] placeholder:text-[#5f7284]"
+                className="flex-1 min-w-0 bg-transparent outline-none text-sm text-[#e8edf5] placeholder:text-[#9db5c7]"
               />
             </label>
           )}
@@ -332,17 +350,17 @@ export default function LoginPage() {
           )}
 
           {error && (
-            <div className="text-xs text-[var(--term-error-text)] bg-[var(--term-error)]/8 border border-[var(--term-error)]/30 rounded-lg px-3 py-2 leading-relaxed">
+            <div role="alert" className="text-xs text-[var(--term-error-text)] bg-[var(--term-error)]/8 border border-[var(--term-error)]/30 rounded-lg px-3 py-2 leading-relaxed">
               {error}
             </div>
           )}
           {info && (
-            <div className="text-xs text-[var(--term-success)] bg-[var(--term-success)]/8 border border-[var(--term-success)]/30 rounded-lg px-3 py-2 leading-relaxed">
+            <div role="status" className="text-xs text-[var(--term-success)] bg-[var(--term-success)]/8 border border-[var(--term-success)]/30 rounded-lg px-3 py-2 leading-relaxed">
               {info}
             </div>
           )}
 
-          <StampButton type="submit" disabled={submitting}>
+          <StampButton type="submit" disabled={submitting || guestSubmitting}>
             {submitting
               ? 'Processing…'
               : mode === 'signup'
@@ -367,21 +385,21 @@ export default function LoginPage() {
         {mode !== 'reset' && (
           <>
             <div className="flex items-center gap-3 mt-5">
-              <div className="flex-1 h-px" style={{ background: '#c9a15f33' }} />
-              <span className="text-2xs font-mono uppercase tracking-widest text-[#5f7284]">or</span>
-              <div className="flex-1 h-px" style={{ background: '#c9a15f33' }} />
+              <div className="flex-1 h-px" style={{ background: '#79d0d533' }} />
+              <span className="text-2xs font-mono uppercase tracking-widest text-[#9db5c7]">or</span>
+              <div className="flex-1 h-px" style={{ background: '#79d0d533' }} />
             </div>
 
             <button
               type="button"
               onClick={continueAsGuest}
               disabled={guestSubmitting || submitting}
-              className="w-full mt-4 px-4 py-3 rounded-lg text-sm font-semibold text-[#c9e0ff] transition-colors disabled:opacity-45 disabled:cursor-not-allowed hover:bg-[#c9a15f14]"
+              className="w-full mt-4 px-4 py-3 rounded-lg text-sm font-semibold text-[#c9e0ff] transition-colors disabled:opacity-45 disabled:cursor-not-allowed hover:bg-[#79d0d514]"
               style={{ border: '1px solid #7c93ae66' }}
             >
               {guestSubmitting ? 'Setting up your guest session…' : 'Continue as guest'}
             </button>
-            <p className="text-center text-2xs text-[#5f7284] mt-2.5 leading-relaxed">
+            <p className="text-center text-2xs text-[#9db5c7] mt-2.5 leading-relaxed">
               Explore every lab and lesson with no sign-up. Your progress still saves — add an email later
               from your profile to keep it permanently.
             </p>
@@ -389,7 +407,7 @@ export default function LoginPage() {
         )}
 
         <p className="text-center text-2xs font-mono text-[#4d5e70] mt-6 tracking-wide">
-          Secured by Supabase Auth &middot; your password is never stored or seen by this app
+          Secured by Supabase Auth &middot; password verification is handled by Supabase Auth
         </p>
       </div>
       </div>

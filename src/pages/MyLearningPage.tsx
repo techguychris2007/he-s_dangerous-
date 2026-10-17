@@ -1,14 +1,16 @@
 import { useState, type ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { ROADMAP, findModule } from '../data/curriculum';
 import { LABS } from '../data/labs';
+import { SIEM_LABS } from '../labs/siemScenarios';
+import { OSINT_LABS } from '../labs/osintScenarios';
 import { useProgress } from '../state/progressStore';
-import ModuleBanner from '../components/layout/ModuleBanner';
+import './learning-pages.css';
+import AcademyHero from '../components/common/AcademyHero';
 import DifficultyPill from '../components/common/DifficultyPill';
 import {
   ModuleIcon,
   IconCheck,
-  IconCrosshair,
   IconChest,
   IconRoute,
   IconRefresh,
@@ -16,7 +18,12 @@ import {
   IconFlask,
   IconArrowRight,
 } from '../components/layout/icons';
-import type { RoadmapStage } from '../types';
+import type { RoadmapStage, RoadmapTrack } from '../types';
+
+const PRACTICE_LABS = [
+  ...LABS.map(lab => ({ ...lab, href: '/lab/' + lab.slug })),
+  ...[...SIEM_LABS, ...OSINT_LABS].map(lab => ({ slug: lab.id, href: '/siem-lab/' + lab.id, scenario: { id: lab.id, title: lab.title, difficulty: lab.difficulty, category: lab.tool } })),
+];
 
 type TabId = 'current' | 'recent' | 'saved';
 
@@ -26,47 +33,6 @@ const TABS: { id: TabId; label: string; icon: (p: { className?: string }) => Rea
   { id: 'saved', label: 'Saved', icon: (p) => <IconBookmark {...p} /> },
 ];
 
-/** A loose, decorative wave connecting each stop — deliberately not pixel-locked to card centers
- *  (the stack's real height comes from flex layout, not this SVG), same spirit as the reference
- *  design's winding path. Purely ambient background art. */
-function buildWavePath(stops: number): string {
-  if (stops <= 0) return '';
-  let d = 'M50,0 ';
-  for (let i = 0; i < stops; i++) {
-    const cx = i % 2 === 0 ? 78 : 22;
-    const yTop = i * 100;
-    d += `C ${cx},${yTop + 25} ${cx},${yTop + 75} 50,${yTop + 100} `;
-  }
-  return d.trim();
-}
-
-function BinaryDecoration({ className }: { className: string }) {
-  const lines = ['0101101', '111011001101', '—', '1010111', '0111101', '10010101', '—', '00001001', '01101'];
-  return (
-    <div
-      aria-hidden="true"
-      className={`hidden 2xl:block absolute select-none pointer-events-none font-mono text-[10px] leading-[1.5] text-[var(--color-text-dim)] opacity-40 ${className}`}
-    >
-      {lines.map((line, i) =>
-        line === '—' ? <div key={i} className="my-1.5 h-px w-8 bg-[var(--color-border)]" /> : <div key={i}>{line}</div>,
-      )}
-    </div>
-  );
-}
-
-function FloatingGlyph({ icon, className, slow }: { icon: string; className: string; slow?: boolean }) {
-  return (
-    <div
-      aria-hidden="true"
-      className={`hidden 2xl:flex absolute w-16 h-16 rounded-2xl items-center justify-center bg-[var(--color-accent)]/5 text-[var(--color-accent)]/25 ${
-        slow ? 'my-learning-float-slow' : 'my-learning-float'
-      } ${className}`}
-    >
-      <ModuleIcon icon={icon} className="w-8 h-8" />
-    </div>
-  );
-}
-
 interface StageInfo {
   stage: RoadmapStage;
   mod: ReturnType<typeof findModule>;
@@ -75,79 +41,20 @@ interface StageInfo {
   complete: boolean;
 }
 
-function BonusChestCard({ stage, align }: { stage: RoadmapStage; align: 'left' | 'right' }) {
-  return (
-    <div className={`relative w-[88%] ${align === 'left' ? 'mr-auto' : 'ml-auto'}`}>
-      <Link
-        to={stage.href ?? '/labs'}
-        className="group flex items-center gap-4 rounded-2xl border-2 border-dashed border-[var(--color-gold)]/50 bg-[var(--color-gold-soft)] px-4 py-4 hover:border-[var(--color-gold)] transition-colors"
-      >
-        <span className="w-14 h-14 rounded-2xl bg-[var(--color-gold)]/20 flex items-center justify-center text-[var(--color-gold-dim)] shrink-0 my-learning-float">
-          <IconChest className="w-7 h-7" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <div className="text-2xs font-mono font-bold uppercase tracking-widest text-[var(--color-gold-dim)] mb-0.5">
-            Bonus stop
-          </div>
-          <div className="font-extrabold text-[var(--color-heading)] text-sm leading-tight">{stage.title}</div>
-          <div className="text-2xs text-[var(--color-text-dim)] mt-0.5">A matching guided lab for every module above.</div>
-        </div>
-        <IconArrowRight className="w-4 h-4 text-[var(--color-gold-dim)] shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
-      </Link>
-    </div>
-  );
-}
-
-function PathStopCard({
-  index,
-  info,
-  isHere,
-  align,
-}: {
-  index: number;
-  info: StageInfo;
-  isHere: boolean;
-  align: 'left' | 'right';
-}) {
+function PathStopCard({ index, info, isHere }: { index: number; info: StageInfo; isHere: boolean }) {
   const { stage, mod, doneLessons, totalLessons, complete } = info;
-  if (!mod) return <BonusChestCard stage={stage} align={align} />;
-
   return (
-    <div className={`relative w-[88%] ${align === 'left' ? 'mr-auto' : 'ml-auto'}`}>
-      <Link
-        to={`/module/${mod.slug}`}
-        className="group block rounded-2xl overflow-hidden border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[var(--shadow-card)] hover:border-[var(--color-accent)]/50 transition-colors"
-      >
-        <div className="relative h-32">
-          <ModuleBanner icon={mod.icon} moduleId={mod.id} className="absolute inset-0 w-full h-full" />
-          <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 p-3.5">
-            <div className="text-2xs font-mono font-bold uppercase tracking-widest text-white/75 mb-0.5">
-              Stop {index + 1}
-            </div>
-            <div className="font-extrabold text-white text-base leading-tight drop-shadow-sm">{stage.title}</div>
-          </div>
-          <div
-            className={`absolute top-3 right-3 w-9 h-9 rounded-full border-2 flex items-center justify-center text-2xs font-bold ${
-              complete
-                ? 'bg-[var(--color-success)] border-white/80 text-white'
-                : isHere
-                ? 'bg-[var(--color-accent)] border-white/80 text-white here-pulse-ring'
-                : 'bg-white/15 border-white/40 text-white backdrop-blur-sm'
-            }`}
-          >
-            {complete ? <IconCheck className="w-4 h-4" /> : isHere ? <IconCrosshair className="w-4 h-4" /> : index + 1}
-          </div>
-        </div>
-        <div className="px-3.5 py-2.5 flex items-center justify-between gap-2">
-          <span className="text-2xs text-[var(--color-text-dim)] font-mono">
-            {totalLessons > 0 ? `${doneLessons}/${totalLessons} lessons` : 'Guided practice'}
-          </span>
-          {isHere && <span className="pill bg-[var(--color-accent)]/15 text-[var(--color-accent)]">Continue</span>}
-          {complete && <span className="pill bg-[var(--color-success)]/15 text-[var(--color-success)]">Complete</span>}
-        </div>
-      </Link>
-    </div>
+    <Link to={stage.href ?? (mod ? '/module/' + mod.slug : '/labs')} className={'learning-module-row' + (isHere ? ' learning-module-row--current' : '')}>
+      <span className="learning-module-number">{complete ? <IconCheck className="h-5 w-5" /> : String(index + 1).padStart(2, '0')}</span>
+      <div className="min-w-0 flex-1">
+        <div className="learning-module-meta">{complete ? 'Completed' : isHere ? 'Your next module' : mod ? 'Learning module' : 'Practice'}{mod && <span> · {totalLessons} lessons</span>}</div>
+        <h3 className="learning-module-title">{stage.title}</h3>
+        <p className="learning-module-description">{mod?.description ?? 'Apply your knowledge in the lab catalog.'}</p>
+        {mod && <div className="learning-module-progress"><progress value={doneLessons} max={Math.max(totalLessons, 1)} aria-label={stage.title + ' completion'} /><span>{doneLessons} of {totalLessons} lessons complete</span></div>}
+      </div>
+      <span className="learning-module-action"><span>{complete ? 'Review' : isHere ? 'Continue' : 'View module'}</span><IconArrowRight className="h-4 w-4" /></span>
+      {!mod && <IconChest className="h-5 w-5" />}
+    </Link>
   );
 }
 
@@ -173,9 +80,9 @@ function CompletedStrip({ items }: { items: StageInfo[] }) {
   );
 }
 
-function CurrentPathTab() {
+function CurrentPathTab({ track }: { track: RoadmapTrack }) {
   const progress = useProgress();
-  const stages = ROADMAP.filter((s) => s.track === 'security');
+  const stages = ROADMAP.filter((s) => s.track === track);
 
   const stageInfo: StageInfo[] = stages.map((stage) => {
     const mod = stage.moduleSlug ? findModule(stage.moduleSlug) : undefined;
@@ -200,14 +107,14 @@ function CurrentPathTab() {
 
   return (
     <>
-      <div className="flex flex-wrap gap-3 mb-6">
-        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3">
+      <div className="learning-summary">
+        <div className="learning-summary-item">
           <div className="text-lg font-bold text-[var(--color-heading)]">
             {modulesDone}/{modulesTotal}
           </div>
           <div className="text-2xs text-[var(--color-text-dim)] uppercase tracking-wide">Modules complete</div>
         </div>
-        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3">
+        <div className="learning-summary-item">
           <div className="text-lg font-bold text-[var(--color-heading)]">
             {lessonsDone}/{lessonsTotal}
           </div>
@@ -217,7 +124,7 @@ function CurrentPathTab() {
 
       {allDone && (
         <div className="rounded-xl border border-[var(--color-success)]/30 bg-[var(--color-success)]/10 px-4 py-3 mb-6 text-sm text-[var(--color-success)] font-semibold">
-          You've cleared every stop on the Offensive Security path. Nice work — revisit any stop below, or head to the{' '}
+          You've completed the lessons on this path. Revisit any module below, or head to the{' '}
           <Link to="/labs" className="underline">
             lab catalog
           </Link>{' '}
@@ -227,31 +134,13 @@ function CurrentPathTab() {
 
       <CompletedStrip items={before} />
 
-      <div className="relative">
-        <svg
-          viewBox={`0 0 100 ${windowed.length * 100}`}
-          preserveAspectRatio="none"
-          className="absolute inset-0 w-full h-full pointer-events-none"
-          aria-hidden="true"
-        >
-          <path
-            d={buildWavePath(windowed.length)}
-            fill="none"
-            stroke="var(--color-border)"
-            strokeWidth="2"
-            strokeDasharray="1 7"
-            strokeLinecap="round"
-            vectorEffect="non-scaling-stroke"
-          />
-        </svg>
-        <div className="flex flex-col gap-6 relative z-10">
+      <div className="learning-module-list"><div className="flex flex-col">
           {windowed.map((info, i) => (
             <PathStopCard
               key={info.stage.title}
               index={windowStart + i}
               info={info}
               isHere={windowStart + i === currentIndex}
-              align={i % 2 === 0 ? 'left' : 'right'}
             />
           ))}
         </div>
@@ -259,7 +148,7 @@ function CurrentPathTab() {
 
       {after.length > 0 && (
         <Link
-          to="/roadmap"
+          to={`/roadmap?track=${track}`}
           className="mt-6 flex items-center justify-center gap-1.5 text-sm font-semibold text-[var(--color-accent)] hover:underline"
         >
           {after.length} more stop{after.length === 1 ? '' : 's'} on the full path <IconArrowRight className="w-3.5 h-3.5" />
@@ -271,7 +160,7 @@ function CurrentPathTab() {
 
 function EmptyState({ icon, text, cta, to }: { icon: ReactNode; text: string; cta: string; to: string }) {
   return (
-    <div className="rounded-xl border border-dashed border-[var(--color-border)] p-8 text-center">
+    <div className="premium-card rounded-2xl border-dashed p-8 text-center">
       <div className="w-12 h-12 rounded-full bg-[var(--color-surface-2)] text-[var(--color-text-dim)] flex items-center justify-center mx-auto mb-3">
         {icon}
       </div>
@@ -285,7 +174,7 @@ function EmptyState({ icon, text, cta, to }: { icon: ReactNode; text: string; ct
 
 function RecentTab() {
   const progress = useProgress();
-  const recent = LABS.filter((l) => progress.labCompletedAt[l.scenario.id])
+  const recent = PRACTICE_LABS.filter((l) => progress.labCompletedAt[l.scenario.id])
     .sort((a, b) => progress.labCompletedAt[b.scenario.id] - progress.labCompletedAt[a.scenario.id])
     .slice(0, 10);
 
@@ -305,8 +194,8 @@ function RecentTab() {
       {recent.map((l) => (
         <Link
           key={l.slug}
-          to={`/lab/${l.slug}`}
-          className="flex items-center justify-between gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 hover:border-[var(--color-accent)]/50 transition-colors"
+          to={l.href}
+          className="flex items-center justify-between gap-3 premium-card rounded-2xl px-4 py-3 hover:border-[var(--color-accent)]/50 transition-colors"
         >
           <div className="flex items-center gap-3 min-w-0">
             <span className="w-9 h-9 rounded-lg bg-[var(--color-success)]/15 text-[var(--color-success)] flex items-center justify-center shrink-0">
@@ -328,7 +217,7 @@ function RecentTab() {
 
 function SavedTab() {
   const progress = useProgress();
-  const saved = LABS.filter((l) => progress.isBookmarked(l.scenario.id));
+  const saved = PRACTICE_LABS.filter((l) => progress.isBookmarked(l.scenario.id));
 
   if (saved.length === 0) {
     return (
@@ -346,9 +235,9 @@ function SavedTab() {
       {saved.map((l) => (
         <div
           key={l.slug}
-          className="flex items-center justify-between gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3"
+          className="flex items-center justify-between gap-3 premium-card rounded-2xl px-4 py-3"
         >
-          <Link to={`/lab/${l.slug}`} className="flex items-center gap-3 min-w-0 flex-1">
+          <Link to={l.href} className="flex items-center gap-3 min-w-0 flex-1">
             <span className="w-9 h-9 rounded-lg bg-[var(--color-accent)]/15 text-[var(--color-accent)] flex items-center justify-center shrink-0">
               <IconFlask className="w-4 h-4" />
             </span>
@@ -376,22 +265,22 @@ function SavedTab() {
 
 export default function MyLearningPage() {
   const [tab, setTab] = useState<TabId>('current');
+  const [params, setParams] = useSearchParams();
+  const paths = [['presecurity', 'Pre-security'], ['security', 'Offensive security'], ['defensive', 'Defensive security']] as const;
+  const track = paths.find(([id]) => id === params.get('track'))?.[0] ?? 'presecurity';
+  const progress = useProgress();
+  const modules = ROADMAP.filter(stage => stage.track === track).map(stage => findModule(stage.moduleSlug)).filter(mod => mod !== undefined);
+  const next = modules.find(mod => mod.lessons.some(lesson => !progress.isLessonComplete(lesson.id)));
+  const lessons = modules.flatMap(mod => mod.lessons);
+  const done = lessons.filter(lesson => progress.isLessonComplete(lesson.id)).length;
 
   return (
     <div className="relative">
-      <BinaryDecoration className="left-3 top-24" />
-      <BinaryDecoration className="right-3 top-[38rem]" />
-      <FloatingGlyph icon="shield" className="left-6 top-8" />
-      <FloatingGlyph icon="terminal" className="right-6 top-[26rem]" slow />
 
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-14 relative z-10">
-        <div className="gold-eyebrow mb-1.5 sm:mb-2">// my learning</div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-[var(--color-heading)] mb-2">My Learning</h1>
-        <p className="text-sm sm:text-base text-[var(--color-text-dim)] mb-6 leading-relaxed max-w-2xl">
-          Your Offensive Security path, a few stops at a time — plus the labs you've recently finished and saved for
-          later.
-        </p>
-
+      <div className="learning-page mx-auto max-w-6xl px-4 sm:px-7 py-8 sm:py-12">
+        <AcademyHero eyebrow="Your personal workspace" title="My Learning" description="A little focused practice goes a long way. Continue your chapter, revisit your work, or find a new skill to build."
+          stats={[{label: 'Current path', value: paths.find(([id]) => id === track)?.[1] ?? ''}, {label: 'Lessons complete', value: done + ' / ' + lessons.length}]}
+          action={{title: next?.title ?? 'Your next challenge awaits', detail: next?.description ?? 'Explore practical labs and put your knowledge to work.', to: next ? '/module/' + next.slug : '/labs', label: next ? 'Continue your chapter' : 'Find a practice lab'}} />
         <div className="flex items-center gap-4 sm:gap-6 border-b border-[var(--color-border)] mb-6 sm:mb-8 overflow-x-auto">
           {TABS.map((t) => {
             const Icon = t.icon;
@@ -412,7 +301,7 @@ export default function MyLearningPage() {
           })}
         </div>
 
-        {tab === 'current' && <CurrentPathTab />}
+        {tab === 'current' && <><label className="mb-5 flex flex-wrap items-center gap-3 text-sm text-[var(--color-text-dim)]">Learning path<select aria-label="Current learning path" value={track} onChange={event => setParams({ track: event.target.value })} className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-[var(--color-heading)]">{paths.map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></label><CurrentPathTab track={track} /></>}
         {tab === 'recent' && <RecentTab />}
         {tab === 'saved' && <SavedTab />}
       </div>

@@ -3,18 +3,18 @@ import type { CodeTask } from '../codeTypes';
 export const SECURITY_IDENTITY_ACCESS_TASKS: CodeTask[] = [
   {
     id: 'sec-idaccess-01',
-    title: 'NIST 800-63B Password Policy Validator',
+    title: 'MFA Password Policy Practice: A Limited Contract',
     difficulty: 'Easy',
     language: 'python',
     category: 'Security: Identity & Access (NIST 800-63 / OWASP ASVS)',
     prompt:
-      'NIST SP 800-63B (the guideline this book covers) deliberately rejected the old rules — no forced ' +
-      'mix of upper/lower/digit/symbol, no mandatory periodic rotation. Real modern policy instead checks: ' +
-      'a sane minimum/maximum length, and comparison against a blocklist of known weak/breached passwords, ' +
-      'because length and uniqueness stop real attacks (credential stuffing, dictionary attacks) that ' +
-      'composition rules never did.\n\n' +
+      'This limited coding contract uses an eight-character minimum for an MFA-only exercise. ' +
+      'It is not a complete NIST conformance check or a password-only authentication policy. Current ' +
+      'NIST SP 800-63B-4 requires at least 15 characters for single-factor passwords and permits an ' +
+      'eight-character minimum when passwords are only used within MFA. The repeated-character rule ' +
+      'below is an exercise heuristic, not a separate NIST requirement. Follow the exact task contract.\n\n' +
       'Write check_password_policy(password, blocklist) where blocklist is a set of lowercase known-weak ' +
-      'passwords. Return a list of violation strings (empty list = compliant):\n' +
+      'passwords. Return a list of violation strings (empty list = passes this exercise contract):\n' +
       '- "too short (minimum 8 characters)" if len(password) < 8\n' +
       '- "too long (maximum 64 characters)" if len(password) > 64\n' +
       '- "appears on the known-weak/breached password blocklist" if password.lower() is in blocklist\n' +

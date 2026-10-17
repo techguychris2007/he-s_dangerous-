@@ -271,4 +271,50 @@ export const ML_FOUNDATIONS_TASKS: CodeTask[] = [
       '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
       'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
   },
+
+  {
+    id: 'ml-found-08',
+    title: 'Build an EDA Plot Plan',
+    difficulty: 'Easy',
+    language: 'python',
+    category: 'ML: Foundations',
+    prompt:
+      'Write choose_plot(column_type, question) that recommends a chart for an exploratory data analysis task. ' +
+      'Use these rules: numeric + distribution -> histogram, numeric + relationship -> scatter, categorical + comparison -> bar, ' +
+      'numeric + category -> box, otherwise return table. This mirrors the first professional EDA decision: choose the visual that answers the question.',
+    starterCode:
+      'def choose_plot(column_type, question):\n' +
+      '    # TODO: return one of: histogram, scatter, bar, box, table\n' +
+      '    pass\n',
+    hints: [
+      'Normalize both inputs with .lower() so case does not matter.',
+      'Look for keywords such as distribution, relationship, comparison, and category.',
+      'Return table when no rule is specific enough.'
+    ],
+    solution:
+      'def choose_plot(column_type, question):\n' +
+      '    c = column_type.lower()\n' +
+      '    q = question.lower()\n' +
+      '    if c == "numeric" and "distribution" in q:\n' +
+      '        return "histogram"\n' +
+      '    if c == "numeric" and "relationship" in q:\n' +
+      '        return "scatter"\n' +
+      '    if c == "categorical" and "comparison" in q:\n' +
+      '        return "bar"\n' +
+      '    if c == "numeric" and "category" in q:\n' +
+      '        return "box"\n' +
+      '    return "table"\n',
+    testCode:
+      '__results__ = []\n' +
+      'def __check__(name, actual, expected):\n' +
+      '    __results__.append((name, actual == expected, actual, expected))\n\n' +
+      '__check__("numeric distribution", choose_plot("numeric", "show distribution of income"), "histogram")\n' +
+      '__check__("relationship", choose_plot("numeric", "relationship between age and spend"), "scatter")\n' +
+      '__check__("category comparison", choose_plot("categorical", "comparison of product segments"), "bar")\n' +
+      '__check__("numeric by category", choose_plot("numeric", "value by category"), "box")\n' +
+      '__check__("fallback", choose_plot("text", "inspect examples"), "table")\n\n' +
+      'for name, ok, actual, expected in __results__:\n' +
+      '    print(f"[{\'PASS\' if ok else \'FAIL\'}] {name}: got {actual!r}, expected {expected!r}")\n' +
+      'print(f"__RESULT__ {sum(1 for _,ok,_,_ in __results__ if ok)}/{len(__results__)}")\n',
+  }
 ];

@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
-import { supabase } from '../lib/supabaseClient';
+import { supabase, AUTH_STORAGE_KEY } from '../lib/supabaseClient';
 
 interface AuthResult {
   error: string | null;
@@ -8,6 +8,28 @@ interface AuthResult {
 
 interface SignUpResult extends AuthResult {
   needsEmailConfirm: boolean;
+}
+
+/** Reads whatever session is currently sitting in localStorage, without going through
+ *  supabase.auth.getSession() — which, when the access token has fully expired AND the device is
+ *  offline (so it can't refresh), returns `session: null` even though a perfectly valid refresh token
+ *  is sitting right there in storage; it just can't be verified with no network. This is a raw,
+ *  best-effort read of that same storage entry for exactly that situation: trust the last-known
+ *  identity until we're back online and the SDK's own refresh logic can re-verify for real. Shape-
+ *  checked the same way supabase-js's own _isValidSession does — this never invents a session, it just
+ *  reads the one already sitting there. */
+function readCachedSessionForOfflineUse(): Session | null {
+  try {
+    const raw = localStorage.getItem(AUTH_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object' && 'access_token' in parsed && 'refresh_token' in parsed && 'user' in parsed) {
+      return parsed as Session;
+    }
+    return null;
+  } catch {
+    return null;
+  }
 }
 
 interface AuthApi {
@@ -44,7 +66,12 @@ export function useAuthState(): AuthApi {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
+      // See readCachedSessionForOfflineUse above: a null session while fully offline doesn't
+      // necessarily mean "logged out" — it can mean "couldn't verify, no network." Falling back to
+      // the raw cached value here only ever runs when the SDK itself couldn't establish a session, so
+      // it can never override or race a real, verified one.
+      const resolved = data.session ?? (navigator.onLine ? null : readCachedSessionForOfflineUse());
+      setSession(resolved);
       setLoading(false);
     });
     const { data: subscription } = supabase.auth.onAuthStateChange((event, newSession) => {
@@ -58,7 +85,19 @@ export function useAuthState(): AuthApi {
         window.location.hash = '#/reset-password';
       }
     });
-    return () => subscription.subscription.unsubscribe();
+
+    // The moment connectivity returns, ask the SDK to authoritatively re-check: if we were running on
+    // the offline fallback above, this either confirms it (refresh succeeds, onAuthStateChange fires
+    // TOKEN_REFRESHED) or correctly signs out a session that was never coming back (refresh token
+    // itself was revoked/invalid — a genuine logout, not an offline artifact).
+    const onOnline = () => {
+      supabase.auth.getSession();
+    };
+    window.addEventListener('online', onOnline);
+    return () => {
+      subscription.subscription.unsubscribe();
+      window.removeEventListener('online', onOnline);
+    };
   }, []);
 
   const signUp = useCallback(async (email: string, password: string, fullName: string): Promise<SignUpResult> => {

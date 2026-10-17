@@ -15,23 +15,23 @@ export default function StatCard({
 }) {
   if (!icon) {
     return (
-      <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 flex flex-col items-center justify-center text-center">
+      <div className="premium-card rounded-2xl p-5 flex flex-col items-center justify-center text-center">
         <div className="text-xl font-extrabold text-[var(--color-heading)] leading-none mb-1">{value}</div>
-        <div className="text-xs text-[var(--color-text-dim)] uppercase tracking-wide">{label}</div>
+        <div className="text-xs font-bold text-[var(--color-text-dim)] uppercase tracking-wide">{label}</div>
       </div>
     );
   }
   return (
-    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 flex items-center gap-4">
+    <div className="premium-card premium-card-hover rounded-2xl p-5 flex items-center gap-4 overflow-hidden">
       <span
-        className="w-11 h-11 rounded-lg flex items-center justify-center shrink-0"
+        className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]"
         style={{ backgroundColor: `color-mix(in srgb, ${color} 15%, transparent)`, color }}
       >
         {icon}
       </span>
       <div>
-        <div className="text-xl font-extrabold text-[var(--color-heading)] leading-none mb-1">{value}</div>
-        <div className="text-xs text-[var(--color-text-dim)] uppercase tracking-wide">{label}</div>
+        <div className="text-2xl font-black tracking-[-0.04em] text-[var(--color-heading)] leading-none mb-1">{value}</div>
+        <div className="text-xs font-bold text-[var(--color-text-dim)] uppercase tracking-wide">{label}</div>
       </div>
     </div>
   );

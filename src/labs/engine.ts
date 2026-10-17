@@ -1,5 +1,15 @@
 import { getNode, setNode, pathToString, resolvePath, type FsNode } from './vfs';
-import type { HostDef, LabScenario, AwsAccountDef, AwsCredential, MsfModuleDef } from './types';
+import type { HostDef, LabScenario, AwsAccountDef, AwsCredential, MsfModuleDef, KerberosTicketLabDef, LabEvent } from './types';
+import { WebApplicationEngine, type WebApplicationSnapshot } from './webApplication';
+
+export interface LabSnapshot {
+  scenarioId: string;
+  events: LabEvent[];
+  sessions: { hostIp: string; user: string; privileged: boolean }[];
+  reachableHosts: string[];
+  flags: string[];
+  webApplication?: WebApplicationSnapshot;
+}
 
 export type LineKind = 'input' | 'output' | 'error' | 'success' | 'system' | 'muted';
 
@@ -14,6 +24,12 @@ interface Session {
   user: string;
   cwd: string[];
   isRoot: boolean;
+}
+
+interface SimulatedKerberosCache {
+  principal: string;
+  domain: string;
+  domainSid: string;
 }
 
 const FLAG_RE = /flag\{[^}]+\}/i;
@@ -57,11 +73,15 @@ const KNOWN_COMMANDS = [
   'help', 'pwd', 'ls', 'cd', 'cat', 'strings', 'file', 'checksec', 'objdump', 'gdb', 'yara',
   'hashcat', 'echo', 'find', 'grep', 'whoami', 'id', 'ifconfig', 'ip', 'netstat', 'ping', 'nmap',
   'curl', 'wget', 'ftp', 'ftp-get', 'ssh', 'hydra', 'crackmapexec', 'cme', 'netexec', 'exploit',
+  'impacket-ticketer', 'impacket-psexec', 'klist',
   'secretsdump', 'dig', 'nslookup', 'gobuster', 'ffuf', 'dirsearch', 'nikto', 'whatweb', 'sqlmap',
   'john', 'cewl', 'enum4linux', 'smbclient', 'masscan', 'rustscan', 'nc', 'netcat', 'sudo', 'su',
   'exit', 'logout', 'clear', 'objectives', 'hint', 'chmod', 'history', 'export', 'aws',
   'wc', 'sort', 'uniq', 'head', 'tail', 'cut', 'tr', 'xargs',
   'airmon-ng', 'airodump-ng', 'aireplay-ng', 'msfconsole',
+  'engagement',
+  'webapp',
+  'directory',
 ];
 
 /** Simulated per-command latency, roughly proportional to how long the real tool actually takes
@@ -86,6 +106,8 @@ export const COMMAND_LATENCY_MS: Record<string, number> = {
   cme: 500,
   netexec: 500,
   secretsdump: 550,
+  'impacket-ticketer': 700,
+  'impacket-psexec': 700,
   exploit: 750,
   msfconsole: 900,
   cewl: 500,
@@ -100,10 +122,20 @@ export class TerminalEngine {
   private stack: Session[];
   private hintIndex = 0;
   private commandHistory: string[] = [];
+  private seenFlags = new Set<string>();
+  private remediated = false;
+  private retestSignals = new Set<string>();
+  private engagementClosed = false;
+  private events: LabEvent[] = [];
+  private webApplication?: WebApplicationEngine;
+  private directoryRepaired = false;
+  private directoryChecks = new Set<string>();
   /** `export KEY=VALUE` writes here — lives for the whole engine instance (one shell process),
    *  not per ssh session, matching how a real exported env var survives sshing elsewhere. */
   private sessionEnv: Record<string, string> = {};
-  private awaitingAuth: { ip: string; user: string; host: HostDef } | null = null;
+  /** Metadata for virtual ticket caches created by the explicitly simulated Impacket lab commands. */
+  private kerberosCaches = new Map<string, SimulatedKerberosCache>();
+  private awaitingAuth: { ip: string; user: string; host: HostDef; attempts: number } | null = null;
   /** Non-null while the shell is inside `msfconsole` — mirrors `awaitingAuth`'s "modal sub-state that
    *  intercepts `run()`" shape, but for the real, multi-step `use`/`set`/`run` workflow instead of a
    *  password prompt. `modulePath` is whatever the learner last `use`d (any string, matching real
@@ -111,6 +143,8 @@ export class TerminalEngine {
   private msfSession: { modulePath: string | null; moduleDef: MsfModuleDef | null; options: Record<string, string> } | null = null;
 
   constructor(scenario: LabScenario) {
+    // Every attempt owns its filesystem and controls; remediation must not alter the catalog.
+    scenario = structuredClone(scenario);
     this.scenario = scenario;
     this.attackerRoot = scenario.attacker.root;
     const base: Session = {
@@ -121,6 +155,20 @@ export class TerminalEngine {
     };
     this.stack = [base];
     this.sessionEnv = { ...(scenario.attacker.env ?? {}) };
+    if (scenario.webApplication) this.webApplication = new WebApplicationEngine(scenario.webApplication);
+  }
+
+  /** Read-only projection: UI cannot manufacture an access event or mutate engine state. */
+  getSnapshot(): LabSnapshot {
+    return structuredClone({ scenarioId: this.scenario.id, events: this.events,
+      sessions: this.stack.filter(session => session.host).map(session => ({ hostIp: session.host!.ip, user: session.user, privileged: session.isRoot })),
+      reachableHosts: this.scenario.network.filter(host => this.canReachHost(host)).map(host => host.ip),
+      flags: [...this.seenFlags], webApplication: this.webApplication?.snapshot() });
+  }
+
+  private recordEvent(kind: LabEvent['kind'], hostIp: string, actor: string, detail: string): void {
+    if (this.events.some(event => event.kind === kind && event.hostIp === hostIp && event.actor === actor && event.detail === detail)) return;
+    this.events.push({ sequence: this.events.length + 1, kind, hostIp, actor, detail });
   }
 
   private get session(): Session {
@@ -165,8 +213,20 @@ export class TerminalEngine {
     return this.awaitingAuth !== null;
   }
 
+  cancelAuthentication(): void {
+    this.awaitingAuth = null;
+  }
+
   private findHostByIp(ip: string): HostDef | undefined {
-    return this.scenario.network.find((h) => h.ip === ip);
+    const host = this.scenario.network.find((h) => h.ip === ip && this.canReachHost(h));
+    if (host) this.recordEvent('contact', ip, this.effectiveUser(), `Reached ${host.hostname}`);
+    return host;
+  }
+
+  private canReachHost(host: HostDef): boolean {
+    if (host.requiresProof && host.requiresProof.flags.filter(flag => this.seenFlags.has(flag)).length < host.requiresProof.count) return false;
+    if (host.reachableFrom && (!this.session.host || !host.reachableFrom.includes(this.session.host.ip))) return false;
+    return true;
   }
 
   private resolveInSession(input: string): string[] {
@@ -181,7 +241,10 @@ export class TerminalEngine {
     if (this.isUnderRootDenied(target)) return [{ kind: 'error', text: `ls: cannot open directory '${positional[0] ?? '.'}': Permission denied` }];
     const node = getNode(this.fsRoot(), target);
     if (!node) return [{ kind: 'error', text: `ls: cannot access '${positional[0] ?? '.'}': No such file or directory` }];
-    if (node.type === 'file') return [{ kind: 'output', text: positional[0] ?? '' }];
+    if (node.type === 'file') {
+      const name = positional[0] ?? '';
+      return [{ kind: 'output', text: long ? `${node.mode ?? '-rw-r--r--'} 1 root root ${String(node.content.length).padStart(6)} ${name}` : name }];
+    }
     const names = Object.keys(node.children);
     if (names.length === 0) return [];
     if (!long) {
@@ -246,8 +309,7 @@ export class TerminalEngine {
         continue;
       }
       node.content.split('\n').forEach((l) => out.push({ kind: 'output', text: l }));
-      const match = node.content.match(FLAG_RE);
-      if (match) onFlag(match[0]);
+      for (const flag of node.content.match(/flag\{[^}]+\}/gi) ?? []) onFlag(flag);
     }
     return out;
   }
@@ -434,28 +496,10 @@ export class TerminalEngine {
 
   private grep(args: string[], onFlag: (flag: string) => void): OutLine[] {
     const recursive = args.includes('-r') || args.includes('-R');
-    const ignoreCase = args.includes('-i');
-    const positional = args.filter((a) => !a.startsWith('-'));
+    const positional = args.filter((a, i) => !a.startsWith('-') && !['-A', '-B', '-C'].includes(args[i - 1]));
     if (positional.length < 2) return [{ kind: 'error', text: 'usage: grep [-r] [-i] [-E] <pattern> <file|dir>' }];
-    const [rawPattern, targetPath] = positional;
-    const clean = rawPattern.replace(/^["']|["']$/g, '');
-    // grep patterns in these labs are sometimes plain literal text and sometimes a real regex
-    // (e.g. "any.*any.*any" or -E "[0-9]{3}-[0-9]{2}-[0-9]{4}") — compile as a regex when possible,
-    // falling back to a literal substring check if the pattern isn't valid regex syntax.
-    let regex: RegExp | null = null;
-    try {
-      regex = new RegExp(clean, ignoreCase ? 'i' : undefined);
-    } catch {
-      regex = null;
-    }
-    const needle = ignoreCase ? clean.toLowerCase() : clean;
-    const matchesLine = (l: string) => (regex ? regex.test(l) : (ignoreCase ? l.toLowerCase() : l).includes(needle));
-    // A flag surfaced by grep (the whole point of many "find the flag in this log" labs) still has
-    // to be reported through onFlag — grep printing the line isn't enough on its own to capture it.
-    const reportFlags = (text: string) => {
-      const match = text.match(FLAG_RE);
-      if (match) onFlag(match[0]);
-    };
+    const targetPath = positional[1];
+    const filterArgs = args.filter(a => a !== targetPath);
     const resolved = this.resolveInSession(targetPath);
     if (this.isUnderRootDenied(resolved)) return [{ kind: 'error', text: `grep: ${targetPath}: Permission denied` }];
     const node = getNode(this.fsRoot(), resolved);
@@ -467,12 +511,8 @@ export class TerminalEngine {
       const walk = (n: FsNode, path: string[]) => {
         if (this.isUnderRootDenied(path)) return;
         if (n.type === 'file') {
-          n.content.split('\n').forEach((l) => {
-            if (matchesLine(l)) {
-              out.push({ kind: 'output', text: `${pathToString(path)}:${l}` });
-              reportFlags(l);
-            }
-          });
+          out.push(...this.grepLines(n.content.replace(/\n$/, '').split('\n'), filterArgs, onFlag)
+            .map(line => ({ ...line, text: `${pathToString(path)}:${line.text}` })));
         } else {
           for (const [name, child] of Object.entries(n.children)) walk(child, [...path, name]);
         }
@@ -481,11 +521,7 @@ export class TerminalEngine {
       return out.length ? out : [];
     }
 
-    const matches = node.content.split('\n').filter(matchesLine);
-    matches.forEach(reportFlags);
-    return matches.length
-      ? matches.map((l) => ({ kind: 'output' as const, text: l }))
-      : [];
+    return this.grepLines(node.content.replace(/\n$/, '').split('\n'), filterArgs, onFlag);
   }
 
   private nmap(args: string[], onFlag: (flag: string) => void): OutLine[] {
@@ -531,7 +567,7 @@ export class TerminalEngine {
       out.push({ kind: 'error', text: `nmap: invalid target specification '${cidrArg}'` });
       return out;
     }
-    const found = this.scenario.network.filter((h) => ipInCidr(h.ip, baseIp, prefix));
+    const found = this.scenario.network.filter((h) => this.canReachHost(h) && ipInCidr(h.ip, baseIp, prefix));
     if (found.length === 0) {
       out.push({ kind: 'output', text: `Nmap done: ${2 ** (32 - prefix)} IP addresses (0 hosts up) scanned in 2.10 seconds` });
       return out;
@@ -568,21 +604,23 @@ export class TerminalEngine {
     // otherwise a header value that doesn't start with '-' gets mistaken for the target.
     const consumed = new Set<number>();
     let postBody: string | undefined;
+    let method: string | undefined;
     const headers: Record<string, string> = {};
     args.forEach((a, i) => {
-      if (a === '-H' && args[i + 1] !== undefined) {
+      if ((a === '-H' || a === '--header') && args[i + 1] !== undefined) {
         consumed.add(i);
         consumed.add(i + 1);
         const [name, ...rest] = args[i + 1].replace(/^["']|["']$/g, '').split(':');
         if (name) headers[name.trim().toLowerCase()] = rest.join(':').trim();
-      } else if (a === '-d' && args[i + 1] !== undefined) {
+      } else if ((a === '-d' || a === '--data' || a === '--data-raw') && args[i + 1] !== undefined) {
         consumed.add(i);
         consumed.add(i + 1);
         postBody = args[i + 1].replace(/^["']|["']$/g, '');
-      } else if (a === '-X' && args[i + 1] !== undefined) {
+      } else if ((a === '-X' || a === '--request') && args[i + 1] !== undefined) {
         // HTTP method flag — doesn't change simulated behavior here, but its value must not be mistaken for the URL.
         consumed.add(i);
         consumed.add(i + 1);
+        method = args[i + 1].toUpperCase();
       }
     });
 
@@ -603,10 +641,28 @@ export class TerminalEngine {
     // upload endpoint whose target key is in the query but the payload is in the body) — merge both
     // rather than picking one, so a vulnRoute's tested param is found regardless of which side it's on.
     const params = { ...parseParams(rawQuery ?? ''), ...parseParams(postBody ?? '') };
-    const route = svc.vulnRoutes?.find((r) => r.path === path);
+    if (this.webApplication && this.scenario.webApplication?.ip === ip && port === 80) {
+      let applicationParams = params;
+      if (postBody && headers['content-type']?.includes('application/json')) {
+        try {
+          const parsed: unknown = JSON.parse(postBody);
+          if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('Expected object');
+          applicationParams = { ...params, ...Object.fromEntries(Object.entries(parsed).filter((entry): entry is [string, string] => typeof entry[1] === 'string')) };
+        } catch { return [{ kind: 'output', text: 'HTTP/1.1 400 Bad Request\nInvalid JSON object.' }]; }
+      }
+      const response = this.webApplication.request({ method: method ?? (postBody === undefined ? 'GET' : 'POST'), path, headers, params: applicationParams }, onFlag);
+      const labels: Record<number, string> = { 200: 'OK', 401: 'Unauthorized', 403: 'Forbidden', 404: 'Not Found', 405: 'Method Not Allowed' };
+      return [{ kind: 'output', text: `HTTP/1.1 ${response.status} ${labels[response.status] ?? ''}\nContent-Type: application/json\n\n${JSON.stringify(response.body, null, 2)}` }];
+    }
+    // A shared endpoint can model several independent input conditions.
+    const routes = svc.vulnRoutes?.filter((r) => r.path === path) ?? [];
+    const isTriggered = (r: (typeof routes)[number]) => {
+      const value = r.location === 'header' ? headers[r.param.toLowerCase()] : params[r.param];
+      return value !== undefined && r.triggerSubstrings.some((s) => value.toLowerCase().includes(s.toLowerCase()));
+    };
+    const route = routes.find(isTriggered) ?? routes[0];
     if (route) {
-      const value = route.location === 'header' ? headers[route.param.toLowerCase()] : params[route.param];
-      const triggered = value !== undefined && route.triggerSubstrings.some((s) => value.toLowerCase().includes(s.toLowerCase()));
+      const triggered = isTriggered(route);
       const body = triggered ? route.vulnerableResponse : route.normalResponse;
       const match = body.match(FLAG_RE);
       if (match) onFlag(match[0]);
@@ -1154,9 +1210,13 @@ export class TerminalEngine {
     };
     switch (cmd) {
       case 'search': {
-        const term = args.join(' ').toLowerCase();
-        const hits = this.scenario.network.filter((h) => h.metasploitModule && h.metasploitModule.path.toLowerCase().includes(term));
-        if (!term || hits.length === 0) return [{ kind: 'muted', text: '[-] No results from search' }];
+        const terms = args.join(' ').toLowerCase().split(/\s+/).filter(Boolean);
+        const hits = this.scenario.network.filter((h) => {
+          if (!h.metasploitModule) return false;
+          const path = h.metasploitModule.path.toLowerCase();
+          return terms.length > 0 && terms.every((term) => path.includes(term));
+        });
+        if (hits.length === 0) return [{ kind: 'muted', text: '[-] No results from search' }];
         return [
           { kind: 'output', text: '   #  Name                                        Disclosure Date  Rank    Check  Description' },
           { kind: 'output', text: '   -  ----                                        ----------------  ----    -----  -----------' },
@@ -1318,6 +1378,10 @@ export class TerminalEngine {
     const account = host.users.find((u) => u.username === user);
     const ok = account && account.password === password;
     const status = ok ? (account?.sudo ? '(Pwn3d!)' : '[+]') : '[-]';
+    if (ok) {
+      this.recordEvent('authentication', ip, user, `Valid SMB credentials for ${host.hostname}`);
+      if (this.directoryRepaired && ip === this.scenario.directoryMap?.repairHostIp && this.events.some(event => event.kind === 'replication' && event.hostIp === ip && event.actor === user)) this.directoryChecks.add('legitimate-authentication');
+    }
     return [
       {
         kind: ok ? 'success' : 'error',
@@ -1355,14 +1419,115 @@ export class TerminalEngine {
       return [{ kind: 'error', text: `[-] ${ip}: STATUS_LOGON_FAILURE` }];
     }
     if (!account.canDcsync || !host.ntdsHashes) {
+      if (this.directoryRepaired && ip === this.scenario.directoryMap?.repairHostIp && this.events.some(event => event.kind === 'replication' && event.hostIp === ip && event.actor === user)) this.directoryChecks.add('replication-denied');
       return [{ kind: 'error', text: `[-] ${user} does not have replication rights (DS-Replication-Get-Changes) on ${host.hostname} — DCSync denied.` }];
     }
+    this.recordEvent('replication', ip, user, `Verified replication access to ${host.hostname}; this is data access, not an interactive administrator session.`);
     const match = host.ntdsHashes.match(FLAG_RE);
     if (match) onFlag(match[0]);
     return [
       { kind: 'system', text: `[*] Dumping Domain Credentials (domain\\uid:rid:lmhash:nthash)` },
       { kind: 'system', text: `[*] Using the DRSUAPI method to get NTDS.DIT secrets` },
       ...host.ntdsHashes.split('\n').map((l) => ({ kind: 'success' as const, text: l })),
+    ];
+  }
+
+  /** Validates a realistic Impacket ticket-forging command against the lab's fictional material.
+   *  This records a virtual marker, never a cryptographic ticket or usable cache file. */
+  private impacketTicketer(args: string[]): OutLine[] {
+    const value = (option: string) => {
+      const index = args.findIndex((argument) => argument.toLowerCase() === option.toLowerCase());
+      return index >= 0 ? args[index + 1] : undefined;
+    };
+    const aes256Key = value('-aesKey');
+    const domainSid = value('-domain-sid');
+    const domain = value('-domain');
+    const principal = args[args.length - 1];
+    if (!aes256Key || !domainSid || !domain || !principal || principal.startsWith('-')) {
+      return [{ kind: 'error', text: 'usage: impacket-ticketer -aesKey <krbtgt-aes256-key> -domain-sid <domain-sid> -domain <domain-fqdn> <username>' }];
+    }
+    if (!/^[a-f0-9]{64}$/i.test(aes256Key)) {
+      return [{ kind: 'error', text: '[-] AES256 key must be exactly 64 hexadecimal characters.' }];
+    }
+    const target = this.scenario.network.find((host) => host.kerberosTicketLab?.domain.toLowerCase() === domain.toLowerCase());
+    const lab = target?.kerberosTicketLab;
+    if (!lab) return [{ kind: 'error', text: `[-] No isolated Kerberos training domain is configured for ${domain}.` }];
+    if (domainSid !== lab.domainSid || aes256Key.toLowerCase() !== lab.krbtgtAes256Key.toLowerCase()) {
+      return [{ kind: 'error', text: '[-] Ticket creation failed: the supplied domain SID or krbtgt AES key does not match the evidence.' }];
+    }
+
+    const cacheName = `${principal}.ccache`;
+    this.kerberosCaches.set(cacheName.toLowerCase(), { principal, domain: lab.domain, domainSid: lab.domainSid });
+    setNode(this.fsRoot(), this.resolveInSession(cacheName), {
+      type: 'file',
+      content: `DarkWorld virtual cache marker; not a Kerberos ticket or usable ccache.\nPrincipal: ${principal}@${lab.domain}\nService: krbtgt/${lab.domain}\n`,
+    });
+    return [
+      { kind: 'system', text: '[DarkWorld simulation] Tool syntax and fictional trust inputs are validated; no real ticket is generated.' },
+      { kind: 'success', text: `[+] Created modeled TGT for ${principal}@${lab.domain}` },
+      { kind: 'success', text: `[+] Saving virtual cache marker in ${cacheName}` },
+    ];
+  }
+
+  private kerberosCacheFromEnvironment(): SimulatedKerberosCache | undefined {
+    const configured = this.sessionEnv.KRB5CCNAME?.replace(/^FILE:/i, '');
+    if (!configured) return undefined;
+    const basename = configured.split('/').pop() ?? configured;
+    return this.kerberosCaches.get(configured.toLowerCase()) ?? this.kerberosCaches.get(basename.toLowerCase());
+  }
+
+  private klist(): OutLine[] {
+    const cache = this.kerberosCacheFromEnvironment();
+    if (!cache) {
+      return [{ kind: 'error', text: 'klist: No usable credentials cache is selected. Set KRB5CCNAME to the modeled cache created by impacket-ticketer.' }];
+    }
+    return [
+      { kind: 'output', text: `Ticket cache: FILE:${this.sessionEnv.KRB5CCNAME?.replace(/^FILE:/i, '')}` },
+      { kind: 'output', text: `Default principal: ${cache.principal}@${cache.domain}` },
+      { kind: 'output', text: 'Credentials:' },
+      { kind: 'success', text: `  client: ${cache.principal}@${cache.domain}` },
+      { kind: 'success', text: `  server: krbtgt/${cache.domain}@${cache.domain}` },
+      { kind: 'muted', text: '[DarkWorld simulation] This confirms modeled lab state, not a cryptographic Kerberos ticket.' },
+    ];
+  }
+
+  /** Consumes the modeled cache and grants access only to the configured privileged principal on
+   *  this fictional SMB target. */
+  private impacketPsexec(args: string[]): OutLine[] {
+    if (!args.includes('-k') || !args.includes('-no-pass')) {
+      return [{ kind: 'error', text: 'usage: impacket-psexec -k -no-pass -target-ip <ip> DOMAIN/user@host.fqdn' }];
+    }
+    const targetIndex = args.findIndex((argument) => argument.toLowerCase() === '-target-ip');
+    const ip = targetIndex >= 0 ? args[targetIndex + 1] : undefined;
+    const targetArgument = args.find((argument) => argument.includes('/') && argument.includes('@'));
+    const parsed = targetArgument?.match(/^([^/]+)\/([^@]+)@(.+)$/);
+    if (!ip || !targetArgument || !parsed) {
+      return [{ kind: 'error', text: 'usage: impacket-psexec -k -no-pass -target-ip <ip> DOMAIN/user@host.fqdn' }];
+    }
+    const [, domain, principal, hostname] = parsed;
+    const host = this.findHostByIp(ip);
+    const lab: KerberosTicketLabDef | undefined = host?.kerberosTicketLab;
+    if (!host || !lab || !host.services.some((service) => service.port === 445)) {
+      return [{ kind: 'error', text: `[-] SMB connection to ${ip} failed or this lab has no Kerberos SMB target.` }];
+    }
+    if (domain.toLowerCase() !== lab.domain.toLowerCase() || hostname.toLowerCase() !== `${host.hostname}.${lab.domain}`.toLowerCase()) {
+      return [{ kind: 'error', text: '[-] Kerberos realm or service hostname does not match the target service principal.' }];
+    }
+    const cache = this.kerberosCacheFromEnvironment();
+    if (!cache || cache.domain.toLowerCase() !== domain.toLowerCase() || cache.principal.toLowerCase() !== principal.toLowerCase() || cache.domainSid !== lab.domainSid) {
+      return [{ kind: 'error', text: '[-] Kerberos authentication failed: no matching modeled TGT in KRB5CCNAME.' }];
+    }
+    if (principal.toLowerCase() !== lab.privilegedUser.toLowerCase()) {
+      return [{ kind: 'error', text: `[-] ${principal} authenticated, but this principal is not authorized to create a remote service on ${host.hostname}.` }];
+    }
+
+    this.recordEvent('authentication', ip, principal, `Kerberos-authenticated SMB session to ${host.hostname}`);
+    this.grantSession(host);
+    return [
+      { kind: 'system', text: `[+] Using Kerberos cache for ${principal}@${domain}` },
+      { kind: 'system', text: `[*] Requesting the CIFS service ticket for ${hostname}` },
+      { kind: 'success', text: `[+] SMB authentication succeeded; authorized remote service execution on ${host.hostname}.` },
+      { kind: 'success', text: '[*] Simulated psexec session opened as NT AUTHORITY\\SYSTEM.' },
     ];
   }
 
@@ -1374,18 +1539,23 @@ export class TerminalEngine {
     if (!host || !host.services.some((s) => s.port === 22)) {
       return [{ kind: 'error', text: `ssh: connect to host ${ip} port 22: Connection refused` }];
     }
-    this.awaitingAuth = { ip, user, host };
+    this.awaitingAuth = { ip, user, host, attempts: 0 };
     return [{ kind: 'system', text: `The authenticity of host '${ip}' can't be established. Connecting...` }];
   }
 
   private submitPassword(password: string): OutLine[] {
     if (!this.awaitingAuth) return [];
     const { user, host } = this.awaitingAuth;
-    this.awaitingAuth = null;
     const account = host.users.find((u) => u.username === user);
     if (!account || account.password !== password) {
+      this.awaitingAuth.attempts++;
+      if (this.awaitingAuth.attempts >= 3) {
+        this.awaitingAuth = null;
+        return [{ kind: 'error', text: `${user}@${host.ip}: Permission denied (password). Run ssh again to reconnect.` }];
+      }
       return [{ kind: 'error', text: `Permission denied, please try again.` }];
     }
+    this.awaitingAuth = null;
     const newSession: Session = {
       isAttacker: false,
       host,
@@ -1394,6 +1564,7 @@ export class TerminalEngine {
       isRoot: user === 'root',
     };
     this.stack.push(newSession);
+    this.recordEvent('authentication', host.ip, user, `Authenticated management session on ${host.hostname}`);
     return [
       { kind: 'success', text: `Welcome to ${host.os}` },
       { kind: 'success', text: `Last login: ${new Date().toUTCString()} from 10.10.14.1` },
@@ -1506,6 +1677,9 @@ export class TerminalEngine {
   /** Directly executing a SUID-root binary (no sudo involved) — a distinct privesc path from misconfigured sudoers. */
   private runSuidBinary(cmd: string): OutLine[] | null {
     const s = this.session;
+    if (this.remediated && s.host && s.host.ip === this.scenario.engagement?.followupIp && cmd === '/bin/bash' && !s.host.suidBinary) {
+      return [{ kind: 'output', text: `Shell retains ordinary user ${this.effectiveUser()}; the special execution mode has been removed.` }];
+    }
     if (s.isAttacker || !s.host?.suidBinary || cmd !== s.host.suidBinary) return null;
     const rootSession: Session = { ...s, isRoot: true };
     this.stack.push(rootSession);
@@ -1521,6 +1695,10 @@ export class TerminalEngine {
   }
 
   private whoami(): OutLine[] {
+    const session = this.session;
+    if (!session.isAttacker && session.user === 'SYSTEM' && /windows/i.test(session.host?.os ?? '')) {
+      return [{ kind: 'output', text: 'nt authority\\system' }];
+    }
     return [{ kind: 'output', text: this.effectiveUser() }];
   }
 
@@ -1572,6 +1750,7 @@ export class TerminalEngine {
       { kind: 'output', text: 'airmon-ng start/stop, airodump-ng, aireplay-ng — 802.11 wireless recon/capture' },
       { kind: 'output', text: 'exploit <name> <ip>                           — quick CVE-RCE shortcut' },
       { kind: 'output', text: 'msfconsole  then  use/set/show options/run    — real Metasploit workflow' },
+      { kind: 'output', text: 'impacket-ticketer / klist / impacket-psexec — modeled Kerberos ticket exercise when configured' },
       { kind: 'output', text: 'objectives, hint, clear, history               — lab helpers' },
       { kind: 'output', text: 'cmd1 | cmd2, cmd1 && cmd2, cmd1 ; cmd2         — pipes & chaining' },
       { kind: 'output', text: 'grep/wc/sort/uniq/head/tail/cut/tr/xargs       — pipeline filters (right side of |)' },
@@ -1593,6 +1772,22 @@ export class TerminalEngine {
   }
 
   run(raw: string, onFlag: (flag: string) => void): OutLine[] {
+    const capture = (flag: string) => { this.seenFlags.add(flag); onFlag(flag); };
+    const result = this.execute(raw, capture);
+    for (const session of this.stack) {
+      if (session.host && session.isRoot) this.recordEvent('privilege', session.host.ip, session.user, `Verified privileged session on ${session.host.hostname}`);
+    }
+    const e = this.scenario.engagement;
+    if (e && this.remediated && this.session.host?.ip === e.followupIp && !this.session.isRoot) {
+      const command = raw.trim();
+      if (command === 'sudo -l' && result.some(line => line.text.includes('may not run sudo'))) this.retestSignals.add('sudo-denied');
+      if (command === e.privilegeCommand && result.some(line => line.text.includes('not allowed to execute') || line.text.includes('retains ordinary user'))) this.retestSignals.add('privilege-transition-denied');
+      if (command === 'cat /root/impact.txt' && result.some(line => line.kind === 'error' && line.text.includes('Permission denied'))) this.retestSignals.add('root-read-denied');
+    }
+    return result;
+  }
+
+  private execute(raw: string, onFlag: (flag: string) => void): OutLine[] {
     const line = raw.trim();
     if (this.awaitingAuth) {
       return this.submitPassword(line);
@@ -1611,6 +1806,63 @@ export class TerminalEngine {
       return this.dispatchOne(line, onFlag);
     }
     return this.runChain(line, onFlag);
+  }
+
+  private engagement(args: string[], onFlag: (flag: string) => void): OutLine[] {
+    const e = this.scenario.engagement;
+    if (!e) return [{ kind: 'muted', text: 'This exercise has no engagement closeout. Use objectives to view its guide.' }];
+    const output = (text: string): OutLine[] => text.split('\n').map(text => ({ kind: 'output', text }));
+    const error = (text: string): OutLine[] => [{ kind: 'error', text }];
+    const award = (flag: string, text: string): OutLine[] => { onFlag(flag); return [{ kind: 'success', text: `${text}\n${flag}` }]; };
+    const initialCount = e.initialFlags.filter(flag => this.seenFlags.has(flag)).length;
+    switch (args[0]) {
+      case 'scope':
+        return output(`AUTHORIZED SCOPE\n${e.scope}\n\nSIMULATOR CONTRACT\nengagement commands are training controls, not operating-system tools. Handoff provisions a client test account after ${e.initialRequired} initial proof points. Remediate fixes the follow-on host only; the original finding still needs the remediation described in the lesson. Cleanup removes the approved marker, revokes the temporary account and closes sessions. Use the evidence notebook outside the terminal when you want notes, JSON backups or PDF/Markdown exports. No real network traffic or exploit code is executed.\n\nCommands: scope, handoff, evidence, template, remediate, retest, cleanup`);
+      case 'evidence':
+        return output(`Observed initial proofs: ${initialCount}/${e.initialRequired}\n${[...this.seenFlags].join('\n') || 'None observed in this attempt.'}\nFollow-on controls fixed: ${this.remediated}\nNegative checks: ${[...this.retestSignals].join(', ') || 'pending'}\nClosed: ${this.engagementClosed}`);
+      case 'template':
+        return output(JSON.stringify({ summary: '<specific finding and observed outcome>', asset: e.followupIp,
+          rootCause: '<violated trust boundary and privileged execution rule>', impact: '<demonstrated impact and what was not tested>',
+          evidence: ['<observed initial proof>', '<observed impact proof>'], remediation: '<control change and accountable owner>',
+          limitations: '<simulation limits and real-world validation needed>' }, null, 2));
+      case 'handoff':
+        if (initialCount < e.initialRequired) return error(`Handoff blocked: demonstrate ${e.initialRequired} initial proofs; ${initialCount} observed in this attempt.`);
+        if (this.engagementClosed) return error('The temporary account has been revoked; start a fresh attempt to reopen the environment.');
+        return output(`Client-provided scoped test account (not stolen credentials):\nssh ${e.followupUser}@${e.followupIp}\nPassword: ${e.followupPassword}\n${this.scenario.network.find(h => h.ip === e.followupIp)?.reachableFrom ? 'Reachability: connect from the authorized gateway host, not the attacker network.' : 'Reachability: scoped review segment.'}\nRead /root/impact.txt before and after testing the privilege boundary.`);
+      case 'remediate': {
+        if (!this.seenFlags.has(e.accessFlag)) return error('Remediation blocked: first demonstrate the follow-on impact record.');
+        if (this.remediated) return output('Follow-on controls already fixed; reconnect as reviewer to run negative tests.');
+        const host = this.scenario.network.find(h => h.ip === e.followupIp)!;
+        const marker = getNode(host.root, ['tmp', 'assessment-marker']);
+        if (marker?.type !== 'file' || marker.content.trim() !== 'approved-review-marker') return error('Create the approved /tmp/assessment-marker on the review host before remediation; this is the only cleanup artifact.');
+        host.users.forEach(user => { user.sudo = undefined; });
+        host.suidBinary = undefined;
+        const binary = getNode(host.root, ['bin', 'bash']);
+        if (binary?.type === 'file') binary.mode = '-rwxr-xr-x';
+        this.remediated = true;
+        this.recordEvent('remediation', host.ip, e.followupUser, 'Broad execution grant removed and privileged sessions closed.');
+        this.stack = this.stack.slice(0, 1);
+        return output(`Follow-on remediation applied: broad privileged execution removed; all prior target sessions closed. The reviewer account still works. Reconnect${host.reachableFrom ? ' through the authorized gateway' : ''}, run sudo -l, repeat ${e.privilegeCommand}, then cat /root/impact.txt and engagement retest. The original finding is not automatically repaired.`);
+      }
+      case 'retest':
+        if (!this.remediated || !this.retestSignals.has('sudo-denied') || !this.retestSignals.has('privilege-transition-denied') || !this.retestSignals.has('root-read-denied')) return error(`Retest blocked: after remediation, reconnect as reviewer and run sudo -l, repeat ${e.privilegeCommand}, then cat /root/impact.txt. All three checks must be observed.`);
+        return award(e.retestFlag, 'Retest passed: legitimate login works; privileged execution and administrator-only reads are denied.');
+      case 'report': {
+        return output('Terminal JSON report submission has been removed. Use the Evidence notebook button for optional notes, JSON backup, PDF export or certificate download.');
+      }
+      case 'cleanup': {
+        if (!this.seenFlags.has(e.retestFlag)) return error('Closeout blocked: pass the negative retest first.');
+        const host = this.scenario.network.find(h => h.ip === e.followupIp)!;
+        const tmp = getNode(host.root, ['tmp']);
+        if (tmp?.type === 'dir') delete tmp.children['assessment-marker'];
+        host.users = host.users.filter(user => user.username !== e.followupUser);
+        this.stack = this.stack.slice(0, 1);
+        this.engagementClosed = true;
+        this.recordEvent('cleanup', host.ip, e.followupUser, 'Temporary account revoked and assessment artifact removed.');
+        return award(e.cleanupFlag, 'Handback verified: approved marker removed, temporary account revoked, and target sessions closed.');
+      }
+      default: return output('Training controls: engagement scope | handoff | evidence | template | remediate | retest | cleanup');
+    }
   }
 
   /** Splits on top-level `;` / `&&` / `||` (outside quotes), then runs each stage's pipeline in
@@ -1756,7 +2008,7 @@ export class TerminalEngine {
     const ignoreCase = args.includes('-i');
     const invert = args.includes('-v');
     const countOnly = args.includes('-c');
-    const positional = args.filter((a) => !a.startsWith('-'));
+    const positional = args.filter((a, i) => !a.startsWith('-') && !['-A', '-B', '-C'].includes(args[i - 1]));
     const rawPattern = positional[0];
     if (!rawPattern) return [{ kind: 'error', text: 'usage: grep [-i] [-v] [-c] <pattern>' }];
     const clean = rawPattern.replace(/^["']|["']$/g, '');
@@ -1768,13 +2020,22 @@ export class TerminalEngine {
     }
     const needle = ignoreCase ? clean.toLowerCase() : clean;
     const matchesLine = (l: string) => (regex ? regex.test(l) : (ignoreCase ? l.toLowerCase() : l).includes(needle));
-    const matches = lines.filter((l) => (invert ? !matchesLine(l) : matchesLine(l)));
-    matches.forEach((l) => {
-      const m = l.match(FLAG_RE);
-      if (m) onFlag(m[0]);
+    const matchingIndices = lines.flatMap((line, i) => (invert ? !matchesLine(line) : matchesLine(line)) ? [i] : []);
+    if (countOnly) return [{ kind: 'output', text: String(matchingIndices.length) }];
+    const context = (option: string) => {
+      const combined = args.find(arg => arg.startsWith(option) && /^\d+$/.test(arg.slice(2)));
+      const index = args.indexOf(option);
+      const value = Number(combined?.slice(2) ?? (index >= 0 ? args[index + 1] : 0));
+      return Number.isFinite(value) ? Math.min(1000, Math.max(0, value)) : 0;
+    };
+    const before = Math.max(context('-B'), context('-C'));
+    const after = Math.max(context('-A'), context('-C'));
+    const visible = new Set<number>();
+    for (const i of matchingIndices) for (let j = Math.max(0, i - before); j <= Math.min(lines.length - 1, i + after); j++) visible.add(j);
+    return [...visible].sort((a, b) => a - b).map(i => {
+      for (const flag of lines[i].match(/flag\{[^}]+\}/gi) ?? []) onFlag(flag);
+      return { kind: 'output' as const, text: args.includes('-n') ? `${i + 1}:${lines[i]}` : lines[i] };
     });
-    if (countOnly) return [{ kind: 'output', text: String(matches.length) }];
-    return matches.map((l) => ({ kind: 'output' as const, text: l }));
   }
 
   /** Genuinely persists a pipeline's final stdout to the filesystem, same as real `>`/`>>` — a
@@ -1806,6 +2067,24 @@ export class TerminalEngine {
         return this.commandHistory.map((c, i) => ({ kind: 'output' as const, text: `  ${String(i + 1).padStart(4)}  ${c}` }));
       case 'help':
         return this.help();
+      case 'engagement':
+        return this.engagement(args, onFlag);
+      case 'webapp': {
+        if (!this.webApplication) return [{ kind: 'error', text: 'This lab has no interactive target application.' }];
+        const result = this.webApplication.control(args[0] ?? 'status', onFlag);
+        if (result.ok && args[0] === 'remediate') this.recordEvent('remediation', this.scenario.webApplication!.ip, this.effectiveUser(), 'Application authorization repaired and elevated role revoked.');
+        return [{ kind: result.ok ? 'success' : 'error', text: result.text }];
+      }
+      case 'directory': {
+        const map = this.scenario.directoryMap;
+        if (!map) return [{ kind: 'error', text: 'This scenario has no interactive directory graph.' }];
+        const host = this.scenario.network.find(item => item.ip === map.repairHostIp)!;
+        if (args[0] === 'remediate' || args[0] === 'retest') {
+          return [{ kind: 'error', text: 'This is a concept lab. Capture the identity, relationship, and replication evidence; repair and retest workflows are saved for later professional-methodology training.' }];
+        }
+        return [{ kind: 'output', text: `Directory concept: ${map.domain}; domain controller ${host.ip}
+Use the lab objectives and graph to understand which identity relationship allows replication evidence.` }];
+      }
       case 'pwd':
         return [{ kind: 'output', text: pathToString(this.session.cwd) }];
       case 'ls':
@@ -1885,6 +2164,12 @@ export class TerminalEngine {
         return this.aireplayNg(args);
       case 'secretsdump':
         return this.secretsdump(args, onFlag);
+      case 'impacket-ticketer':
+        return this.impacketTicketer(args);
+      case 'impacket-psexec':
+        return this.impacketPsexec(args);
+      case 'klist':
+        return this.klist();
       case 'dig':
       case 'nslookup':
         return this.dig(args);

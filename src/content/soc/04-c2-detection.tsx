@@ -12,6 +12,14 @@ export default function C2Detection() {
         hiding inside binaries Windows already trusts.
       </p>
 
+      <h2>Technical terms explained</h2>
+      <ul>
+        <li><strong>C2 and beaconing:</strong> Command and Control (C2) is communication through which an attacker directs compromised software or receives results. Beaconing is repeated contact with a destination. Legitimate monitoring agents and updaters also make repeated connections.</li>
+        <li><strong>Jitter and periodicity:</strong> Periodicity describes how regularly connections recur. Jitter is variation added to those intervals. Neither regular timing nor irregular timing establishes whether a connection is malicious.</li>
+        <li><strong>DNS, proxy, and egress:</strong> The Domain Name System (DNS) resolves domain names to records such as IP addresses. A proxy relays requests and may record destinations or policy decisions. Egress means traffic leaving a network; egress filtering limits which outbound connections are permitted.</li>
+        <li><strong>DGA and encrypted traffic metadata:</strong> A Domain Generation Algorithm (DGA) creates domain names programmatically. Encrypted traffic hides much of the content, but connection times, sizes, destinations, and some handshake details may remain visible depending on the protocol and sensor.</li>
+      </ul>
+
       <h2>Beaconing: the timing IS the signature</h2>
       <p>
         Most C2 frameworks (Cobalt Strike among the most widely deployed, legitimately and otherwise) don't
@@ -130,6 +138,12 @@ Cobalt Strike beacon connecting to 91.203.5.44:    JA3 = e7d705a3286e19ea42f587b
         next module goes deep on the platforms all of this actually runs on — real SIEM products, their
         query languages, and how they differ in practice.
       </p>
+      <h2>Investigate repeated outbound connections</h2>
+      <p>A workstation contacts the same domain approximately every minute. Compare that cadence with its normal software inventory, then identify the responsible process through endpoint telemetry. Check when the domain was first observed in your environment, whether other hosts contact it, and whether the process recently created a persistence mechanism. An uncommon domain and a regular interval are useful leads, but a legitimate monitoring client can produce both. Correlate DNS answers with connection times because one domain can resolve to multiple addresses and one address can host many domains. Record the combined evidence before proposing a block so that the response targets the activity accurately.</p>
+      <Callout variant="tip">
+        <p><strong>Check your understanding:</strong> Which endpoint evidence would help distinguish a legitimate updater from a C2 beacon?</p>
+      </Callout>
+
     </div>
   );
 }

@@ -12,7 +12,7 @@ import { IconTrophy, IconFlag, IconCrown, IconUser } from '../components/layout/
 const RANK_STYLE: Record<number, { ring: string; badge: string; row: string }> = {
   1: {
     ring: 'ring-2 ring-[var(--color-gold)] ring-offset-2 ring-offset-[var(--color-bg)]',
-    badge: 'bg-[var(--color-gold)] text-[#241a08]',
+    badge: 'bg-[var(--color-gold)] text-[#142638]',
     row: 'border-[var(--color-gold)]/50 bg-[var(--color-gold-soft)]',
   },
   2: {
@@ -31,7 +31,7 @@ function LoadingSkeleton() {
   return (
     <div className="flex flex-col gap-2 mb-6" aria-hidden="true">
       {[0, 1, 2].map((i) => (
-        <div key={i} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 flex items-center gap-4 animate-pulse">
+        <div key={i} className="premium-card rounded-2xl p-4 flex items-center gap-4 animate-pulse">
           <div className="w-8 h-8 rounded-full bg-[var(--color-surface-2)] shrink-0" />
           <div className="w-11 h-11 rounded-full bg-[var(--color-surface-2)] shrink-0" />
           <div className="flex-1 min-w-0 flex flex-col gap-2">
@@ -49,7 +49,7 @@ export default function LeaderboardPage() {
   const progress = useProgress();
   const auth = useAuth();
   const [entries, setEntries] = useState<LeaderboardEntry[] | null | undefined>(undefined);
-  
+
   // ✅ Safe fallback for initial if learnerName is null or empty
   const initial = (progress.learnerName || 'Anonymous').trim().charAt(0).toUpperCase() || '?';
 
@@ -75,17 +75,17 @@ export default function LeaderboardPage() {
   const yourRank = ranked.findIndex((e) => e.userId === auth.user?.id);
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-14">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-14">
       <div className="gold-eyebrow mb-1.5 sm:mb-2">// where you stand</div>
-      <h1 className="text-2xl sm:text-3xl font-bold text-[var(--color-heading)] mb-2 sm:mb-3 flex items-center gap-2.5 sm:gap-3">
+      <h1 className="text-3xl sm:text-5xl font-black tracking-[-0.05em] text-[var(--color-heading)] mb-2 sm:mb-3 flex items-center gap-2.5 sm:gap-3">
         <IconTrophy className="w-6 h-6 sm:w-7 sm:h-7 text-[var(--color-accent)] shrink-0" /> Leaderboard
       </h1>
-      <p className="text-xs sm:text-sm text-[var(--color-[#7c93ae])] leading-relaxed mb-6 max-w-xl">
+      <p className="text-xs sm:text-sm text-[var(--color-text-dim)] leading-relaxed mb-6 max-w-xl">
         Ranked by lab points — every captured flag counts, weighted by difficulty. Entirely opt-in: your
         name and score only ever appear here if you turn it on below.
       </p>
 
-      <label className="flex items-start gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 mb-8 cursor-pointer hover:border-[var(--color-accent)]/40 transition-colors">
+      <label className="flex items-start gap-3 premium-card rounded-2xl p-4 mb-8 cursor-pointer hover:border-[var(--color-accent)]/40 transition-colors">
         <input
           type="checkbox"
           checked={progress.leaderboardOptIn}
@@ -124,7 +124,7 @@ export default function LeaderboardPage() {
       {entries !== undefined && entries !== null && (
         <>
           {ranked.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-[var(--color-border)] bg-[var(--color-surface)] p-8 mb-6 flex flex-col items-center text-center gap-2">
+            <div className="premium-card rounded-2xl border-dashed bg-[var(--color-surface)] p-8 mb-6 flex flex-col items-center text-center gap-2">
               <span className="w-12 h-12 rounded-full bg-[var(--color-accent)]/10 flex items-center justify-center mb-1">
                 <IconTrophy className="w-6 h-6 text-[var(--color-accent)]" />
               </span>
@@ -196,7 +196,7 @@ export default function LeaderboardPage() {
 
 function YouCard({ initial, name, labsCompleted, points }: { initial: string; name: string | null; labsCompleted: number; points: number }) {
   return (
-    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 flex items-center gap-5">
+    <div className="premium-card rounded-2xl p-6 flex items-center gap-5">
       <span className="w-14 h-14 rounded-full bg-[var(--color-accent)] text-white text-xl font-bold flex items-center justify-center shrink-0">
         {initial}
       </span>

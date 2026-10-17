@@ -2,8 +2,8 @@ import { IconShieldCheck, IconLock } from '../components/layout/icons';
 
 const POINTS: { title: string; body: string }[] = [
   {
-    title: 'Every command you type stays 100% client-side',
-    body: 'The terminal, labs, and SIEM consoles all run as client-side JavaScript against an in-memory simulated filesystem/network. There is no backend that executes your commands, checks a flag, or scores a lab — every "network" you attack is a plain data structure in your own browser tab.',
+    title: 'Training targets run inside your browser',
+    body: 'Terminals, target websites, directory maps, and SIEM consoles operate on simulated files and networks in your browser. Terminal commands do not attack external machines. If you ask the AI tutor for help, relevant lesson content, hints, and session excerpts can be sent to the tutor service to answer your question.',
   },
   {
     title: 'Real accounts, protected by Row Level Security',
@@ -18,14 +18,14 @@ const POINTS: { title: string; body: string }[] = [
     body: 'An opt-in leaderboard (off by default) can show your name and score to other learners — nothing else, and never unless you turn it on yourself. Separately, one specific instructor account can view cohort-wide progress for teaching purposes, enforced by a server-side check on the caller\'s identity, not a setting the app\'s frontend controls.',
   },
   {
-    title: 'No analytics, no tracking scripts, no third-party requests',
-    body: 'This build ships with zero third-party analytics or tracking pixels. Your click-path and time-on-lesson are not observed by anyone — the only network calls this app makes are to Supabase, for the account/progress sync described above.',
+    title: 'Services used by the platform',
+    body: 'After the first online visit has installed the app shell, lessons, saved progress, and browser-based simulations can continue offline on that device. Account sign-in refresh and progress sync, AI tutoring, leaderboards, external references, and runtimes or books that have not been cached need an internet connection. Your saved progress syncs when connectivity returns. Supabase provides authentication and progress storage; exported certificates describe simulated training progress, and learner-authored reports contain only evidence you choose to share.',
   },
 ];
 
 export default function SecurityPage() {
   return (
-    <div className="max-w-3xl mx-auto px-8 py-14">
+    <div className="max-w-5xl mx-auto px-8 py-14">
       <div className="gold-eyebrow mb-2">// how your data is handled</div>
       <h1 className="text-3xl font-bold text-[var(--color-heading)] mb-3 flex items-center gap-3">
         <IconShieldCheck className="w-7 h-7 text-[var(--color-accent)]" /> Security &amp; Privacy
@@ -37,7 +37,7 @@ export default function SecurityPage() {
 
       <div className="flex flex-col gap-4 mb-8">
         {POINTS.map((p) => (
-          <div key={p.title} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
+          <div key={p.title} className="premium-card rounded-2xl p-5">
             <div className="flex items-center gap-2.5 mb-2">
               <IconLock className="w-4 h-4 text-[var(--color-accent)] shrink-0" />
               <h2 className="font-semibold text-[var(--color-heading)] text-sm">{p.title}</h2>

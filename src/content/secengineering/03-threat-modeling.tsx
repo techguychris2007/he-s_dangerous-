@@ -16,6 +16,14 @@ export default function ThreatModeling() {
         apply it consistently.
       </p>
 
+      <h2>Technical terms explained</h2>
+      <ul>
+        <li><strong>Threat model and security requirement:</strong> A threat model records what you are protecting, how the system works, what can go wrong, and how you will address it. A security requirement turns that concern into a checkable behavior, such as rejecting downloads from users who do not own the file.</li>
+        <li><strong>DFD and trust boundary:</strong> A Data Flow Diagram (DFD) represents external actors, processes, data stores, and the data moving between them. Mark a trust boundary wherever the rules for trusting identities, input, or privileges change.</li>
+        <li><strong>STRIDE:</strong> STRIDE prompts six threat categories: Spoofing identity, Tampering with data, Repudiation of actions, Information disclosure, Denial of service, and Elevation of privilege. It is a checklist for asking questions, rather than a guarantee that all threats have been found.</li>
+        <li><strong>Attack surface and abuse case:</strong> The attack surface is the set of entry points and interactions an attacker may influence. An abuse case describes how a feature could be misused. An attack tree breaks a harmful goal into alternative or combined steps needed to achieve it.</li>
+      </ul>
+
       <h2>STRIDE: a category checklist for finding threats</h2>
       <CodeBlock label="six threat categories, and where you've seen each one in this course">{`Spoofing                  — pretending to be something/someone else
                             (the OAuth redirect bypass and BEC phishing labs)
@@ -133,6 +141,12 @@ Average the five scores -> a rough priority ranking across many identified threa
         this specifically to cryptographic systems — where threat modeling failures have historically caused
         some of the most severe real-world security breaks.
       </p>
+      <h2>Model a file-upload feature</h2>
+      <p>Draw the user, upload API, processing worker, and object store, including the links between them. The upload crosses a boundary because its contents are untrusted. Ask whether a user can impersonate another account, overwrite another user's object, cause the worker to exhaust memory, or retrieve private output. Translate those threats into requirements: enforce object ownership, bound processing resources, isolate the worker, and restrict storage permissions. Assign an owner and a verification method to each mitigation. Revisit the model when adding a new parser or external service because the data flows and trust assumptions may change.</p>
+      <Callout variant="tip">
+        <p><strong>Check your understanding:</strong> Where does untrusted data cross into a more privileged component, and how will you test the protection at that boundary?</p>
+      </Callout>
+
     </div>
   );
 }

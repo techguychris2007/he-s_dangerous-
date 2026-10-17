@@ -12,6 +12,14 @@ export default function AssemblyStackCrashCourse() {
         depends on later in this module.
       </p>
 
+      <h2>Technical terms explained</h2>
+      <ul>
+        <li><strong>Register, instruction, and operand:</strong> A register is a small storage location inside the CPU. An instruction tells the CPU to perform an operation, and operands specify its inputs or destinations. A register holding an address is different from the memory contents at that address.</li>
+        <li><strong>Stack, heap, and stack frame:</strong> The stack supports function calls and often holds local data. The heap supports dynamically allocated objects whose lifetime can outlast a function call. A stack frame is the stack region used by one invocation; its layout depends on the compiler and optimizations.</li>
+        <li><strong>Instruction pointer and return address:</strong> The instruction pointer tracks execution. A return address identifies where a called function should resume its caller. On x86, a call normally places the return address on the stack; other architectures can use a link register.</li>
+        <li><strong>ABI and calling convention:</strong> An Application Binary Interface (ABI) defines how compiled components interact. Its calling convention specifies argument locations, return values, register preservation, and stack alignment. Windows x64 and System V AMD64 use different argument registers.</li>
+      </ul>
+
       <h2>The registers that matter</h2>
       <CodeBlock label="x86-64 general-purpose registers">{`RAX  — accumulator, commonly holds a function's return value
 RBX  — base register, general purpose
@@ -201,6 +209,12 @@ endbr64                                 # a no-op-like marker required at valid 
         With registers, the stack, and basic instruction reading covered, the next lesson puts this into
         practice with an actual debugger — stepping through a running program instruction by instruction.
       </p>
+      <h2>Read a comparison without guessing the source</h2>
+      <p>In Intel syntax, mov eax, 5 puts the value 5 in EAX. A following cmp eax, 5 sets status flags from a comparison without storing the subtraction result in EAX. A je instruction then branches if the zero flag indicates equality. Follow both the taken and untaken paths before naming the function's purpose. If a path calls another function, use the target ABI to interpret its arguments. A value in RDI is commonly the first integer or pointer argument under System V AMD64, while Windows x64 commonly uses RCX. Compiler optimization can omit a frame pointer or inline a function, so a textbook prologue is helpful evidence rather than a universal requirement.</p>
+      <Callout variant="tip">
+        <p><strong>Check your understanding:</strong> How would using the wrong calling convention change your interpretation of a function call?</p>
+      </Callout>
+
     </div>
   );
 }

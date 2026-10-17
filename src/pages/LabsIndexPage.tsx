@@ -1,33 +1,27 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { LABS, LAB_CATEGORIES, LABS_IN_ROADMAP_ORDER } from '../data/labs';
 import { OSINT_LABS } from '../labs/osintScenarios';
 import { useProgress } from '../state/progressStore';
 import LabCard from '../components/labs/LabCard';
 import SiemLabCard from '../components/siem/SiemLabCard';
 import { fetchLabRatingSummaries, type LabRatingSummary } from '../lib/labRatings';
-import { IconRadar, IconSearch, IconX } from '../components/layout/icons';
+import { IconCheck, IconFlask, IconRadar, IconSearch, IconX } from '../components/layout/icons';
 
 const DIFFICULTIES = ['Easy', 'Medium', 'Hard'];
-const DIFFICULTY_ACTIVE_CLASS: Record<string, string> = {
-  Easy: 'bg-[var(--color-success)] border-[var(--color-success)] text-white',
-  Medium: 'bg-[var(--color-warn)] border-[var(--color-warn)] text-white',
-  Hard: 'bg-[var(--color-danger)] border-[var(--color-danger)] text-white',
-};
-
 const PAGE_SIZE = 30;
 
-/** Pre-computed category counts — calculated once at module load, not on every render. */
 const CATEGORY_COUNTS = Object.fromEntries(
   LAB_CATEGORIES.map((cat) => [cat, LABS.filter((l) => l.scenario.category === cat).length]),
 );
 
+const pct = (done: number, total: number) => (total ? Math.round((100 * done) / total) : 0);
+
 export default function LabsIndexPage() {
   const progress = useProgress();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const categoryParam = searchParams.get('category');
-  const initialCategory =
-    categoryParam && (LAB_CATEGORIES as readonly string[]).includes(categoryParam) ? categoryParam : 'All';
+  const initialCategory = categoryParam && (LAB_CATEGORIES as readonly string[]).includes(categoryParam) ? categoryParam : 'All';
   const [filter, setFilter] = useState<string>(initialCategory);
   const [difficultyFilter, setDifficultyFilter] = useState<string>('All');
   const [search, setSearch] = useState('');
@@ -36,11 +30,13 @@ export default function LabsIndexPage() {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [ratingSummaries, setRatingSummaries] = useState<Record<string, LabRatingSummary> | null>(null);
 
+  useEffect(() => { setFilter(initialCategory); setVisibleCount(PAGE_SIZE); }, [initialCategory]);
+  useEffect(() => () => { if (debounceRef.current) clearTimeout(debounceRef.current); }, []);
+
   useEffect(() => {
     fetchLabRatingSummaries().then(setRatingSummaries);
   }, []);
 
-  // Debounce search input — avoid re-filtering on every keystroke
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setSearch(val);
@@ -49,22 +45,27 @@ export default function LabsIndexPage() {
   }, []);
 
   const clearSearch = useCallback(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
     setSearch('');
     setDebouncedSearch('');
   }, []);
 
-  // Reset visible count when filter changes
   const handleSetFilter = useCallback((cat: string) => {
     setFilter(cat);
     setVisibleCount(PAGE_SIZE);
-  }, []);
+    setSearchParams((params) => {
+      const next = new URLSearchParams(params);
+      if (cat === 'All') next.delete('category');
+      else next.set('category', cat);
+      return next;
+    }, { replace: true });
+  }, [setSearchParams]);
 
   const handleSetDifficulty = useCallback((d: string) => {
     setDifficultyFilter(d);
     setVisibleCount(PAGE_SIZE);
   }, []);
 
-  // Reset page when debounced search changes
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
   }, [debouncedSearch]);
@@ -76,176 +77,191 @@ export default function LabsIndexPage() {
         (l) =>
           (filter === 'All' || l.scenario.category === filter) &&
           (difficultyFilter === 'All' || l.scenario.difficulty === difficultyFilter) &&
-          (!search_ ||
-            l.scenario.title.toLowerCase().includes(search_) ||
-            l.scenario.category.toLowerCase().includes(search_)),
+          (!search_ || l.scenario.title.toLowerCase().includes(search_) || l.scenario.category.toLowerCase().includes(search_)),
       ),
     [filter, difficultyFilter, search_],
   );
 
-  /** Only render what's visible — the key to fast initial paint. */
   const visible = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount]);
   const hasMore = visibleCount < filtered.length;
   const isFiltering = filter !== 'All' || difficultyFilter !== 'All' || !!search_;
 
-  // Stats — memoized so they don't recalculate on every render
   const { totalDone, osintDone, overallPct } = useMemo(() => {
     const totalDone = LABS.filter((l) => progress.flagCount(l.scenario.id) >= l.scenario.totalFlags).length;
     const osintDone = OSINT_LABS.filter((l) => progress.flagCount(l.id) >= l.totalFlags).length;
-    const overallPct = Math.round((100 * totalDone) / LABS.length);
+    const overallPct = pct(totalDone, LABS.length);
     return { totalDone, osintDone, overallPct };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [progress.labFlags]);
 
+  const visualLabs = useMemo(() => LABS.filter((lab) => lab.scenario.webApplication || lab.scenario.directoryMap), []);
+
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-14">
-      <div className="gold-eyebrow mb-1.5 sm:mb-2">// hands-on</div>
-      <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--color-heading)] mb-2 sm:mb-3">Lab Catalog</h1>
-      <p className="text-sm sm:text-base text-[var(--color-text-dim)] mb-4 leading-relaxed max-w-2xl">
-        {LABS.length} fully interactive, guided labs across Linux privilege escalation, network service
-        exploitation, web application vulnerabilities, Active Directory, cloud security, SOC &amp; threat
-        hunting, digital forensics, and bug bounty methodology — each one a real command-line environment
-        with step-by-step instructions, not a video.
-      </p>
+    <div className="min-h-screen bg-[var(--color-bg)]">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
+        <section className="relative mb-8 overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[0_12px_36px_-28px_var(--color-heading)]">
+          <div aria-hidden className="absolute inset-x-0 top-0 h-1 bg-[var(--color-accent)]" />
+          <div className="relative grid gap-6 p-5 sm:p-7 lg:grid-cols-[minmax(0,1fr)_330px] lg:p-8">
+            <div>
+              <div className="mb-3 inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[.18em] text-[var(--color-accent)]">
+                // hands-on operations
+              </div>
+              <h1 className="max-w-3xl text-4xl font-bold leading-tight tracking-[-.045em] text-[var(--color-heading)] sm:text-5xl">Lab Catalog</h1>
+              <p className="mt-3 max-w-4xl text-base leading-7 text-[var(--color-text-dim)]">
+                {LABS.length} guided labs across Linux privilege escalation, network exploitation, web application security, Active Directory, cloud, SOC, forensics, and bug bounty workflows. Each environment combines objectives, an interactive terminal, evidence, and focused hints.
+              </p>
 
-      <div className="flex items-center gap-3 mb-8">
-        <div className="flex-1 max-w-xs h-1.5 rounded-full bg-[var(--color-surface-2)] overflow-hidden">
-          <div className="h-full rounded-full bg-[var(--color-accent)]" style={{ width: `${overallPct}%` }} />
-        </div>
-        <span className="text-sm text-[var(--color-accent-dim)] font-semibold shrink-0">
-          {totalDone} / {LABS.length} labs completed ({overallPct}%)
-        </span>
-      </div>
+              <div className="mt-6 grid gap-2 sm:grid-cols-3">
+                <div className="flex items-center gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-3.5 py-3">
+                  <IconFlask className="h-4 w-4 shrink-0 text-[var(--color-accent)]" />
+                  <div><div className="text-xl font-bold tracking-tight text-[var(--color-heading)]">{LABS.length}</div><div className="text-[11px] font-semibold text-[var(--color-text-dim)]">Terminal labs</div></div>
+                </div>
+                <div className="flex items-center gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-3.5 py-3">
+                  <IconRadar className="h-4 w-4 shrink-0 text-[var(--color-accent-2)]" />
+                  <div><div className="text-xl font-bold tracking-tight text-[var(--color-heading)]">{OSINT_LABS.length}</div><div className="text-[11px] font-semibold text-[var(--color-text-dim)]">OSINT cases</div></div>
+                </div>
+                <div className="flex items-center gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-3.5 py-3">
+                  <IconCheck className="h-4 w-4 shrink-0 text-[var(--color-success)]" />
+                  <div><div className="text-xl font-bold tracking-tight text-[var(--color-heading)]">{totalDone}<span className="text-sm font-semibold text-[var(--color-text-dim)]"> / {LABS.length}</span></div><div className="text-[11px] font-semibold text-[var(--color-text-dim)]">Completed</div></div>
+                </div>
+              </div>
+            </div>
 
-      <div className="relative mb-4 max-w-md">
-        <IconSearch className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-dim)] pointer-events-none" />
-        <input
-          type="text"
-          value={search}
-          onChange={handleSearchChange}
-          placeholder="Search labs by name or category&hellip;"
-          aria-label="Search labs"
-          className="w-full pl-9 pr-9 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-sm text-[var(--color-heading)] placeholder:text-[var(--color-text-dim)] outline-none focus:border-[var(--color-accent)]/60 transition-colors"
-        />
-        {search && (
-          <button
-            onClick={clearSearch}
-            aria-label="Clear search"
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center text-[var(--color-text-dim)] hover:text-[var(--color-heading)] hover:bg-[var(--color-surface-2)]"
-          >
-            <IconX className="w-3 h-3" />
-          </button>
+            <aside className="self-end rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] p-4">
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <div className="text-sm font-black text-[var(--color-heading)]">Overall progress</div>
+                  <div className="text-xs font-semibold text-[var(--color-text-dim)]">Flags captured across all labs</div>
+                </div>
+                <div className="text-3xl font-black tracking-[-.05em] text-[var(--color-accent)]">{overallPct}%</div>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-[var(--color-border)]" role="progressbar" aria-label="Overall lab completion" aria-valuenow={overallPct} aria-valuemin={0} aria-valuemax={100}>
+                <div className="h-full rounded-full bg-[var(--color-accent)] transition-[width]" style={{ width: `${overallPct}%` }} />
+              </div>
+              <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
+                <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3"><div className="font-black text-[var(--color-heading)]">{filtered.length}</div><div className="text-xs font-semibold text-[var(--color-text-dim)]">Visible matches</div></div>
+                <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3"><div className="font-black text-[var(--color-heading)]">{osintDone}/{OSINT_LABS.length}</div><div className="text-xs font-semibold text-[var(--color-text-dim)]">OSINT complete</div></div>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        {!search && filter === 'All' && (
+          <section aria-label="Interactive visual labs" className="mb-8 overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-[0_10px_32px_-26px_var(--color-heading)] sm:p-6">
+            <div className="mb-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+              <div>
+                <p className="mb-2 text-[11px] font-black uppercase tracking-[.2em] text-[var(--color-accent)]">See your investigation unfold</p>
+                <h2 className="text-2xl font-black tracking-[-.04em] text-[var(--color-heading)]">Website targets & directory attack paths</h2>
+                <p className="mt-2 max-w-3xl text-sm leading-7 text-[var(--color-text-dim)]">Send requests from the terminal, inspect target websites, and follow confirmed access through directory maps.</p>
+              </div>
+              <span className="rounded-full border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-2 text-xs font-black text-[var(--color-text-dim)]">{visualLabs.length} visual labs</span>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {visualLabs.slice(0, 8).map((lab) => (
+                <Link key={lab.slug} to={`/lab/${lab.slug}`} className="group rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg)] p-4 hover:border-[var(--color-accent)]/40 hover:bg-[var(--color-surface)]">
+                  <p className="mb-2 text-[10px] font-black uppercase tracking-[.16em] text-[var(--color-text-dim)]">{lab.scenario.webApplication ? 'Interactive website' : 'Live directory map'}</p>
+                  <span className="text-sm font-black leading-5 text-[var(--color-heading)] group-hover:text-[var(--color-accent)]">{lab.scenario.title} →</span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <section aria-label="Find and filter labs" className="mb-7 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 sm:p-5">
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="relative min-w-0 flex-1">
+              <IconSearch className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-text-dim)]" />
+              <input
+                type="text"
+                value={search}
+                onChange={handleSearchChange}
+                placeholder="Search labs by name or category..."
+                aria-label="Search labs"
+                className="h-12 w-full rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg)] pl-11 pr-10 text-sm font-semibold text-[var(--color-heading)] outline-none placeholder:font-medium placeholder:text-[var(--color-text-dim)] focus:border-[var(--color-accent)]/60 focus:ring-4 focus:ring-[var(--color-accent)]/10"
+              />
+              {search && (
+                <button onClick={clearSearch} aria-label="Clear search" className="absolute right-3 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-heading)]"><IconX className="h-3.5 w-3.5" /></button>
+              )}
+            </div>
+              <span className="shrink-0 text-sm font-semibold text-[var(--color-text-dim)]" aria-live="polite">{filtered.length} {filtered.length === 1 ? 'lab' : 'labs'}</span>
+            </div>
+
+            <div className="flex flex-wrap gap-2" role="group" aria-label="Filter labs by category">
+                {['All', ...LAB_CATEGORIES].map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => handleSetFilter(cat)}
+                    aria-pressed={filter === cat}
+                    className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 ${filter === cat ? 'border-[var(--color-accent)] bg-[var(--color-accent)] text-white' : 'border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/55 hover:text-[var(--color-heading)]'}`}
+                  >
+                    {cat}{cat !== 'All' && <span className="ml-1.5 opacity-65">{CATEGORY_COUNTS[cat] ?? 0}</span>}
+                  </button>
+                ))}
+            </div>
+            <div className="flex flex-wrap items-center gap-2 border-t border-[var(--color-border)] pt-3" role="group" aria-label="Filter labs by difficulty">
+                <span className="mr-1 text-xs font-semibold text-[var(--color-text-dim)]">Difficulty</span>
+                {['All', ...DIFFICULTIES].map((d) => (
+                  <button
+                    key={d}
+                    onClick={() => handleSetDifficulty(d)}
+                    aria-pressed={difficultyFilter === d}
+                    className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 ${difficultyFilter === d ? 'border-[var(--color-accent)] bg-[var(--color-accent)] text-white' : 'border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/55 hover:text-[var(--color-heading)]'}`}
+                  >
+                    {d}
+                  </button>
+                ))}
+                {isFiltering && <button onClick={() => { handleSetFilter('All'); handleSetDifficulty('All'); clearSearch(); }} className="ml-auto text-xs font-semibold text-[var(--color-accent)] hover:underline">Clear filters</button>}
+            </div>
+          </div>
+        </section>
+
+        {filtered.length === 0 ? (
+          <div className="rounded-[1.75rem] border border-dashed border-[var(--color-border)] bg-[var(--color-surface)] p-10 text-center text-sm text-[var(--color-text-dim)]">
+            <p className="mb-3">{search_ ? <>No labs match &ldquo;{search}&rdquo;{filter !== 'All' && <> in {filter}</>}.</> : <>No labs in the &ldquo;{filter}&rdquo; category{difficultyFilter !== 'All' && <> at {difficultyFilter} difficulty</>}.</>}</p>
+            {isFiltering && (
+              <button onClick={() => { handleSetFilter('All'); handleSetDifficulty('All'); clearSearch(); }} className="text-sm font-black text-[var(--color-accent)] hover:underline">Clear all filters</button>
+            )}
+          </div>
+        ) : (
+          <>
+            <div className="mb-5 flex items-center justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-black tracking-[-.04em] text-[var(--color-heading)]">Available labs</h2>
+                <p className="text-sm font-semibold text-[var(--color-text-dim)]">Showing {Math.min(visibleCount, filtered.length)} of {filtered.length}{isFiltering ? ' matching your filters' : ''}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              {visible.map((lab) => <LabCard key={lab.slug} lab={lab} variant="catalog" ratingSummary={ratingSummaries?.[lab.scenario.id]} />)}
+            </div>
+
+            {hasMore && (
+              <div className="mt-8 text-center">
+                <button onClick={() => setVisibleCount((n) => n + PAGE_SIZE)} className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-3 text-sm font-black text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/50 hover:text-[var(--color-heading)]">
+                  Load {Math.min(PAGE_SIZE, filtered.length - visibleCount)} more <span className="ml-2 opacity-60 text-xs">({filtered.length - visibleCount} remaining)</span>
+                </button>
+              </div>
+            )}
+          </>
+        )}
+
+        {!isFiltering && (
+          <section className="mt-16">
+            <div className="mb-6 flex items-end justify-between gap-4">
+              <div>
+                <div className="mb-2 flex items-center gap-2 text-xs font-black uppercase tracking-[.18em] text-[var(--color-accent)]"><IconRadar className="h-4 w-4" /> Recon & OSINT tools</div>
+                <h2 className="text-2xl font-black tracking-[-.04em] text-[var(--color-heading)]">Investigation cases</h2>
+                <p className="mt-2 max-w-3xl text-sm leading-7 text-[var(--color-text-dim)]">Run simulated Shodan, Maltego, Sherlock, EyeWitness, and theHarvester workflows before touching a target directly.</p>
+              </div>
+              <p className="hidden rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 text-xs font-black text-[var(--color-text-dim)] sm:block">{osintDone}/{OSINT_LABS.length} completed</p>
+            </div>
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              {OSINT_LABS.map((lab) => <SiemLabCard key={lab.id} lab={lab} />)}
+            </div>
+          </section>
         )}
       </div>
-
-      <div className="flex flex-wrap gap-2 mb-3">
-        {['All', ...LAB_CATEGORIES].map((cat) => (
-          <button
-            key={cat}
-            onClick={() => handleSetFilter(cat)}
-            aria-pressed={filter === cat}
-            className={`px-3.5 py-1.5 rounded-full text-sm font-medium border transition-colors ${
-              filter === cat
-                ? 'bg-[var(--color-accent)] border-[var(--color-accent)] text-white'
-                : 'border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-dim)] hover:text-[var(--color-heading)] hover:border-[var(--color-accent)]/50'
-            }`}
-          >
-            {cat}
-            {cat !== 'All' && (
-              <span className="ml-1.5 opacity-70">{CATEGORY_COUNTS[cat] ?? 0}</span>
-            )}
-          </button>
-        ))}
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2 mb-8">
-        <span className="text-xs font-semibold uppercase tracking-wide text-[var(--color-text-dim)] mr-1">Difficulty</span>
-        {['All', ...DIFFICULTIES].map((d) => (
-          <button
-            key={d}
-            onClick={() => handleSetDifficulty(d)}
-            aria-pressed={difficultyFilter === d}
-            className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
-              difficultyFilter === d
-                ? (DIFFICULTY_ACTIVE_CLASS[d] ?? 'bg-[var(--color-heading)] border-[var(--color-heading)] text-[var(--color-bg)]')
-                : 'border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-dim)] hover:text-[var(--color-heading)] hover:border-[var(--color-accent)]/50'
-            }`}
-          >
-            {d}
-          </button>
-        ))}
-      </div>
-
-      {filtered.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-[var(--color-border)] p-10 text-center text-sm text-[var(--color-text-dim)]">
-          <p className="mb-3">
-            {search_ ? (
-              <>No labs match &ldquo;{search}&rdquo;{filter !== 'All' && <> in {filter}</>}.</>
-            ) : (
-              <>No labs in the &ldquo;{filter}&rdquo; category{difficultyFilter !== 'All' && <> at {difficultyFilter} difficulty</>}.</>
-            )}
-          </p>
-          {isFiltering && (
-            <button
-              onClick={() => {
-                handleSetFilter('All');
-                handleSetDifficulty('All');
-                clearSearch();
-              }}
-              className="text-sm font-semibold text-[var(--color-accent)] hover:underline"
-            >
-              Clear all filters
-            </button>
-          )}
-        </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {visible.map((lab) => (
-              <LabCard key={lab.slug} lab={lab} variant="catalog" ratingSummary={ratingSummaries?.[lab.scenario.id]} />
-            ))}
-          </div>
-
-          {hasMore && (
-            <div className="mt-8 text-center">
-              <button
-                onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}
-                className="px-6 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-sm font-semibold text-[var(--color-text-dim)] hover:text-[var(--color-heading)] hover:border-[var(--color-accent)]/50 transition-colors"
-              >
-                Load {Math.min(PAGE_SIZE, filtered.length - visibleCount)} more
-                <span className="ml-2 opacity-60 text-xs">({filtered.length - visibleCount} remaining)</span>
-              </button>
-            </div>
-          )}
-
-          <div className="mt-4 text-center text-xs text-[var(--color-text-dim)]">
-            Showing {Math.min(visibleCount, filtered.length)} of {filtered.length} labs
-            {isFiltering && ` matching your filters`}
-          </div>
-        </>
-      )}
-
-      {!isFiltering && (
-        <div className="mt-14">
-          <div className="flex items-center gap-2 mb-1">
-            <IconRadar className="w-4 h-4 text-[var(--color-accent)]" />
-            <h2 className="text-lg font-bold text-[var(--color-heading)]">Recon &amp; OSINT Tools</h2>
-          </div>
-          <p className="text-sm text-[var(--color-text-dim)] mb-2 leading-relaxed max-w-2xl">
-            Real reconnaissance tradecraft, run inside simulated Shodan, Maltego, Sherlock, EyeWitness, and
-            theHarvester consoles instead of a terminal — the same tools a red team or bug bounty hunter reaches
-            for before ever touching the target directly.
-          </p>
-          <p className="text-sm text-[var(--color-accent-dim)] font-semibold mb-4">
-            {osintDone} / {OSINT_LABS.length} labs completed
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {OSINT_LABS.map((lab) => (
-              <SiemLabCard key={lab.id} lab={lab} />
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

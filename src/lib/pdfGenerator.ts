@@ -1,444 +1,352 @@
-import { jsPDF, GState } from 'jspdf';
-import type { LabEntry } from '../data/labs';
-import type { ObjectiveStep } from '../labs/types';
-import { CATEGORY_HASHTAGS } from './labWriteup';
+import { jsPDF } from 'jspdf';
+import type { ReportLabEntry as LabEntry } from './labWriteup';
+import { completionDate, completionStatus, EMPTY_REPORT, labRecordReference, type LabWriteupOptions } from './labWriteup';
 
-function objectiveText(o: string | ObjectiveStep): string {
-  return typeof o === 'string' ? o : o.text;
-}
-function objectiveWhy(o: string | ObjectiveStep): string | undefined {
-  return typeof o === 'string' ? undefined : o.why;
+const NAVY: [number, number, number] = [16, 27, 46];
+const GOLD: [number, number, number] = [160, 119, 52];
+const PAPER: [number, number, number] = [251, 249, 244];
+const DIM: [number, number, number] = [88, 101, 118];
+let fontPromise: Promise<string> | undefined;
+
+async function fontData(): Promise<string> {
+  fontPromise ??= fetch(new URL('../assets/fonts/DejaVuSans.ttf', import.meta.url).href)
+    .then(async (response) => {
+      if (!response.ok) throw new Error('The document font could not be loaded. Reconnect and try again.');
+      const bytes = new Uint8Array(await response.arrayBuffer());
+      let binary = '';
+      for (let start = 0; start < bytes.length; start += 8192) binary += String.fromCharCode(...bytes.subarray(start, start + 8192));
+      return btoa(binary);
+    }).catch((error) => { fontPromise = undefined; throw error; });
+  return fontPromise;
 }
 
-/** A short, deterministic, certificate-looking reference code — not a security token, just a stable
- *  "this exact certificate" identifier derived from the learner + lab + completion date. */
-function referenceCode(seed: string): string {
-  let hash = 0;
-  for (let i = 0; i < seed.length; i++) {
-    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+async function documentWithFont(orientation: 'landscape' | 'portrait', embeddedFont?: string): Promise<jsPDF> {
+  const doc = new jsPDF({ orientation, unit: 'pt', format: 'a4', putOnlyUsedFonts: true, compress: true });
+  doc.addFileToVFS('DarkWorldSans.ttf', embeddedFont ?? await fontData());
+  doc.addFont('DarkWorldSans.ttf', 'DarkWorldSans', 'normal');
+  doc.setFont('DarkWorldSans', 'normal');
+  return doc;
+}
+
+/** Fail explicitly for glyphs our embedded font cannot represent; the Markdown export always
+ * preserves the original Unicode. Never silently turn a learner's name or evidence into boxes. */
+function checkGlyphs(doc: jsPDF, text: string) {
+  const metadata = doc.getFont().metadata as { characterToGlyph?: (code: number) => number };
+  if (!metadata.characterToGlyph) return;
+  const unsupported = [...new Set([...text].filter((letter) => !/\s/u.test(letter) && !metadata.characterToGlyph!(letter.codePointAt(0)!)))];
+  if (unsupported.length) throw new Error(`PDF font does not support ${unsupported.slice(0, 4).join(' ')}. Use the Markdown export to preserve these characters, or use a transliterated display name.`);
+}
+
+const clean = (text: string) => text.replace(/\r\n?/g, '\n').replace(/\t/g, '    ').replace(/\p{Cc}/gu, character => character === '\n' ? '\n' : '');
+const safeFileName = (entry: LabEntry) => entry.scenario.title.replace(/[^a-z0-9]+/gi, '-').toLowerCase();
+
+function seal(doc: jsPDF, cx: number, cy: number, radius: number) {
+  doc.setFillColor(...NAVY);
+  doc.setDrawColor(...GOLD);
+  doc.setLineWidth(1.3);
+  doc.circle(cx, cy, radius, 'FD');
+  doc.circle(cx, cy, radius - 5, 'S');
+  doc.setFont('times', 'bold');
+  doc.setFontSize(radius * 0.63);
+  doc.setTextColor(241, 226, 195);
+  doc.text('DW', cx, cy + 3, { align: 'center' });
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(radius * 0.16);
+  doc.text('LEARNING GUILD', cx, cy + radius * 0.43, { align: 'center' });
+}
+
+function fittedLines(doc: jsPDF, text: string, width: number, maxLines: number, preferredSize: number, minSize: number): string[] {
+  for (let size = preferredSize; size >= minSize; size--) {
+    doc.setFontSize(size);
+    const lines: string[] = doc.splitTextToSize(clean(text), width);
+    if (lines.length <= maxLines) return lines;
   }
-  const hex = hash.toString(16).toUpperCase().padStart(8, '0');
-  return `HH-${hex.slice(0, 4)}-${hex.slice(4, 8)}`;
+  throw new Error('The certificate name or title is too long. Use a shorter display name or download the full report.');
 }
 
-function todayLong(): string {
-  return new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
-}
-
-/** Simulates letter-tracking for short all-caps headings, which jsPDF's core fonts don't support natively. */
-function tracked(text: string, gap = ' '): string {
-  return text.split('').join(gap);
-}
-
-/** Fills a diamond (rotated square) centered at (cx, cy) with "radius" r, used as a lightweight ornament. */
-function diamond(doc: jsPDF, cx: number, cy: number, r: number, style: 'F' | 'S' = 'F') {
-  doc.triangle(cx, cy - r, cx + r, cy, cx, cy + r, style);
-  doc.triangle(cx, cy - r, cx - r, cy, cx, cy + r, style);
-}
-
-/** Generates and triggers a download of a certificate of completion for a solved lab. */
-export function downloadCertificatePdf(entry: LabEntry, learnerName: string) {
+export async function createCertificatePdf(entry: LabEntry, learnerName: string, opts: LabWriteupOptions = {}, embeddedFont?: string): Promise<jsPDF> {
+  const { complete, count } = completionStatus(entry, opts);
+  if (!complete) throw new Error('Complete the lab before downloading its certificate.');
+  const doc = await documentWithFont('landscape', embeddedFont);
   const { scenario } = entry;
-  const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
-  const pageW = doc.internal.pageSize.getWidth();
-  const pageH = doc.internal.pageSize.getHeight();
-  const cx = pageW / 2;
-
-  // Navy + gold, matching the platform's premium accent pairing (see --color-navy / --color-gold).
-  const navy: [number, number, number] = [13, 18, 32];
-  const gold: [number, number, number] = [168, 121, 47];
-  const goldLight: [number, number, number] = [201, 161, 95];
-  const dim: [number, number, number] = [104, 112, 138];
-  const paper: [number, number, number] = [251, 249, 243];
-
-  // paper tint — a pure-white page reads as a screenshot, not a printed document
-  doc.setFillColor(...paper);
-  doc.rect(0, 0, pageW, pageH, 'F');
-
-  // faint rotated wordmark watermark, sitting behind all other content
-  doc.saveGraphicsState();
-  doc.setGState(new GState({ opacity: 0.045 }));
-  doc.setFont('times', 'bold');
-  doc.setFontSize(80);
-  doc.setTextColor(...navy);
-  doc.text('DARKWORLD', cx, pageH / 2, { align: 'center', angle: 18 });
-  doc.restoreGraphicsState();
-
-  // triple-line frame: gold hairline, heavier navy rule, inner gold hairline
-  doc.setDrawColor(...gold);
-  doc.setLineWidth(1.1);
-  doc.rect(18, 18, pageW - 36, pageH - 36);
-  doc.setDrawColor(...navy);
-  doc.setLineWidth(2.2);
-  doc.rect(27, 27, pageW - 54, pageH - 54);
-  doc.setDrawColor(...gold);
-  doc.setLineWidth(0.6);
-  doc.rect(33, 33, pageW - 66, pageH - 66);
-
-  // gold corner ornaments at the navy frame's corners
-  [
-    [27, 27],
-    [pageW - 27, 27],
-    [27, pageH - 27],
-    [pageW - 27, pageH - 27],
-  ].forEach(([x, y]) => {
-    doc.setFillColor(...gold);
-    diamond(doc, x, y, 6);
-  });
-
-  let y = 78;
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8.5);
-  doc.setTextColor(...gold);
-  doc.text(tracked('EST. • CYBERSECURITY LEARNING PLATFORM'), cx, y, { align: 'center' });
-
-  y += 26;
-  doc.setFont('times', 'bold');
-  doc.setFontSize(22);
-  doc.setTextColor(...navy);
-  doc.text(tracked('DARKWORLD'), cx, y, { align: 'center' });
-
-  y += 44;
-  doc.setFont('times', 'bold');
-  doc.setFontSize(30);
-  doc.setTextColor(...navy);
-  doc.text('Certificate of Achievement', cx, y, { align: 'center' });
-
-  y += 20;
-  doc.setDrawColor(...gold);
+  checkGlyphs(doc, [learnerName, scenario.title, scenario.category].join(' '));
+  const width = doc.internal.pageSize.getWidth();
+  const height = doc.internal.pageSize.getHeight();
+  const center = width / 2 + 34;
+  const textWidth = width - 220;
+  doc.setProperties({ title: `${scenario.title} - Lab completion`, author: 'DarkWorld', subject: 'Simulated training completion record' });
+  doc.setFillColor(...PAPER);
+  doc.rect(0, 0, width, height, 'F');
+  doc.setFillColor(...NAVY);
+  doc.rect(0, 0, 78, height, 'F');
+  doc.setDrawColor(...GOLD);
   doc.setLineWidth(1);
-  doc.line(cx - 110, y, cx - 14, y);
-  doc.line(cx + 14, y, cx + 110, y);
-  doc.setFillColor(...gold);
-  diamond(doc, cx, y, 5);
-
-  y += 34;
-  doc.setFont('times', 'italic');
-  doc.setFontSize(13);
-  doc.setTextColor(...dim);
-  doc.text('This certifies that', cx, y, { align: 'center' });
-
-  y += 36;
-  doc.setFont('times', 'bolditalic');
-  doc.setFontSize(28);
-  doc.setTextColor(...navy);
-  doc.text(learnerName, cx, y, { align: 'center' });
-  const nameWidth = doc.getTextWidth(learnerName);
-  doc.setDrawColor(...gold);
-  doc.setLineWidth(1);
-  doc.line(cx - nameWidth / 2 - 16, y + 8, cx + nameWidth / 2 + 16, y + 8);
-  doc.setFillColor(...gold);
-  diamond(doc, cx - nameWidth / 2 - 16, y + 8, 2.5);
-  diamond(doc, cx + nameWidth / 2 + 16, y + 8, 2.5);
-
-  y += 30;
-  doc.setFont('times', 'italic');
-  doc.setFontSize(13);
-  doc.setTextColor(...dim);
-  doc.text('has successfully completed the hands-on lab', cx, y, { align: 'center' });
-
-  y += 25;
-  doc.setFont('times', 'bold');
-  doc.setFontSize(17);
-  doc.setTextColor(...navy);
-  const titleLines = doc.splitTextToSize(scenario.title, pageW - 220);
-  doc.text(titleLines, cx, y, { align: 'center' });
-  y += titleLines.length * 20;
-
-  y += 16;
+  doc.rect(94, 24, width - 118, height - 48);
+  doc.setLineWidth(0.3);
+  doc.rect(100, 30, width - 130, height - 60);
+  seal(doc, 39, 57, 25);
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10.5);
-  doc.setTextColor(...gold);
-  doc.text(
-    `${scenario.category.toUpperCase()}   •   ${scenario.difficulty.toUpperCase()} DIFFICULTY   •   ${scenario.totalFlags} FLAG${scenario.totalFlags > 1 ? 'S' : ''} CAPTURED`,
-    cx,
-    y,
-    { align: 'center' },
-  );
-
-  y += 30;
-  doc.setFont('times', 'italic');
-  doc.setFontSize(10.5);
-  doc.setTextColor(...dim);
-  const recognitionLines = doc.splitTextToSize(
-    'In recognition of demonstrated proficiency in real-world offensive-security methodology, completed ' +
-      'through hands-on practice in a fully simulated network environment.',
-    pageW - 320,
-  );
-  doc.text(recognitionLines, cx, y, { align: 'center' });
-
-  // footer: date (left), seal + ribbon (center), signature block (right)
-  const footerY = pageH - 100;
-  doc.setDrawColor(...gold);
-  doc.setLineWidth(0.5);
-  doc.line(70, footerY - 26, pageW - 70, footerY - 26);
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8.5);
-  doc.setTextColor(...gold);
-  doc.text(tracked('DATE COMPLETED'), 90, footerY);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(12);
-  doc.setTextColor(...navy);
-  doc.text(todayLong(), 90, footerY + 17);
-  doc.setDrawColor(...dim);
-  doc.setLineWidth(0.5);
-  doc.line(90, footerY + 26, 250, footerY + 26);
-
-  // faux-signature block standing in for an issuing authority
-  const sigRight = pageW - 90;
-  doc.setFont('times', 'bolditalic');
-  doc.setFontSize(19);
-  doc.setTextColor(...navy);
-  doc.text('DarkWorld Academy', sigRight, footerY + 6, { align: 'right' });
-  doc.setDrawColor(...dim);
-  doc.setLineWidth(0.5);
-  doc.line(sigRight - 190, footerY + 16, sigRight, footerY + 16);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8.5);
-  doc.setTextColor(...gold);
-  doc.text(tracked('ISSUING AUTHORITY'), sigRight, footerY + 27, { align: 'right' });
-
-  // seal — a gold medallion with hanging ribbon tails, sized so its own text never overruns the circle
-  const sealX = cx;
-  const sealY = footerY - 6;
-  doc.setFillColor(...gold);
-  doc.triangle(sealX - 16, sealY + 20, sealX - 2, sealY + 20, sealX - 9, sealY + 48, 'F');
-  doc.triangle(sealX + 16, sealY + 20, sealX + 2, sealY + 20, sealX + 9, sealY + 48, 'F');
-  doc.setFillColor(...paper);
-  doc.setDrawColor(...gold);
-  doc.setLineWidth(1.6);
-  doc.circle(sealX, sealY, 29, 'FD');
-  doc.setDrawColor(...goldLight);
-  doc.setLineWidth(0.6);
-  doc.circle(sealX, sealY, 24);
-  doc.setFont('times', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(217, 190, 145);
+  doc.text('LEARN  /  PRACTISE  /  PROVE', 43, height - 78, { angle: 90 });
   doc.setFontSize(11);
-  doc.setTextColor(...gold);
-  doc.text('DW', sealX, sealY - 2, { align: 'center' });
-  doc.setDrawColor(...gold);
-  doc.setLineWidth(0.5);
-  doc.line(sealX - 13, sealY + 3, sealX + 13, sealY + 3);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(5.5);
-  doc.setTextColor(...gold);
-  doc.text('VERIFIED', sealX, sealY + 11, { align: 'center' });
-
-  const refCode = referenceCode(`${learnerName}|${scenario.id}|${todayLong()}`);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7.5);
-  doc.setTextColor(...dim);
-  doc.text(
-    `Completed inside a browser-based, simulated offensive-security training environment. Not a professional certification.  •  Certificate No. ${refCode}`,
-    cx,
-    pageH - 44,
-    { align: 'center' },
-  );
-
-  const safeTitle = scenario.title.replace(/[^a-z0-9]+/gi, '-').toLowerCase();
-  doc.save(`darkworld-certificate-${safeTitle}.pdf`);
-}
-
-/** "PrivilegeEscalation" -> "Privilege Escalation" — hashtags are camelCase, report chips read as words. */
-function humanizeTag(tag: string): string {
-  return tag.replace(/([a-z0-9])([A-Z])/g, '$1 $2');
-}
-
-/** Generates and triggers a download of a structured, professional lab writeup/report PDF. */
-export function downloadWriteupPdf(entry: LabEntry, opts: { learnerName?: string | null } = {}) {
-  const { scenario } = entry;
-  const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
-  const pageW = doc.internal.pageSize.getWidth();
-  const pageH = doc.internal.pageSize.getHeight();
-  const marginX = 56;
-  const contentW = pageW - marginX * 2;
-
-  const navy: [number, number, number] = [13, 18, 32];
-  const gold: [number, number, number] = [168, 121, 47];
-  const goldSoft: [number, number, number] = [243, 236, 225];
-  const dim: [number, number, number] = [104, 112, 138];
-
-  const reportId = referenceCode(`${opts.learnerName ?? 'anonymous'}|${scenario.id}|report`);
-  let y = 0;
-
-  const ensureSpace = (needed: number) => {
-    if (y + needed > pageH - 74) {
-      doc.addPage();
-      y = 56;
-    }
-  };
-
-  const addFooter = (page: number, totalPages: number) => {
-    doc.setDrawColor(...gold);
-    doc.setLineWidth(0.5);
-    doc.line(marginX, pageH - 48, pageW - marginX, pageH - 48);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(...dim);
-    doc.text('DarkWorld Academy — Lab Completion Report', marginX, pageH - 34);
-    doc.text(`Document Ref. ${reportId}`, marginX, pageH - 22);
-    doc.text(`Page ${page} of ${totalPages}`, pageW - marginX, pageH - 34, { align: 'right' });
-  };
-
-  // header band, sized to fit a one- or two-line title
-  const headerTitleLines: string[] = doc.setFont('times', 'bold').setFontSize(19).splitTextToSize(scenario.title, contentW).slice(0, 2);
-  const bandH = 86 + (headerTitleLines.length - 1) * 22;
-  doc.setFillColor(...navy);
-  doc.rect(0, 0, pageW, bandH, 'F');
-  doc.setFillColor(...gold);
-  doc.rect(0, bandH, pageW, 3, 'F');
-
-  doc.setFont('times', 'bold');
-  doc.setFontSize(12);
-  doc.setTextColor(255, 255, 255);
-  doc.text('DARKWORLD', marginX, 28);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7.5);
-  doc.setTextColor(...gold);
-  doc.text('CYBERSECURITY LAB COMPLETION REPORT', marginX, 41);
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8.5);
-  doc.setTextColor(255, 255, 255);
-  doc.text(todayLong(), pageW - marginX, 28, { align: 'right' });
-  doc.setFontSize(7.5);
-  doc.setTextColor(...gold);
-  doc.text(`Ref. ${reportId}`, pageW - marginX, 41, { align: 'right' });
-
-  doc.setFont('times', 'bold');
-  doc.setFontSize(19);
-  doc.setTextColor(255, 255, 255);
-  doc.text(headerTitleLines, marginX, 68);
-
-  // metadata strip: category / difficulty / flags / prepared-by, evenly spaced
-  const metaY = bandH + 36;
-  doc.setFillColor(...goldSoft);
-  doc.rect(marginX, metaY - 17, contentW, 36, 'F');
-  const metaCols = [
-    { label: 'CATEGORY', value: scenario.category },
-    { label: 'DIFFICULTY', value: scenario.difficulty },
-    { label: 'FLAGS CAPTURED', value: `${scenario.totalFlags}/${scenario.totalFlags}` },
-    { label: 'PREPARED BY', value: opts.learnerName ?? 'Unattributed' },
+  doc.setTextColor(...GOLD);
+  doc.text('D A R K W O R L D', center, 75, { align: 'center' });
+  doc.setFont('times', 'normal');
+  doc.setFontSize(35);
+  doc.setTextColor(...NAVY);
+  doc.text('Certificate of Lab Completion', center, 129, { align: 'center' });
+  doc.setDrawColor(...GOLD);
+  doc.line(center - 100, 151, center + 100, 151);
+  doc.setFont('DarkWorldSans', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(...DIM);
+  doc.text('PRESENTED TO', center, 185, { align: 'center' });
+  const nameLines = fittedLines(doc, learnerName.trim() || 'Learner', textWidth, 2, 29, 16);
+  doc.setTextColor(...NAVY);
+  doc.text(nameLines, center, 222, { align: 'center', lineHeightFactor: 1.16 });
+  doc.setFontSize(10);
+  doc.setTextColor(...DIM);
+  doc.text('For completing the following simulated cybersecurity lab', center, 285, { align: 'center' });
+  const titleLines = fittedLines(doc, scenario.title, textWidth, 3, 19, 12);
+  doc.setTextColor(...NAVY);
+  doc.text(titleLines, center, 318, { align: 'center', lineHeightFactor: 1.25 });
+  const certificateMetaX = center - 250;
+  const certificateMetaY = 378;
+  const certificateMetaW = 500;
+  const certificateMetaH = 42;
+  const certificateMetaColW = certificateMetaW / 3;
+  doc.setFillColor(244, 246, 250);
+  doc.setDrawColor(220, 225, 234);
+  doc.setLineWidth(0.6);
+  doc.roundedRect(certificateMetaX, certificateMetaY, certificateMetaW, certificateMetaH, 5, 5, 'FD');
+  const certificateMeta = [
+    ['DISCIPLINE', scenario.category],
+    ['LEVEL', scenario.difficulty],
+    ['PROOF POINTS', `${count} recorded`],
   ];
-  const colW = contentW / metaCols.length;
-  metaCols.forEach((col, i) => {
-    const colCx = marginX + colW * i + colW / 2;
-    doc.setFont('helvetica', 'normal');
+  certificateMeta.forEach(([label, value], index) => {
+    const x = certificateMetaX + certificateMetaColW * index;
+    if (index > 0) {
+      doc.setDrawColor(220, 225, 234);
+      doc.line(x, certificateMetaY + 8, x, certificateMetaY + certificateMetaH - 8);
+    }
+    doc.setFont('DarkWorldSans', 'normal');
     doc.setFontSize(6.5);
-    doc.setTextColor(...gold);
-    doc.text(col.label, colCx, metaY - 4, { align: 'center' });
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9.5);
-    doc.setTextColor(...navy);
-    doc.text(col.value, colCx, metaY + 10, { align: 'center' });
+    doc.setTextColor(...DIM);
+    doc.text(label, x + certificateMetaColW / 2, certificateMetaY + 15, { align: 'center' });
+    doc.setFontSize(9);
+    doc.setTextColor(...NAVY);
+    const valueLines: string[] = doc.splitTextToSize(value, certificateMetaColW - 18);
+    doc.text(valueLines.slice(0, 2), x + certificateMetaColW / 2, certificateMetaY + 30, { align: 'center', lineHeightFactor: 1.05 });
   });
+  doc.setDrawColor(...GOLD);
+  doc.line(131, 431, width - 60, 431);
+  doc.setFontSize(8);
+  doc.setTextColor(...DIM);
+  doc.text('RECORDED COMPLETION (UTC)', 135, 450);
+  doc.text('ISSUED BY', width - 194, 450);
+  doc.setFontSize(11);
+  doc.setTextColor(...NAVY);
+  doc.text(completionDate(opts.completedAt), 135, 470);
+  doc.text('DarkWorld Learning', width - 194, 470);
+  seal(doc, center, 461, 28);
+  doc.setFont('DarkWorldSans', 'normal');
+  doc.setFontSize(7.4);
+  doc.setTextColor(...DIM);
+  doc.text('A record of practice in a browser simulation. Not a professional certification or independent skills assessment.', center, 523, { align: 'center' });
+  doc.text(`Learning record ${labRecordReference(entry, { ...opts, learnerName })}  |  Based on learner-managed progress`, center, 540, { align: 'center' });
+  return doc;
+}
 
-  y = metaY + 40;
+export async function downloadCertificatePdf(entry: LabEntry, learnerName: string, opts: LabWriteupOptions = {}) {
+  const doc = await createCertificatePdf(entry, learnerName, opts);
+  doc.save(`darkworld-certificate-${safeFileName(entry)}.pdf`);
+}
 
-  const sectionHeading = (text: string) => {
-    ensureSpace(32);
-    doc.setFillColor(...gold);
-    doc.rect(marginX, y - 9, 4, 13, 'F');
-    doc.setFont('times', 'bold');
-    doc.setFontSize(12.5);
-    doc.setTextColor(...navy);
-    doc.text(text.toUpperCase(), marginX + 12, y);
-    y += 20;
-  };
+export async function createWriteupPdf(entry: LabEntry, opts: LabWriteupOptions = {}, embeddedFont?: string): Promise<jsPDF> {
+  const doc = await documentWithFont('portrait', embeddedFont);
+  const report = opts.evidence ?? EMPTY_REPORT;
+  const { scenario } = entry;
+  const { count, complete } = completionStatus(entry, opts);
+  checkGlyphs(doc, JSON.stringify({ title: scenario.title, name: opts.learnerName, category: scenario.category, difficulty: scenario.difficulty, report }));
+  const width = doc.internal.pageSize.getWidth();
+  const height = doc.internal.pageSize.getHeight();
+  const margin = 52;
+  const contentWidth = width - 2 * margin;
+  const bottom = height - 68;
+  const reference = labRecordReference(entry, opts);
+  let y = 0;
+  doc.setProperties({ title: `${scenario.title} - Training assessment report`, author: opts.learnerName?.trim() || 'Learner', subject: 'Learner-authored simulation portfolio report' });
 
-  const bodyText = (text: string, textOpts: { italic?: boolean; size?: number; color?: [number, number, number] } = {}) => {
-    doc.setFont('helvetica', textOpts.italic ? 'italic' : 'normal');
-    doc.setFontSize(textOpts.size ?? 10.5);
-    doc.setTextColor(...(textOpts.color ?? navy));
-    const lines: string[] = doc.splitTextToSize(text, contentW);
+  function nextPage() {
+    doc.addPage();
+    doc.setFont('DarkWorldSans', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(...DIM);
+    doc.text('DARKWORLD  /  TRAINING ASSESSMENT', margin, 33);
+    doc.text(reference, width - margin, 33, { align: 'right' });
+    doc.setDrawColor(220, 224, 230);
+    doc.line(margin, 43, width - margin, 43);
+    y = 68;
+  }
+  function ensure(needed: number) { if (y + needed > bottom) nextPage(); }
+  function paragraph(value: string, muted = false, size = 10) {
+    doc.setFont('DarkWorldSans', 'normal');
+    doc.setFontSize(size);
+    const lines: string[] = doc.splitTextToSize(clean(value.trim() || 'Not documented by the learner.'), contentWidth);
     for (const line of lines) {
-      ensureSpace(16);
-      doc.text(line, marginX, y);
-      y += 15;
+      ensure(size * 1.55);
+      doc.setFont('DarkWorldSans', 'normal');
+      doc.setFontSize(size);
+      doc.setTextColor(...(muted ? DIM : NAVY));
+      doc.text(line, margin, y);
+      y += size * 1.55;
     }
-  };
-
-  sectionHeading('Executive Summary');
-  const flagsPhrase = `${scenario.totalFlags} of ${scenario.totalFlags} flag${scenario.totalFlags > 1 ? 's' : ''}`;
-  const objectivesPhrase = `${scenario.objectives.length} guided objective${scenario.objectives.length > 1 ? 's' : ''}`;
-  bodyText(
-    `${opts.learnerName ?? 'The learner'} completed "${scenario.title}", a ${scenario.difficulty.toLowerCase()}-difficulty ` +
-      `${scenario.category} lab, successfully capturing ${flagsPhrase} across ${objectivesPhrase}. The sections below ` +
-      'document the methodology followed and the security concepts reinforced.',
-  );
-  y += 8;
-
-  sectionHeading('Skills Demonstrated');
-  const skills = Array.from(
-    new Set([scenario.category, ...(CATEGORY_HASHTAGS[scenario.category] ?? []).map(humanizeTag)]),
-  );
-  let chipX = marginX;
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  skills.forEach((skill) => {
-    const chipW = doc.getTextWidth(skill) + 18;
-    if (chipX + chipW > marginX + contentW) {
-      chipX = marginX;
-      y += 24;
-      ensureSpace(24);
-    }
-    doc.setFillColor(...goldSoft);
-    doc.setDrawColor(...gold);
-    doc.setLineWidth(0.6);
-    doc.roundedRect(chipX, y - 12, chipW, 18, 8, 8, 'FD');
-    doc.setTextColor(...navy);
-    doc.text(skill, chipX + 9, y);
-    chipX += chipW + 8;
-  });
-  y += 26;
-
-  sectionHeading('Scenario Briefing');
-  bodyText(scenario.briefing);
-  y += 8;
-
-  sectionHeading('Methodology');
-  scenario.objectives.forEach((o, i) => {
-    const text = objectiveText(o);
-    const why = objectiveWhy(o);
-    ensureSpace(18);
+    y += 9;
+  }
+  function estimatedParagraphHeight(value: string, size: number) {
+    doc.setFont('DarkWorldSans', 'normal');
+    doc.setFontSize(size);
+    const lines: string[] = doc.splitTextToSize(clean(value.trim() || 'Not documented by the learner.'), contentWidth);
+    return lines.length * size * 1.55 + 9;
+  }
+  function estimateFindingLayout(finding: (typeof report.findings)[number], index: number) {
+    const title = `F-${String(index + 1).padStart(2, '0')}  ${finding.title.trim() || 'Untitled finding'}`;
+    doc.setFont('DarkWorldSans', 'normal');
+    doc.setFontSize(11.5);
+    const titleLines: string[] = doc.splitTextToSize(clean(title), contentWidth - 20);
+    const headerHeight = Math.max(31, titleLines.length * 15 + 15);
+    const severityAndAsset = `Severity (learner assessed): ${finding.severity}\nAffected asset: ${finding.affectedAsset.trim() || 'Not documented'}`;
+    const evidenceSections = [finding.evidence, finding.impact, finding.remediation, finding.retest];
+    const height = headerHeight + estimatedParagraphHeight(severityAndAsset, 9) +
+      evidenceSections.reduce((total, value) => total + 17 + estimatedParagraphHeight(value, 10), 0);
+    return { title, titleLines, headerHeight, severityAndAsset, height };
+  }
+  function heading(number: string, title: string) {
+    ensure(64);
+    y += 14;
+    doc.setFillColor(238, 242, 249);
+    doc.setDrawColor(216, 225, 239);
+    doc.roundedRect(margin, y - 14, 27, 21, 4, 4, 'FD');
+    doc.setFont('DarkWorldSans', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(36, 91, 206);
+    doc.text(number, margin + 13.5, y, { align: 'center' });
+    doc.setFontSize(12.5);
+    doc.setTextColor(...NAVY);
+    doc.text(title, margin + 38, y + 1);
+    y += 25;
+  }
+  function label(title: string, value: string) {
+    ensure(48);
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(10.5);
-    doc.setTextColor(...navy);
-    const numLines: string[] = doc.splitTextToSize(`${i + 1}. ${text}`, contentW);
-    numLines.forEach((line) => {
-      ensureSpace(15);
-      doc.text(line, marginX, y);
-      y += 15;
-    });
-    if (why) {
-      doc.setFont('helvetica', 'italic');
-      doc.setFontSize(9.5);
-      doc.setTextColor(...dim);
-      const whyLines: string[] = doc.splitTextToSize(`Why: ${why}`, contentW - 14);
-      whyLines.forEach((line) => {
-        ensureSpace(14);
-        doc.text(line, marginX + 14, y);
-        y += 13;
-      });
-    }
-    y += 6;
-  });
-
-  y += 6;
-  sectionHeading('Environment & Integrity Statement');
-  bodyText(
-    'Completed inside DarkWorld, a browser-based offensive-security training platform — every step above ' +
-      'was run against a simulated network and filesystem in an isolated, authorized lab environment. This document ' +
-      'is system-generated from the learner’s actual completion record and has not been independently notarized.',
-    { italic: true, color: dim },
-  );
-
-  const totalPages = doc.getNumberOfPages();
-  for (let page = 1; page <= totalPages; page++) {
-    doc.setPage(page);
-    addFooter(page, totalPages);
+    doc.setFontSize(8.5);
+    doc.setTextColor(...GOLD);
+    doc.text(title.toUpperCase(), margin, y);
+    y += 17;
+    paragraph(value);
   }
 
-  const safeTitle = scenario.title.replace(/[^a-z0-9]+/gi, '-').toLowerCase();
-  doc.save(`darkworld-report-${safeTitle}.pdf`);
+  doc.setFontSize(24);
+  const titleLines: string[] = doc.splitTextToSize(clean(scenario.title), contentWidth);
+  const titleHeight = Math.min(titleLines.length, 7) * 29;
+  // An extreme title moves into normal flowing body text; it is never truncated.
+  const coverTitle = titleLines.length <= 7 ? titleLines : ['Training assessment report'];
+  const bandHeight = 93 + (titleLines.length <= 7 ? titleHeight : 29);
+  doc.setFillColor(...NAVY);
+  doc.rect(0, 0, width, bandHeight, 'F');
+  doc.setFillColor(...GOLD);
+  doc.rect(0, bandHeight, width, 3, 'F');
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(218, 188, 139);
+  doc.text('D A R K W O R L D', margin, 34);
+  doc.setFontSize(7);
+  doc.text('TRAINING ASSESSMENT REPORT', margin, 52);
+  doc.setFont('DarkWorldSans', 'normal');
+  doc.setFontSize(24);
+  doc.setTextColor(255, 255, 255);
+  doc.text(coverTitle, margin, 88, { lineHeightFactor: 1.2 });
+  const metaY = bandHeight + 18;
+  const metaH = 46;
+  const metaColW = contentWidth / 4;
+  doc.setFillColor(243, 245, 249);
+  doc.setDrawColor(220, 224, 232);
+  doc.setLineWidth(0.6);
+  doc.roundedRect(margin, metaY, contentWidth, metaH, 5, 5, 'FD');
+  const reportMeta = [
+    ['CATEGORY', scenario.category],
+    ['DIFFICULTY', scenario.difficulty],
+    ['PROGRESS', `${count}/${scenario.totalFlags} · ${complete ? 'Complete' : 'In progress'}`],
+    ['RECORDED', completionDate(opts.completedAt)],
+  ];
+  reportMeta.forEach(([labelText, value], index) => {
+    const x = margin + metaColW * index;
+    if (index > 0) {
+      doc.setDrawColor(220, 224, 232);
+      doc.line(x, metaY + 8, x, metaY + metaH - 8);
+    }
+    doc.setFont('DarkWorldSans', 'normal');
+    doc.setFontSize(6.5);
+    doc.setTextColor(...GOLD);
+    doc.text(labelText, x + 10, metaY + 15);
+    doc.setFontSize(8.2);
+    doc.setTextColor(...NAVY);
+    const valueLines: string[] = doc.splitTextToSize(value, metaColW - 18);
+    doc.text(valueLines.slice(0, 2), x + 10, metaY + 31, { lineHeightFactor: 1.05 });
+  });
+  y = metaY + metaH + 18;
+  paragraph(`Prepared by: ${opts.learnerName?.trim() || 'Learner'}  |  Record: ${reference}`, true, 8.5);
+  if (titleLines.length > 7) paragraph(scenario.title);
+  heading('01', 'Executive summary');
+  paragraph(report.executiveSummary);
+  heading('02', 'Scope and limitations');
+  paragraph(report.scope);
+  paragraph('This exercise uses DarkWorld simulated targets. Findings below are authored by the learner. Exercise objectives do not establish that specific actions were performed.', true, 9);
+  heading('03', 'Methodology and activity log');
+  paragraph(report.methodology);
+  if (report.findings.length) ensure(60 + estimateFindingLayout(report.findings[0], 0).height);
+  heading('04', 'Findings and supporting evidence');
+  if (!report.findings.length) paragraph('No learner-authored findings have been added.', true);
+  report.findings.forEach((finding, index) => {
+    const layout = estimateFindingLayout(finding, index);
+    ensure(layout.height + 8);
+    doc.setFillColor(244, 246, 250);
+    doc.setDrawColor(220, 224, 232);
+    doc.roundedRect(margin, y - 13, contentWidth, layout.headerHeight, 4, 4, 'FD');
+    doc.setFontSize(11.5);
+    doc.setTextColor(...NAVY);
+    doc.text(layout.titleLines, margin + 10, y + 2, { lineHeightFactor: 1.1 });
+    y += layout.headerHeight;
+    paragraph(layout.severityAndAsset, true, 9);
+    label('Evidence and reproduction', finding.evidence);
+    label('Observed impact', finding.impact);
+    label('Remediation', finding.remediation);
+    label('Retest and residual risk', finding.retest);
+  });
+  heading('05', 'Cleanup and handover');
+  paragraph(report.cleanup);
+  heading('06', 'Reflection and next steps');
+  paragraph(report.reflection);
+  heading('07', 'Record provenance');
+  paragraph('Flag counts and completion dates come from the learner\'s saved progress and can be edited locally. Findings, severity, evidence and conclusions are learner-authored. This document is a record of simulated practice; it is not an independently verified assessment, a professional certification or proof of authorization to test external systems.', true, 9);
+  const pages = doc.getNumberOfPages();
+  for (let page = 1; page <= pages; page++) {
+    doc.setPage(page);
+    doc.setDrawColor(...GOLD);
+    doc.setLineWidth(0.5);
+    doc.line(margin, height - 48, width - margin, height - 48);
+    doc.setFont('DarkWorldSans', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(...DIM);
+    doc.text('DarkWorld / Learner portfolio / Simulated environment', margin, height - 32);
+    doc.text(`${page} / ${pages}`, width - margin, height - 32, { align: 'right' });
+  }
+  return doc;
+}
+
+export async function downloadWriteupPdf(entry: LabEntry, opts: LabWriteupOptions = {}) {
+  const doc = await createWriteupPdf(entry, opts);
+  doc.save(`darkworld-report-${safeFileName(entry)}.pdf`);
 }

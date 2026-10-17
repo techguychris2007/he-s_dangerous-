@@ -12,6 +12,14 @@ export default function AttackCoverageMapping() {
         lifecycle, where are we actually blind?"
       </p>
 
+      <h2>Technical terms explained</h2>
+      <ul>
+        <li><strong>Tactic, technique, and sub-technique:</strong> A tactic describes why an attacker acts, such as persistence. A technique describes how that goal can be achieved. A sub-technique is a more specific variation. A procedure is the concrete behavior observed in a particular intrusion.</li>
+        <li><strong>Coverage and visibility:</strong> Visibility means collecting data that could reveal a behavior. Detection coverage means having a working method to identify it. A log source or purchased tool alone does not establish tested coverage.</li>
+        <li><strong>Validation and adversary emulation:</strong> Validation checks whether a detection works under defined conditions. Adversary emulation reproduces selected attacker behaviors in an authorized test environment. Document which systems, variants, and log sources the test actually exercised.</li>
+        <li><strong>Detection gap and confidence:</strong> A detection gap is a relevant behavior that cannot currently be identified reliably. Confidence describes the evidence supporting a coverage claim. A rule that exists but has never been tested deserves a different confidence level from one verified in the target environment.</li>
+      </ul>
+
       <h2>From labeling one alert to mapping an entire program</h2>
       <p>
         Tagging a single incident with a technique ID ("detected T1547.001, Registry Run Keys persistence") is
@@ -111,6 +119,12 @@ NEXT ACTION:        write and backtest a detection rule for T1021 (Remote Servic
         next lesson puts this vocabulary to work against a specific, high-frequency category of finding:
         recognizing command-and-control activity — beaconing, DNS tunneling, and LOLBin abuse — in raw logs.
       </p>
+      <h2>Assess a coverage claim</h2>
+      <p>Imagine a team marks scheduled-task persistence as covered because it collects task creation events. Ask whether those events arrive from every relevant workstation, whether the rule checks suspicious task actions, and whether an analyst receives enough context to investigate. Test a harmless task creation in an approved environment and follow the event through collection, rule evaluation, alert delivery, and triage. If server logs never reach the SIEM, workstation success does not establish server coverage. Record the tested operating systems, date, prerequisites, and limitations beside the mapping. Prioritize the remaining gap using the organization's likely threats and important assets.</p>
+      <Callout variant="tip">
+        <p><strong>Check your understanding:</strong> What evidence would you require before changing a technique from visible to validated coverage?</p>
+      </Callout>
+
     </div>
   );
 }

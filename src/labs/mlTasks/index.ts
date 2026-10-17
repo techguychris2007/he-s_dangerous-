@@ -1,3 +1,5 @@
+import { ML_PYTHON_ENGINEERING_TASKS } from './pythonEngineering';
+import { ML_SQL_DATA_WORK_TASKS } from './sqlDataWork';
 import { ML_FOUNDATIONS_TASKS } from './foundations';
 import { ML_DATA_HANDLING_TASKS } from './dataHandling';
 import { ML_REGRESSION_TASKS } from './regression';
@@ -9,8 +11,11 @@ import { ML_NLP_TASKS } from './nlp';
 import { ML_TIME_SERIES_TASKS } from './timeSeries';
 import { ML_MLOPS_TASKS } from './mlops';
 import type { CodeTask } from '../codeTypes';
+import { enrichCodeTasks } from '../enrichCodeTasks';
 
-export const ML_TASKS: CodeTask[] = [
+const RAW_ML_TASKS: CodeTask[] = [
+  ...ML_PYTHON_ENGINEERING_TASKS,
+  ...ML_SQL_DATA_WORK_TASKS,
   ...ML_FOUNDATIONS_TASKS,
   ...ML_DATA_HANDLING_TASKS,
   ...ML_REGRESSION_TASKS,
@@ -23,7 +28,11 @@ export const ML_TASKS: CodeTask[] = [
   ...ML_MLOPS_TASKS,
 ];
 
+export const ML_TASKS: CodeTask[] = enrichCodeTasks(RAW_ML_TASKS);
+
 export const ML_TASK_CATEGORIES = [
+  'ML: Python Engineering',
+  'ML: SQL for Data Work',
   'ML: Foundations',
   'ML: Data Handling',
   'ML: Regression',

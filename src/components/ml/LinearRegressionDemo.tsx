@@ -30,7 +30,7 @@ export default function LinearRegressionDemo() {
   const sorted = [...result.points].sort((a, b) => a.x - b.x);
 
   return (
-    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
+    <div className="premium-card rounded-2xl p-5">
       <h3 className="font-bold text-[var(--color-heading)] mb-3">Try it: Linear Regression</h3>
       <div className="grid md:grid-cols-2 gap-5">
         <div>

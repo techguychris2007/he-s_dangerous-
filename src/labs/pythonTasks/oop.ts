@@ -14,8 +14,8 @@ export const PYTHON_OOP_TASKS: CodeTask[] = [
       'Write a class User with __init__(self, username, password) that stores username directly but never ' +
       'stores the raw password — instead store its SHA-256 hex digest in a "private" attribute ' +
       '(self._password_hash). Add a method check_password(self, attempt) returning True if attempt hashes ' +
-      'to the stored value. This is the core shape of every real authentication system: the plaintext ' +
-      'password should never exist anywhere after the moment it\'s hashed.',
+      'to the stored value. This is an encapsulation exercise with a deliberately simplified digest. ' +
+      'Unsalted SHA-256 is unsuitable password storage, and an underscore is a naming convention rather than access control. Use a maintained password-hashing library in production.',
     starterCode:
       'import hashlib\n\n' +
       'class User:\n' +

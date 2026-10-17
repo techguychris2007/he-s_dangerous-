@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../state/authStore';
 import { submitFeedback, fetchMyFeedback, type FeedbackCategory, type FeedbackEntry } from '../lib/feedback';
@@ -25,18 +25,25 @@ export default function FeedbackPage() {
   const [history, setHistory] = useState<FeedbackEntry[] | null>(null);
   const [historyLoading, setHistoryLoading] = useState(true);
 
-  const loadHistory = () => {
+  const requestRef = useRef(0);
+  const contextRef = useRef(0);
+  const loadHistory = useCallback(() => {
+    const request = ++requestRef.current;
     setHistoryLoading(true);
     fetchMyFeedback()
-      .then(setHistory)
-      .finally(() => setHistoryLoading(false));
-  };
+      .then(result => { if (request === requestRef.current) setHistory(result); })
+      .catch(() => { if (request === requestRef.current) setHistory(null); })
+      .finally(() => { if (request === requestRef.current) setHistoryLoading(false); });
+  }, []);
 
   useEffect(() => {
+    contextRef.current++;
+    setHistory(null); setMessage(''); setError(null); setJustSubmitted(false); setSubmitting(false);
     loadHistory();
-    // Intentionally runs once on mount only — resubmitting refreshes the list explicitly below.
+    // Request counters intentionally invalidate pending work on account changes and unmount.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    return () => { contextRef.current++; requestRef.current++; };
+  }, [loadHistory, auth.user?.id]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,7 +51,9 @@ export default function FeedbackPage() {
     setSubmitting(true);
     setError(null);
     setJustSubmitted(false);
-    const result = await submitFeedback(auth.user.id, category, message, location.pathname);
+    const context = contextRef.current;
+    const result = await submitFeedback(auth.user.id, category, message, location.pathname).catch(() => ({ok: false as const, error: 'Could not send your feedback. Your message is still here; check your connection and retry.'}));
+    if (context !== contextRef.current) return;
     setSubmitting(false);
     if (!result.ok) {
       setError(result.error);
@@ -56,7 +65,7 @@ export default function FeedbackPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-8 py-14">
+    <div className="max-w-5xl mx-auto px-4 sm:px-8 py-8 sm:py-14">
       <div className="gold-eyebrow mb-2">// tell us what's not working</div>
       <h1 className="text-3xl font-bold text-[var(--color-heading)] mb-3 flex items-center gap-3">
         <IconMail className="w-7 h-7 text-[var(--color-accent)]" /> Feedback
@@ -66,12 +75,14 @@ export default function FeedbackPage() {
         real inbox tied to your account — not a mailto link that might go nowhere.
       </p>
 
-      <form onSubmit={submit} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 mb-8">
+      <form onSubmit={submit} className="premium-card rounded-2xl p-5 mb-8">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
           {CATEGORIES.map((c) => (
             <button
               key={c.value}
               type="button"
+              disabled={submitting}
+              aria-pressed={category === c.value}
               onClick={() => setCategory(c.value)}
               title={c.hint}
               className={`px-3 py-2 rounded-lg text-xs font-semibold border transition-colors text-left ${
@@ -86,6 +97,8 @@ export default function FeedbackPage() {
         </div>
 
         <textarea
+          aria-label="Feedback message"
+          disabled={submitting}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder={CATEGORIES.find((c) => c.value === category)?.hint}
@@ -102,12 +115,12 @@ export default function FeedbackPage() {
         </div>
 
         {error && (
-          <div className="text-xs text-[var(--color-danger)] bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/30 rounded-lg px-3 py-2 mb-4 leading-relaxed">
+          <div role="alert" className="text-xs text-[var(--color-danger)] bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/30 rounded-lg px-3 py-2 mb-4 leading-relaxed">
             {error}
           </div>
         )}
         {justSubmitted && (
-          <div className="flex items-center gap-2 text-xs text-[var(--color-success)] bg-[var(--color-success)]/10 border border-[var(--color-success)]/30 rounded-lg px-3 py-2 mb-4">
+          <div role="status" className="flex items-center gap-2 text-xs text-[var(--color-success)] bg-[var(--color-success)]/10 border border-[var(--color-success)]/30 rounded-lg px-3 py-2 mb-4">
             <IconCheck className="w-3.5 h-3.5 shrink-0" /> Sent — thanks, this is now in the inbox.
           </div>
         )}
@@ -125,11 +138,12 @@ export default function FeedbackPage() {
       {historyLoading ? (
         <SkeletonList count={2} />
       ) : !history ? (
-        <div className="rounded-xl border border-dashed border-[var(--color-border)] p-4 text-sm text-[var(--color-text-dim)]">
-          Couldn't load your submission history right now — your feedback above still sends fine either way.
+        <div className="premium-card rounded-2xl border-dashed p-4 text-sm text-[var(--color-text-dim)]">
+          Couldn't load your submission history. Check your connection and retry.
+          <button onClick={loadHistory} className="ml-2 font-semibold text-[var(--color-accent-dim)] underline">Retry</button>
         </div>
       ) : history.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-[var(--color-border)] p-4 text-sm text-[var(--color-text-dim)]">
+        <div className="premium-card rounded-2xl border-dashed p-4 text-sm text-[var(--color-text-dim)]">
           Nothing submitted yet.
         </div>
       ) : (

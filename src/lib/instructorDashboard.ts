@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import { isInstructor } from './instructorConfig';
 
 export interface LearnerProgressRow {
   userId: string;
@@ -33,6 +34,10 @@ interface RpcRow {
  *  a clear message instead of a raw Supabase error. The real access control lives server-side in the
  *  function itself; this call would simply fail for anyone who isn't the instructor. */
 export async function fetchAllLearnerProgress(): Promise<LearnerProgressRow[] | null> {
+  // Revalidate the identity with Auth before requesting private learner data. The RPC separately
+  // validates authoritative database metadata, including revoked roles and email changes.
+  const { data: identity, error: identityError } = await supabase.auth.getUser();
+  if (identityError || !isInstructor(identity.user)) return null;
   const { data, error } = await supabase.rpc('instructor_dashboard_progress');
   if (error || !data) return null;
   return (data as RpcRow[]).map((r) => ({

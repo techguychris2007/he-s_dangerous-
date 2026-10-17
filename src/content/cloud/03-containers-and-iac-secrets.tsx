@@ -1,174 +1,396 @@
 import CodeBlock from '../../components/lesson/CodeBlock';
 import Callout from '../../components/lesson/Callout';
 
-export default function ContainersAndIacSecrets() {
-  return (
-    <div className="prose-hh">
-      <h1>Container, Kubernetes &amp; Infrastructure-as-Code Security</h1>
-      <p>
-        The first two lessons covered storage and identity. This one covers the layer most modern cloud
-        workloads actually run on — containers and the orchestrators that manage them — plus the
-        infrastructure-as-code files that provision all of it, which routinely end up holding real secrets
-        in plaintext.
-      </p>
+const hardenedDockerfile = `# Training image tag for the local example. Pin the approved digest in releases.
+FROM python:3.13-slim
 
-      <h2>The unauthenticated Docker API: full host takeover, no exploit required</h2>
-      <p>
-        Docker's own management API, when exposed on its default port with no authentication in front of
-        it, gives anyone who can reach it complete control — not just over containers, but effectively over
-        the host itself, since a container can be started with the host's filesystem mounted directly
-        inside it.
-      </p>
-      <CodeBlock label="why an exposed Docker API means full host compromise">{`# Just checking what's running requires no exploit at all:
-curl http://target:2375/containers/json
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-# The actual escalation: start a new container with the HOST's root filesystem mounted inside it
-curl -X POST http://target:2375/containers/create -d '{
-  "Image": "alpine",
-  "Cmd": ["chroot", "/host", "sh"],
-  "HostConfig": { "Binds": ["/:/host"] }
-}'
-# Anything run inside that container now reads/writes the REAL host filesystem — this is not
-# "container access," it is unauthenticated root on the underlying machine.`}</CodeBlock>
-      <Callout variant="danger">
-        <p>
-          This is not a hypothetical — internet-wide scanning for exposed Docker APIs on port 2375 is
-          constant and automated; unauthenticated instances are typically compromised within minutes of
-          going online, usually for cryptomining.
-        </p>
-      </Callout>
+WORKDIR /app
 
-      <h2>The same socket, reached from inside instead of over the network</h2>
-      <p>
-        The exposed-API scenario above assumes an attacker reaches the Docker daemon remotely, over the
-        network. There's a second, more common way to end up talking to that same daemon: from{' '}
-        <em>inside</em> a container that had <code>/var/run/docker.sock</code> bind-mounted into it on
-        purpose — a pattern teams reach for constantly so a CI pipeline stage can "build and push its own
-        Docker images" without nested virtualization overhead.
-      </p>
-      <CodeBlock label="why a mounted socket is just as dangerous as an exposed port">{`# Inside a build container with docker.sock mounted in — no network exposure needed at all:
-docker -H unix:///var/run/docker.sock run -v /:/host --privileged alpine chroot /host sh
-# The socket IS the host's real Docker daemon, not a sandboxed copy scoped to this container —
-# anything that can write to it can ask the HOST to start a new, privileged container with the
-# HOST's filesystem mounted in. "I can build containers" quietly became "I have host root."`}</CodeBlock>
-      <Callout variant="warn">
-        <p>
-          This is, in practice, a far more common real-world container-escape path than a kernel-level
-          breakout exploit — it requires no vulnerability at all, just a convenience mount nobody revisited.
-          If a socket-proxy (restricting which API calls are allowed) isn't in front of a mounted socket,
-          treat that container as equivalent to full host root.
-        </p>
-      </Callout>
+# Install only runtime dependencies in a build stage in a production image.
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-      <h2>The Kubernetes dashboard: the same problem, at cluster scale</h2>
-      <p>
-        A Kubernetes dashboard exposed without authentication (or with a token bound to an
-        over-permissioned service account) gives an attacker the same kind of control the Docker API does,
-        except across an entire cluster of workloads instead of one host — including the ability to
-        schedule new pods, which is the cluster-native equivalent of "start a container with the host
-        mounted in."
-      </p>
-      <CodeBlock label="what an exposed dashboard reveals immediately">{`kubectl get pods --all-namespaces           # see every workload running in the cluster
-kubectl get secrets --all-namespaces          # Kubernetes Secrets are base64-ENCODED, not encrypted —
-                                               # trivially reversible the same way HTTP Basic Auth is
-kubectl get pods -o yaml | grep -i "image:"    # confirm exactly what's deployed, useful for finding
-                                                # an outdated/vulnerable image to target next`}</CodeBlock>
-      <p>
-        That "base64-encoded, not encrypted" detail about Kubernetes Secrets is worth remembering on its
-        own — it's a frequent source of a false sense of security, exactly the same category of mistake as
-        treating HTTP Basic Auth as if base64 provided real protection.
-      </p>
+COPY --chown=10001:10001 app/ ./app/
 
-      <h2>Infrastructure-as-code: when the blueprint itself leaks the keys</h2>
-      <p>
-        Terraform, CloudFormation, and similar tools describe cloud infrastructure as version-controlled
-        text files — which means any secret hardcoded into one of those files (instead of pulled from a
-        proper secrets manager at deploy time) sits in plaintext in source control, and often in the
-        resulting Terraform <strong>state file</strong> as well, whether or not the original template
-        author intended it to.
-      </p>
-      <CodeBlock label="why the STATE file leaks secrets even when the template looks clean">{`# main.tf might look perfectly reasonable:
-resource "aws_db_instance" "app" {
-  password = var.db_password   # pulled from a variable, not hardcoded — looks safe
+# The process does not need root to serve the application.
+USER 10001:10001
+
+EXPOSE 8080
+CMD ["python", "-m", "app"]`;
+
+const restrictedPod = `apiVersion: v1
+kind: Pod
+metadata:
+  name: report-worker
+  namespace: training
+spec:
+  automountServiceAccountToken: false
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 10001
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: worker
+      image: report-worker:training
+      securityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop: ["ALL"]
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
+      volumeMounts:
+        - name: scratch
+          mountPath: /tmp
+  volumes:
+    - name: scratch
+      emptyDir:
+        sizeLimit: 64Mi`;
+
+const namespaceReadRole = `apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: report-config-reader
+  namespace: training
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: report-config-reader
+  namespace: training
+subjects:
+  - kind: ServiceAccount
+    name: report-worker
+    namespace: training
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: report-config-reader`;
+
+const terraformBackend = `terraform {
+  backend "s3" {
+    bucket       = "org-terraform-state"
+    key          = "production/reporting/terraform.tfstate"
+    region       = "us-east-1"
+    encrypt      = true
+    use_lockfile = true
+  }
 }
 
-# ...but terraform.tfstate, the file Terraform uses to track what it deployed, stores the
-# FULLY RESOLVED value of every attribute, including that password, in plaintext JSON:
-grep -A2 '"password"' terraform.tfstate
-#   "password": "Pr0d-DB-P@ssw0rd-2026"`}</CodeBlock>
+# Backend credentials come from the workload's federated/managed identity,
+# not access keys embedded in this file.
+# Enable bucket versioning and narrowly scope state and lock-file access.
+# State and saved plan files remain sensitive even when variables are marked sensitive.`;
+
+const localPipelineChecks = `# These examples scan local training or repository artifacts.
+# Review output and tool versions before making a check a blocking CI gate.
+trivy config --severity HIGH,CRITICAL ./infrastructure
+trivy image --scanners vuln,secret,misconfig darkworld-report-worker:local
+checkov -d ./infrastructure --framework terraform,kubernetes,dockerfile
+
+# Produce an SBOM for the exact image build used in a release.
+trivy image --format cyclonedx --output report-worker-sbom.cdx.json \
+  registry.example.invalid/report-worker@sha256:<reviewed-digest>`;
+
+const reviewSequence = `1. Identify the image digest, registry, source commit, builder, and deployment identity.
+2. Compare the deployed digest with the reviewed release manifest and its provenance.
+3. Review scanner findings against the exact package, layer, configuration, and runtime context.
+4. Check pod identity, namespace RBAC, network policy, secret mounts, and privileged settings.
+5. Preserve image digest, SBOM, policy result, deployment event ID, and owner approval.
+6. Contain by the approved incident plan; preserve evidence before rebuilding or deleting artifacts.`;
+
+export default function ContainersAndIacSecrets() {
+  return (
+    <article className="prose-hh">
+      <h1>Container, Kubernetes, and infrastructure-as-code security</h1>
       <p>
-        This is precisely why Terraform's own documentation insists the state file be treated as sensitive
-        and stored in an access-controlled remote backend (encrypted S3 bucket + DynamoDB lock, or
-        Terraform Cloud) — never committed to a public repository, and never left readable on a build
-        server's local disk after a CI job finishes.
+        Containers package an application and its runtime dependencies so they can be deployed consistently.
+        They are useful boundaries, but a container is not automatically a virtual machine or a security
+        sandbox. Kubernetes adds an API-driven control plane that schedules and connects those containers.
+        Infrastructure-as-code (IaC) describes the cloud resources and cluster configuration in reviewable
+        files. The security outcome depends on the image supply chain, runtime privileges, workload identity,
+        network policy, secrets handling, and the permissions of the systems that build and deploy it.
       </p>
 
-      <h2>Catching this before it deploys: Trivy and Checkov</h2>
+      <h2>Before you begin: images, containers, hosts, and clusters</h2>
       <p>
-        Everything above describes finding these issues after deployment. <strong>Trivy</strong> and{' '}
-        <strong>Checkov</strong> catch the same categories of bug earlier, scanning the source artifacts
-        directly — a Dockerfile, a Terraform plan, a Kubernetes manifest — before anything ever reaches a
-        real cloud account, which is exactly why both show up constantly as a required CI pipeline step
-        rather than just a manual audit tool.
+        A container <strong>image</strong> is an immutable collection of filesystem layers and metadata.
+        Running an image creates a <strong>container</strong> with a process, filesystem view, resource limits,
+        and configuration. A container runtime asks a host kernel to isolate processes using operating-system
+        primitives such as namespaces and control groups. Most containers share the host kernel, unlike a
+        conventional virtual machine that runs a separate guest kernel under a hypervisor. This makes startup
+        fast but means the host kernel, runtime, and daemon remain security-critical.
       </p>
-      <CodeBlock label="Trivy — vulnerabilities AND misconfigurations, across containers and IaC alike">{`trivy image myapp:latest              # scans a built container image for known CVEs in its OS packages
-                                        # and language dependencies — catches an outdated base image before
-                                        # it ships, the container equivalent of checking service versions
-trivy config ./terraform/                # scans Terraform/Kubernetes/Dockerfile source directly for
-                                          # misconfigurations — e.g. flags exactly the plaintext-password
-                                          # pattern shown above before it's ever applied`}</CodeBlock>
-      <CodeBlock label="Checkov — deep policy-as-code checks, especially strong on Terraform">{`checkov -d ./terraform/
-# runs hundreds of built-in policy checks against Terraform/CloudFormation/Kubernetes source,
-# each mapped to a specific compliance framework control (CIS, SOC 2, PCI DSS) — output includes
-# exactly which file and line violates which named check, ready to paste into a PR comment`}</CodeBlock>
       <p>
-        Both tools are increasingly run as a mandatory pre-merge CI gate rather than an occasional manual
-        pass — catching the plaintext-password-in-Terraform pattern from earlier in this lesson at pull-request
-        time is a fundamentally cheaper fix than catching it after the resource is already live with a real
-        credential inside it.
+        Docker Engine commonly uses a privileged daemon to create and manage containers. The Docker socket is
+        a control interface to that daemon. A process allowed to issue arbitrary requests through the socket
+        may ask the daemon to create containers with powerful host access; treat write access to the socket as
+        highly privileged. The socket is not an ordinary application file, and a container with it mounted
+        should not be described as isolated from the host.
+      </p>
+      <p>
+        Kubernetes organizes workloads into <strong>pods</strong>, schedules them onto <strong>nodes</strong>,
+        and exposes operations through the Kubernetes API server. Kubernetes RBAC controls API actions such as
+        reading a ConfigMap or creating a pod. Cloud IAM independently controls access to provider resources
+        such as object storage or a key service. A Kubernetes service account and a cloud workload identity
+        may be connected through federation, but they are different identities and have different permissions.
+      </p>
+      <p>
+        IaC tools such as Terraform, OpenTofu, CloudFormation, Bicep, and Pulumi turn configuration into
+        changes to real infrastructure. A plan or template can reveal intended network and identity design;
+        state and saved plans can also contain resource attributes and sensitive values. The file being called
+        “code” does not make it safe to publish.
       </p>
 
-      <h2>Serverless functions: least privilege for code you don't manage the runtime of</h2>
+      <h2>1. Protect the container control plane</h2>
       <p>
-        A serverless function (AWS Lambda, Azure Functions, Google Cloud Functions) runs with whatever IAM
-        role is attached to it — and because there's no server to patch or harden, teams often
-        under-invest in scoping that role correctly, on the assumption that "serverless" means "less to
-        secure." The opposite is true for IAM specifically: the function's role is the entire security
-        boundary, since there's no OS-level access control layer underneath it at all.
+        Keep the Docker daemon on its local Unix socket unless a managed design requires remote access.
+        Remote daemon access must use authenticated, encrypted transport and a tightly controlled client
+        identity. A firewall alone is not authentication, and binding a management port to a private network
+        does not make the API harmless. Prefer a managed build service, rootless runtime, or isolated builder
+        for untrusted build inputs rather than giving application containers control of a host daemon.
       </p>
-      <CodeBlock label="an over-permissioned function role, and the fix">{`// A function that only needs to write to ONE queue, but was attached this role:
-{ "Effect": "Allow", "Action": "sqs:*", "Resource": "*" }
-// -> if the function code has any injection flaw, the attacker inherits read/write/delete
-//    across every SQS queue in the account, not just the one the function actually uses
+      <p>
+        Review who can read or write the socket, which services mount it, and whether those services process
+        untrusted pull requests. A read-only filesystem mount of the socket path does not turn the daemon API
+        into a safe read-only interface; API operations can still create or change resources. A socket proxy
+        can narrow the exposed API, but its allowlist and implementation become security controls that require
+        testing and maintenance.
+      </p>
+      <p>
+        Docker's rootless mode runs the daemon and containers without a root daemon, reducing some host impact.
+        It has operational and feature tradeoffs, so verify the current Docker documentation for the supported
+        deployment. Rootless mode does not replace application isolation, resource limits, image verification,
+        or safe handling of untrusted code.
+      </p>
 
-// Scoped correctly:
-{ "Effect": "Allow", "Action": "sqs:SendMessage", "Resource": "arn:aws:sqs:us-east-1:123456789:app-queue" }`}</CodeBlock>
+      <h2>2. Build a smaller, reproducible image</h2>
+      <p>
+        Every package in an image increases its attack surface and creates patch work. Use a maintained base
+        image from a trusted publisher, pin production releases to an immutable digest, and rebuild regularly
+        so security fixes are incorporated. Tags such as <code>latest</code> can move; a digest identifies the
+        precise content. A digest pin alone does not prove that an image is trustworthy, so record who built it,
+        from which source revision, and through which approved pipeline.
+      </p>
+      <p>
+        Multi-stage builds separate compilers and test tooling from the final runtime image. Copy only the
+        artifacts the application needs. Exclude local credentials, SSH directories, package caches, test
+        fixtures, and version-control history from the build context with a carefully reviewed
+        <code>.dockerignore</code>. A secret accidentally copied into an earlier image layer may remain in the
+        image history even if a later layer deletes the visible file.
+      </p>
+      <CodeBlock label="Example Dockerfile: a minimal non-root application image">{hardenedDockerfile}</CodeBlock>
+      <p>
+        The example uses a tag so a learner can build and run it in a local training environment. Production
+        deployment manifests should reference the reviewed image digest rather than rely on a mutable tag.
+        The example sets a non-root numeric UID and copies application files with matching ownership.
+        Production builds should separate dependency compilation from runtime installation, lock dependency
+        versions, verify downloaded artifacts where feasible, and publish provenance with the release. Do not
+        treat a version-pinned image as patched forever; a new digest is required when the publisher fixes a
+        vulnerability.
+      </p>
 
-      <Callout variant="tip">
+      <h2>3. Restrict runtime privileges and resources</h2>
+      <p>
+        A secure container starts with the least authority its process needs. Run as a non-root user; drop Linux
+        capabilities not required by the application; disallow privilege escalation; use the runtime's
+        default seccomp profile or a reviewed stricter profile; and make the root filesystem read-only when
+        the application permits it. Mount only the specific writable directories the process needs, with
+        quotas. Avoid host PID, network, or IPC namespaces, hostPath mounts, privileged mode, and devices
+        unless a documented, reviewed requirement justifies them.
+      </p>
+      <p>
+        Apply CPU, memory, process-count, and ephemeral-storage limits. These do not eliminate denial of
+        service, but they constrain how much of a shared node a malfunctioning or compromised workload can
+        consume. Use health checks and graceful termination correctly; a liveness probe that restarts a slow
+        dependency can amplify an outage. Separate workloads with different trust levels and avoid colocating
+        untrusted build code with production credentials.
+      </p>
+
+      <h2>4. Kubernetes pod security and namespace access</h2>
+      <p>
+        Kubernetes Pod Security Standards define Baseline and Restricted profiles. Restricted is a useful
+        hardening target for ordinary workloads, but real workloads may need documented exceptions. Set
+        security context at the pod and container level, validate admission policies, and test the deployed
+        manifest after templating. A hardened template does not prove the live pod has the same settings if a
+        chart, mutating admission webhook, or deployment overlay changes it.
+      </p>
+      <CodeBlock label="Example pod settings: non-root, read-only root filesystem, dropped capabilities">{restrictedPod}</CodeBlock>
+      <p>
+        This pod mounts a small scratch volume because a read-only root filesystem prevents writes elsewhere.
+        The sample disables automatic service-account-token mounting because the worker does not call the
+        Kubernetes API. If an application does need API access, use a dedicated service account and grant only
+        the specific verbs and resources required. A service account token is a credential: protect its
+        audience, lifetime, filesystem permissions, and exposure to logs and child processes.
+      </p>
+      <p>
+        Keep Kubernetes permissions narrow and namespace-scoped where possible. The following example allows
+        the worker to read ConfigMaps in one namespace. It grants no access to Secrets, pod creation, exec,
+        impersonation, or cluster-wide resources. Even “get” can disclose configuration, so review the actual
+        contents and owners of the ConfigMaps before granting this role.
+      </p>
+      <CodeBlock label="Example RBAC: read ConfigMaps only in the training namespace">{namespaceReadRole}</CodeBlock>
+      <p>
+        Wildcard RBAC rules are especially fragile because a future custom resource type can inherit the
+        wildcard. Permissions that create pods, bind roles, impersonate identities, or update admission and
+        webhook configuration can create indirect privilege paths. Review both the verbs and the resources,
+        then periodically inspect bindings, default service accounts, and privileged workloads.
+      </p>
+
+      <h2>5. Network boundaries and secret delivery</h2>
+      <p>
+        Kubernetes networking is highly configurable. Do not assume that pods are isolated from one another:
+        many clusters allow pod-to-pod communication unless network policy and a compatible network plugin
+        enforce restrictions. Define which services need to communicate, apply default-deny ingress and
+        egress where practical, and add explicit allow rules for required flows. Include DNS, identity, logging,
+        and dependency endpoints in the design so a restrictive policy does not silently break operations.
+      </p>
+      <p>
+        A Kubernetes Secret value is commonly base64-encoded in its API representation. Base64 is an encoding,
+        not encryption. Protect secrets with least-privilege RBAC, encryption at rest for the cluster's
+        datastore, restricted backups, and secure delivery to the process. Avoid exposing values in manifests,
+        command arguments, build logs, environment dumps, crash reports, or support bundles. Environment
+        variables are convenient but can be exposed through process inspection or diagnostics; mounted
+        files with narrow permissions or a supported external secret integration may fit some workloads
+        better.
+      </p>
+      <p>
+        Secret managers reduce the need to commit static values, but they introduce an identity and retrieval
+        path. Give each workload access only to its own secret, rotate it when exposure is suspected, audit
+        reads, and verify that the CI pipeline does not print it. Do not put secret material in a container
+        build argument, because it can persist in build metadata or layers. Use the build system's secret
+        mount mechanism and ensure the secret is needed only during the build step.
+      </p>
+
+      <h2>6. Terraform state, plans, and secret lifecycle</h2>
+      <p>
+        Terraform state maps configuration addresses to real infrastructure objects and stores attributes
+        needed to calculate later changes. A password marked <code>sensitive = true</code> is redacted in many
+        CLI displays, but that label alone does not guarantee the value is absent from state or saved plan
+        files. Protect local state, backups, remote state, plan artifacts, CI logs, and any cache that might
+        hold them. Never commit <code>terraform.tfstate</code>, its backups, saved plans, or sensitive
+        variable files.
+      </p>
+      <p>
+        For team workflows, use a remote backend with access control, encryption, versioning or recovery,
+        and state locking where supported. Current Terraform S3 backend guidance supports S3-based locking
+        with <code>use_lockfile</code>; the older DynamoDB locking argument is deprecated. Backend
+        configuration should not embed long-lived credentials. Supply credentials through the execution
+        identity, such as a managed role or workload federation, and restrict who can read and write production
+        state. A lock prevents conflicting state updates; it does not encrypt state or grant safe access by
+        itself.
+      </p>
+      <CodeBlock label="Example remote backend: encryption and current S3 state locking">{terraformBackend}</CodeBlock>
+      <p>
+        A remote backend can still contain sensitive values. Use the provider's current backend documentation
+        to configure encryption and access controls, enable versioning or equivalent recovery, and protect
+        lock files as well as state objects. Terraform's <code>sensitive</code> marker helps reduce accidental
+        display; where a provider supports ephemeral values or write-only resource arguments, those features
+        can avoid persisting some secrets, but verify their behavior for the exact resource and tool version.
+        If a secret enters state, treat the state as sensitive and rotate the secret if exposure is plausible.
+      </p>
+      <p>
+        A pull-request review should inspect the plan as carefully as the source. Plans can reveal values,
+        resource identifiers, network changes, and access grants. Limit plan-artifact access, choose a short
+        retention period, avoid publishing it to untrusted build logs, and require an authorized approver for
+        production changes. Do not use <code>terraform_remote_state</code> as a general secret-sharing
+        mechanism: access to state can expose more than the outputs a configuration appears to consume.
+      </p>
+
+      <h2>7. Secure the image and IaC supply chain</h2>
+      <p>
+        Supply-chain review asks more than “does the image have a known CVE?” Track the source commit,
+        dependency lockfiles, builder identity, base-image digest, generated image digest, SBOM, policy results,
+        approval, and deployment. An SBOM is an inventory of components; it helps investigate exposure when a
+        dependency issue is announced, but it does not prove that every component is exploitable or patched.
+        Provenance and signed artifacts help establish where an image came from and whether it changed after
+        the build; they do not certify that the source code is safe.
+      </p>
+      <p>
+        Trivy can inspect local images, filesystems, and configuration for vulnerabilities, secrets, and
+        supported misconfigurations. Checkov evaluates infrastructure configuration against checks and
+        policy-as-code rules. Results depend on enabled scanners, rule versions, input format, and configuration.
+        Build a policy that distinguishes blocking risk from advisory findings, document justified exceptions,
+        pin the tool and ruleset versions in CI, and review false positives and missed categories. A green scan
+        means only that the configured checks found no blocking issue in the supplied artifact.
+      </p>
+      <CodeBlock label="Local image and IaC checks with an SBOM artifact">{localPipelineChecks}</CodeBlock>
+      <p>
+        These commands analyze local training or release artifacts; they do not search the public internet or
+        exploit deployed services. In a release job, scan the exact immutable image digest that will be
+        deployed and retain the report alongside that digest.
+        For a release pipeline, store the SBOM and scan result alongside the exact image digest, make the
+        report reviewable, and define how critical findings are triaged without silently suppressing them.
+      </p>
+
+      <h2>8. A practical container and IaC review</h2>
+      <p>
+        Review a deployment as a chain of trust: source and dependencies create an image; a build identity
+        publishes it; a deployment identity schedules it; a pod receives runtime permissions and secrets; and
+        network policy determines which services it can reach. A problem in any link can invalidate controls
+        in another. For instance, a non-root container can still use a powerful cloud role, and a signed image
+        can still contain an unsafe configuration that was faithfully signed.
+      </p>
+      <CodeBlock label="Evidence sequence for a synthetic deployment review">{reviewSequence}</CodeBlock>
+      <p>
+        For each concern, preserve the source file and line, image digest, deployment revision, relevant
+        admission decision, role or service-account binding, and audit event identifier. Separate direct
+        observation from inference. State what the evidence proves, what it does not prove, and which owner
+        must confirm whether the access is needed. Never reproduce customer secrets in a report; identify the
+        secret by a safe reference and document the rotation decision.
+      </p>
+
+      <Callout variant="warn">
         <p>
-          The pattern across every example in this lesson is the same one the IAM lesson introduced:
-          something that's supposed to be internal-only (a management API, a dashboard, a state file, a
-          function's permissions) ends up broader or more exposed than intended. Auditing cloud security
-          is largely the discipline of finding every place that pattern repeats.
+          Run image scans against artifacts you own or are authorized to assess. Do not expose Docker daemon
+          APIs, mount the host daemon socket into untrusted workloads, list cluster secrets, or deploy
+          intentionally vulnerable manifests into a shared or production environment. Use a disposable local
+          cluster or the platform's isolated lab environment, and verify cleanup before closing the exercise.
         </p>
       </Callout>
 
-      <Callout variant="danger">
-        <p>
-          Scanning for exposed Docker APIs, Kubernetes dashboards, or attempting to read another
-          organization's Terraform state requires the same explicit authorization any other security
-          testing does — these are real, high-impact compromise paths, not a lower-stakes category just
-          because the target is "infrastructure" rather than an application.
-        </p>
-      </Callout>
+      <h2>Knowledge check</h2>
+      <ol>
+        <li>Why does access to a Docker daemon socket represent control-plane authority rather than ordinary
+          container access?</li>
+        <li>What security difference does a digest provide over a mutable image tag, and what does it still
+          fail to prove?</li>
+        <li>Why use a non-root UID, drop Linux capabilities, and set <code>allowPrivilegeEscalation</code> to
+          false as separate controls?</li>
+        <li>When does a workload need a Kubernetes service-account token, and how can unnecessary automatic
+          mounting be disabled?</li>
+        <li>Why is base64-encoded Kubernetes Secret data not confidential?</li>
+        <li>What can Terraform's <code>sensitive</code> marker hide, and what files may still retain the value?</li>
+        <li>What does an SBOM help an incident responder answer, and what can it not establish on its own?</li>
+        <li>Why should a security scanner finding be verified against the exact artifact and runtime context?</li>
+      </ol>
 
-      <h2>Module complete</h2>
-      <p>
-        You now have the full cloud misconfiguration picture this course covers: storage and metadata-service
-        exposure, IAM and least-privilege failures, and the container/orchestration/infrastructure-as-code
-        layer underneath all of it — the same three categories responsible for the overwhelming majority of
-        real-world cloud security incidents.
-      </p>
-    </div>
+      <h2>References</h2>
+      <ul>
+        <li><a href="https://docs.docker.com/engine/security/protect-access/" target="_blank" rel="noreferrer">Docker: protect access to the daemon socket</a></li>
+        <li><a href="https://docs.docker.com/engine/security/" target="_blank" rel="noreferrer">Docker Engine security</a></li>
+        <li><a href="https://kubernetes.io/docs/concepts/security/pod-security-standards/" target="_blank" rel="noreferrer">Kubernetes Pod Security Standards</a></li>
+        <li><a href="https://kubernetes.io/docs/concepts/security/rbac-good-practices/" target="_blank" rel="noreferrer">Kubernetes RBAC good practices</a></li>
+        <li><a href="https://kubernetes.io/docs/concepts/security/secrets-good-practices/" target="_blank" rel="noreferrer">Kubernetes Secret good practices</a></li>
+        <li><a href="https://developer.hashicorp.com/terraform/language/state" target="_blank" rel="noreferrer">Terraform state and sensitive data</a></li>
+        <li><a href="https://developer.hashicorp.com/terraform/language/backend/s3" target="_blank" rel="noreferrer">Terraform S3 backend and state locking</a></li>
+        <li><a href="https://developer.hashicorp.com/terraform/language/style" target="_blank" rel="noreferrer">Terraform style and files not to commit</a></li>
+        <li><a href="https://trivy.dev/docs/latest/guide/scanner/misconfiguration/" target="_blank" rel="noreferrer">Trivy configuration scanning</a></li>
+        <li><a href="https://trivy.dev/docs/latest/guide/supply-chain/sbom/" target="_blank" rel="noreferrer">Trivy SBOM generation and scanning</a></li>
+      </ul>
+    </article>
   );
 }

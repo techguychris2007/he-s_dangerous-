@@ -20,40 +20,25 @@ export default function ProjectTaskCard({ task }: { task: SeTaskMeta }) {
   const url = `/build-task/${task.id}`;
 
   return (
-    <div className="group rounded-xl overflow-hidden border border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-accent)]/60 hover:-translate-y-0.5 hover:shadow-[0_8px_30px_-8px_var(--color-accent)] transition-all duration-200 flex flex-col">
-      <div className="p-4 flex flex-col flex-1">
-        <div className="flex items-center gap-1.5 mb-2 flex-wrap">
-          <span className="pill bg-[var(--color-accent)]/15 text-[var(--color-accent)] border border-[var(--color-accent)]/30">
-            {LANGUAGE_LABEL[task.language]}
-          </span>
-          <span className={`pill ${DIFFICULTY_CLASS[task.difficulty]}`}>{task.difficulty}</span>
-          <span className="pill bg-[var(--color-surface-2)] text-[var(--color-text-dim)]">{TRACK_LABEL[task.track]}</span>
-          {done && (
-            <span className="ml-auto w-6 h-6 rounded-full bg-[var(--color-success)] text-white flex items-center justify-center shrink-0">
-              <IconCheck className="w-3.5 h-3.5" />
-            </span>
-          )}
+    <article className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[0_2px_8px_-5px_var(--color-heading)] transition duration-200 hover:-translate-y-0.5 hover:border-[var(--color-accent)]/50 hover:shadow-[0_10px_24px_-16px_var(--color-accent)]">
+      <div aria-hidden className="absolute inset-x-0 top-0 h-0.5 bg-[var(--color-accent)] opacity-70 transition-opacity group-hover:opacity-100" />
+      <div className="flex h-full flex-col p-4 sm:p-5">
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] font-mono text-xs font-bold text-[var(--color-accent)]"><IconLayers className="h-4 w-4" /></div>
+            <div className="min-w-0"><div className="text-[11px] font-semibold uppercase tracking-[.1em] text-[var(--color-text-dim)]">{LANGUAGE_LABEL[task.language]} · {TRACK_LABEL[task.track]}</div><div className="mt-1 truncate text-xs font-semibold text-[var(--color-accent)]">{task.category}</div></div>
+          </div>
+          {done ? <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[var(--color-success)] text-white"><IconCheck className="h-4 w-4" /></span> : <span className={`shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-bold ${DIFFICULTY_CLASS[task.difficulty]}`}>{task.difficulty}</span>}
         </div>
 
-        <Link to={url} className="font-semibold text-[var(--color-heading)] text-sm mb-1.5 hover:text-[var(--color-accent-dim)] transition-colors">
-          {task.title}
-        </Link>
-        <div className="text-2xs text-[var(--color-text-dim)] mb-1.5">{task.category}</div>
+        <Link to={url} className="block text-[17px] font-bold leading-snug tracking-[-.02em] text-[var(--color-heading)] transition-colors group-hover:text-[var(--color-accent)]">{task.title}</Link>
+        <p className="mt-2.5 line-clamp-3 min-h-[4.25rem] text-[13px] leading-[1.65] text-[var(--color-text-dim)]">{task.summary}</p>
 
-        <p className="text-xs text-[var(--color-text-dim)] leading-relaxed mb-3 line-clamp-2">{task.summary}</p>
-
-        <div className="mt-auto">
-          <div className="flex items-center gap-1.5 text-2xs text-[var(--color-text-dim)] mb-2.5">
-            <IconLayers className="w-3 h-3" /> {task.fileCount} files
-          </div>
-          <Link
-            to={url}
-            className="w-full px-4 py-2.5 rounded-lg bg-[var(--color-accent)] text-white font-semibold text-sm text-center hover:brightness-110 transition flex items-center justify-center gap-1.5"
-          >
-            {done ? 'Review project' : 'Start project'} &rarr;
-          </Link>
+        <div className="mt-auto flex items-center justify-between gap-3 border-t border-[var(--color-border)] pt-4">
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--color-text-dim)]"><IconLayers className="h-3.5 w-3.5" /> {task.fileCount} files</span>
+          <Link to={url} className="inline-flex h-9 items-center gap-2 rounded-md bg-[var(--color-accent)] px-3.5 text-sm font-semibold text-white transition hover:bg-[var(--color-accent-dim)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2">{done ? 'Review project' : 'Start project'} <span aria-hidden>→</span></Link>
         </div>
       </div>
-    </div>
+    </article>
   );
 }

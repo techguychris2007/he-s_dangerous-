@@ -13,12 +13,12 @@ export const cloudSecurityLabs: LabScenario[] = [
     category: 'Cloud',
     briefing:
       'Meridian Corp hosts static assets on an S3 bucket. Recon revealed the bucket name ' +
-      '(meridian-corp-backups) — check whether it was left with public read access, using the real AWS CLI, ' +
-      'the same shockingly common real-world cloud misconfiguration. A bucket listing only shows you ' +
+      '(meridian-corp-backups) — inspect its exposure using AWS CLI syntax in the simulated terminal. ' +
+      'A bucket listing only shows you ' +
       'filenames; you still have to fetch each object explicitly, and the most sensitive file here is hidden ' +
       'behind a nested prefix that the top-level listing does not expand.',
     objectives: [
-      { text: 'aws s3 ls s3://meridian-corp-backups/', why: 'If this returns a listing instead of an AccessDenied error with zero credentials configured, public read is confirmed. Note the objects AND the "PRE archive/" line at the top — PRE marks a prefix (subfolder) that needs its own separate listing request.' },
+      { text: 'aws s3 ls s3://meridian-corp-backups/ --no-sign-request', why: 'A successful anonymous listing confirms this listing operation, not every object-read or write permission. PRE archive/ identifies a key prefix with its own listing request. Object retrieval is tested separately below.' },
       { text: 'aws s3 cp s3://meridian-corp-backups/db-backup-2026-07.sql -', why: 'Do not assume the first-listed file is the sensitive one — real bucket-leak triage means checking each object. This one turns out to hold only a stale admin password hash, not the crown jewels.' },
       { text: 'aws s3 ls s3://meridian-corp-backups/archive/', why: 'List the nested prefix noticed in the first request. Attackers routinely miss data hidden one folder deeper because the top-level listing looked "handled" — this step is exactly why thorough bucket enumeration matters.' },
       { text: 'aws s3 cp s3://meridian-corp-backups/archive/q3-2026-payroll-final.csv -', why: 'Fetch the actual sensitive object by its exact key, discovered from the nested listing. This is the real payroll export — and the flag.' },

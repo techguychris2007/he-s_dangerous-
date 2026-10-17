@@ -6,19 +6,22 @@ export default function WhatIsASiem() {
     <div className="prose-hh">
       <h1>What Is a SIEM? Log Collection, Normalization &amp; Centralization</h1>
       <p>
-        A SIEM (Security Information and Event Management) platform is the single tool a SOC organizes its
-        entire day around: it collects, normalizes, correlates, and stores security-relevant data from every
-        system in an organization, so an analyst can search one place instead of logging into hundreds of
-        individual devices. Everything else in this module — correlation rules, dashboards, UEBA, compliance
-        reporting — is built on top of the three foundational capabilities this lesson covers.
+        A SIEM (Security Information and Event Management) platform collects and analyzes security
+        telemetry so analysts can search across systems, build detections, and investigate alerts. It is a
+        central part of many SOC workflows, but it is not the whole SOC: endpoint, identity, cloud, ticketing,
+        and response tools may keep their own data and actions. This lesson explains how events reach a
+        SIEM, how field mapping enables useful queries, and how to judge whether the resulting data is fit
+        for an investigation.
       </p>
 
       <h2>Log collection: pulling data from everywhere</h2>
       <p>
-        A SIEM ingests logs from firewalls, servers, workstations, network devices, applications, databases,
-        cloud services, and endpoint/antivirus tooling — often millions of events a day in a mid-sized
-        organization. None of this data is useful sitting on each device individually; the SIEM's job starts
-        with getting it all into one place.
+        Common sources include firewalls, servers, workstations, identity providers, network devices,
+        applications, databases, cloud control planes, and endpoint detection products. Each source has its
+        own event vocabulary, clock, retention behavior, and failure modes. Local logs remain useful for
+        troubleshooting and forensic collection; central collection adds cross-system search, correlation,
+        access control, and managed retention. The design must preserve the source and collection context
+        so analysts can trace an event back to its origin.
       </p>
       <CodeBlock label="a few of the sources a real SIEM ingests continuously">{`Firewalls           -> connection allow/deny decisions
 Windows/Linux hosts  -> authentication, process execution, file access
@@ -28,17 +31,18 @@ Applications            -> login attempts, transaction records, error logs`}</Co
 
       <h2>Centralized log management: the value of one searchable place</h2>
       <p>
-        Before a SIEM, investigating an incident meant SSHing into dozens of individual servers, or asking
-        different teams for their own logs in whatever format they happened to keep them in. Centralizing that
-        data into one platform is what makes correlation across sources even possible, and it is also the
-        reason long-term log retention exists at all — most compliance frameworks require months or years of
-        retained authentication history, which no individual device would ever store on its own.
+        Central search can reduce the time spent collecting records from separate consoles and enables an
+        analyst to compare a sign-in, endpoint process, firewall decision, and cloud API call on one
+        timeline. Retention periods come from the organization’s incident-response needs, contracts, laws,
+        and specific control requirements; there is no single period that every framework universally
+        requires. The organization must document which records it retains, for how long, who can access
+        them, and how they are produced for an investigation or audit.
       </p>
       <Callout variant="tip">
         <p>
-          The practical benefits compound: faster investigation (one search instead of ten), faster
-          troubleshooting, and a single retention policy to manage instead of one per device — this is why
-          "get everything into the SIEM" is usually a security program's very first infrastructure investment.
+          Centralization helps only when the records are timely, searchable, protected, and retained for the
+          right reason. Define those requirements before adding a source; a searchable store is not a
+          substitute for endpoint evidence collection or a tested incident-response process.
         </p>
       </Callout>
 
@@ -66,54 +70,111 @@ NORMALIZED:        src_ip=203.0.113.5 dest_ip=10.10.5.20 action=denied
 
       <h2>Real-time monitoring: seeing events as they happen</h2>
       <p>
-        Beyond storing history, a SIEM continuously monitors events as they arrive — an account lockout, a
-        malware detection, a firewall rule change — and surfaces them to analysts immediately rather than only
-        being discoverable during a later manual search. This real-time layer is what a correlation rule (the
-        subject of the next lesson) actually runs against.
+        Some detections run as events arrive; others run on a schedule or over a defined look-back window.
+        Ingestion delay, clock skew, late-arriving events, and backfills affect when a detection can fire.
+        An account lockout or firewall change may be searchable before a rule processes it, and an alert may
+        be delayed by queueing or suppression. The rule’s schedule, data latency, and alert routing are
+        therefore part of the detection’s actual coverage.
       </p>
 
       <Callout variant="incident">
         <p>
-          <strong>Why this matters in practice:</strong> in the 2013 Target breach, the malware detection
-          alerts existed and were technically real-time — the failure was in triage, not collection. Having
-          the data centralized and normalized is necessary but not sufficient; an analyst still has to look at
-          it. That triage gap is exactly what the next several lessons in this module build toward closing.
+          Centralized logs make an event discoverable; they do not automatically create a useful alert or
+          ensure a human responds. Detection logic, alert routing, analyst ownership, escalation criteria,
+          and response authority must all work together. NIST's current incident-response guidance treats
+          response as part of ongoing cybersecurity risk management rather than a stand-alone cleanup phase.
         </p>
       </Callout>
 
-      <h2>The economics of a SIEM: why "ingest everything" isn't free</h2>
+      <h2>How a modern telemetry pipeline works</h2>
       <p>
-        Every log source above sounds like an easy "yes, ingest it" decision until the bill arrives. Most SIEM
-        vendors license by volume — typically priced per gigabyte ingested per day or by sustained{' '}
-        <strong>events per second (EPS)</strong> — which means the "collect from everywhere" instinct this
-        lesson opened with is a real, recurring cost decision, not just an engineering one.
+        A SIEM is usually one part of a larger security-analytics pipeline. A source emits an event; an
+        agent, cloud integration, API connector, or collector transports it; processors parse and enrich it;
+        the platform routes it to searchable storage; scheduled or streaming detections evaluate it; and an
+        alert may create a case for an analyst. Some deployments send the same event to a data lake, a
+        security data platform, or an observability system as well. The components and product names vary,
+        but the data-quality questions do not.
       </p>
-      <CodeBlock label="rough 2025-era SIEM cost reality">{`Typical per-GB ingestion pricing:  ~$1-$5 per 1,000 events, or roughly $2-4 per GB/day
-At 5 TB/day ingested (a large enterprise):  $3.6M-$7.3M per year on ingestion alone
+      <CodeBlock label="example of one event after parsing and normalization">{`{
+  "timestamp": "2026-10-15T09:42:18.231Z",
+  "observed_timestamp": "2026-10-15T09:42:19.004Z",
+  "severity": "WARN",
+  "event_name": "authentication.failure",
+  "body": "Interactive sign-in rejected",
+  "resource": {
+    "service.name": "identity-provider",
+    "cloud.region": "eu-west-1"
+  },
+  "attributes": {
+    "user.name": "mira.chen",
+    "source.address": "198.51.100.24",
+    "authentication.method": "password",
+    "outcome": "failure"
+  }
+}`}</CodeBlock>
+      <p>
+        Here, <code>timestamp</code> is when the source says the event happened; the observed time is when
+        the collector saw it. Their difference is ingestion delay. If clocks drift or queues back up, a
+        time-window detection can miss events or order them incorrectly. Keep timestamps with time zones,
+        monitor source clock health, and distinguish event time from processing time when building a
+        timeline. The resource fields identify the relatively stable emitting service; the attributes
+        describe this particular event.
+      </p>
+      <p>
+        OpenTelemetry defines a vendor-neutral log record model with timestamp, observed timestamp,
+        severity, body, resource information, and event attributes. Security products also use schemas
+        such as Elastic Common Schema or Microsoft ASIM; those are not interchangeable field dictionaries.
+        A mapping must preserve meaning. For example, an account name, a process user ID, and an email
+        address should not all be forced into a generic <code>user</code> field if doing so loses identity
+        context.
+      </p>
 
-EPS licensing tiers commonly seen:
-  Small        100-5,000 EPS
-  Medium      5,000-50,000 EPS
-  Large        50,000-200,000 EPS
-  Enterprise   200,000+ EPS`}</CodeBlock>
+      <h2>Measure coverage and data quality</h2>
       <p>
-        This is precisely why real SIEM deployments tier storage instead of keeping everything on the fastest
-        disk forever: a common pattern keeps the most recent data on expensive hot storage for immediate
-        search, ages it down to cheaper warm storage after a few days, and finally to cold/archive storage —
-        satisfying the retention requirements the previous lesson's compliance module cares about, at a
-        fraction of hot-tier cost.
+        “The source is connected” is not a coverage measure. Verify that the expected event types arrive,
+        required fields parse, timestamps are plausible, and records remain searchable for the required
+        period. Track last-seen time per source, event counts against a baseline, parse failures, dropped
+        records, duplicate rates, and changes in schema or volume. A quiet authentication source may mean
+        there were no logins—or that a forwarder stopped working. A health check and an independent signal
+        help distinguish the two.
       </p>
-      <CodeBlock label="a realistic hot/warm/cold tiering policy">{`HOT   (fast, expensive)   -> most recent ~48 hours, actively searched by analysts
-WARM  (slower, cheaper)   -> next ~5 days, still searchable but not instant
-COLD  (cheapest, archive) -> everything older, kept only to satisfy retention
-                              requirements — rarely queried, must still be producible on request`}</CodeBlock>
+      <CodeBlock label="field checklist for onboarding a source">{`Source: identity provider sign-in audit
+Owner: Identity Operations
+Expected events: success, failure, MFA challenge, account disable
+Required fields: event time, actor, source address, outcome, application
+Time basis: UTC; retain both source and collector timestamps
+Validation: known test sign-in appears with correct actor and outcome
+Health: alert if no events arrive within the source's normal interval
+Privacy: exclude secrets and minimize personal fields not needed for detection`}</CodeBlock>
+      <p>
+        Onboarding should include a controlled test event and a failure test, such as pausing a lab
+        forwarder. Confirm that a detection can find the known event, then confirm that the health monitor
+        notices missing telemetry. Keep source ownership and a contact path alongside the technical
+        configuration; without an owner, parsing changes and outages can remain unresolved.
+      </p>
+
+      <h2>Retention, routing, and cost are design decisions</h2>
+      <p>
+        SIEM pricing and storage models differ by vendor, cloud, contract, query pattern, and product tier,
+        so a fixed per-gigabyte price or universal hot/warm/cold schedule quickly becomes misleading.
+        Estimate a deployment from measured event volume and size, expected growth, searchable retention,
+        archive requirements, query demand, replication, and the cost of moving or restoring data. A lower
+        ingest bill is not a win if it removes the evidence needed to investigate an incident or prove a
+        control worked.
+      </p>
+      <p>
+        Apply filtering only with a documented reason and a test. Redact credentials and unnecessary
+        sensitive fields at or before collection. Route high-volume diagnostic records to an appropriate
+        cheaper store when policy permits, while preserving security-relevant events and a retrieval path.
+        Define hot, warm, and archive tiers by the organization’s response needs and retention obligations,
+        not by a generic number of days. Revisit the design when new services, regulations, or detection
+        requirements change.
+      </p>
       <Callout variant="tip">
         <p>
-          This is also why mature SOCs don't actually ingest "everything" — they deliberately filter and route
-          low-value, high-volume noise (verbose debug logging, routine health-check traffic) away from the
-          SIEM entirely, while making sure anything relevant to authentication, privilege changes, or the
-          organization's specific detection rules always lands in it. The goal is complete coverage of what
-          matters, not maximum ingestion volume for its own sake.
+          A good onboarding question is not merely “Can we ingest it?” Ask: “Which decision will this
+          telemetry support, what fields must be reliable, how do we know collection is healthy, who owns
+          it, how long must it remain available, and what sensitive data should never be stored?”
         </p>
       </Callout>
 
@@ -121,6 +182,9 @@ COLD  (cheapest, archive) -> everything older, kept only to satisfy retention
         With collection, centralization, and normalization established, the next lesson covers what a SIEM
         actually does with all this unified data: correlation — turning a flood of individually-harmless
         events into the small number of alerts that actually matter.
+      </p>
+      <p>
+        Further reading: <a href="https://opentelemetry.io/docs/specs/otel/logs/data-model/" target="_blank" rel="noreferrer">OpenTelemetry Logs Data Model</a> and <a href="https://csrc.nist.gov/pubs/sp/800/61/r3/final" target="_blank" rel="noreferrer">NIST SP 800-61 Rev. 3</a>.
       </p>
     </div>
   );

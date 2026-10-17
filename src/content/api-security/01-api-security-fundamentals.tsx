@@ -6,31 +6,31 @@ export default function ApiSecurityFundamentals() {
     <div className="prose-hh">
       <h1>API Security Fundamentals: REST, GraphQL &amp; Where the Vulnerabilities Live</h1>
       <p>
-        Every technique in the Web Application module still applies here — SQL injection doesn't care whether
-        the vulnerable parameter arrives via an HTML form or a JSON body. What's different about testing an API
-        directly, instead of the web app sitting in front of it, is that the browser's guardrails disappear.
-        There's no client-side validation to fight through, no CSS hiding fields you're not "supposed" to see,
-        and often no rate limiting the frontend would normally trigger. You're talking straight to the backend's
-        actual trust boundary — which is exactly why APIs consistently produce a different, often more severe,
-        class of findings than the web pages built on top of them.
+        An API is a contract through which software exchanges data and requests actions. Its clients may be a
+        browser, mobile app, another service, an IoT device or a command-line integration. The server must
+        validate every request independently: client-side controls improve usability but cannot enforce access
+        because a caller can construct a request without the official interface. Injection vulnerabilities
+        also apply to API parameters, headers and serialized bodies. API security therefore focuses on the
+        server's identity, authorization, validation, resource limits, business rules and dependency trust.
       </p>
 
       <h2>Why APIs are a distinct testing surface, not just "web testing without a UI"</h2>
       <ul>
         <li>
-          <strong>The client-side check is gone.</strong> A web form might disable the "quantity" field above
-          10 — the API endpoint behind it almost never re-enforces that limit, because the developer trusted the
-          UI to do it.
+          <strong>Client validation is not an authorization boundary.</strong> A form may limit a quantity
+          field for usability, but the server must validate type, range, ownership and business constraints on
+          every request.
         </li>
         <li>
-          <strong>Undocumented fields still work.</strong> A mobile app's API calls routinely accept fields the
-          app's own UI never exposes (an internal flag, a role field, a debug parameter) — because the backend
-          schema was built first and the UI only ever used a subset of it.
+          <strong>The request schema can be broader than the visible interface.</strong> Test whether the
+          server accepts properties that the documented contract does not permit, especially when they alter
+          ownership, role, price or approval state. Do not assume that an undocumented property exists; verify
+          behavior with the scoped lab's expected result.
         </li>
         <li>
-          <strong>Machine-to-machine traffic gets less scrutiny.</strong> Teams that carefully review
-          user-facing pages often ship API endpoints for a mobile app or third-party integration with far less
-          security review, on the (false) assumption that "only our app calls this."
+          <strong>Every client is an untrusted caller.</strong> A mobile or service client can be inspected,
+          modified or replaced. A secret embedded in a distributed client should not be treated as a server-side
+          secret, and the server must enforce permissions even if the official client hides an operation.
         </li>
       </ul>
 
@@ -46,9 +46,10 @@ API8  Security Misconfiguration                   -> verbose errors, exposed deb
 API9  Improper Inventory Management                -> old/undocumented API versions still live and unpatched
 API10 Unsafe Consumption of APIs                    -> trusting a third-party API's response without validation`}</CodeBlock>
       <p>
-        Notice how many of these are the exact bugs you already know how to find (IDOR, SSRF, misconfiguration)
-        — just relocated to a layer where there's no UI to hide the request shape, and often no WAF tuned for
-        JSON bodies the way one might be tuned for HTML form fields.
+        The OWASP list is an awareness taxonomy, not a complete vulnerability checklist or a risk rating for
+        your application. Generic problems such as injection and vulnerable components still affect APIs even
+        though they are not separate categories in this API-specific list. Assess the business impact and the
+        actual behavior of the service instead of treating the category labels as proof of severity.
       </p>
 
       <h2>REST vs. GraphQL: two different attack surfaces</h2>
@@ -78,20 +79,99 @@ API10 Unsafe Consumption of APIs                    -> trusting a third-party AP
         </p>
       </Callout>
 
+      <h2>Separate authentication, function authorization and object authorization</h2>
+      <p>
+        Authentication answers “which principal is making this request?” Authorization answers “may this
+        principal perform this action on this resource in this context?” A valid bearer token proves only that
+        the server accepted the token under its authentication rules. It does not prove that the user may read
+        order 1042, call an administrator operation, or change a protected property. Check authorization at
+        each meaningful boundary: route/function, object, and property.
+      </p>
+      <p>
+        Broken Object Level Authorization (BOLA) occurs when a caller can reach a legitimate endpoint but the
+        server fails to check whether the selected record belongs to, or is otherwise accessible by, that
+        caller. Sequential numeric IDs, UUIDs and opaque strings are all identifiers; unpredictability can
+        reduce guessing but does not replace an authorization check. Broken Function Level Authorization
+        (BFLA) concerns permission to perform an operation such as an admin export. Broken Object Property
+        Level Authorization concerns which fields a caller may read or change. These failures need separate
+        tests because hiding a route does not protect a record, and filtering a response does not prevent an
+        unauthorized update.
+      </p>
+      <CodeBlock label="Read-only ownership check using two lab accounts">{`# Use only the lab URL, record ID and test tokens supplied by the lab.
+LAB_URL=https://api.training.local
+ORDER_ID=order-1042
+
+# Capture the same read request as two distinct authorized lab users.
+curl --include "$LAB_URL/api/v1/orders/$ORDER_ID" \\
+  -H "Authorization: Bearer $USER_A_TOKEN"
+curl --include "$LAB_URL/api/v1/orders/$ORDER_ID" \\
+  -H "Authorization: Bearer $USER_B_TOKEN"
+
+# Compare status, response body, owner, and server-side audit evidence.
+# A different ID is not a finding unless the data/action is unauthorized.`}</CodeBlock>
+      <p>
+        For this controlled comparison, first establish which account owns the seeded order and what each
+        account is expected to access. A secure result might be a denial, a not-found response that avoids
+        disclosing existence, or a permitted result for a collaborator with an explicit grant. Do not conclude
+        from status alone: compare returned data and verify the application's intended policy. Avoid modifying
+        another user's data unless the lab explicitly provides a disposable write-test fixture.
+      </p>
+      <p>
+        A sound server-side design loads the authenticated principal from a verified session, applies the
+        organization's authorization policy to the requested action and object, and limits returned or
+        mutable properties using an explicit schema. Tests should cover owner, unrelated user, delegated
+        collaborator and administrator roles, including both allow and deny cases. Add regression tests at the
+        service or API layer so future route changes cannot silently remove the check.
+      </p>
+
+      <h2>Read a request as a structured object</h2>
+      <p>
+        An HTTP API request contains a method, path, headers and optionally a body. The method expresses the
+        requested operation but is not itself an access control rule. The path may contain identifiers; query
+        parameters may affect filtering or pagination; headers carry content type, authentication and
+        conditional-request metadata; and a JSON body is untrusted input. Record the complete request/response
+        pair in a lab notebook with secrets redacted. Preserve authorization headers in a secure local note only
+        when the exercise requires them; do not include bearer tokens in screenshots, shared comments or
+        public reports.
+      </p>
+      <CodeBlock label="What to record for one API request">{`Request: method + path + query + relevant headers + body
+Response: status + relevant headers + body + elapsed time
+Context: lab account/role + object owner + expected policy + timestamp
+
+Compare one variable at a time:
+- same request, different authorized account
+- same account, different object owned by that account
+- same object, read versus allowed update in the lab
+- documented property versus a property the schema should reject`}</CodeBlock>
+      <p>
+        Changing one variable makes results easier to interpret. If you change the user, object ID, method and
+        body at once, a denial does not tell you which control caused it. Include a baseline request that
+        succeeds, a negative control that should fail, and the expected outcome before testing. If the result
+        differs, repeat it once, preserve both responses and investigate application state, caching and role
+        setup before reporting a vulnerability.
+      </p>
+
       <h2>The fastest recon shortcut: the API's own published spec</h2>
       <p>
-        Before manually reconstructing an API's shape from captured traffic, check whether it's already
-        documented its entire self for you — most REST APIs built with a modern framework auto-generate an
-        OpenAPI (formerly "Swagger") specification, and plenty of teams accidentally leave it reachable in
-        production alongside the API itself.
+        An OpenAPI document describes paths, methods, parameters, request and response schemas, and sometimes
+        authentication requirements. Teams may publish one for developers, keep it behind authentication,
+        generate it during a build, or not use OpenAPI at all. Its presence is not automatically a
+        vulnerability. In an authorized assessment, obtain the specification from the owner or a documented
+        lab location first. Do not probe guessed documentation paths on an unrelated public service.
       </p>
-      <CodeBlock label="checking the standard spec locations before doing anything else">{`curl https://target.com/api/swagger.json
-curl https://target.com/api/openapi.yaml
-curl https://target.com/api/v1/swagger-ui.html   # sometimes the interactive docs UI itself is exposed`}</CodeBlock>
+      <CodeBlock label="Validate a lab-provided OpenAPI file locally">{`# Use the file supplied by the authorized lab or application owner.
+openapi-generator-cli validate -i ./spec/openapi.yaml
+
+# Search documented paths and methods without sending requests.
+grep -nE '^  /|^    (get|post|put|patch|delete):' ./spec/openapi.yaml
+
+# Compare the spec with one captured, normal lab request.
+# A spec is documentation; it does not prove the server behaves as described.`}</CodeBlock>
       <p>
-        A live spec hands you every endpoint, every parameter, every expected request/response shape — the
-        exact "capture one working request and modify it" workflow above, except for the entire API at once
-        instead of one endpoint at a time.
+        Use the file to build an inventory of expected routes and input shapes, then compare it with
+        owner-provided route inventories and the traffic captured through normal, authorized lab use. A spec
+        can be stale, incomplete or intentionally omit internal operations. Document discrepancies and ask
+        whether they are in scope before sending additional requests.
       </p>
 
       <h2>API versioning and the inventory problem</h2>
@@ -102,6 +182,14 @@ curl https://target.com/api/v1/swagger-ui.html   # sometimes the interactive doc
         <code>/api/beta/</code>, or an internal-sounding <code>/api/internal/</code> path still responds is
         often the fastest way to find a vulnerability that was already "fixed" in the version everyone actually
         uses.
+      </p>
+
+      <h2>Primary references</h2>
+      <p>
+        The <a href="https://api-security.owasp.org/editions/2023/en/" target="_blank" rel="noreferrer">OWASP API Security Top 10 (2023)</a>
+        is an awareness taxonomy rather than a complete risk assessment. Its guidance for
+        <a href="https://api-security.owasp.org/editions/2023/en/0xa1-broken-object-level-authorization/" target="_blank" rel="noreferrer"> Broken Object Level Authorization</a>
+        explains why each object operation needs an authorization check based on the caller's policy.
       </p>
 
       <Callout variant="danger">

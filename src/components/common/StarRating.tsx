@@ -8,12 +8,13 @@ interface StarRatingProps {
   /** omit for a read-only display (e.g. an aggregate average); provide to make it clickable input. */
   onChange?: (rating: number) => void;
   size?: string;
+  disabled?: boolean;
 }
 
 /** Shared 5-star control — read-only when `onChange` is omitted (rounds `value` to the nearest
  *  star), interactive with hover preview when provided. One component for both the aggregate-average
  *  display on lab cards and the "rate this lab" input widget, so the two never visually drift apart. */
-export default function StarRating({ value, onChange, size = 'w-4 h-4' }: StarRatingProps) {
+export default function StarRating({ value, onChange, size = 'w-4 h-4', disabled = false }: StarRatingProps) {
   const [hovered, setHovered] = useState<number | null>(null);
   const interactive = !!onChange;
   const displayValue = hovered ?? value;
@@ -24,7 +25,8 @@ export default function StarRating({ value, onChange, size = 'w-4 h-4' }: StarRa
         <button
           key={star}
           type="button"
-          disabled={!interactive}
+          disabled={!interactive || disabled}
+          aria-pressed={interactive ? value === star : undefined}
           onClick={() => onChange?.(star)}
           onMouseEnter={() => interactive && setHovered(star)}
           aria-label={interactive ? `Rate ${star} star${star === 1 ? '' : 's'}` : undefined}

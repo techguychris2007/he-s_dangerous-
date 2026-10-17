@@ -1,22 +1,32 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { MODULES } from '../data/curriculum';
-import { LABS, LAB_CATEGORIES, labsForCategory, findLab } from '../data/labs';
 import { useProgress } from '../state/progressStore';
+import { useLabsData, retryLabsData } from '../state/useLabsData';
 import { ACHIEVEMENTS, computeStreak } from '../data/achievements';
-import { IconChart, IconFlask, IconCheck, IconFlag, IconArrowRight, ModuleIcon } from '../components/layout/icons';
-import ModuleBanner from '../components/layout/ModuleBanner';
+import { IconChart, IconFlask, IconCheck, IconFlag, IconArrowRight, IconLightning, ModuleIcon } from '../components/layout/icons';
+import './learning-pages.css';
+import AcademyHero from '../components/common/AcademyHero';
 import StatCard from '../components/common/StatCard';
-import { CATEGORY_BANNER } from '../components/labs/LabCard';
+import AchievementShelf from '../components/common/AchievementShelf';
+import { CATEGORY_BANNER } from '../data/labCategoryBanner';
 
 const TOTAL_LESSONS = MODULES.reduce((n, m) => n + m.lessons.length, 0);
-const TOTAL_FLAGS = LABS.reduce((n, l) => n + l.scenario.totalFlags, 0);
 
 export default function HomePage() {
   const progress = useProgress();
+  const [moduleSearch, setModuleSearch] = useState('');
+  const visibleModules = MODULES.filter(mod => (mod.title + ' ' + mod.description).toLowerCase().includes(moduleSearch.trim().toLowerCase()));
+  const labsData = useLabsData();
+  const labsLoaded = !!labsData;
+  const totalLabs = labsData?.LABS.length ?? 0;
+  const totalFlagsInCatalog = useMemo(
+    () => labsData?.LABS.reduce((n, l) => n + l.scenario.totalFlags, 0) ?? 0,
+    [labsData],
+  );
 
   const completedLessonCount = useMemo(
-    () => Object.values(progress.completedLessons).filter(Boolean).length,
+    () => MODULES.reduce((count, module) => count + module.lessons.filter(lesson => progress.completedLessons[lesson.id]).length, 0),
     [progress.completedLessons],
   );
 
@@ -24,47 +34,46 @@ export default function HomePage() {
     let captured = 0;
     let done = 0;
     for (const [labId, flags] of Object.entries(progress.labFlags)) {
-      captured += flags.length;
-      const lab = findLab(labId);
+      const lab = labsData?.findLab(labId);
+      if (lab) captured += Math.min(flags.length, lab.scenario.totalFlags);
       if (lab && flags.length >= lab.scenario.totalFlags) {
         done++;
       }
     }
     return {
-      totalFlags: TOTAL_FLAGS,
+      totalFlags: totalFlagsInCatalog,
       capturedFlags: captured,
       labsDone: done,
     };
-  }, [progress.labFlags]);
+  }, [progress.labFlags, labsData, totalFlagsInCatalog]);
 
   const streak = useMemo(() => computeStreak(progress.activityDates), [progress.activityDates]);
   const unlockedAchievements = useMemo(
     () => ACHIEVEMENTS.filter((a) => a.isUnlocked(progress)),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [progress.labFlags, progress.completedLessons, progress.activityDates],
+    [progress],
   );
 
   // Per-category skill progress — memoized so it doesn't recalculate unless labFlags changes
   const skillProgress = useMemo(
     () =>
-      LAB_CATEGORIES.map((category) => {
-        const catLabs = labsForCategory(category);
+      (labsData?.LAB_CATEGORIES ?? []).map((category) => {
+        const catLabs = labsData?.labsForCategory(category) ?? [];
         const done = catLabs.filter((l) => (progress.labFlags[l.scenario.id]?.length ?? 0) >= l.scenario.totalFlags).length;
         return { category, done, total: catLabs.length };
       }),
-    [progress.labFlags],
+    [progress.labFlags, labsData],
   );
 
   // In-progress lab — memoized by scanning active labFlags instead of all 1400 labs
   const inProgressLab = useMemo(() => {
     for (const [labId, flags] of Object.entries(progress.labFlags)) {
-      const lab = findLab(labId);
+      const lab = labsData?.findLab(labId);
       if (lab && flags.length > 0 && flags.length < lab.scenario.totalFlags) {
         return lab;
       }
     }
     return null;
-  }, [progress.labFlags]);
+  }, [progress.labFlags, labsData]);
 
   const allLessonsInOrder = useMemo(
     () => MODULES.flatMap((m) => m.lessons.map((l) => ({ ...l, moduleSlug: m.slug, moduleTitle: m.title }))),
@@ -79,100 +88,50 @@ export default function HomePage() {
 
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-12">
-      <div className="mb-6 sm:mb-8 reveal flex items-start justify-between flex-wrap gap-3" style={{ '--reveal-delay': '0s' } as React.CSSProperties}>
-        <div>
-          <div className="gold-eyebrow mb-1.5 sm:mb-2">Learner Portal</div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--color-heading)] mb-2">
-            Welcome back{progress.learnerName ? `, ${progress.learnerName.split(' ')[0]}` : ''}
-          </h1>
-          <p className="text-[var(--color-text-dim)] text-sm sm:text-base max-w-2xl leading-relaxed">
-            A full offensive-security curriculum: networking, Linux, reconnaissance, Python tooling, web app
-            hacking, red teaming/Active Directory, cloud security, SOC &amp; threat hunting, digital
-            forensics, and bug bounty methodology — every lesson paired with a real interactive lab.
-          </p>
-        </div>
-        {streak.current > 0 && (
-          <div className="flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-3.5 py-1.5 sm:px-4 sm:py-2 shrink-0">
-            <span className="text-base sm:text-lg leading-none">🔥</span>
-            <span className="text-sm font-bold text-[var(--color-heading)]">{streak.current}</span>
-            <span className="text-xs text-[var(--color-text-dim)]">day streak</span>
-          </div>
-        )}
+    <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-12">
+      <AcademyHero eyebrow="DarkWorld / The academy" title="Your academy dashboard" description="Understand the systems. Practice the techniques. Build the judgment. Your next chapter starts with one focused lesson."
+        stats={[{label: 'Lessons complete', value: completedLessonCount + ' / ' + TOTAL_LESSONS}, {label: 'Labs solved', value: labsLoaded ? labsDone + ' / ' + totalLabs : 'Loading…'}, {label: 'Current streak', value: streak.current + ' days'}]}
+        action={{ title: inProgressLab?.scenario.title ?? nextLesson?.title ?? 'Put your knowledge to work', detail: inProgressLab ? 'Return to your investigation and follow the evidence.' : nextLesson ? 'From ' + nextLesson.moduleTitle : 'Choose a practical challenge from the lab catalog.', to: inProgressLab ? '/lab/' + inProgressLab.slug : nextLesson ? '/module/' + nextLesson.moduleSlug + '/lesson/' + nextLesson.slug : '/labs', label: inProgressLab ? 'Resume investigation' : nextLesson ? 'Continue learning' : 'Explore labs' }} />
+      {!labsLoaded && <div role="status" className="mb-6 flex flex-wrap items-center gap-3 rounded-lg border border-[var(--color-border)] p-4 text-sm text-[var(--color-text-dim)]"><span>Loading your lab catalog. If this takes longer than expected, check your connection.</span><button onClick={retryLabsData} className="font-semibold text-[var(--color-accent-dim)] underline">Retry loading</button></div>}
+      <div className="academy-path-choices mb-6 grid gap-4 sm:grid-cols-3">
+        {[
+          { track: 'presecurity', label: 'Start here', title: 'Pre-security', description: 'Computers, networks, systems, and safe practice.' },
+          { track: 'security', label: 'Assess & discover', title: 'Offensive security', description: 'From reconnaissance to complete pentest engagements.' },
+          { track: 'defensive', label: 'Investigate & protect', title: 'Defensive security', description: 'SOC Tier 1 through response and security leadership.' },
+        ].map(path => <Link key={path.track} to={`/roadmap?track=${path.track}`} className="premium-card premium-card-hover group rounded-2xl p-5 overflow-hidden"><p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-[var(--color-accent-dim)]">{path.label}</p><h2 className="mb-2 text-base font-bold text-[var(--color-heading)]">{path.title} →</h2><p className="text-xs leading-6 text-[var(--color-text-dim)]">{path.description}</p></Link>)}
       </div>
-
-      {/* The single most important answer a dashboard should give: what do I do right now? */}
-      {(inProgressLab || nextLesson) && (
-        <Link
-          to={inProgressLab ? `/lab/${inProgressLab.slug}` : `/module/${nextLesson!.moduleSlug}/lesson/${nextLesson!.slug}`}
-          className="group block rounded-2xl border border-[var(--color-accent)]/30 bg-[var(--color-surface)] p-4 sm:p-6 mb-6 reveal hover:border-[var(--color-accent)]/60 transition-all"
-          style={{ '--reveal-delay': '0.04s', boxShadow: 'var(--shadow-glow-accent)' } as React.CSSProperties}
-        >
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div className="min-w-0">
-              <div className="text-xs font-mono font-bold uppercase tracking-widest text-[var(--color-accent-dim)] mb-1.5 sm:mb-2">
-                {inProgressLab ? 'Continue where you left off' : 'Up next'}
-              </div>
-              <div className="text-xl font-bold text-[var(--color-heading)] mb-1 truncate">
-                {inProgressLab ? inProgressLab.scenario.title : nextLesson!.title}
-              </div>
-              <div className="text-sm text-[var(--color-text-dim)]">
-                {inProgressLab
-                  ? `${progress.flagCount(inProgressLab.scenario.id)}/${inProgressLab.scenario.totalFlags} flags captured`
-                  : `Next lesson in ${nextLesson!.moduleTitle}`}
-              </div>
-            </div>
-            <span className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-[var(--color-accent)] text-white text-sm font-semibold shrink-0 group-hover:brightness-110 transition">
-              {inProgressLab ? 'Resume lab' : 'Start lesson'} <IconArrowRight className="w-4 h-4" />
-            </span>
-          </div>
-        </Link>
-      )}
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10 reveal" style={{ '--reveal-delay': '0.08s' } as React.CSSProperties}>
         <StatCard icon={<IconChart className="w-5 h-5" />} color="var(--color-accent-2)" label="Lessons completed" value={`${completedLessonCount} / ${TOTAL_LESSONS}`} />
-        <StatCard icon={<IconFlask className="w-5 h-5" />} color="var(--color-accent)" label="Labs solved" value={`${labsDone} / ${LABS.length}`} />
-        <StatCard icon={<IconCheck className="w-5 h-5" />} color="var(--color-success)" label="Flags captured" value={`${capturedFlags} / ${totalFlags}`} />
+        <StatCard icon={<IconFlask className="w-5 h-5" />} color="var(--color-accent)" label="Labs solved" value={labsLoaded ? `${labsDone} / ${totalLabs}` : 'Loading…'} />
+        <StatCard icon={<IconCheck className="w-5 h-5" />} color="var(--color-success)" label="Flags captured" value={labsLoaded ? `${capturedFlags} / ${totalFlags}` : `${capturedFlags} captured`} />
         <StatCard
-          icon={<span className="text-lg leading-none">🔥</span>}
+          icon={<IconLightning className="w-5 h-5" />}
           color="var(--color-warn)"
           label={streak.current > 0 ? 'Current streak' : 'Longest streak'}
           value={`${streak.current > 0 ? streak.current : streak.longest} day${(streak.current > 0 ? streak.current : streak.longest) === 1 ? '' : 's'}`}
         />
       </div>
 
-      <div className="flex items-center justify-between mb-4 reveal" style={{ '--reveal-delay': '0.12s' } as React.CSSProperties}>
-        <h2 className="text-base font-bold text-[var(--color-heading)]">Achievements</h2>
-        <Link to="/profile" className="text-xs font-semibold text-[var(--color-accent)] hover:underline">
-          {unlockedAchievements.length}/{ACHIEVEMENTS.length} unlocked &rarr;
-        </Link>
+      <div className="reveal" style={{ '--reveal-delay': '0.12s' } as React.CSSProperties}>
+        <AchievementShelf achievements={unlockedAchievements} total={ACHIEVEMENTS.length} />
       </div>
-      {unlockedAchievements.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-[var(--color-border)] p-4 mb-10 text-sm text-[var(--color-text-dim)] reveal" style={{ '--reveal-delay': '0.14s' } as React.CSSProperties}>
-          Capture your first flag or complete a lesson to unlock your first achievement.
-        </div>
-      ) : (
-        <div className="flex gap-3 mb-10 overflow-x-auto pb-1 reveal" style={{ '--reveal-delay': '0.14s' } as React.CSSProperties}>
-          {unlockedAchievements.map((a) => (
-            <div
-              key={a.id}
-              title={a.description}
-              className="flex items-center gap-2.5 shrink-0 rounded-xl border border-[var(--color-gold)]/30 bg-[var(--color-gold-soft)] px-4 py-2.5"
-            >
-              <span className="text-xl leading-none">{a.icon}</span>
-              <span className="text-sm font-semibold text-[var(--color-gold-dim)] whitespace-nowrap">{a.title}</span>
-            </div>
-          ))}
-        </div>
-      )}
 
       <h2 className="text-base font-bold text-[var(--color-heading)] mb-4 reveal" style={{ '--reveal-delay': '0.16s' } as React.CSSProperties}>Skills</h2>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-10 reveal" style={{ '--reveal-delay': '0.18s' } as React.CSSProperties}>
-        {skillProgress.map(({ category, done, total }) => (
+        {!labsLoaded ? (
+          Array.from({ length: 8 }, (_, index) => (
+            <div key={index} className="premium-card rounded-2xl p-4">
+              <div className="mb-3 h-4 w-28 animate-pulse rounded bg-[var(--color-surface-2)]" />
+              <div className="mb-2 h-1.5 rounded-full bg-[var(--color-surface-2)]" />
+              <div className="h-3 w-14 animate-pulse rounded bg-[var(--color-surface-2)]" />
+            </div>
+          ))
+        ) : skillProgress.map(({ category, done, total }) => (
           <Link
             key={category}
             to={`/labs?category=${encodeURIComponent(category)}`}
-            className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3.5 hover:border-[var(--color-accent)]/50 transition-colors"
+            className="premium-card premium-card-hover rounded-2xl p-4 overflow-hidden"
           >
             <div className="flex items-center gap-2 mb-2">
               <ModuleIcon icon={CATEGORY_BANNER[category] ?? 'linux'} className="w-4 h-4 text-[var(--color-accent)] shrink-0" />
@@ -189,33 +148,31 @@ export default function HomePage() {
         ))}
       </div>
 
-      <h2 className="text-base font-bold text-[var(--color-heading)] mb-4 reveal" style={{ '--reveal-delay': '0.22s' } as React.CSSProperties}>Modules</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-10">
-        {MODULES.map((mod, i) => {
+      <div className="academy-section-heading"><div><h2>The course collection</h2><p>Find the knowledge behind your next skill. {visibleModules.length} modules to explore.</p></div><input type="search" aria-label="Search learning modules" placeholder="Find a subject…" value={moduleSearch} onChange={event => setModuleSearch(event.target.value)} className="academy-catalog-search" /></div>
+      {visibleModules.length === 0 && <p className="mb-6 text-sm text-[var(--color-text-dim)]">No modules match your search. Try another subject.</p>}
+      <div className="module-catalog-grid grid grid-cols-1 sm:grid-cols-2 gap-5 mb-10">
+        {visibleModules.map((mod, i) => {
           const done = mod.lessons.filter((l) => progress.isLessonComplete(l.id)).length;
-          const labCount = mod.lessons.length;
+          const lessonCount = mod.lessons.length;
           return (
             <Link
               key={mod.id}
-              to={mod.lessons.length ? `/module/${mod.slug}/lesson/${mod.lessons[0].slug}` : '/roadmap'}
-              className="group rounded-xl overflow-hidden border border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-accent)]/50 hover:shadow-md transition-all flex flex-col reveal"
+              to={`/module/${mod.slug}`}
+              className="module-catalog-card group"
               style={{ '--reveal-delay': `${0.26 + Math.min(i, 5) * 0.05}s` } as React.CSSProperties}
             >
-              <ModuleBanner icon={mod.icon} moduleId={mod.id} className="h-28 w-full" />
-              <div className="p-4 flex flex-col flex-1">
-                <div className="flex flex-wrap gap-1.5 mb-2">
-                  <span className="pill bg-[var(--color-accent)]/10 text-[var(--color-accent-dim)]">{mod.lessons.length} lessons</span>
-                </div>
-                <div className="font-bold text-[var(--color-heading)] mb-1">{mod.title}</div>
-                <p className="text-sm text-[var(--color-text-dim)] leading-relaxed mb-3 flex-1">{mod.description}</p>
+              <div className="module-catalog-heading"><span className="module-catalog-icon"><ModuleIcon icon={mod.icon} className="h-5 w-5" /></span><span className="text-xs font-medium text-[var(--color-text-dim)]">{mod.lessons.length} lessons</span><IconArrowRight className="ml-auto h-4 w-4 text-[var(--color-text-dim)]" /></div>
+              <div className="module-catalog-body">
+                <h3 className="learning-module-title">{mod.title}</h3>
+                <p className="learning-module-description mb-6 flex-1">{mod.description}</p>
                 <div className="flex items-center gap-2">
                   <div className="flex-1 h-1.5 rounded-full bg-[var(--color-surface-2)] overflow-hidden">
                     <div
                       className="h-full bg-[var(--color-accent)] rounded-full"
-                      style={{ width: `${labCount ? (100 * done) / labCount : 0}%` }}
+                      style={{ width: `${lessonCount ? (100 * done) / lessonCount : 0}%` }}
                     />
                   </div>
-                  <span className="text-xs text-[var(--color-text-dim)] shrink-0">{done}/{labCount}</span>
+                  <span className="text-xs text-[var(--color-text-dim)] shrink-0">{done}/{lessonCount} complete</span>
                 </div>
               </div>
             </Link>
@@ -224,20 +181,20 @@ export default function HomePage() {
       </div>
 
       <div
-        className="rounded-xl border border-[var(--color-border)] bg-[var(--color-accent)] p-6 flex items-center justify-between flex-wrap gap-3 reveal"
+        className="premium-card rounded-3xl p-6 flex items-center justify-between flex-wrap gap-3 reveal overflow-hidden"
         style={{ '--reveal-delay': '0.4s' } as React.CSSProperties}
       >
         <div>
-          <h2 className="text-base font-bold text-white mb-1 flex items-center gap-2">
-            <IconFlag className="w-4 h-4" /> Full curriculum roadmap
+          <h2 className="text-base font-bold text-[var(--color-heading)] mb-1 flex items-center gap-2">
+            <IconFlag className="w-4 h-4 text-[var(--color-accent)]" /> Full curriculum roadmap
           </h2>
-          <p className="text-sm text-white/70">
-            All {MODULES.length} core modules and {LABS.length} labs are live — from Linux fundamentals through
+          <p className="text-sm text-[var(--color-text-dim)]">
+            All {MODULES.length} core modules{labsLoaded ? ` and ${totalLabs} labs` : ''} are live — from Linux fundamentals through
             Active Directory, cloud, malware analysis, and binary exploitation.
           </p>
         </div>
-        <Link to="/roadmap" className="px-4 py-2 rounded-lg bg-white text-[var(--color-accent)] text-sm font-semibold hover:bg-white/90 transition shrink-0">
-          View roadmap &rarr;
+        <Link to="/roadmap" className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[var(--color-accent)] text-white text-sm font-semibold hover:brightness-110 transition shrink-0">
+          View roadmap <IconArrowRight className="w-4 h-4" />
         </Link>
       </div>
     </div>

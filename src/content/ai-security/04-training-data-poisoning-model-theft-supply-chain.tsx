@@ -8,9 +8,9 @@ export default function TrainingDataPoisoningModelTheftSupplyChain() {
       <p>
         Every previous lesson in this module attacked an already-deployed model at inference time. This lesson
         moves upstream to three risks that exist before a single user ever sends a prompt: what happens if the
-        training data itself was tampered with (LLM03), what happens when the model artifact you download was
-        tampered with (LLM05), and how much of a "private" model an attacker can reconstruct just by querying
-        it (LLM10).
+        training data itself was tampered with (LLM04:2025), what happens when the model artifact you download was
+        tampered with (LLM03:2025), and how much of a "private" model an attacker can reconstruct just by querying
+        it. Model extraction remains a security concern; older lists named it separately.
       </p>
 
       <h2>Training data poisoning: planting a backdoor before the model ever ships</h2>

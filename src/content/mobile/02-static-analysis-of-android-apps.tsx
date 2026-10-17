@@ -6,29 +6,56 @@ export default function StaticAnalysisOfAndroidApps() {
     <div className="prose-hh">
       <h1>Static Analysis of Android Apps</h1>
       <p>
-        Static analysis means reading an app without ever running it — unpacking the APK, reading its manifest,
-        and decompiling its bytecode back into (mostly) readable source. It's almost always the first step in a
-        real mobile assessment, because it's fast, requires no device, and routinely turns up hardcoded secrets,
-        insecure configuration, and a map of every screen and API endpoint before you've clicked a single button.
+        Static analysis examines an app package without executing the app. For Android, analysts inspect the
+        merged manifest, resources, DEX bytecode, native libraries, assets, dependencies and signing data.
+        Tools can reconstruct a useful source-like view, but decompilation is an approximation: names may be
+        obfuscated, control flow may be transformed, native code needs different tools, and runtime behavior
+        can depend on server responses or device state. Treat findings as leads to validate dynamically, not
+        proof that a behavior occurs on every device.
       </p>
 
-      <h2>Unpacking an APK: it's just a signed ZIP</h2>
-      <CodeBlock label="the raw structure, no special tools needed for the first look">{`unzip app-release.apk -d app_extracted/
+      <h2>Identify and verify the package</h2>
+      <p>
+        An APK uses ZIP structures, but its signing data is not always a normal file inside the ZIP. Older
+        APK Signature Scheme v1 signatures use entries under <code>META-INF/</code>; v2 and newer schemes use
+        signing blocks outside the ZIP entry area. Not finding <code>CERT.RSA</code> does not mean an APK is
+        unsigned. An Android App Bundle (<code>.aab</code>) is a publishing format, not a single installable
+        APK; a device may receive a set of split APKs for the base app, language, density or feature modules.
+        Record the package name, version, min/target SDK, file hash and whether you received a universal APK or
+        split set.
+      </p>
+      <CodeBlock label="Record package metadata and verify its signing result">{`sha256sum app-release.apk
+apkanalyzer apk summary app-release.apk
+apkanalyzer manifest print app-release.apk
+apksigner verify --verbose --print-certs app-release.apk
+
+# Tool options vary by installed Android SDK build-tools version.
+# Compare the signer fingerprint with a trusted, owner-provided value.`}</CodeBlock>
+      <p>
+        A valid signature establishes that package bytes verify against a certificate and lets Android apply
+        package update rules. It does not prove that the signer is a particular trustworthy company. Compare
+        the certificate fingerprint with a trusted release record or known prior build; a certificate's
+        display name is self-asserted metadata. Hash the original package and every derived extraction so a
+        reviewer can identify which artifact was examined.
+      </p>
+
+      <h2>Unpack the APK and map its contents</h2>
+      <CodeBlock label="The package structure and what each part tells you">{`unzip -l app-release.apk | head -n 50
+unzip app-release.apk -d app_extracted/
 
 app_extracted/
-├── AndroidManifest.xml    (binary XML — needs a decoder, see below)
-├── classes.dex             (compiled Dalvik bytecode — the actual app logic)
-├── classes2.dex             (large apps split logic across multiple DEX files)
-├── resources.arsc            (compiled resources: strings, layouts, IDs)
-├── res/                        (images, XML layouts, raw resource files)
-├── assets/                      (arbitrary files bundled as-is — a common place to find configs, keys)
-└── META-INF/
-    ├── CERT.RSA                  (the app's signing certificate — who actually signed this build)
-    └── MANIFEST.MF`}</CodeBlock>
+├── AndroidManifest.xml   binary XML with package/component configuration
+├── classes.dex           Dalvik bytecode; there may be multiple DEX files
+├── resources.arsc        compiled resource table
+├── res/                  compiled layouts, images and other resources
+├── assets/               developer-bundled files
+├── lib/<abi>/            native libraries for supported CPU architectures
+└── META-INF/              may contain v1 signature files; not every APK does`}</CodeBlock>
       <p>
-        The manifest and DEX files aren't human-readable straight out of the ZIP — the manifest is stored as
-        compact binary XML, and DEX is Dalvik bytecode. Purpose-built tools decode both back into something
-        readable.
+        The manifest is commonly compiled binary XML and DEX is bytecode, so use tools that understand Android
+        formats. Inspect all DEX files and native libraries; JADX does not reconstruct native code into Java.
+        Avoid uploading proprietary packages to public analysis services without the owner's permission: an APK
+        may contain unreleased code or confidential configuration.
       </p>
 
       <h2>apktool: readable manifest and resources</h2>
@@ -38,6 +65,17 @@ app_extracted/
 cat app_decoded/AndroidManifest.xml | grep -A2 "exported=\\"true\\""
 # -> surfaces every exported Activity/Service/Receiver/Provider in one pass —
 #    exactly the entry points the previous lesson flagged as attack surface`}</CodeBlock>
+
+      <p>
+        Review each component's <code>android:exported</code> value, required permission, intent filters,
+        deep-link scheme and host, provider authority and data-sharing behavior. An exported component can be
+        reached by other apps under Android's component model, but exposure is not automatically a
+        vulnerability: inspect what it does, whether it checks the caller, and which data it can access.
+        Android 12 and later require an explicit exported value for components with intent filters in apps
+        targeting the relevant platform requirements. Intent filters route implicit intents; they are not an
+        authorization mechanism, since a caller that knows a component name may use an explicit intent.
+        Sensitive components need an appropriate export setting and permission checks.
+      </p>
 
       <h2>jadx: decompiling DEX back to Java-like source</h2>
       <CodeBlock label="jadx-gui gives you a browsable, mostly-readable source tree">{`jadx -d app_source/ app-release.apk
@@ -49,11 +87,11 @@ grep -rn "http://" app_source/       # cleartext endpoints (see next lesson)
 grep -rn "TrustManager\\|X509TrustManager" app_source/  # custom TLS trust logic — often broken`}</CodeBlock>
       <Callout variant="warn">
         <p>
-          Decompiled Java from DEX is remarkably close to the original source for most apps that weren't
-          specifically obfuscated — variable and method names are often preserved or only lightly mangled. This
-          is exactly why ProGuard/R8 obfuscation exists as a mitigation (Lesson 5's Anti-Analysis parallel from the
-          Malware module applies here too) — but obfuscation raises the cost of reading the logic, it doesn't
-          eliminate it.
+          JADX reconstructs source-like Java from bytecode; it cannot recover the original source exactly.
+          R8/ProGuard may rename classes and methods, remove unused code or optimize control flow, while native
+          libraries require separate analysis. Obfuscation raises the cost of review but is not a substitute
+          for protecting server-side secrets or enforcing authorization. Keep the decompiler version and any
+          warnings because incomplete output can mislead an analyst.
         </p>
       </Callout>
 
@@ -68,35 +106,75 @@ grep -rn "TrustManager\\|X509TrustManager" app_source/  # custom TLS trust logic
    Each one requested beyond genuine need widens the blast radius if the app
    itself is later compromised (a malicious SDK, a supply-chain-poisoned library).`}</CodeBlock>
 
-      <h2>Hardcoded secrets: the single most common real finding</h2>
+      <h2>Review embedded configuration and credentials carefully</h2>
       <p>
-        Across real-world mobile assessments, hardcoded API keys, backend credentials, and signing/encryption
-        keys embedded directly in <code>strings.xml</code>, decompiled source, or the <code>assets/</code>{' '}
-        folder remain one of the most consistently reported findings — precisely because a compiled app is
-        distributed to every user's device, meaning ANY secret embedded in it is effectively public the moment the
-        app ships, regardless of how "hidden" it feels inside a decompiled binary.
+        Values embedded in <code>strings.xml</code>, decompiled source, native libraries or <code>assets/</code>
+        are recoverable by a recipient of the package. That does not make every API key a credential: some
+        client keys identify a project and are designed to be distributed, but they still need appropriate
+        API restrictions, package/signing restrictions where supported, quotas and monitoring. A private
+        signing key, server credential or unrestricted cloud secret must never be placed in a client build.
+        A token-looking string is a lead; identify its provider, intended use, privileges, restrictions and
+        expiration before classifying it as exposed.
       </p>
-      <CodeBlock label="a realistic (sanitized) example — this pattern recurs constantly">{`// found via jadx in app_source/com/example/app/network/ApiClient.java
-private static final String STRIPE_SECRET_KEY = "sk_live_51H...";
-private static final String FIREBASE_ADMIN_KEY = "AAAA...";
+      <CodeBlock label="A deliberately redacted example of a dangerous client secret">{`// An application must not ship a server-side private credential.
+private static final String PAYMENT_SECRET = "sk_live_REDACTED";
+private static final String CLOUD_PRIVATE_KEY = "REDACTED_PRIVATE_KEY";
 
--- A "secret" key (as opposed to a publishable/public key) shipped inside a
-   client app is not actually secret anymore — anyone can extract it with the
-   exact static analysis workflow in this lesson.`}</CodeBlock>
-
-      <h2>Certificate/signature verification</h2>
+// A public client identifier may be expected in the app, but restrict it
+// to the intended package, signing identity, API, quota and environment.`}</CodeBlock>
       <p>
-        Comparing the certificate in <code>META-INF/CERT.RSA</code> against the developer's known, expected
-        signing key is how you'd distinguish a legitimate build from a repackaged, trojanized APK — a very common
-        real-world distribution vector where an attacker decompiles a popular app, injects malicious code, re-signs
-        it with their own key, and redistributes it through a third-party store or phishing link. This is precisely
-        the "supply chain" category (M2) from the OWASP Mobile Top 10 in the previous lesson.
+        If a genuine private credential is found in an authorized package, do not use it to access a service.
+        Record the file and location, redact the value in notes, notify the owner through the approved channel,
+        and recommend revocation/rotation plus a search of repository and build history. Removing a value from
+        the latest source build does not invalidate a credential already distributed in earlier packages.
+        Keep server authorization checks in place even when client-side restrictions are configured.
       </p>
 
+      <h2>Certificate and package-signature verification</h2>
       <p>
-        Static analysis gets you the map — every string, endpoint, and permission the app COULD use. The next
-        lesson moves to dynamic analysis: actually running the app, intercepting its real traffic, and hooking its
-        live behavior with Frida to see what it ACTUALLY does.
+        Use <code>apksigner verify --print-certs</code> to inspect signature verification and certificate
+        fingerprints across APK signing schemes; do not assume the signer certificate is stored as
+        <code>META-INF/CERT.RSA</code>. Compare the fingerprint with a value obtained independently from the
+        application owner or trusted release record. A changed signer may be expected after a documented key
+        rotation or store-managed signing arrangement, so investigate provenance before concluding an APK was
+        tampered with. A matching signer alone does not prove the app is safe; it links package integrity to a
+        signing key under the platform's verification model.
+      </p>
+
+      <h2>Turn static leads into a reviewable evidence set</h2>
+      <p>
+        For each suspected issue, record the package hash, tool and version, file/class/resource location,
+        relevant code path, expected behavior, observed static evidence and a question to verify at runtime.
+        A string such as <code>http://</code> may be dead code, a local development URL, or a real endpoint;
+        inspect call sites and build variants before reporting cleartext traffic. A permission may be required
+        for an optional feature; assess whether the app requests it when needed and whether the corresponding
+        data use is justified. A decompiler warning or obfuscated method should lower confidence, not encourage
+        guessing.
+      </p>
+      <CodeBlock label="A compact, reproducible static-analysis sequence">{`# Work from the authorized package copy and retain its digest.
+sha256sum app-release.apk
+apkanalyzer apk summary app-release.apk
+apkanalyzer manifest print app-release.apk > manifest.txt
+apksigner verify --verbose --print-certs app-release.apk
+apktool d app-release.apk -o decoded/
+jadx -d source-view/ app-release.apk
+
+# Review manifest/components, source/resources, assets, native libraries,
+# dependencies and signature output; preserve tool versions and observations.`}</CodeBlock>
+      <p>
+        This sequence is an inventory, not a verdict. Static review cannot prove how the app behaves with a
+        live backend, whether a permission prompt appears as expected, or whether a server applies object-level
+        authorization. The next dynamic-analysis lesson validates selected questions in a controlled device
+        or emulator with a test account and authorized backend.
+      </p>
+
+      <h2>References</h2>
+      <p>
+        Continue with the Android Developers' <a href="https://developer.android.com/studio/publish/app-signing" target="_blank" rel="noreferrer">app-signing documentation</a>,
+        the <a href="https://developer.android.com/guide/components/intents-filters" target="_blank" rel="noreferrer">Android intents and component guidance</a>,
+        and OWASP MAS's <a href="https://mas.owasp.org/MASTG/" target="_blank" rel="noreferrer">Mobile Application Security Testing Guide</a>.
+        Static analysis creates hypotheses from package artifacts; the next lesson validates selected hypotheses
+        at runtime with an authorized test device, test account and backend.
       </p>
     </div>
   );

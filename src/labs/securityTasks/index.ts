@@ -7,8 +7,9 @@ import { SECURITY_WEBAPP_TASKS } from './webAppSecurity';
 import { SECURITY_BINARY_TASKS } from './binaryExploitation';
 import { SECURITY_MALWARE_TASKS } from './malwareAnalysis';
 import type { CodeTask } from '../codeTypes';
+import { enrichCodeTasks } from '../enrichCodeTasks';
 
-export const SECURITY_TASKS: CodeTask[] = [
+const RAW_SECURITY_TASKS: CodeTask[] = [
   ...SECURITY_CRYPTOGRAPHY_TASKS,
   ...SECURITY_IDENTITY_ACCESS_TASKS,
   ...SECURITY_INCIDENT_FORENSICS_TASKS,
@@ -18,6 +19,8 @@ export const SECURITY_TASKS: CodeTask[] = [
   ...SECURITY_BINARY_TASKS,
   ...SECURITY_MALWARE_TASKS,
 ];
+
+export const SECURITY_TASKS: CodeTask[] = enrichCodeTasks(RAW_SECURITY_TASKS);
 
 export const SECURITY_TASK_CATEGORIES = [
   'Security: Cryptography (Crypto 101)',

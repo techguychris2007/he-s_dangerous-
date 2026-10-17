@@ -1,6 +1,14 @@
 import { useState } from 'react';
 import type { SiemLabScenario, SiemTool } from '../../labs/siemTypes';
 import { matchesQuery, extractFlag } from '../../labs/siemTypes';
+import QRadarConsole from './QRadarConsole';
+import SplunkConsole from './SplunkConsole';
+import SentinelConsole from './SentinelConsole';
+import ChronicleConsole from './ChronicleConsole';
+import ElasticConsole from './ElasticConsole';
+import SuricataConsole from './SuricataConsole';
+import TcpdumpConsole from './TcpdumpConsole';
+import SiemWorkspace from './SiemWorkspace';
 
 interface Branding {
   name: string;
@@ -49,16 +57,16 @@ const BRANDING: Record<SiemTool, Branding> = {
   chronicle: {
     name: 'Chronicle',
     tagline: 'UDM Search',
-    border: 'border-blue-500/40',
+    border: 'border-[var(--color-accent)]/40',
     glow: 'shadow-[0_0_40px_-12px_rgba(59,130,246,0.4)]',
-    dot: 'bg-blue-400',
+    dot: 'bg-[var(--color-accent)]',
     headerBg: 'bg-[#111827]',
     barBg: 'bg-[#0d1220]',
-    labelText: 'text-blue-400',
-    buttonBg: 'bg-blue-500',
+    labelText: 'text-[var(--color-accent-dim)]',
+    buttonBg: 'bg-[var(--color-accent)]',
     buttonText: 'text-white',
-    inputBorder: 'border-blue-500/25',
-    inputFocus: 'focus:border-blue-500/60',
+    inputBorder: 'border-[var(--color-accent)]/25',
+    inputFocus: 'focus:border-[var(--color-accent)]/60',
     bodyBg: 'bg-[#0a0e17]',
     queryLabel: '🔍',
     placeholder: 'UDM query, e.g. target.ip = "185.220.101.7"',
@@ -131,16 +139,16 @@ const BRANDING: Record<SiemTool, Branding> = {
   qradar: {
     name: 'IBM QRadar',
     tagline: 'AQL Search — Offenses',
-    border: 'border-indigo-500/40',
+    border: 'border-[var(--color-accent)]/40',
     glow: 'shadow-[0_0_40px_-12px_rgba(99,102,241,0.4)]',
-    dot: 'bg-indigo-400',
+    dot: 'bg-[var(--color-accent)]',
     headerBg: 'bg-[#141227]',
     barBg: 'bg-[#0e0c1c]',
-    labelText: 'text-indigo-400',
-    buttonBg: 'bg-indigo-500',
+    labelText: 'text-[var(--color-accent-dim)]',
+    buttonBg: 'bg-[var(--color-accent)]',
     buttonText: 'text-white',
-    inputBorder: 'border-indigo-500/25',
-    inputFocus: 'focus:border-indigo-500/60',
+    inputBorder: 'border-[var(--color-accent)]/25',
+    inputFocus: 'focus:border-[var(--color-accent)]/60',
     bodyBg: 'bg-[#0b0918]',
     queryLabel: 'AQL:',
     placeholder: "SELECT * FROM events WHERE category = 'Authentication' LAST 1 HOURS",
@@ -232,16 +240,16 @@ const BRANDING: Record<SiemTool, Branding> = {
   eyewitness: {
     name: 'EyeWitness',
     tagline: 'Bulk web screenshot triage',
-    border: 'border-violet-500/40',
+    border: 'border-[var(--color-accent)]/40',
     glow: 'shadow-[0_0_40px_-12px_rgba(139,92,246,0.4)]',
-    dot: 'bg-violet-400',
+    dot: 'bg-[var(--color-accent)]',
     headerBg: 'bg-[#150e1f]',
     barBg: 'bg-[#100a18]',
-    labelText: 'text-violet-400',
-    buttonBg: 'bg-violet-500',
+    labelText: 'text-[var(--color-accent-dim)]',
+    buttonBg: 'bg-[var(--color-accent)]',
     buttonText: 'text-white',
-    inputBorder: 'border-violet-500/25',
-    inputFocus: 'focus:border-violet-500/60',
+    inputBorder: 'border-[var(--color-accent)]/25',
+    inputFocus: 'focus:border-[var(--color-accent)]/60',
     bodyBg: 'bg-[#0c0714]',
     queryLabel: 'filter:',
     placeholder: 'filter the report, e.g. "Login" or a host/IP',
@@ -279,20 +287,70 @@ const SEVERITY_STYLE: Record<string, string> = {
   Low: 'bg-slate-500/20 text-slate-400 border-slate-500/40',
 };
 
-export default function SiemConsole({
+export default function SiemConsole(props: {
+  scenario: SiemLabScenario;
+  onFlagCaptured: (flag: string) => void;
+  onTranscriptChange?: (transcript: string) => void;
+  onResults?: (entries: SiemLabScenario['entries']) => void;
+}) {
+  return (
+    <SiemWorkspace scenario={props.scenario}>
+      <ToolConsole key={props.scenario.id} {...props} />
+    </SiemWorkspace>
+  );
+}
+
+function ToolConsole({
   scenario,
   onFlagCaptured,
   onTranscriptChange,
+  onResults,
 }: {
   scenario: SiemLabScenario;
   onFlagCaptured: (flag: string) => void;
   /** Fires with the accumulated query/result log (plain text) after every query actually run — same
    *  role as Terminal's onTranscriptChange, for the AI lab tutor to see real session activity. */
   onTranscriptChange?: (transcript: string) => void;
+  onResults?: (entries: SiemLabScenario['entries']) => void;
+}) {
+  // QRadar and Splunk get dedicated, visually authentic consoles — a real IBM Carbon-style Log
+  // Activity grid and a real Search & Reporting layout — instead of the shared generic template
+  // every other tool below still uses. See QRadarConsole/SplunkConsole for why these two specifically:
+  // they're this platform's two highest-usage SIEM tools across existing lab content.
+  if (scenario.tool === 'qradar') {
+    return <QRadarConsole scenario={scenario} onFlagCaptured={onFlagCaptured} onTranscriptChange={onTranscriptChange} />;
+  }
+  if (scenario.tool === 'splunk') {
+    return <SplunkConsole scenario={scenario} onFlagCaptured={onFlagCaptured} onTranscriptChange={onTranscriptChange} onResults={onResults} />;
+  }
+  if (scenario.tool === 'sentinel') {
+    return <SentinelConsole scenario={scenario} onFlagCaptured={onFlagCaptured} onTranscriptChange={onTranscriptChange} onResults={onResults} />;
+  }
+  if (scenario.tool === 'chronicle') {
+    return <ChronicleConsole scenario={scenario} onFlagCaptured={onFlagCaptured} onTranscriptChange={onTranscriptChange} />;
+  }
+  if (scenario.tool === 'elastic') {
+    return <ElasticConsole scenario={scenario} onFlagCaptured={onFlagCaptured} onTranscriptChange={onTranscriptChange} onResults={onResults} />;
+  }
+  if (scenario.tool === 'suricata') {
+    return <SuricataConsole scenario={scenario} onFlagCaptured={onFlagCaptured} onTranscriptChange={onTranscriptChange} />;
+  }
+  if (scenario.tool === 'tcpdump') {
+    return <TcpdumpConsole scenario={scenario} onFlagCaptured={onFlagCaptured} onTranscriptChange={onTranscriptChange} />;
+  }
+
+  return <GenericConsole scenario={scenario} onFlagCaptured={onFlagCaptured} onTranscriptChange={onTranscriptChange} />;
+}
+
+function GenericConsole({ scenario, onFlagCaptured, onTranscriptChange }: {
+  scenario: SiemLabScenario;
+  onFlagCaptured: (flag: string) => void;
+  onTranscriptChange?: (transcript: string) => void;
 }) {
   const b = BRANDING[scenario.tool];
   const [query, setQuery] = useState('');
   const [ran, setRan] = useState(false);
+  const [appliedQuery, setAppliedQuery] = useState('');
   const [searching, setSearching] = useState(false);
   const [, setHistory] = useState<string[]>([]);
 
@@ -302,6 +360,7 @@ export default function SiemConsole({
     const commit = () => {
       setSearching(false);
       setRan(true);
+    setAppliedQuery(q);
       const visible = scenario.entries.filter((e) => matchesQuery(e, q));
       visible.forEach((e) => {
         const flag = extractFlag(e.line);
@@ -325,7 +384,7 @@ export default function SiemConsole({
     }
   };
 
-  const results = ran ? scenario.entries.filter((e) => matchesQuery(e, query)) : scenario.entries;
+  const results = ran ? scenario.entries.filter((e) => matchesQuery(e, appliedQuery)) : scenario.entries;
 
   return (
     <div className={`flex flex-col h-full ${b.bodyBg} border-2 ${b.border} rounded-lg overflow-hidden ${b.glow} ${b.monospaceOutput ? 'font-mono' : ''}`}>
@@ -342,7 +401,8 @@ export default function SiemConsole({
         <span className={`font-mono text-sm shrink-0 ${b.labelText}`}>{b.queryLabel}</span>
         <input
           type="text"
-          value={query}
+          aria-label="Investigation query"
+              value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && run(query)}
           placeholder={b.placeholder}

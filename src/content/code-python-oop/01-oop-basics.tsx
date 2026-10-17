@@ -49,27 +49,37 @@ print(t1.ip, t2.ip)  # "10.0.0.5 10.0.0.9" — completely independent`}</CodeBlo
         signals "this is internal, don't touch it directly from outside the class," even though nothing
         technically stops you.
       </p>
-      <CodeBlock label="encapsulating a password">{`import hashlib
+      <CodeBlock label="encapsulating a password verifier with a per-user salt">{`import hashlib
+import hmac
+import secrets
 
 class User:
     def __init__(self, username, password):
         self.username = username
-        self._password_hash = hashlib.sha256(password.encode()).hexdigest()
+        self._salt = secrets.token_bytes(16)
+        self._password_hash = self._derive(password)
+
+    def _derive(self, password):
+        return hashlib.scrypt(
+            password.encode("utf-8"), salt=self._salt,
+            n=2**14, r=8, p=1, dklen=32,
+        )
 
     def check_password(self, attempt):
-        return hashlib.sha256(attempt.encode()).hexdigest() == self._password_hash
+        candidate = self._derive(attempt)
+        return hmac.compare_digest(candidate, self._password_hash)
 
 u = User("alice", "hunter2")
 print(u.check_password("hunter2"))    # True
 print(u.check_password("wrong"))      # False
-# u._password_hash exists and is technically readable, but the underscore
-# is a clear signal: "this is an implementation detail, use check_password() instead"`}</CodeBlock>
+# A production account also needs protected storage, recovery controls, and throttling.`}</CodeBlock>
       <Callout variant="tip">
         <p>
-          The real point of this <code>User</code> class isn't hiding the hash from a determined reader —
-          it's making the <em>correct</em> way to check a password (via <code>check_password</code>) the
-          <em>only convenient</em> way, so nobody accidentally compares a raw password to a hash somewhere
-          else in a large codebase.
+          A fast hash such as SHA-256 is unsuitable for password storage because leaked hashes can be
+          guessed quickly. This example uses the standard library's memory-hard <code>scrypt</code>, a
+          random per-account salt, and constant-time comparison. Production systems should use a maintained
+          authentication library and calibrate its work factor. An underscore remains a Python convention,
+          never an access-control boundary.
         </p>
       </Callout>
 

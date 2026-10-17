@@ -164,14 +164,14 @@ export const PYTHON_CRYPTO_TASKS: CodeTask[] = [
   },
   {
     id: 'py-crypto-05',
-    title: 'Hash a Password With SHA-256',
+    title: 'Compute a SHA-256 Digest',
     difficulty: 'Easy',
     language: 'python',
     category: 'Cryptography & Encoding',
     prompt:
       'Write sha256_hex(text) that returns the SHA-256 hash of text (UTF-8 encoded) as a lowercase hex ' +
-      'string, using the hashlib module. Storing a hash instead of a plaintext password is the single most ' +
-      'important habit in all of authentication — this is the primitive every password-storage scheme is built on.',
+      'string, using the hashlib module. This exercise teaches a general-purpose digest, not a password-storage scheme. ' +
+      'Fast SHA-256 alone is unsuitable for password storage; use an appropriate adaptive password-hashing scheme with salts and reviewed parameters.',
     starterCode: 'import hashlib\n\ndef sha256_hex(text):\n    # TODO: return the SHA-256 hex digest of text\n    pass\n',
     hints: [
       'hashlib.sha256() needs bytes, so encode the string first: text.encode("utf-8").',

@@ -51,29 +51,36 @@ resp = session.get("http://10.10.10.5/dashboard", timeout=3)   # reuses the pool
       </p>
 
       <h2>A directory brute-forcer</h2>
-      <CodeBlock label="dirbrute.py">{`import requests
+      <CodeBlock label="bounded directory check with visible errors">{`import requests
 from concurrent.futures import ThreadPoolExecutor
 
-BASE = "http://10.10.10.5"
+BASE = "http://10.10.10.5"  # replace only with the target named in your lab scope
 
 def check_path(path):
-    url = f"{BASE}/{path}"
+    url = f"{BASE}/{path.lstrip('/')}"
     try:
-        r = requests.get(url, timeout=2, allow_redirects=False)
-        if r.status_code != 404:
-            print(f"[{r.status_code}] {url}")
-    except requests.RequestException:
-        pass
+        response = requests.get(url, timeout=3, allow_redirects=False)
+    except requests.RequestException as error:
+        return f"[request error] {url}: {error}"
+    if response.status_code == 404:
+        return None
+    return f"[{response.status_code}] {url}"
 
-with open("wordlist.txt") as f:
-    paths = [line.strip() for line in f if line.strip()]
+with open("wordlist.txt", encoding="utf-8") as wordlist:
+    paths = [line.strip() for line in wordlist if line.strip()]
 
-with ThreadPoolExecutor(max_workers=20) as pool:
-    pool.map(check_path, paths)`}</CodeBlock>
+# A modest worker count limits pressure on the authorized training service.
+with ThreadPoolExecutor(max_workers=5) as pool:
+    for result in pool.map(check_path, paths):
+        if result is not None:
+            print(result)`}</CodeBlock>
       <p>
-        This is functionally what gobuster/ffuf do — request every candidate path, filter out 404s, and
-        report what's actually there. Writing it yourself means you can customize matching logic (e.g.
-        filter by response length or a specific string) that off-the-shelf tools don't expose as easily.
+        This is a small teaching example of the same request-and-classify loop used by directory discovery
+        tools. Run it only against a system named in the lab or a target for which you have explicit
+        authorization. A timeout is not evidence that a path is absent; the revised example prints request
+        errors rather than silently discarding them. A 404 can also be customized by the application, so
+        real work should establish a baseline for nonexistent paths before treating status codes as truth.
+        Keep concurrency modest and follow the engagement's request-rate limits.
       </p>
 
       <h2>Parsing HTML for links (lightweight crawling)</h2>
@@ -145,26 +152,34 @@ resp = requests.get("http://172.16.5.10/internal-app", proxies=proxies, timeout=
         for — <code>asyncio</code> with <code>aiohttp</code> scales further, because coroutines are
         cooperatively scheduled inside a single thread instead of relying on OS thread scheduling:
       </p>
-      <CodeBlock label="the same directory brute-forcer, async style">{`import asyncio
+      <CodeBlock label="bounded async requests with explicit errors">{`import asyncio
 import aiohttp
 
 async def check_path(session, base, path):
+    url = f"{base}/{path.lstrip('/')}"
     try:
-        async with session.get(f"{base}/{path}", allow_redirects=False, timeout=2) as r:
-            if r.status != 404:
-                print(f"[{r.status}] {base}/{path}")
-    except aiohttp.ClientError:
-        pass
+        async with session.get(url, allow_redirects=False) as response:
+            if response.status == 404:
+                return None
+            return f"[{response.status}] {url}"
+    except (aiohttp.ClientError, asyncio.TimeoutError) as error:
+        return f"[request error] {url}: {error}"
 
 async def main(base, paths):
-    async with aiohttp.ClientSession() as session:
-        await asyncio.gather(*(check_path(session, base, p) for p in paths))
+    timeout = aiohttp.ClientTimeout(total=3)
+    connector = aiohttp.TCPConnector(limit=5)
+    async with aiohttp.ClientSession(timeout=timeout, connector=connector) as session:
+        results = await asyncio.gather(*(check_path(session, base, p) for p in paths))
+    for result in results:
+        if result is not None:
+            print(result)
 
 asyncio.run(main("http://10.10.10.5", ["admin", "login", "backup.zip"]))`}</CodeBlock>
       <p>
-        Know both patterns rather than picking a favorite: threading is easier to reason about and plenty
-        fast for most engagement-sized targets; asyncio is the right call once you're scaling into the
-        thousands-of-requests territory where thread overhead itself becomes the bottleneck.
+        The connector limit bounds simultaneous connections even though every candidate is scheduled as a
+        coroutine. Threading and asyncio are implementation choices, not permission to increase request
+        volume. Choose the simplest method that meets the lab's rate and scale requirements, and stop if
+        the target becomes unstable.
       </p>
 
       <p>

@@ -2,7 +2,7 @@ import type { ComponentType } from 'react';
 
 export type ModuleStatus = 'available' | 'coming-soon';
 
-export type RoadmapTrack = 'security' | 'programming' | 'ml';
+export type RoadmapTrack = 'presecurity' | 'security' | 'defensive' | 'programming' | 'ml';
 
 export interface QuizQuestion {
   id: string;
@@ -18,6 +18,8 @@ export interface LessonMeta {
   title: string;
   summary: string;
   minutes: number;
+  objectives?: string[];
+  prerequisite?: string;
   Content: ComponentType;
   quiz?: QuizQuestion[];
   labId?: string;

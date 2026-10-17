@@ -11,6 +11,14 @@ export default function SecureDesignPrinciples() {
         Naming them explicitly turns scattered intuition into a checklist you can apply to any new system.
       </p>
 
+      <h2>Technical terms explained</h2>
+      <ul>
+        <li><strong>Authentication and authorization:</strong> Authentication establishes who or what is making a request. Authorization decides whether that identity may perform the requested action on the requested resource. A successful login does not grant access to every object in the application.</li>
+        <li><strong>Least privilege and complete mediation:</strong> Least privilege grants only the permissions needed for a task and only for as long as necessary. Complete mediation checks each relevant access against current policy instead of trusting an earlier check indefinitely.</li>
+        <li><strong>Trust boundary and defense in depth:</strong> A trust boundary separates components with different assumptions or privileges. Defense in depth uses multiple controls so one failure does not expose everything. Each layer should address a meaningful failure mode.</li>
+        <li><strong>Fail-secure and secure defaults:</strong> Fail-secure behavior preserves the security policy when a component fails, for example denying access when authorization cannot be verified. Secure defaults start with restricted permissions. Availability and life-safety requirements may require a separately designed failure policy.</li>
+      </ul>
+
       <h2>The classic principle set</h2>
       <CodeBlock label="each one mapped to a lab you've already done in this course">{`Least Privilege        — every account/process gets only what it needs
                           (violated in nearly every privesc lab: overly broad sudo rules, wildcard IAM)
@@ -136,6 +144,12 @@ Shared library loaded into
         modeling — for applying them systematically to a specific system, rather than relying on intuition
         alone.
       </p>
+      <h2>Design a document download endpoint</h2>
+      <p>For a request to download a document, authenticate the session and authorize access to that specific document on the server. Do not rely on a hidden button or an unpredictable document identifier. Give the service account permission to read only the storage it needs, and keep stored documents private by default. If a policy service times out, define an explicit failure behavior and make it observable. If access is revoked, consider cached decisions and any previously issued download links. Review how each control behaves under ordinary access, cross-user access attempts, revoked permissions, and dependency failure.</p>
+      <Callout variant="tip">
+        <p><strong>Check your understanding:</strong> If a user changes the document identifier in a URL, which control should stop unauthorized access?</p>
+      </Callout>
+
     </div>
   );
 }

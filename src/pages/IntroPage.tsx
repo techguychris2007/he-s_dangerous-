@@ -15,20 +15,20 @@ import {
 } from '../components/layout/icons';
 
 // Hardcoded fallback counts to keep main bundle small (~0KB lab import)
-const FALLBACK_TOTAL_LABS = 597;
+const FALLBACK_TOTAL_LABS = 669;
 const FALLBACK_TOTAL_FLAGS = 759;
 
 const STEPS = [
-  { n: '01', title: 'Create your account', body: 'Free, in under a minute. Your progress syncs to your account so it follows you across devices.' },
+  { n: '01', title: 'Create your account', body: 'Free, in under a minute. Your progress saves on this device and syncs to your account when you are online.' },
   { n: '02', title: 'Pick a module', body: 'Start from Linux and networking fundamentals, or jump straight into web hacking, red teaming, or SOC work.' },
-  { n: '03', title: 'Break something', body: 'Every lesson hands you off to a real interactive lab — terminal, SIEM console, or both — until you capture the flag.' },
+  { n: '03', title: 'Put it into practice', body: 'Each topic leads into a guided lab where you can apply the skill in a controlled simulation.' },
 ];
 
 const FEATURES = [
   {
     Icon: IconTerminal,
-    title: 'A real in-browser terminal',
-    body: 'A simulated Linux shell backed by a full virtual filesystem — navigate, enumerate, exploit, and escalate privilege exactly like a real box, entirely client-side.',
+    title: 'A browser-based training terminal',
+    body: 'Practice Linux workflows in a browser-based shell with simulated files, services and supported training commands.',
   },
   {
     Icon: IconRadar,
@@ -38,12 +38,12 @@ const FEATURES = [
   {
     Icon: IconShieldCheck,
     title: 'Structured curriculum',
-    body: 'Networking and Linux fundamentals through Active Directory, cloud security, malware analysis, and bug bounty methodology — every lesson paired with a hands-on lab.',
+    body: 'Follow a structured path from networking and Linux through web, cloud, identity, malware analysis and defensive operations.',
   },
   {
     Icon: IconChart,
     title: 'Progress that sticks',
-    body: 'Flags, completed lessons, and lab streaks are tracked as you go, with a mentor companion that adapts its pacing to how you actually work.',
+    body: 'Lessons and practice progress save on this device. When you reconnect, your account can sync progress across devices.',
   },
   {
     Icon: IconCertificate,
@@ -53,7 +53,7 @@ const FEATURES = [
   {
     Icon: IconFlask,
     title: 'Learn by breaking things',
-    body: 'No lecture-only modules — every concept is immediately followed by a lab where you use it against a real (simulated) target.',
+    body: 'Guided labs reinforce lesson concepts in simulated targets without requiring access to external systems.',
   },
 ];
 
@@ -128,9 +128,9 @@ export default function IntroPage() {
               </span>
             </h1>
             <p className="text-[#a9c0da] text-lg leading-relaxed mb-9">
-              A full offensive and defensive security curriculum, taught entirely through real interactive
-              labs — a simulated terminal, real SIEM consoles, and breaches modeled on actual incidents.
-              No lecture slides. No sandboxed toy problems.
+              A structured offensive and defensive security curriculum with detailed lessons and browser-based
+              practice. Work through simulated terminal challenges and SIEM investigations based on publicly
+              documented incidents.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-3">
               <Link
@@ -198,7 +198,7 @@ export default function IntroPage() {
         </div>
 
         <button
-          onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
+          onClick={() => { const root = document.getElementById('root'); root?.scrollTo({ top: root.clientHeight, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' }); }}
           aria-label="Scroll down"
           className="relative mx-auto mb-6 flex flex-col items-center gap-1 text-[#7c93ae] hover:text-[#c9e0ff] transition-colors animate-bounce"
         >
@@ -283,8 +283,8 @@ export default function IntroPage() {
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-white mb-3">Create your account and start your first lab in under a minute</h2>
           <p className="text-[#a9c0da] mb-8 max-w-xl mx-auto">
-            Your progress, flags, and certificates are tied to your account and synced automatically — pick up
-            exactly where you left off, on any device, online or off.
+            Your learning progress is saved on this device and syncs with your account when you are online.
+            Continue across devices after your connection returns.
           </p>
           <Link
             to="/login?mode=signup"

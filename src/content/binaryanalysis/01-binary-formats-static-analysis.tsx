@@ -11,6 +11,14 @@ export default function BinaryFormatsStaticAnalysis() {
         safest possible first step, and the foundation this whole module builds on.
       </p>
 
+      <h2>Technical terms explained</h2>
+      <ul>
+        <li><strong>Binary, architecture, and endianness:</strong> A binary is a file represented as bytes; an executable binary contains instructions and metadata used to run a program. Architecture identifies the instruction set, such as x86-64 or ARM. Endianness is the byte order used for multi-byte values: little-endian stores the least significant byte first.</li>
+        <li><strong>Section, segment, and address:</strong> A section groups file content such as code or constants. In ELF, program headers describe segments the loader maps into memory. A file offset is a location within the file; a virtual address is a location in a process's address space. They are not generally the same number.</li>
+        <li><strong>Symbol, import, and linking:</strong> A symbol associates a name with code or data. An import refers to functionality supplied elsewhere. Linking resolves references between compiled components; dynamic linking uses shared libraries at runtime. Stripped binaries have some symbol information removed, but still contain executable code.</li>
+        <li><strong>Disassembly and decompilation:</strong> Disassembly represents machine instructions as assembly. Decompilation estimates higher-level logic from those instructions. Decompiled names and types may be guesses, and the original source structure is usually not fully recoverable.</li>
+      </ul>
+
       <h2>The two executable formats you need to know</h2>
       <CodeBlock label="ELF (Linux) vs. PE (Windows)">{`ELF (Executable and Linkable Format) — Linux/Unix
   - ELF header -> Program headers -> Sections (.text, .data, .bss, .rodata) -> Section headers
@@ -221,6 +229,12 @@ android root detection disable  # defeat common root-detection checks the same w
         runtime, is exactly how mobile apps get reverse engineered too. The next lesson gives you the
         assembly fundamentals to actually read what that disassembly is doing.
       </p>
+      <h2>Build an evidence-based static analysis note</h2>
+      <p>Identify the file format and architecture, record a cryptographic hash, and inspect sections, imports, and strings. Suppose you find a URL and a networking-library import. That supports a hypothesis of network functionality, but does not establish that the URL is contacted or that the file is malicious. Follow references to the string in the disassembly and check which branch reaches the network call. Distinguish file offsets from runtime addresses when recording locations. Write down observations separately from interpretations and list what dynamic analysis would need to confirm. Static inspection avoids executing the sample, although analysis tools themselves still need an appropriately isolated environment for untrusted files.</p>
+      <Callout variant="tip">
+        <p><strong>Check your understanding:</strong> Why does finding a URL in strings output fail to prove that a program connects to it?</p>
+      </Callout>
+
     </div>
   );
 }

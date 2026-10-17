@@ -32,3 +32,11 @@ src/assets/banners/generated/
 *.njsproj
 *.sln
 *.sw?
+
+# Local production media and generated review artifacts stay off GitHub.
+/video/
+/output/
+/docs/video/
+/.agents/
+/tmp/
+*.bak
