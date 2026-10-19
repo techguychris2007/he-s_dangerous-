@@ -1,27 +1,11 @@
 import type { SiemLabScenario } from '../siemTypes';
 import type { InvestigationStage } from '../investigation';
-
-interface Checkpoint {
-  id: string;
-  title: string;
-  tool: InvestigationStage['tool'];
-  briefing: string;
-  records: [string, string, string];
-  question: string;
-  choices: [string, string, string];
-  correctIndex: number;
-  explanation: string;
-}
-interface Chain {
-  title: string;
-  briefing: string;
-  context: string;
-  sources: { title: string; url: string }[];
-  checkpoints: Checkpoint[];
-}
+import type { DefensiveChain } from './defensiveChainTypes';
+import { ADDITIONAL_DEFENSIVE_CHAINS } from './defensive-chain-expansion';
 const reconstruction = 'Original DarkWorld training reconstruction, not victim telemetry. Hosts, people, dates, addresses, intelligence results and response receipts are fictional. Public reports establish the attack patterns only. OSINT stages use frozen passive snapshots inside the existing consoles: do not visit suspicious sites, submit internal artifacts to public services or contact anyone. Response stages assess simulated action receipts; they do not operate a real tenant or endpoint. Prior proofs remain credited, while new checkpoints require additional work.';
 
-const chains: Record<string, Chain> = {
+const chains: Record<string, DefensiveChain> = {
+  ...ADDITIONAL_DEFENSIVE_CHAINS,
   'siem-sentinel-impossible-travel': {
     title: 'Identity Casefile · Impossible Travel to Phishing and Session Response',
     briefing: 'You are the on-duty analyst for Meridian. An impossible-travel alert interrupts a routine shift. Determine whether it is a VPN artifact or unauthorized access, trace a phishing link using passive OSINT, scope mailbox activity and verify the response. Eight linked checkpoints advance from Tier 1 triage to incident response.',
@@ -254,10 +238,16 @@ export function upgradeDefensiveChain(lab: SiemLabScenario): SiemLabScenario {
   const chain = chains[lab.id];
   if (!chain) return lab;
   const legacyProofs = [...new Set(lab.entries.flatMap(entry => entry.line.match(/flag\{[^}]+\}/gi) ?? []))];
-  const evidenceId = (index: number, record: number) => `EV-${101 + (index * 3 + record) * 7}`;
+  let recordOffset = 0;
+  const offsets = chain.checkpoints.map(checkpoint => {
+    const offset = recordOffset;
+    recordOffset += checkpoint.records.length;
+    return offset;
+  });
+  const evidenceId = (index: number, record: number) => `EV-${101 + (offsets[index] + record) * 7}`;
   const entries = chain.checkpoints.flatMap((checkpoint, index) => checkpoint.records.map((line, recordIndex) => ({
     evidenceId: evidenceId(index, recordIndex),
-    timestamp: `2026-10-03T08:${String(index * 3 + recordIndex).padStart(2, '0')}:00Z`,
+    timestamp: new Date(Date.UTC(2026, 9, 3, 8, offsets[index] + recordIndex)).toISOString(),
     eventType: 'case_record',
     line: `[${evidenceId(index, recordIndex)}] phase=${checkpoint.id} ${line}`,
   })).sort((left, right) => {
@@ -270,8 +260,8 @@ export function upgradeDefensiveChain(lab: SiemLabScenario): SiemLabScenario {
     id: checkpoint.id, title: `${String(index + 1).padStart(2, '0')} · ${checkpoint.title}`,
     tool: checkpoint.tool, briefing: checkpoint.briefing, question: checkpoint.question,
     choices: checkpoint.choices, correctIndex: checkpoint.correctIndex,
-    availableEvidence: [0, 1, 2].map(record => evidenceId(index, record)),
-    requiredEvidence: [0, 1].map(record => evidenceId(index, record)),
+    availableEvidence: checkpoint.records.map((_, record) => evidenceId(index, record)),
+    requiredEvidence: (checkpoint.requiredRecordIndexes ?? [0, 1]).map(record => evidenceId(index, record)),
     hint: `phase=${checkpoint.id}`, explanation: checkpoint.explanation,
     proof: legacyProofs[index] ?? `flag{${lab.id.replace(/-/g, '_')}_${checkpoint.id}}`,
   }));
