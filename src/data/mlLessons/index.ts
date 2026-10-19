@@ -3,6 +3,9 @@ import { SQL_ML_DATA_WORK_LESSONS } from './sqlDataWork';
 import { SQL_DEEP_DIVE } from './sqlDeepDive';
 import { CURRICULUM_DEEP_DIVE } from './curriculumDeepDive';
 import { PRACTICAL_EXAMPLES } from './practicalExamples';
+import { COMPREHENSIVE_FOUNDATIONS } from './comprehensiveFoundations';
+import { COMPREHENSIVE_EVALUATION } from './comprehensiveEvaluation';
+import { COMPREHENSIVE_FORECASTING } from './comprehensiveForecasting';
 import { FOUNDATIONS_LESSONS } from './foundations';
 import { DATA_HANDLING_LESSONS } from './dataHandling';
 import { REGRESSION_LESSONS } from './regression';
@@ -56,7 +59,15 @@ function attachLessonResources(lesson: MlLesson): MlLesson {
   };
 }
 
+const COMPLETE_SECTIONS = { ...COMPREHENSIVE_FOUNDATIONS, ...COMPREHENSIVE_EVALUATION, ...COMPREHENSIVE_FORECASTING };
 const EXPANDED_LESSONS = RAW_LESSONS.map((lesson) => {
+  const completeSections = COMPLETE_SECTIONS[lesson.id];
+  if (completeSections) return {
+    ...lesson,
+    sections: completeSections,
+    challengeTaskId: lesson.id === 'pandas' ? 'ml-data-join-audit'
+      : lesson.id === 'time-series' ? 'ml-ts-walk-forward' : lesson.challengeTaskId,
+  };
   const deepDive = CURRICULUM_DEEP_DIVE[lesson.id];
   const practicalExample = PRACTICAL_EXAMPLES[lesson.id];
   return {

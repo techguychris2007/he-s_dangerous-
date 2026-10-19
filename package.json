@@ -9,7 +9,8 @@
     "lint": "oxlint",
     "check:deployment": "node scripts/check-deployment.cjs",
     "test:engagements": "node scripts/check-engagements.cjs",
-    "test:platform": "node scripts/check-platform.cjs && node scripts/check-account-progress.cjs && node scripts/check-visual-labs.cjs && node scripts/check-code-results.cjs && node scripts/check-kerberos-lab.cjs && node scripts/check-guided-labs.cjs && node scripts/check-defensive-investigations.cjs && node scripts/check-netcat-lab.cjs && node scripts/check-device-access.cjs",
+    "test:platform": "node scripts/check-platform.cjs && node scripts/check-account-progress.cjs && node scripts/check-visual-labs.cjs && node scripts/check-code-results.cjs && node scripts/check-kerberos-lab.cjs && node scripts/check-guided-labs.cjs && node scripts/check-defensive-investigations.cjs && node scripts/check-ml-content.cjs --structure-only && node scripts/check-netcat-lab.cjs && node scripts/check-device-access.cjs",
+    "test:ml-content": "node scripts/check-ml-content.cjs",
     "test:documents": "node scripts/check-documents.cjs",
     "audit:labs": "node scripts/audit-lab-depth.cjs",
     "preview": "vite preview"

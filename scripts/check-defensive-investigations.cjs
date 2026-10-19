@@ -4,7 +4,7 @@ const { SIEM_LABS } = require('../src/labs/siemScenarios.ts');
 const { matchesQuery } = require('../src/labs/siemTypes.ts');
 const { assessInvestigationStage } = require('../src/labs/investigation.ts');
 const cases = SIEM_LABS.filter(lab => lab.investigation);
-assert.equal(cases.length, 10);
+assert.equal(cases.length, 12);
 assert.equal(new Set(SIEM_LABS.map(lab => lab.id)).size, SIEM_LABS.length, 'No duplicate routes when upgrading existing labs');
 const legacyProofs = {
   'siem-sentinel-impossible-travel': ['flag{sentinel_impossible_travel_ghana_to_kyiv_18_minutes}'],
@@ -14,6 +14,8 @@ const legacyProofs = {
   'siem-suricata-notpetya-lateral-spread': ['flag{notpetya_medoc_supply_chain_entry_confirmed}', 'flag{notpetya_mbr_wipe_confirms_disguised_wiper_not_ransomware}'],
   'siem-qradar-insider-data-theft': ['flag{qradar_insider_theft_confirmed_pre_resignation_bulk_download}'],
   'siem-qradar-log4shell-exploitation': ['flag{log4shell_exploitation_confirmed_via_jndi_to_outbound_ldap_correlation}'],
+  'siem-suricata-cobalt-strike-beacon': ['flag{cobalt_strike_beacon_confirmed_via_interval_analysis}'],
+  'siem-sentinel-colonial-pipeline-vpn-no-mfa': ['flag{colonial_pipeline_vpn_account_no_mfa_confirmed}', 'flag{colonial_pipeline_reused_breached_password_confirmed}'],
 };
 const upgradedIds = Object.keys(legacyProofs);
 const expandedIds = upgradedIds.slice(3);
@@ -59,7 +61,7 @@ for (const lab of cases) {
   }
   assert.equal(completed.length, lab.totalFlags);
 }
-assert.equal(checkpoints, 71);
+assert.equal(checkpoints, 87);
 const storage = new Map();
 global.localStorage = { getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value) };
 const { progressActions } = require('../src/state/progressStore.ts');

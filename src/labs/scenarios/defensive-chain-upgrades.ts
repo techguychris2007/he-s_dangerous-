@@ -2,10 +2,12 @@ import type { SiemLabScenario } from '../siemTypes';
 import type { InvestigationStage } from '../investigation';
 import type { DefensiveChain } from './defensiveChainTypes';
 import { ADDITIONAL_DEFENSIVE_CHAINS } from './defensive-chain-expansion';
+import { REMOTE_ACCESS_CHAINS } from './defensive-remote-access-chains';
 const reconstruction = 'Original DarkWorld training reconstruction, not victim telemetry. Hosts, people, dates, addresses, intelligence results and response receipts are fictional. Public reports establish the attack patterns only. OSINT stages use frozen passive snapshots inside the existing consoles: do not visit suspicious sites, submit internal artifacts to public services or contact anyone. Response stages assess simulated action receipts; they do not operate a real tenant or endpoint. Prior proofs remain credited, while new checkpoints require additional work.';
 
 const chains: Record<string, DefensiveChain> = {
   ...ADDITIONAL_DEFENSIVE_CHAINS,
+  ...REMOTE_ACCESS_CHAINS,
   'siem-sentinel-impossible-travel': {
     title: 'Identity Casefile · Impossible Travel to Phishing and Session Response',
     briefing: 'You are the on-duty analyst for Meridian. An impossible-travel alert interrupts a routine shift. Determine whether it is a VPN artifact or unauthorized access, trace a phishing link using passive OSINT, scope mailbox activity and verify the response. Eight linked checkpoints advance from Tier 1 triage to incident response.',
