@@ -94,6 +94,9 @@ import { networkCapstoneLabs } from '../labs/scenarios/capstone-network-pack';
 import { webCapstoneLabs } from '../labs/scenarios/capstone-web-pack';
 import { guidedPentestLabs } from '../labs/scenarios/guided-pentest-pack';
 import { guidedPentestLabs2 } from '../labs/scenarios/guided-pentest-pack-2';
+import { guidedPentestLabs3 } from '../labs/scenarios/guided-pentest-pack-3';
+import { guidedPentestLabs4 } from '../labs/scenarios/guided-pentest-pack-4';
+import { guidedPentestLabs5 } from '../labs/scenarios/guided-pentest-pack-5';
 import { adCapstoneLabs } from '../labs/scenarios/capstone-ad-pack';
 import { bugBountyCapstoneLabs } from '../labs/scenarios/capstone-bugbounty-pack';
 import { cloudCapstoneLabs } from '../labs/scenarios/capstone-cloud-pack';
@@ -216,6 +219,9 @@ export const LABS: LabEntry[] = [
   ...toEntries(webCapstoneLabs),
   ...toEntries(guidedPentestLabs),
   ...toEntries(guidedPentestLabs2),
+  ...toEntries(guidedPentestLabs3),
+  ...toEntries(guidedPentestLabs4),
+  ...toEntries(guidedPentestLabs5),
   ...toEntries(adCapstoneLabs),
   ...toEntries(bugBountyCapstoneLabs),
   ...toEntries(cloudCapstoneLabs),

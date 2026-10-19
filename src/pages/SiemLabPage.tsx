@@ -137,6 +137,14 @@ export default function SiemLabPage() {
 
   const narrative = siemScenario?.narrative;
 
+  if (siemScenario?.investigation) return (
+    <div className="investigation-casefile">
+      <header className="investigation-casefile-header"><div><Link to="/soc-portal">← Back to SOC Portal</Link><h1>{scenario.title}</h1></div><button type="button" onClick={() => setSharing(true)}>{done ? 'Evidence notebook & certificate' : 'Evidence notebook'}</button></header>
+      <InvestigationWorkbench key={siemScenario.id} scenario={siemScenario} completed={progress.labFlags[siemScenario.id] ?? []} onComplete={onFlagCaptured} onTranscriptChange={transcript => { transcriptRef.current = transcript; }} />
+      {sharing && <ShareWriteupModal entry={{ slug: scenario.id, scenario: { id: scenario.id, title: scenario.title, category: 'SOC', difficulty: scenario.difficulty, totalFlags: scenario.totalFlags, briefing: scenario.briefing, objectives: scenario.objectives } }} onClose={() => setSharing(false)} />}
+    </div>
+  );
+
   return (
     <div className="h-full min-h-0 flex flex-col overflow-hidden lg:flex-row">
       <aside className="lg:w-[26rem] min-h-0 max-h-[42%] lg:max-h-none shrink-0 overscroll-contain border-b lg:border-b-0 lg:border-r border-[var(--color-border)] bg-[var(--color-surface)] overflow-y-auto">
@@ -241,7 +249,7 @@ export default function SiemLabPage() {
           <span className={`rounded-full px-3 py-1 text-xs font-semibold ${done ? 'bg-[var(--color-success)]/10 text-[var(--color-success)]' : 'bg-[var(--color-accent)]/10 text-[var(--color-accent-dim)]'}`}>{done ? siemScenario?.investigation ? 'Training complete' : 'Case closed' : 'Case active'}</span>
         </div>
         <div className="min-h-0 flex-1 overflow-hidden">
-        {siemScenario?.investigation ? <InvestigationWorkbench key={siemScenario.id} scenario={siemScenario} completed={progress.labFlags[siemScenario.id] ?? []} onComplete={onFlagCaptured} onTranscriptChange={transcript => { transcriptRef.current = transcript; }} /> : osintScenario ? (
+        {osintScenario ? (
           <OsintTerminal
             key={osintScenario.id}
             scenario={osintScenario}

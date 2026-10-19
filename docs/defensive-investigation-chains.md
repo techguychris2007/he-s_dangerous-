@@ -14,6 +14,14 @@ The records are explicitly fictional reconstructions. They are informed by cited
 
 The exercise may finish while accurately retaining unresolved privacy or fleet-hunt tasks. The interface labels this **training complete**, not proof that every real-world follow-up is closed.
 
+## Focused workspace
+
+The casefile opens a dedicated focus workspace, with an optional browser Full screen action. Each checkpoint is presented as Investigate → Select evidence → Decide → Review, followed by the next checkpoint. The query console stays mounted when moving between these steps, so returning to search retains the current query and results. Only verified checkpoints persist across page reloads; leaving focus mode does not submit an unfinished decision.
+
+The fixed footer keeps primary navigation visible. A compact stage selector replaces the horizontal stage strip and keeps later checkpoints locked. The console is embedded directly, removing duplicate workspace headers, statistics and nested full-screen controls. Sentinel's compact mode removes decorative resource navigation and table tabs, giving results more room. Long result sets and source notes can scroll inside their own content area rather than moving the whole workflow.
+
+Focus is contained within the workspace; the background is inert. Escape first exits native full screen if active; otherwise it returns from focus mode. Leaving restores focus to the launch button. Full-screen API failure retains window-sized focus mode with a visible notice. Completed checkpoints can be reviewed without awarding duplicate proof.
+
 Existing route IDs and earned proof identifiers are retained. Previously earned proofs count toward the expanded chain; the additional checkpoints require new work. Previously completed short labs may consequently appear in progress under the expanded requirements. Account-scoped proof persistence supports continuing later and prevents one account from inheriting another's progress.
 
 Validation: `node scripts/check-defensive-investigations.cjs` checks all six chains (39 checkpoints), correct and incorrect evidence paths, original proofs, route uniqueness, account isolation, resuming, completion dates and duplicate-proof handling. The check is included in `npm run test:platform`. Netcat completion and device-access checks are also part of that suite.
