@@ -3,7 +3,7 @@ import type { SiemEntry, SiemTool } from './siemTypes';
 export interface InvestigationStage {
   id: string;
   title: string;
-  tool: Extract<SiemTool, 'splunk' | 'sentinel' | 'elastic'>;
+  tool: Extract<SiemTool, 'splunk' | 'sentinel' | 'elastic' | 'shodan' | 'maltego' | 'theharvester'>;
   briefing: string;
   question: string;
   choices: string[];

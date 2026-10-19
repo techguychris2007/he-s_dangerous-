@@ -1,8 +1,9 @@
 import type { SiemLabScenario } from './siemTypes';
 import { CLOUTHAUS_BREACH } from './scenarios/siem-narrative-clouthaus';
 import { DEFENSIVE_INVESTIGATIONS } from './scenarios/defensive-investigations';
+import { upgradeDefensiveChain } from './scenarios/defensive-chain-upgrades';
 
-export const SIEM_LABS: SiemLabScenario[] = [
+const BASE_SIEM_LABS: SiemLabScenario[] = [
   ...DEFENSIVE_INVESTIGATIONS,
   // ── Narrative / Gamified Investigation Labs (Story-first) ────────────────────
   CLOUTHAUS_BREACH,
@@ -1368,3 +1369,5 @@ export const SIEM_LABS: SiemLabScenario[] = [
     ],
   },
 ];
+
+export const SIEM_LABS: SiemLabScenario[] = BASE_SIEM_LABS.map(upgradeDefensiveChain);

@@ -21,6 +21,8 @@ export default function InvestigationWorkbench({ scenario, completed, onComplete
   const [hintShown, setHintShown] = useState(false);
   const done = completed.includes(stage.proof);
   const completedCount = investigation.stages.filter(item => completed.includes(item.proof)).length;
+  const score = Number((100 * completedCount / investigation.stages.length).toFixed(2));
+  const checkpointPoints = 100 / investigation.stages.length;
   const stageScenario: SiemLabScenario = { ...scenario, id: `${scenario.id}-${stage.id}`, tool: stage.tool, datasetLabel: `${stage.title} · reconstructed evidence`, entries: scenario.entries.filter(entry => stage.availableEvidence.includes(entry.evidenceId ?? '')), investigation: undefined };
 
   function changeStage(next: number) {
@@ -36,7 +38,7 @@ export default function InvestigationWorkbench({ scenario, completed, onComplete
   }
   return <div className="investigation-workbench">
     <header className="investigation-intro">
-      <div className="investigation-score"><span>Incident investigation</span><strong>{completedCount * 20} / 100 points</strong></div>
+      <div className="investigation-score"><span>Incident investigation · {completedCount}/{investigation.stages.length} checkpoints</span><strong>{score} / 100 points</strong></div>
       <p>{investigation.context}</p>
       <details><summary>Incident sources &amp; training-data provenance</summary><p>{investigation.reconstruction}</p><ul>{investigation.sources.map(source => <li key={source.url}><a href={source.url} target="_blank" rel="noreferrer">{source.title} ↗</a></li>)}</ul></details>
     </header>
@@ -55,9 +57,9 @@ export default function InvestigationWorkbench({ scenario, completed, onComplete
         <fieldset disabled={done}><legend>2. {stage.question}</legend>{stage.choices.map((answer, i) => <label className="investigation-answer" key={answer}><input type="radio" name={`decision-${stage.id}`} checked={choice === i} onChange={() => setChoice(i)} /><span>{answer}</span></label>)}</fieldset>
         <div className="investigation-actions">{!done && <button type="button" className="investigation-submit" onClick={submit}>Submit evidence &amp; decision</button>}<button type="button" onClick={() => setHintShown(current => !current)}>{hintShown ? 'Hide query hint' : 'Show query hint'}</button></div>
         {hintShown && <p className="investigation-hint">Try <code>{stage.hint}</code>. Read the returned records before selecting evidence.</p>}
-        {(done || feedback) && <div className={`investigation-feedback ${done ? 'is-complete' : ''}`} role="status"><strong>{done ? 'Checkpoint verified · 20 points' : 'Review your submission'}</strong><p>{done ? stage.explanation : feedback}</p></div>}
+        {(done || feedback) && <div className={`investigation-feedback ${done ? 'is-complete' : ''}`} role="status"><strong>{done ? `Checkpoint verified · ${Number(checkpointPoints.toFixed(2))} points` : 'Review your submission'}</strong><p>{done ? stage.explanation : feedback}</p></div>}
         {done && index < investigation.stages.length - 1 && <button type="button" className="investigation-submit" onClick={() => changeStage(index + 1)}>Continue to {investigation.stages[index + 1].title.split(' · ')[1]} →</button>}
-        {completedCount === investigation.stages.length && <p className="investigation-finished" role="status">Investigation complete. All five evidence checkpoints are verified and saved with your lab progress.</p>}
+        {completedCount === investigation.stages.length && <p className="investigation-finished" role="status">Investigation complete. All {investigation.stages.length} evidence checkpoints are verified and saved with your lab progress.</p>}
       </div>
     </section>
   </div>;

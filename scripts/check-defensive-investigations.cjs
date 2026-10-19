@@ -4,13 +4,30 @@ const { SIEM_LABS } = require('../src/labs/siemScenarios.ts');
 const { matchesQuery } = require('../src/labs/siemTypes.ts');
 const { assessInvestigationStage } = require('../src/labs/investigation.ts');
 const cases = SIEM_LABS.filter(lab => lab.investigation);
-assert.equal(cases.length, 3);
+assert.equal(cases.length, 6);
+assert.equal(new Set(SIEM_LABS.map(lab => lab.id)).size, SIEM_LABS.length, 'No duplicate routes when upgrading existing labs');
+const legacyProofs = {
+  'siem-sentinel-impossible-travel': ['flag{sentinel_impossible_travel_ghana_to_kyiv_18_minutes}'],
+  'siem-qradar-capital-one-ssrf-metadata-2019': ['flag{capital_one_waf_ssrf_metadata_confirmed}', 'flag{capital_one_tor_exit_node_s3_exfiltration_confirmed}'],
+  'siem-sentinel-moveit-cl0p-2023': ['flag{moveit_2023_cve_2023_34362_sqli_exploitation_confirmed}', 'flag{moveit_2023_data_theft_no_encryption_extortion_confirmed}'],
+};
+const upgradedIds = ['siem-sentinel-impossible-travel', 'siem-qradar-capital-one-ssrf-metadata-2019', 'siem-sentinel-moveit-cl0p-2023'];
+for (const id of upgradedIds) {
+  const lab = cases.find(item => item.id === id);
+  assert.ok(lab, id + ': existing route must now expose its investigation');
+  assert.equal(lab.investigation.stages.length, 8);
+  assert.ok(lab.investigation.stages.some(stage => ['shodan', 'maltego', 'theharvester'].includes(stage.tool)), 'Chain must include a passive OSINT pivot');
+  assert.ok(lab.investigation.stages.some(stage => stage.id === 'contain'));
+  assert.equal(lab.investigation.stages.at(-1).id, 'recover');
+  assert.deepEqual(lab.investigation.stages.slice(0, legacyProofs[id].length).map(stage => stage.proof), legacyProofs[id], 'Keep credit for earlier earned proofs');
+}
 let checkpoints = 0;
 for (const lab of cases) {
   const data = lab.investigation;
   const completed = [];
   assert.equal(data.stages.length, lab.totalFlags);
   assert.equal(new Set(lab.entries.map(entry => entry.evidenceId)).size, lab.entries.length);
+  assert.equal(new Set(data.stages.map(stage => stage.proof)).size, data.stages.length);
   assert.ok(lab.entries.every(entry => !/flag\{/i.test(entry.line)), 'Searchable logs must not contain completion proofs');
   for (let index = 0; index < data.stages.length; index++) {
     const stage = data.stages[index];
@@ -30,6 +47,26 @@ for (const lab of cases) {
     checkpoints++;
   }
   assert.equal(completed.length, lab.totalFlags);
+}
+const storage = new Map();
+global.localStorage = { getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value) };
+const { progressActions } = require('../src/state/progressStore.ts');
+const snapshot = () => JSON.parse(storage.get('hackerhub.progress.v1'));
+for (const id of upgradedIds) {
+  const lab = cases.find(item => item.id === id);
+  const proofs = lab.investigation.stages.map(stage => stage.proof);
+  progressActions.syncIdentity(id, 'Case investigator');
+  for (const proof of proofs.slice(0, 3)) progressActions.captureFlag(id, proof, lab.totalFlags);
+  assert.equal(snapshot().labCompletedAt[id], undefined, 'Three checkpoints cannot complete an eight-stage case');
+  progressActions.syncIdentity('other-account', 'Other learner');
+  assert.equal(snapshot().labFlags[id], undefined, 'Case progress must remain private to its account');
+  progressActions.syncIdentity(id, 'Case investigator');
+  assert.deepEqual(snapshot().labFlags[id], proofs.slice(0, 3), 'Resume preserves exactly the completed checkpoints');
+  for (const proof of proofs.slice(3)) progressActions.captureFlag(id, proof, lab.totalFlags);
+  assert.equal(snapshot().labFlags[id].length, 8);
+  assert.ok(snapshot().labCompletedAt[id], 'Only the final checkpoint records completion');
+  progressActions.captureFlag(id, proofs.at(-1), lab.totalFlags);
+  assert.equal(snapshot().labFlags[id].length, 8, 'Replaying a checkpoint cannot inflate the score');
 }
 const record = { eventType: 'SigninLogs', line: 'host=WS-14 user=maya EventID=4624 msg="Failed password" port=443 src=192.0.2.1' };
 assert.equal(matchesQuery(record, 'host=WS-99'), false);

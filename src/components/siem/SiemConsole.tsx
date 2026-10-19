@@ -339,13 +339,14 @@ function ToolConsole({
     return <TcpdumpConsole scenario={scenario} onFlagCaptured={onFlagCaptured} onTranscriptChange={onTranscriptChange} />;
   }
 
-  return <GenericConsole scenario={scenario} onFlagCaptured={onFlagCaptured} onTranscriptChange={onTranscriptChange} />;
+  return <GenericConsole scenario={scenario} onFlagCaptured={onFlagCaptured} onTranscriptChange={onTranscriptChange} onResults={onResults} />;
 }
 
-function GenericConsole({ scenario, onFlagCaptured, onTranscriptChange }: {
+function GenericConsole({ scenario, onFlagCaptured, onTranscriptChange, onResults }: {
   scenario: SiemLabScenario;
   onFlagCaptured: (flag: string) => void;
   onTranscriptChange?: (transcript: string) => void;
+  onResults?: (entries: SiemLabScenario['entries']) => void;
 }) {
   const b = BRANDING[scenario.tool];
   const [query, setQuery] = useState('');
@@ -362,6 +363,7 @@ function GenericConsole({ scenario, onFlagCaptured, onTranscriptChange }: {
       setRan(true);
     setAppliedQuery(q);
       const visible = scenario.entries.filter((e) => matchesQuery(e, q));
+      onResults?.(visible);
       visible.forEach((e) => {
         const flag = extractFlag(e.line);
         if (flag) onFlagCaptured(flag);

@@ -185,7 +185,7 @@ export default function SiemLabPage() {
             long objectives list — same fix as the offensive-lab LabPage. */}
         {captured >= scenario.totalFlags && (
           <div className="rounded-xl border border-[var(--color-success)]/30 bg-[var(--color-success)]/5 p-4 mb-6 flex items-center gap-2 text-sm font-semibold text-[var(--color-success)]">
-            <IconCheck className="w-4 h-4" /> {narrative ? 'Case closed — investigation complete!' : 'Lab complete — all flags captured!'}
+            <IconCheck className="w-4 h-4" /> {siemScenario?.investigation ? 'Training complete — all evidence checkpoints verified.' : narrative ? 'Case closed — investigation complete!' : 'Lab complete — all flags captured!'}
           </div>
         )}
 
@@ -238,7 +238,7 @@ export default function SiemLabPage() {
             <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--color-accent-dim)]">{isOsint ? 'OSINT workspace' : 'SIEM investigation'}</p>
             <p className="truncate text-xs text-[var(--color-text-dim)]">{TOOL_LABEL[scenario.tool]} · {scenario.totalFlags} proof points</p>
           </div>
-          <span className={`rounded-full px-3 py-1 text-xs font-semibold ${done ? 'bg-[var(--color-success)]/10 text-[var(--color-success)]' : 'bg-[var(--color-accent)]/10 text-[var(--color-accent-dim)]'}`}>{done ? 'Case closed' : 'Case active'}</span>
+          <span className={`rounded-full px-3 py-1 text-xs font-semibold ${done ? 'bg-[var(--color-success)]/10 text-[var(--color-success)]' : 'bg-[var(--color-accent)]/10 text-[var(--color-accent-dim)]'}`}>{done ? siemScenario?.investigation ? 'Training complete' : 'Case closed' : 'Case active'}</span>
         </div>
         <div className="min-h-0 flex-1 overflow-hidden">
         {siemScenario?.investigation ? <InvestigationWorkbench key={siemScenario.id} scenario={siemScenario} completed={progress.labFlags[siemScenario.id] ?? []} onComplete={onFlagCaptured} onTranscriptChange={transcript => { transcriptRef.current = transcript; }} /> : osintScenario ? (
