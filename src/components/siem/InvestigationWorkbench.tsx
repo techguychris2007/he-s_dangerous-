@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { SiemLabScenario } from '../../labs/siemTypes';
 import { assessInvestigationStage } from '../../labs/investigation';
@@ -38,7 +38,7 @@ export default function InvestigationWorkbench({ scenario, completed, onComplete
   const stageScenario: SiemLabScenario = { ...scenario, id: `${scenario.id}-${stage.id}`, tool: stage.tool, datasetLabel: 'Offline case evidence', objectives: [scenario.objectives[index]], entries: scenario.entries.filter(entry => stage.availableEvidence.includes(entry.evidenceId ?? '')), investigation: undefined };
   const inspected = stageScenario.entries.filter(entry => observed.includes(entry.evidenceId ?? ''));
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!focused) return;
     const root = document.getElementById('root');
     const wasInert = root?.inert ?? false;
@@ -68,7 +68,7 @@ export default function InvestigationWorkbench({ scenario, completed, onComplete
       opener?.focus();
     };
   }, [focused]);
-  useEffect(() => { if (focused) heading.current?.focus(); }, [focused, index, panel]);
+  useLayoutEffect(() => { if (focused) heading.current?.focus(); }, [focused, index, panel]);
   useEffect(() => {
     const update = () => setFullscreen(document.fullscreenElement === workspace.current && workspace.current !== null);
     document.addEventListener('fullscreenchange', update);
