@@ -1037,14 +1037,16 @@ export class TerminalEngine {
   }
 
   /** nc/netcat — raw TCP connect + banner grab against any modeled service. */
-  private netcat(args: string[]): OutLine[] {
+  private netcat(args: string[], onFlag: (flag: string) => void): OutLine[] {
     const ip = args.find((a) => /^\d+\.\d+\.\d+\.\d+$/.test(a));
     const port = Number(args.find((a) => /^\d+$/.test(a) && a !== ip));
     if (!ip || !port) return [{ kind: 'error', text: 'usage: nc <ip> <port>' }];
     const host = this.findHostByIp(ip);
     const svc = host?.services.find((s) => s.port === port);
     if (!host || !svc) return [{ kind: 'error', text: `nc: connect to ${ip} port ${port} (tcp) failed: Connection refused` }];
-    return [{ kind: 'output', text: svc.banner ?? `${svc.name} ${svc.version}` }];
+    const banner = svc.banner ?? `${svc.name} ${svc.version}`;
+    for (const flag of banner.match(/flag\{[^}]+\}/gi) ?? []) onFlag(flag);
+    return [{ kind: 'output', text: banner }];
   }
 
   /** airmon-ng — puts a wireless interface into (or out of) monitor mode. Modeled as a pure confirmation
@@ -2194,7 +2196,7 @@ Use the lab objectives and graph to understand which identity relationship allow
         return this.fastScan(cmd, args);
       case 'nc':
       case 'netcat':
-        return this.netcat(args);
+        return this.netcat(args, onFlag);
       case 'sudo':
         return this.sudo(args);
       case 'su':

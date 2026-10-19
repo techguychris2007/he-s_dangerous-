@@ -2,313 +2,55 @@ import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../state/authStore';
 import { MODULES } from '../data/curriculum';
 import Logo from '../components/layout/Logo';
-import AgencyBackdrop from '../components/layout/AgencyBackdrop';
-import {
-  IconTerminal,
-  IconShieldCheck,
-  IconChart,
-  IconCertificate,
-  IconFlask,
-  IconRadar,
-  IconUser,
-  IconFlag,
-} from '../components/layout/icons';
+import { IconTerminal, IconShieldCheck, IconRadar, IconArrowRight } from '../components/layout/icons';
+import './entry-pages.css';
 
-// Hardcoded fallback counts to keep main bundle small (~0KB lab import)
-const FALLBACK_TOTAL_LABS = 669;
-const FALLBACK_TOTAL_FLAGS = 759;
-
-const STEPS = [
-  { n: '01', title: 'Create your account', body: 'Free, in under a minute. Your progress saves on this device and syncs to your account when you are online.' },
-  { n: '02', title: 'Pick a module', body: 'Start from Linux and networking fundamentals, or jump straight into web hacking, red teaming, or SOC work.' },
-  { n: '03', title: 'Put it into practice', body: 'Each topic leads into a guided lab where you can apply the skill in a controlled simulation.' },
-];
-
-const FEATURES = [
-  {
-    Icon: IconTerminal,
-    title: 'A browser-based training terminal',
-    body: 'Practice Linux workflows in a browser-based shell with simulated files, services and supported training commands.',
-  },
-  {
-    Icon: IconRadar,
-    title: 'SOC & SIEM simulations',
-    body: 'Investigate real, publicly documented breaches inside simulated Splunk, Microsoft Sentinel, IBM QRadar, Elastic, Suricata, Chronicle, and tcpdump consoles.',
-  },
-  {
-    Icon: IconShieldCheck,
-    title: 'Structured curriculum',
-    body: 'Follow a structured path from networking and Linux through web, cloud, identity, malware analysis and defensive operations.',
-  },
-  {
-    Icon: IconChart,
-    title: 'Progress that sticks',
-    body: 'Lessons and practice progress save on this device. When you reconnect, your account can sync progress across devices.',
-  },
-  {
-    Icon: IconCertificate,
-    title: 'Shareable writeups & certificates',
-    body: 'Every solved lab can generate a professional PDF writeup or certificate you can actually put in a portfolio.',
-  },
-  {
-    Icon: IconFlask,
-    title: 'Learn by breaking things',
-    body: 'Guided labs reinforce lesson concepts in simulated targets without requiring access to external systems.',
-  },
+const PATHS = [
+  { number: '01', title: 'Build your foundation', label: 'Pre-security', body: 'Get comfortable with systems, networks, the command line and the tools you’ll use in the labs.', Icon: IconTerminal },
+  { number: '02', title: 'Understand the attack', label: 'Offensive security', body: 'Study web, network, cloud and identity security. Apply each concept to a controlled training target.', Icon: IconShieldCheck },
+  { number: '03', title: 'Investigate the evidence', label: 'Defensive security', body: 'Read logs, explore SIEM queries and connect evidence across simulated incident investigations.', Icon: IconRadar },
 ];
 
 export default function IntroPage() {
   const auth = useAuth();
-
   if (!auth.loading && auth.user) return <Navigate to="/" replace />;
-
-  const totalLessons = MODULES.reduce((n, m) => n + m.lessons.length, 0);
-  const totalLabs = FALLBACK_TOTAL_LABS;
-  const totalFlags = FALLBACK_TOTAL_FLAGS;
-
+  const showPaths = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    document.getElementById('learning-paths')?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
+  };
+  const lessons = MODULES.reduce((total, module) => total + module.lessons.length, 0);
   return (
-    <div className="min-h-screen w-full bg-[#060d16]">
-      {/* ---------- hero ---------- */}
-      <div className="relative overflow-hidden min-h-screen flex flex-col">
-        <AgencyBackdrop variant="subtle" />
-
-        <div className="relative max-w-5xl mx-auto px-6 sm:px-8 pt-8 pb-20 flex-1 flex flex-col justify-center w-full">
-          <div className="flex items-center justify-between mb-16 sm:mb-24 reveal" style={{ '--reveal-delay': '0s' } as React.CSSProperties}>
-            <div className="flex items-center gap-2.5">
-              <Logo className="w-8 h-8" />
-              <span
-                className="font-serif text-xl tracking-wide"
-                style={{
-                  backgroundImage: 'linear-gradient(180deg, #f3e3bd 0%, #c9a15f 60%, #8f7136 100%)',
-                  WebkitBackgroundClip: 'text',
-                  backgroundClip: 'text',
-                  color: 'transparent',
-                }}
-              >
-                DARKWORLD
-              </span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Link
-                to="/login"
-                className="px-4 py-2 rounded-lg text-sm font-semibold text-[#c9e0ff] hover:text-white transition-colors"
-              >
-                Sign in
-              </Link>
-              <Link
-                to="/login?mode=signup"
-                className="px-4 py-2 rounded-lg font-semibold text-sm transition hover:brightness-110"
-                style={{
-                  background: 'linear-gradient(180deg, #e9c98a 0%, #c9a15f 45%, #a17f42 100%)',
-                  color: '#241a08',
-                  border: '1px solid #8f7136',
-                }}
-              >
-                Create free account
-              </Link>
-            </div>
-          </div>
-
-          <div className="text-center max-w-3xl mx-auto reveal" style={{ '--reveal-delay': '0.1s' } as React.CSSProperties}>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-2xs font-mono tracking-[0.2em] uppercase text-[#c9a15f] border border-[#c9a15f4d] mb-6">
-              Offensive &amp; defensive security, hands-on
-            </div>
-            <h1 className="text-4xl sm:text-6xl font-extrabold text-white leading-tight mb-5">
-              Stop reading about hacking.
-              <br />
-              <span
-                style={{
-                  backgroundImage: 'linear-gradient(90deg, #6fb2ff 0%, #9f7bea 100%)',
-                  WebkitBackgroundClip: 'text',
-                  backgroundClip: 'text',
-                  color: 'transparent',
-                }}
-              >
-                Start doing it.
-              </span>
-            </h1>
-            <p className="text-[#a9c0da] text-lg leading-relaxed mb-9">
-              A structured offensive and defensive security curriculum with detailed lessons and browser-based
-              practice. Work through simulated terminal challenges and SIEM investigations based on publicly
-              documented incidents.
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-3">
-              <Link
-                to="/login?mode=signup"
-                className="px-6 py-3 rounded-lg font-serif tracking-[0.15em] uppercase text-sm transition hover:brightness-110"
-                style={{
-                  background: 'linear-gradient(180deg, #e9c98a 0%, #c9a15f 45%, #a17f42 100%)',
-                  color: '#241a08',
-                  boxShadow: '0 1px 0 rgba(255,255,255,0.4) inset, 0 4px 14px -4px rgba(201,161,95,0.6)',
-                  border: '1px solid #8f7136',
-                }}
-              >
-                Get started free &rarr;
-              </Link>
-              <Link
-                to="/login"
-                className="px-6 py-3 rounded-lg font-semibold text-sm text-[#c9e0ff] border border-[#3f8cff4d] hover:bg-[#3f8cff14] transition"
-              >
-                I already have an account
-              </Link>
-            </div>
-          </div>
-
-          {/* terminal mockup */}
-          <div className="relative max-w-2xl mx-auto mt-14 reveal" style={{ '--reveal-delay': '0.22s' } as React.CSSProperties}>
-            <div
-              className="rounded-xl overflow-hidden font-mono text-code leading-relaxed"
-              style={{
-                background: 'var(--term-bg)',
-                border: '1px solid #3f8cff4d',
-                boxShadow: '0 0 60px -16px rgba(63,140,255,0.4), 0 30px 60px -24px rgba(0,0,0,0.7)',
-              }}
-            >
-              <div className="flex items-center gap-1.5 px-3.5 py-2.5 bg-[#15171c] border-b border-white/10">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#ff5f56]" />
-                <span className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]" />
-                <span className="w-2.5 h-2.5 rounded-full bg-[#27c93f]" />
-                <span className="ml-2.5 text-2xs text-[#c9a15f]">attacker@darkworld — bash</span>
-              </div>
-              <div className="px-4 py-4 text-left space-y-1.5">
-                <div><span className="text-[var(--term-input)]">$</span> <span className="text-[var(--term-output)]">sudo -l</span></div>
-                <div className="text-[var(--term-muted)]">Matching Defaults entries for www-data on target:</div>
-                <div className="text-[var(--term-muted)]">User www-data may run the following commands:</div>
-                <div className="text-[var(--term-success)]">&nbsp;&nbsp;(root) NOPASSWD: /usr/bin/openssl</div>
-                <div className="mt-2"><span className="text-[var(--term-input)]">$</span> <span className="text-[var(--term-output)]">openssl enc -in /root/flag.txt</span></div>
-                <div className="text-[var(--term-system)]">[+] privilege escalation path confirmed</div>
-                <div><span className="text-[var(--term-input)]">$</span> <span className="animate-pulse text-[var(--term-output)]">_</span></div>
-              </div>
-            </div>
-            <div
-              className="absolute -bottom-4 -right-3 sm:-right-8 flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#0c2417] shadow-lg"
-              style={{ background: 'linear-gradient(180deg, #8ff0a4 0%, #4ade80 100%)' }}
-            >
-              <IconFlag className="w-3.5 h-3.5" />
-              flag captured
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-14 mt-20 reveal" style={{ '--reveal-delay': '0.32s' } as React.CSSProperties}>
-            <Stat value={`${MODULES.length}`} label="Modules" />
-            <Stat value={`${totalLessons}+`} label="Lessons" />
-            <Stat value={`${totalLabs}+`} label="Hands-on labs" />
-            <Stat value={`${totalFlags}+`} label="Flags to capture" />
-          </div>
+    <main className="dw-entry dw-landing">
+      <header className="dw-entry-nav dw-entry-container">
+        <Link to="/welcome" className="dw-brand"><Logo className="dw-brand-mark" /><span>DARKWORLD<small>CYBERSECURITY ACADEMY</small></span></Link>
+        <nav aria-label="Academy navigation"><a href="#learning-paths" onClick={showPaths}>Learning paths</a><Link to="/login">Sign in</Link><Link to="/login?mode=signup" className="dw-button dw-button-primary">Join the academy <IconArrowRight className="h-4 w-4" /></Link></nav>
+      </header>
+      <section className="dw-entry-hero dw-entry-container" aria-labelledby="entry-title">
+        <div className="dw-entry-hero-copy">
+          <p className="dw-eyebrow">The DarkWorld learning experience</p>
+          <h1 id="entry-title">Understand security.<br /><em>Put it into practice.</em></h1>
+          <p className="dw-entry-lead">A focused space to learn cybersecurity, write code and investigate threats. Build your knowledge through detailed lessons, then test it in hands-on simulations.</p>
+          <div className="dw-entry-actions"><Link to="/login?mode=signup" className="dw-button dw-button-primary">Start learning <IconArrowRight className="h-4 w-4" /></Link><a href="#learning-paths" onClick={showPaths} className="dw-button dw-button-secondary">Explore learning paths</a></div>
+          <p className="dw-entry-caption">Free to begin · Designed for laptops and desktops</p>
         </div>
-
-        <button
-          onClick={() => { const root = document.getElementById('root'); root?.scrollTo({ top: root.clientHeight, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' }); }}
-          aria-label="Scroll down"
-          className="relative mx-auto mb-6 flex flex-col items-center gap-1 text-[#7c93ae] hover:text-[#c9e0ff] transition-colors animate-bounce"
-        >
-          <span className="text-2xs font-mono uppercase tracking-[0.2em]">Scroll</span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M12 5v14M5 12l7 7 7-7" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
-      </div>
-
-      {/* ---------- features ---------- */}
-      <div className="max-w-5xl mx-auto px-6 sm:px-8 py-16 sm:py-20">
-        <div className="text-center mb-12">
-          <div className="text-xs font-mono tracking-[0.25em] uppercase text-[#6fb2ff] mb-2">
-            Why DarkWorld
-          </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white">Everything a real SOC or pentest engagement throws at you</h2>
-        </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {FEATURES.map(({ Icon, title, body }) => (
-            <div
-              key={title}
-              className="group rounded-xl p-5 border border-white/10 bg-white/[0.03] hover:border-[#c9a15f4d] hover:bg-white/[0.05] hover:-translate-y-0.5 transition-all"
-            >
-              <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 transition-shadow group-hover:shadow-[0_0_18px_-4px_rgba(201,161,95,0.6)]"
-                style={{ background: 'linear-gradient(180deg, #1c2f45 0%, #0e1826 100%)', border: '1px solid #c9a15f4d' }}
-              >
-                <Icon className="w-5 h-5 text-[#c9a15f]" />
-              </div>
-              <div className="font-bold text-white mb-1.5">{title}</div>
-              <p className="text-sm text-[#a9c0da] leading-relaxed">{body}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ---------- how it works ---------- */}
-      <div className="border-t border-white/10 bg-white/[0.015]">
-        <div className="max-w-5xl mx-auto px-6 sm:px-8 py-16 sm:py-20">
-          <div className="text-center mb-12">
-            <div className="text-xs font-mono tracking-[0.25em] uppercase text-[#6fb2ff] mb-2">
-              How it works
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-white">From zero to first flag, fast</h2>
-          </div>
-          <div className="grid sm:grid-cols-3 gap-6 relative">
-            {STEPS.map(({ n, title, body }, i) => (
-              <div key={n} className="relative">
-                <div
-                  className="font-mono text-4xl font-extrabold mb-3"
-                  style={{
-                    backgroundImage: 'linear-gradient(180deg, #f3e3bd 0%, #c9a15f 60%, #8f7136 100%)',
-                    WebkitBackgroundClip: 'text',
-                    backgroundClip: 'text',
-                    color: 'transparent',
-                  }}
-                >
-                  {n}
-                </div>
-                <div className="font-bold text-white mb-1.5">{title}</div>
-                <p className="text-sm text-[#a9c0da] leading-relaxed">{body}</p>
-                {i < STEPS.length - 1 && (
-                  <div className="hidden sm:block absolute top-5 left-[calc(100%-0.5rem)] w-6 h-px bg-gradient-to-r from-[#c9a15f66] to-transparent" />
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* ---------- final CTA ---------- */}
-      <div className="border-t border-white/10 relative overflow-hidden">
-        <div
-          aria-hidden
-          className="absolute inset-0 pointer-events-none"
-          style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(63,140,255,0.12) 0%, transparent 60%)' }}
-        />
-        <div className="relative max-w-5xl mx-auto px-6 sm:px-8 py-16 sm:py-20 text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-2xs font-mono tracking-[0.2em] uppercase text-[#c9a15f] border border-[#c9a15f4d] mb-5">
-            <IconUser className="w-3 h-3" /> free account, no credit card
-          </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white mb-3">Create your account and start your first lab in under a minute</h2>
-          <p className="text-[#a9c0da] mb-8 max-w-xl mx-auto">
-            Your learning progress is saved on this device and syncs with your account when you are online.
-            Continue across devices after your connection returns.
-          </p>
-          <Link
-            to="/login?mode=signup"
-            className="inline-block px-7 py-3.5 rounded-lg font-serif tracking-[0.15em] uppercase text-sm transition hover:brightness-110"
-            style={{
-              background: 'linear-gradient(180deg, #e9c98a 0%, #c9a15f 45%, #a17f42 100%)',
-              color: '#241a08',
-              boxShadow: '0 1px 0 rgba(255,255,255,0.4) inset, 0 4px 14px -4px rgba(201,161,95,0.6)',
-              border: '1px solid #8f7136',
-            }}
-          >
-            Create free account &rarr;
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Stat({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="text-center">
-      <div className="text-2xl sm:text-3xl font-extrabold text-[#ffffff]">{value}</div>
-      <div className="text-2xs font-mono uppercase tracking-[0.2em] text-[#7c93ae] mt-1">{label}</div>
-    </div>
+        <aside className="dw-entry-preview" aria-label="How learning works at DarkWorld">
+          <div className="dw-preview-top"><span>DARKWORLD / LEARNING WORKSPACE</span><IconShieldCheck className="h-5 w-5" /></div>
+          <div className="dw-entry-world" aria-hidden="true" />
+          <h2>A world of skills to explore.</h2>
+          <ol>
+            <li><span>01</span><div><h3>Learn the concept</h3></div></li>
+            <li><span>02</span><div><h3>Put it into practice</h3></div></li>
+            <li><span>03</span><div><h3>Build your next skill</h3></div></li>
+          </ol>
+          <div className="dw-preview-bottom"><IconTerminal className="h-4 w-4" /><span>Lessons · Terminals · Investigations · Code</span></div>
+        </aside>
+      </section>
+      <div className="dw-entry-facts dw-entry-container"><div><strong>{MODULES.length}</strong><span>Learning modules</span></div><div><strong>{lessons}</strong><span>Security lessons</span></div><p>Start with the fundamentals.<br />Progress at your own pace.</p></div>
+      <section id="learning-paths" className="dw-entry-paths dw-entry-container" aria-labelledby="paths-title">
+        <div className="dw-entry-section-heading"><div><p className="dw-eyebrow">Choose your direction</p><h2 id="paths-title">Learn with a path in mind.</h2></div><p>New to cybersecurity? Begin with pre-security and build from there.</p></div>
+        <div className="dw-path-grid">{PATHS.map(({ number, title, label, body, Icon }) => <Link to="/login?mode=signup" className="dw-path" key={number}><div className="dw-path-top"><Icon className="h-6 w-6" /><span>{number}</span></div><p className="dw-eyebrow">{label}</p><h3>{title}</h3><p>{body}</p><span className="dw-path-link">Explore this path <IconArrowRight className="h-4 w-4" /></span></Link>)}</div>
+      </section>
+      <footer className="dw-entry-footer dw-entry-container"><span>© {new Date().getFullYear()} DarkWorld Academy</span><p>Learn deliberately. Practice responsibly.</p><Link to="/login">Enter your workspace →</Link></footer>
+    </main>
   );
 }
