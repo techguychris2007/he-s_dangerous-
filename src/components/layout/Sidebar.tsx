@@ -1,284 +1,71 @@
-import { useMemo } from 'react';
-import { NavLink, useParams, useNavigate } from 'react-router-dom';
-import { ROADMAP, findModule } from '../../data/curriculum';
-import { useLabsData } from '../../state/useLabsData';
+import type { ComponentType } from 'react';
+import { NavLink, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { findModule } from '../../data/curriculum';
 import { useProgress } from '../../state/progressStore';
 import { useAuth } from '../../state/authStore';
 import { isInstructor } from '../../lib/instructorConfig';
 import Logo from './Logo';
-import {
-  IconDashboard,
-  IconFlask,
-  IconChart,
-  IconMap,
-  IconCheck,
-  IconCalendar,
-  IconTrophy,
-  IconBook,
-  IconMegaphone,
-  IconUser,
-  IconShieldCheck,
-  IconHelp,
-  IconMail,
-  IconExternal,
-  IconCode,
-  IconCrown,
-  IconRoute,
-  IconLayers,
-} from './icons';
+import AcademySearch from './AcademySearch';
+import { LEARNING_PATHS } from './navigation';
+import { IconDashboard, IconFlask, IconChart, IconMap, IconCheck, IconCalendar, IconTrophy, IconBook, IconMegaphone, IconUser, IconShieldCheck, IconHelp, IconMail, IconCode, IconCrown, IconRoute, IconLayers } from './icons';
+import './navigation.css';
 
-const navItemClass = ({ isActive }: { isActive: boolean }) =>
-  `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors border-l-2 ${
-    isActive
-      ? 'bg-[var(--color-surface-2)] text-[var(--color-heading)] border-[var(--color-accent)]'
-      : 'text-[var(--color-text)] border-transparent hover:bg-[var(--color-surface-2)] hover:text-[var(--color-heading)]'
-  }`;
+type NavIcon = ComponentType<{ className?: string }>;
+const activityLinks: [string, string, NavIcon][] = [
+  ['/progress', 'Progress', IconChart], ['/tasks', 'My tasks', IconCheck],
+  ['/schedule', 'Schedule', IconCalendar], ['/leaderboard', 'Leaderboard', IconTrophy],
+  ['/announcements', 'Announcements', IconMegaphone],
+];
+const accountLinks: [string, string, NavIcon][] = [
+  ['/profile', 'Profile', IconUser], ['/security', 'Account security', IconShieldCheck],
+  ['/help', 'Help & FAQ', IconHelp], ['/feedback', 'Send feedback', IconMail],
+];
 
-function NavSectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="px-3 mt-4 mb-1 text-2xs font-mono font-bold uppercase tracking-widest text-[var(--color-text-dim)] first:mt-0">
-      {children}
-    </div>
-  );
-}
-
-interface SidebarProps {
-  onNavigate?: () => void;
-}
-
-export default function Sidebar({ onNavigate }: SidebarProps) {
+export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const progress = useProgress();
   const auth = useAuth();
   const { moduleSlug } = useParams();
   const currentModule = findModule(moduleSlug);
+  const location = useLocation();
   const navigate = useNavigate();
-  const labsData = useLabsData();
-  const initial = (progress.learnerName ?? '?').trim().charAt(0).toUpperCase();
-  const tasksRemaining = useMemo(() => {
-    if (!labsData) return 0;
-    let doneCount = 0;
-    for (const [labId, flags] of Object.entries(progress.labFlags)) {
-      const lab = labsData.findLab(labId);
-      if (lab && flags.length >= lab.scenario.totalFlags) {
-        doneCount++;
-      }
-    }
-    return labsData.LABS.length - doneCount;
-  }, [progress.labFlags, labsData]);
-
-  return (
-    <aside className="surface-glass w-72 shrink-0 h-full overflow-y-auto border-r border-[var(--color-border)] px-4 py-5 flex flex-col shadow-[18px_0_60px_-52px_var(--color-heading)]">
-      <NavLink to="/" onClick={onNavigate} className="group flex items-center gap-3 rounded-2xl px-2.5 py-2 mb-2 bg-gradient-to-r from-[var(--color-surface-2)] to-transparent border border-[var(--color-border)]/70 shadow-[0_18px_45px_rgba(0,0,0,0.16)]">
-        <Logo className="w-12 h-12 shrink-0 transition-transform duration-300 group-hover:scale-105" />
-        <span className="min-w-0">
-          <span className="block font-black text-[var(--color-heading)] tracking-[-0.06em] text-2xl leading-none">DarkWorld</span>
-          <span className="mt-1 block text-[9px] font-black uppercase tracking-[0.24em] text-[var(--color-accent-dim)]">Cyber Academy</span>
-        </span>
-      </NavLink>
-      <div className="px-2 mb-5 text-xs font-medium text-[var(--color-text-dim)] leading-snug">
-        Hands-on cybersecurity learning platform
-      </div>
-
-      <nav className="flex flex-col gap-1 mb-2">
-        <NavSectionLabel>Learn</NavSectionLabel>
-        <NavLink to="/" end onClick={onNavigate} className={navItemClass}>
-          <IconDashboard className="w-4 h-4" /> Dashboard
-        </NavLink>
-        <NavLink to="/labs" onClick={onNavigate} className={navItemClass}>
-          <IconFlask className="w-4 h-4" /> Labs
-        </NavLink>
-        <NavLink to="/code-portal" onClick={onNavigate} className={navItemClass}>
-          <IconCode className="w-4 h-4" /> Code Portal
-          <IconExternal className="w-3 h-3 ml-auto opacity-60" />
-        </NavLink>
-        <NavLink to="/ml-portal" onClick={onNavigate} className={navItemClass}>
-          <IconChart className="w-4 h-4" /> ML Portal
-          <IconExternal className="w-3 h-3 ml-auto opacity-60" />
-        </NavLink>
-        <NavLink to="/soc-portal" onClick={onNavigate} className={navItemClass}>
-          <IconShieldCheck className="w-4 h-4" /> SOC Portal
-          <IconExternal className="w-3 h-3 ml-auto opacity-60" />
-        </NavLink>
-        <NavLink to="/build-portal" onClick={onNavigate} className={navItemClass}>
-          <IconLayers className="w-4 h-4" /> Build Portal
-          <IconExternal className="w-3 h-3 ml-auto opacity-60" />
-        </NavLink>
-
-        <NavSectionLabel>Track</NavSectionLabel>
-        <NavLink to="/my-learning" onClick={onNavigate} className={navItemClass}>
-          <IconRoute className="w-4 h-4" /> My Learning
-        </NavLink>
-        <NavLink to="/tasks" onClick={onNavigate} className={navItemClass}>
-          <IconCheck className="w-4 h-4" /> My tasks
-          {tasksRemaining > 0 && (
-            <span className="ml-auto text-2xs font-bold bg-[var(--color-accent)] text-white rounded-full min-w-[1.25rem] h-5 flex items-center justify-center px-1">
-              {tasksRemaining}
-            </span>
-          )}
-        </NavLink>
-        <NavLink to="/progress" onClick={onNavigate} className={navItemClass}>
-          <IconChart className="w-4 h-4" /> Progress
-        </NavLink>
-        <NavLink to="/roadmap" onClick={onNavigate} className={navItemClass}>
-          <IconMap className="w-4 h-4" /> Roadmap
-        </NavLink>
-        <NavLink to="/leaderboard" onClick={onNavigate} className={navItemClass}>
-          <IconTrophy className="w-4 h-4" /> Leaderboard
-        </NavLink>
-
-        <NavSectionLabel>Resources</NavSectionLabel>
-        <NavLink to="/library" onClick={onNavigate} className={navItemClass}>
-          <IconBook className="w-4 h-4" /> Library
-          <IconExternal className="w-3 h-3 ml-auto opacity-60" />
-        </NavLink>
-        <NavLink to="/resources" onClick={onNavigate} className={navItemClass}>
-          <IconBook className="w-4 h-4" /> Resources
-        </NavLink>
-        <NavLink to="/schedule" onClick={onNavigate} className={navItemClass}>
-          <IconCalendar className="w-4 h-4" /> Schedule
-        </NavLink>
-        <NavLink to="/announcements" onClick={onNavigate} className={navItemClass}>
-          <IconMegaphone className="w-4 h-4" /> Announcements
-        </NavLink>
-
-        <NavSectionLabel>Account</NavSectionLabel>
-        <NavLink to="/profile" onClick={onNavigate} className={navItemClass}>
-          <IconUser className="w-4 h-4" /> Profile
-        </NavLink>
-        <NavLink to="/security" onClick={onNavigate} className={navItemClass}>
-          <IconShieldCheck className="w-4 h-4" /> Security
-        </NavLink>
-        <NavLink to="/help" onClick={onNavigate} className={navItemClass}>
-          <IconHelp className="w-4 h-4" /> Help &amp; FAQ
-        </NavLink>
-        <NavLink to="/feedback" onClick={onNavigate} className={navItemClass}>
-          <IconMail className="w-4 h-4" /> Feedback
-        </NavLink>
-        {isInstructor(auth.user) && (
-          <>
-            <NavSectionLabel>Instructor</NavSectionLabel>
-            <NavLink to="/instructor" onClick={onNavigate} className={navItemClass}>
-              <IconCrown className="w-4 h-4" /> Instructor Dashboard
-            </NavLink>
-          </>
-        )}
+  const name = progress.learnerName?.trim() || 'Learner';
+  const completed = currentModule?.lessons.filter(lesson => progress.isLessonComplete(lesson.id)).length ?? 0;
+  const percent = currentModule?.lessons.length ? Math.round(completed / currentModule.lessons.length * 100) : 0;
+  const activeTrack = new URLSearchParams(location.search).get('track') ?? 'presecurity';
+  function link(to: string, label: string, Icon: NavIcon) {
+    return <NavLink key={to} to={to} end={to === '/'} onClick={onNavigate} className={({ isActive }) => 'dw-nav-link' + (isActive ? ' is-active' : '')}><Icon className="dw-nav-icon"/><span>{label}</span></NavLink>;
+  }
+  return <aside className="dw-sidebar">
+    <div className="dw-sidebar-header">
+      <NavLink to="/" onClick={onNavigate} className="dw-sidebar-brand" aria-label="DarkWorld overview"><Logo className="h-11 w-11 shrink-0"/><span><strong>DarkWorld</strong><small>CYBER ACADEMY</small></span></NavLink>
+      <AcademySearch onNavigate={onNavigate}/>
+    </div>
+    <div className="dw-sidebar-scroll">
+      <nav aria-label="Academy navigation">
+        <div className="dw-nav-section dw-nav-workspace">{link('/', 'Overview', IconDashboard)}{link('/my-learning', 'My learning', IconRoute)}</div>
+        <div className="dw-nav-section"><p className="dw-nav-label">Learn</p>
+          <details className="dw-nav-disclosure" open={location.pathname === '/roadmap'}>
+            <summary><IconMap className="dw-nav-icon"/><span>Learning paths</span><span className="dw-nav-chevron" aria-hidden="true">⌄</span></summary>
+            <div className="dw-nav-sublist">{LEARNING_PATHS.map(path => <NavLink key={path.track} to={path.to} onClick={onNavigate} className={'dw-nav-path' + (location.pathname === '/roadmap' && activeTrack === path.track ? ' is-active' : '')} aria-current={location.pathname === '/roadmap' && activeTrack === path.track ? 'page' : undefined}>{path.title}</NavLink>)}</div>
+          </details>
+          {link('/ml-portal', 'Machine learning', IconChart)}
+        </div>
+        <div className="dw-nav-section"><p className="dw-nav-label">Practice</p>
+          {link('/labs', 'Lab catalog', IconFlask)}{link('/soc-portal', 'SOC investigations', IconShieldCheck)}{link('/code-portal', 'Coding practice', IconCode)}{link('/build-portal', 'Build projects', IconLayers)}
+        </div>
+        <div className="dw-nav-section"><p className="dw-nav-label">Reference</p>{link('/library', 'Library', IconBook)}{link('/resources', 'Resources', IconBook)}</div>
+        <details className="dw-nav-disclosure dw-nav-activity" open={activityLinks.some(([to]) => location.pathname === to)}><summary><IconTrophy className="dw-nav-icon"/><span>Activity & community</span><span className="dw-nav-chevron" aria-hidden="true">⌄</span></summary><div className="dw-nav-sublist">{activityLinks.map(([to, label, Icon]) => link(to, label, Icon))}</div></details>
+        {isInstructor(auth.user) && <div className="dw-nav-section"><p className="dw-nav-label">Staff</p>{link('/instructor', 'Instructor dashboard', IconCrown)}</div>}
       </nav>
-
-      <div className="border-t border-[var(--color-border)] pt-4 flex-1">
-        {currentModule ? (
-          <>
-            {(() => {
-              const completedCount = currentModule.lessons.filter((l) => progress.isLessonComplete(l.id)).length;
-              const moduleWeeks = Math.max(1, Math.ceil(currentModule.lessons.length / 3));
-              const modulePct = Math.round((completedCount / currentModule.lessons.length) * 100);
-              return (
-                <div className="px-2 mb-3">
-                  <div className="text-2xs font-mono font-bold uppercase tracking-widest text-[var(--color-text-dim)] mb-0.5">
-                    {currentModule.title}
-                  </div>
-                  <div className="text-2xs font-mono font-bold uppercase tracking-widest text-[var(--color-accent)]">
-                    {moduleWeeks} week{moduleWeeks > 1 ? 's' : ''}
-                  </div>
-                  <div className="flex items-center justify-between text-2xs text-[var(--color-text-dim)] mt-2 mb-1">
-                    <span>Your progress</span>
-                    <span className="font-mono font-bold text-[var(--color-heading)]">{modulePct}%</span>
-                  </div>
-                  <div className="h-1.5 rounded-full bg-[var(--color-surface-2)] overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-[var(--color-accent)] transition-all"
-                      style={{ width: `${modulePct}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })()}
-            <div className="flex flex-col gap-0.5">
-              {currentModule.lessons.map((lesson, i) => {
-                const complete = progress.isLessonComplete(lesson.id);
-                const day = Math.floor(i / 2) + 1;
-                return (
-                  <NavLink key={lesson.id} to={`/module/${currentModule.slug}/lesson/${lesson.slug}`} onClick={onNavigate} className={navItemClass}>
-                    <span
-                      className={`w-5 h-5 shrink-0 rounded-full text-2xs font-bold flex items-center justify-center ${
-                        complete ? 'bg-[var(--color-success)] text-white' : 'bg-[var(--color-surface-2)] text-[var(--color-text-dim)]'
-                      }`}
-                    >
-                      {complete ? <IconCheck className="w-2.5 h-2.5" /> : i + 1}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate">{lesson.title}</span>
-                      <span className="block text-2xs text-[var(--color-text-dim)] font-mono">
-                        {lesson.minutes} min &middot; Day {day}
-                      </span>
-                    </span>
-                  </NavLink>
-                );
-              })}
-            </div>
-            <button
-              onClick={() => {
-                if (window.confirm(`Reset your progress for "${currentModule.title}"? This clears completed lessons and quiz scores for this module only.`)) {
-                  progress.resetModuleProgress(currentModule.lessons.map((l) => l.id));
-                }
-              }}
-              className="mt-3 w-full text-center text-2xs font-semibold text-[var(--color-text-dim)] hover:text-[var(--color-danger)] transition-colors py-1.5"
-            >
-              Reset this module's progress
-            </button>
-          </>
-        ) : (
-          <>
-            <div className="px-2 mb-2 text-2xs font-mono font-bold uppercase tracking-widest text-[var(--color-text-dim)]">
-              Modules
-            </div>
-            <div className="flex flex-col gap-2">
-              {([['presecurity', 'Pre-security'], ['security', 'Offensive security'], ['defensive', 'Defensive security'], ['programming', 'Programming']] as const).map(([track, label]) => (
-                <details key={track} className="rounded-lg border border-[var(--color-border)]">
-                  <summary className="cursor-pointer px-3 py-2.5 text-xs font-semibold text-[var(--color-heading)]">{label}</summary>
-                  <div className="px-1 pb-2">
-                    <NavLink to={`/roadmap?track=${track}`} onClick={onNavigate} className="block px-3 py-2 text-xs font-semibold text-[var(--color-accent)]">Explore this path →</NavLink>
-                    {ROADMAP.filter(stage => stage.track === track && stage.moduleSlug).map(stage => (
-                      <NavLink key={stage.moduleSlug} to={`/module/${stage.moduleSlug}`} onClick={onNavigate} className={navItemClass}>
-                        <span className="text-xs leading-relaxed">{stage.title}</span>
-                      </NavLink>
-                    ))}
-                  </div>
-                </details>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
-
-      <div className="border-t border-[var(--color-border)] pt-3 mt-3 flex items-center gap-2.5 px-2">
-        <NavLink to="/profile" onClick={onNavigate} className="premium-card premium-card-hover flex items-center gap-2.5 min-w-0 flex-1 group rounded-2xl p-2">
-          <span className="w-8 h-8 rounded-full bg-[var(--color-accent)] text-white text-xs font-bold flex items-center justify-center shrink-0">
-            {initial}
-          </span>
-          <div className="min-w-0 flex-1">
-            <div className="text-sm font-semibold text-[var(--color-heading)] truncate flex items-center gap-1.5">
-              <span className="truncate">{progress.learnerName}</span>
-              {auth.isGuest && (
-                <span className="pill bg-[var(--color-gold)]/15 text-[var(--color-gold-dim)] shrink-0">Guest</span>
-              )}
-            </div>
-            <div className="text-2xs text-[var(--color-text-dim)] group-hover:text-[var(--color-accent)] transition-colors">
-              {auth.isGuest ? 'Save your progress →' : 'View profile'}
-            </div>
-          </div>
-        </NavLink>
-        <button
-          onClick={() => {
-            auth.signOut();
-            navigate('/welcome');
-          }}
-          title="Log out"
-          aria-label="Log out"
-          className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-danger)] shrink-0"
-        >
-          <IconExternal className="w-4 h-4" />
-        </button>
-      </div>
-    </aside>
-  );
+      {currentModule && <section className="dw-nav-module" aria-label="Current module">
+        <p className="dw-nav-label">Currently learning</p><NavLink to={'/module/' + currentModule.slug} onClick={onNavigate} className="dw-nav-module-title">{currentModule.title}</NavLink>
+        <div className="dw-nav-module-meta"><span>{completed} / {currentModule.lessons.length} lessons</span><strong>{percent}%</strong></div>
+        <progress max={100} value={percent} aria-label="Current module progress"/>
+        <details className="dw-nav-disclosure"><summary><span>Lesson outline</span><span className="dw-nav-chevron" aria-hidden="true">⌄</span></summary><ol className="dw-nav-outline">{currentModule.lessons.map((lesson, index) => <li key={lesson.id}><NavLink to={'/module/' + currentModule.slug + '/lesson/' + lesson.slug} onClick={onNavigate} className={({ isActive }) => 'dw-nav-lesson' + (isActive ? ' is-active' : '')}><span aria-label={progress.isLessonComplete(lesson.id) ? 'Completed' : undefined}>{progress.isLessonComplete(lesson.id) ? <IconCheck className="dw-nav-icon"/> : String(index + 1).padStart(2, '0')}</span><span>{lesson.title}</span></NavLink></li>)}</ol>
+          <button type="button" className="dw-nav-reset" onClick={() => { if (window.confirm('Reset your progress for "' + currentModule.title + '"? This clears completed lessons and quiz scores for this module only.')) progress.resetModuleProgress(currentModule.lessons.map(lesson => lesson.id)); }}>Reset module progress</button>
+        </details>
+      </section>}
+    </div>
+    <div className="dw-sidebar-footer"><details className="dw-account-menu"><summary><span className="dw-account-avatar">{name.charAt(0).toUpperCase()}</span><span className="dw-account-name"><strong>{name}</strong><small>{auth.isGuest ? 'Guest workspace' : 'Your account'}</small></span><span aria-hidden="true">⌃</span></summary><div className="dw-account-popover"><p>YOUR ACCOUNT</p>{accountLinks.map(([to, label, Icon]) => <NavLink key={to} to={to} className="dw-nav-link" onClick={event => { event.currentTarget.closest('details')?.removeAttribute('open'); onNavigate?.(); }}><Icon className="dw-nav-icon"/><span>{label}</span></NavLink>)}<button type="button" className="dw-nav-link dw-sign-out" onClick={async () => { await auth.signOut(); navigate('/welcome'); onNavigate?.(); }}>Sign out <span aria-hidden="true">↗</span></button></div></details></div>
+  </aside>;
 }

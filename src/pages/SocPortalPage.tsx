@@ -7,7 +7,7 @@ import { labsForCategory } from '../data/labs';
 import { useProgress } from '../state/progressStore';
 import SiemLabCard from '../components/siem/SiemLabCard';
 import LabCard from '../components/labs/LabCard';
-import Logo from '../components/layout/Logo';
+import PortalNavigation from '../components/layout/PortalNavigation';
 import { IconCheck, IconFlag, IconCalendar, IconTerminal } from '../components/layout/icons';
 
 const TOOL_ORDER = ['splunk', 'sentinel', 'qradar', 'elastic', 'suricata', 'chronicle', 'tcpdump'] as const;
@@ -55,19 +55,13 @@ export default function SocPortalPage() {
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--color-bg)' }}>
+      <PortalNavigation />
       {/* hero */}
       <div
         className="portal-masthead relative overflow-hidden border-b border-[var(--color-border)]"
         style={{ background: 'var(--color-navy)' }}
       >
-<div className="relative max-w-5xl mx-auto px-6 sm:px-8 py-10">
-          <div className="flex items-center justify-between mb-8">
-            <Link to="/" className="flex items-center gap-2 text-sm font-semibold text-white/70 hover:text-white transition-colors">
-              <Logo className="w-6 h-6" />
-              &larr; Back to DarkWorld
-            </Link>
-            <span className="pill bg-white/10 text-white/80 border border-white/20">Standalone Portal</span>
-          </div>
+        <div className="relative max-w-5xl mx-auto px-6 sm:px-8 py-10">
           <div className="text-[var(--color-accent-dim)] font-mono text-xs tracking-[0.2em] uppercase mb-3">
             Blue Team &middot; Detection &amp; Response
           </div>

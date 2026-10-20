@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { BOOKS, booksInTrack, type Book, type BookTrack } from '../data/books';
-import Logo from '../components/layout/Logo';
+import PortalNavigation from '../components/layout/PortalNavigation';
 import { IconBook, IconCheck, IconDownload, IconExternal, IconSearch, IconX } from '../components/layout/icons';
 
 type OfflineBookStatus = 'checking' | 'ready' | 'saving' | 'saved' | 'removing' | 'error' | 'unsupported';
@@ -166,18 +166,12 @@ export default function LibraryPage() {
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--color-bg)' }}>
+      <PortalNavigation />
       <div
         className="portal-masthead relative overflow-hidden border-b border-[var(--color-border)]"
         style={{ background: 'var(--color-navy)' }}
       >
-<div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
-          <div className="flex items-center justify-between mb-6 sm:mb-8 flex-wrap gap-2">
-            <Link to="/code-portal" className="flex items-center gap-2 text-sm font-semibold text-white/70 hover:text-white transition-colors">
-              <Logo className="w-6 h-6" />
-              &larr; Back to Code Portal
-            </Link>
-            <span className="pill bg-white/10 text-white/80 border border-white/20">Standalone Portal</span>
-          </div>
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
           <div className="text-[var(--color-accent-dim)] font-mono text-xs tracking-[0.2em] uppercase mb-2 sm:mb-3">
             Free, Legally Open Books
           </div>

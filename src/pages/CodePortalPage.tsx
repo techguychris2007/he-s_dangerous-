@@ -8,7 +8,7 @@ import { SECURITY_TASKS, SECURITY_TASK_CATEGORIES } from '../labs/securityTasks'
 import type { CodeLanguage } from '../labs/codeTypes';
 import { useProgress } from '../state/progressStore';
 import CodeTaskCard from '../components/code/CodeTaskCard';
-import Logo from '../components/layout/Logo';
+import PortalNavigation from '../components/layout/PortalNavigation';
 import { IconArrowRight, IconBook, IconCheck, IconCode, IconFlask, IconLightning, IconSearch, IconX } from '../components/layout/icons';
 import { booksInTrack } from '../data/books';
 import OfflineRuntimeCard from '../components/layout/OfflineRuntimeCard';
@@ -105,22 +105,10 @@ export default function CodePortalPage() {
 
   return (
     <div className="min-h-screen bg-[var(--color-bg)]">
+      <PortalNavigation />
       <section className="portal-masthead relative overflow-hidden border-b border-white/10 bg-[var(--color-navy)] text-white">
 
         <div className="relative mx-auto max-w-7xl px-5 py-6 sm:px-8 sm:py-8 lg:py-10">
-          <nav className="mb-8 flex flex-wrap items-center justify-between gap-4">
-            <Link to="/" className="group inline-flex items-center gap-3 text-sm font-bold text-white/72 hover:text-white">
-              <span className="grid h-9 w-9 place-items-center rounded-2xl border border-white/12 bg-white/[.06] shadow-[inset_0_1px_0_rgba(255,255,255,.08)] group-hover:border-white/25">
-                <Logo className="h-5 w-5" />
-              </span>
-              <span>&larr; Back to DarkWorld</span>
-            </Link>
-            <div className="flex items-center gap-2 rounded-full border border-white/12 bg-white/[.06] px-3 py-1.5 text-[11px] font-black uppercase tracking-[.18em] text-white/72 shadow-[inset_0_1px_0_rgba(255,255,255,.08)]">
-              <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-success)] shadow-[0_0_16px_var(--color-success)]" />
-              Live browser IDE
-            </div>
-          </nav>
-
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_390px] lg:items-center">
             <div className="max-w-3xl">
               <div className="mb-4 inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[.18em] text-[var(--color-gold-dim)]">

@@ -25,6 +25,8 @@ export default function AppLayout() {
     const panel = navRef.current;
     panel?.querySelector<HTMLElement>('button, a[href]')?.focus();
     const onKeyDown = (e: KeyboardEvent) => {
+      // A native modal above the drawer owns its keyboard and focus cycle.
+      if (e.target instanceof Element && e.target.closest('dialog[open]')) return;
       if (e.key === 'Escape') setMobileOpen(false);
       if (e.key === 'Tab' && panel) {
         const items = Array.from(panel.querySelectorAll<HTMLElement>('a[href], button, summary, select, [tabindex="0"]')).filter(element => element.getClientRects().length > 0);
@@ -70,7 +72,7 @@ export default function AppLayout() {
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        {mobileOpen && !desktop && <button aria-label="Close navigation" onClick={() => setMobileOpen(false)} className="absolute right-3 top-3 z-40 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1 text-xs text-[var(--color-heading)]">Close</button>}
+        {mobileOpen && !desktop && <button type="button" aria-label="Close navigation" onClick={() => setMobileOpen(false)} className="dw-navigation-close"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15"/></svg></button>}
         <Sidebar onNavigate={() => setMobileOpen(false)} />
       </div>
       {mobileOpen && (

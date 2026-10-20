@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { ML_LESSONS, ML_MODULES } from '../data/mlLessons';
 import { ML_TASKS } from '../labs/mlTasks';
 import { useProgress } from '../state/progressStore';
-import Logo from '../components/layout/Logo';
+import PortalNavigation from '../components/layout/PortalNavigation';
 import { IconCheck, IconCode } from '../components/layout/icons';
 import OfflineRuntimeCard from '../components/layout/OfflineRuntimeCard';
 
@@ -20,19 +20,13 @@ export default function MlPortalPage() {
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--color-bg)' }}>
+      <PortalNavigation />
       {/* hero */}
       <div
         className="portal-masthead relative overflow-hidden border-b border-[var(--color-border)]"
         style={{ background: 'var(--color-navy)' }}
       >
-<div className="relative max-w-5xl mx-auto px-6 sm:px-8 py-10">
-          <div className="flex items-center justify-between mb-8">
-            <Link to="/" className="flex items-center gap-2 text-sm font-semibold text-white/70 hover:text-white transition-colors">
-              <Logo className="w-6 h-6" />
-              &larr; Back to DarkWorld
-            </Link>
-            <span className="pill bg-white/10 text-white/80 border border-white/20">Professional Roadmap</span>
-          </div>
+        <div className="relative max-w-5xl mx-auto px-6 sm:px-8 py-10">
           <div className="text-[var(--color-accent-dim)] font-mono text-xs tracking-[0.2em] uppercase mb-3">
             Data Science &amp; Machine Learning
           </div>
