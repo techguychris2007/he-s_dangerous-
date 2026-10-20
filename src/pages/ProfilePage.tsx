@@ -197,9 +197,17 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      <div className="mb-8 flex flex-wrap items-center gap-5 premium-card rounded-2xl border border-[var(--color-gold)]/30 p-5">
-        <DarkWorldBadge className="h-28 w-28 shrink-0" />
-        <div className="min-w-0 flex-1"><p className="mb-1 text-[10px] font-semibold uppercase tracking-widest text-[var(--color-accent-dim)]">Our community mark</p><h2 className="text-lg font-bold text-[var(--color-heading)]">DarkWorld Learning Guild</h2><p className="mt-2 text-xs leading-6 text-[var(--color-text-dim)]">A shared identity for curious builders, testers, and defenders. Use this platform badge alongside your own portfolio; individual lab certificates record your learning progress.</p><a href={`${import.meta.env.BASE_URL}darkworld-badge.svg`} download="darkworld-learning-guild.svg" className="mt-3 inline-block text-xs font-semibold text-[var(--color-accent)]">Download the badge →</a></div>
+      <div className="mb-8 flex flex-wrap items-center gap-6 premium-card rounded-2xl border border-[#167d70]/25 p-6">
+        <DarkWorldBadge className="h-36 w-32 shrink-0" />
+        <div className="min-w-0 flex-1">
+          <p className="mb-1 text-[10px] font-semibold uppercase tracking-widest text-[var(--color-accent-dim)]">Our community mark</p>
+          <h2 className="text-lg font-bold text-[var(--color-heading)]">DarkWorld Learning Guild</h2>
+          <p className="mt-2 text-xs leading-6 text-[var(--color-text-dim)]">A shared identity for curious builders, testers, and defenders. Use this platform badge alongside your own portfolio; individual lab certificates record your learning progress.</p>
+          <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-semibold text-[var(--color-accent)]">
+            <a href={`${import.meta.env.BASE_URL}darkworld-badge.png`} download="darkworld-learning-guild.png">Download badge · PNG →</a>
+            <a href={`${import.meta.env.BASE_URL}darkworld-badge.svg`} download="darkworld-learning-guild.svg">Vector · SVG →</a>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
