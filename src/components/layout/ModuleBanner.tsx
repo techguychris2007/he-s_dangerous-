@@ -33,7 +33,7 @@ const BANNERS: Record<string, BannerConfig> = {
   networking: { from: '#0f2a4a', to: '#1c4f82', pattern: 'circuit', photo: networkingPhoto, fit: 'cover' },
   linux: { from: '#0d1b12', to: '#1f4d2e', pattern: 'grid', photo: linuxPhoto, fit: 'cover' },
   recon: { from: '#0c2a2e', to: '#125e63', pattern: 'scan', photo: reconPhoto, fit: 'cover' },
-  python: { from: '#12294f', to: '#d9a441', pattern: 'dots', photo: pythonPhoto, fit: 'cover' },
+  python: { from: '#12294f', to: '#a8792f', pattern: 'dots', photo: pythonPhoto, fit: 'cover' },
   webapp: { from: '#241247', to: '#5b2a8c', pattern: 'grid', photo: webappPhoto, fit: 'cover' },
   redteam: { from: '#3a0d0d', to: '#7a1f1f', pattern: 'circuit', photo: redteamPhoto, fit: 'cover' },
   bugbounty: { from: '#0d2e1f', to: '#1f8a53', pattern: 'dots', photo: bugbountyPhoto, fit: 'cover' },
@@ -45,18 +45,25 @@ const BANNERS: Record<string, BannerConfig> = {
   'soc-detection': { from: '#062633', to: '#0d7d94', pattern: 'scan', photo: socPhoto, fit: 'cover' },
   'soc-ir': { from: '#062633', to: '#0d7d94', pattern: 'scan', photo: socPhoto, fit: 'cover' },
   forensics: { from: '#1a1220', to: '#4a2d63', pattern: 'grid', photo: forensicsPhoto, fit: 'cover' },
-  cloud: { from: '#0a2a4f', to: '#2f6fed', pattern: 'dots', photo: cloudPhoto, fit: 'cover' },
+  cloud: { from: '#0a2a4f', to: '#4c5fd5', pattern: 'dots', photo: cloudPhoto, fit: 'cover' },
   securityplus: { from: '#1a2a1a', to: '#16305c', pattern: 'grid', photo: securityplusPhoto, fit: 'cover' },
   binaryanalysis: { from: '#1a1a2e', to: '#3a1f5c', pattern: 'circuit', photo: binaryanalysisPhoto, fit: 'cover' },
   malware: { from: '#1a0d0d', to: '#4a1f1f', pattern: 'scan', photo: malwarePhoto, fit: 'cover' },
   secengineering: { from: '#0d1a2a', to: '#2a4a6e', pattern: 'dots', photo: secengineeringPhoto, fit: 'cover' },
   // Code Portal modules have no banner photo asset yet — a distinct gradient (no photo) still
   // beats silently reusing Linux's green theme for an unrelated track.
-  'code-python-fundamentals': { from: '#0f172a', to: '#2563eb', pattern: 'grid' },
-  'code-python-oop': { from: '#0f172a', to: '#2563eb', pattern: 'grid' },
-  'code-python-advanced': { from: '#0f172a', to: '#2563eb', pattern: 'grid' },
+  'code-python-fundamentals': { from: '#0f172a', to: '#4c5fd5', pattern: 'grid' },
+  'code-python-oop': { from: '#0f172a', to: '#4c5fd5', pattern: 'grid' },
+  'code-python-advanced': { from: '#0f172a', to: '#4c5fd5', pattern: 'grid' },
   // Same no-photo-asset-yet situation as the Code Portal modules above — a distinct gradient per
   // module rather than falling through to Linux's banner.
+  // Software Engineering track: one crest-indigo family, varied pattern per module.
+  'se-foundations': { from: '#10142c', to: '#4c5fd5', pattern: 'circuit' },
+  'se-construction': { from: '#10142c', to: '#5b4bd5', pattern: 'grid' },
+  'se-testing': { from: '#0d1d24', to: '#1f8a6b', pattern: 'dots' },
+  'se-design': { from: '#14112c', to: '#7a4fd0', pattern: 'grid' },
+  'se-data-systems': { from: '#0c1a2e', to: '#2f6fa8', pattern: 'scan' },
+  'se-delivery': { from: '#151229', to: '#a8792f', pattern: 'circuit' },
   'api-security': { from: '#0d2438', to: '#0891b2', pattern: 'grid' },
   'crypto-attacks': { from: '#2a1a05', to: '#92660f', pattern: 'scan' },
 };

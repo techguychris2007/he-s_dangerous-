@@ -33,3 +33,15 @@ export function parseTestResult(stdout: string): TestSummary | null {
   if (!Number.isSafeInteger(passed) || !Number.isSafeInteger(total) || total <= 0 || passed > total) return null;
   return { passed, total };
 }
+
+export interface CheckLine { ok: boolean; name: string; detail: string }
+
+/** Graders print one "[PASS] name: detail" / "[FAIL] name: detail" line per check. */
+export function parseChecks(stdout: string): CheckLine[] {
+  return stdout.split('\n').flatMap((line) => {
+    const match = /^\[(PASS|FAIL)\]\s*(.*)$/.exec(line.trim());
+    if (!match) return [];
+    const [name, ...rest] = match[2].split(': ');
+    return [{ ok: match[1] === 'PASS', name, detail: rest.join(': ') }];
+  });
+}

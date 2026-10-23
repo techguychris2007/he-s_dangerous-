@@ -250,8 +250,8 @@ export function upgradeDefensiveChain(lab: SiemLabScenario): SiemLabScenario {
   const entries = chain.checkpoints.flatMap((checkpoint, index) => checkpoint.records.map((line, recordIndex) => ({
     evidenceId: evidenceId(index, recordIndex),
     timestamp: new Date(Date.UTC(2026, 9, 3, 8, offsets[index] + recordIndex)).toISOString(),
-    eventType: 'case_record',
-    line: `[${evidenceId(index, recordIndex)}] phase=${checkpoint.id} ${line}`,
+    eventType: line.match(/\bsource=([^\s]+)/)?.[1] ?? 'case_record',
+    line: `[${evidenceId(index, recordIndex)}] ${line}`,
   })).sort((left, right) => {
     // Stable display order across reloads, without always putting the decoy last.
     const order = index % 3;
@@ -264,7 +264,7 @@ export function upgradeDefensiveChain(lab: SiemLabScenario): SiemLabScenario {
     choices: checkpoint.choices, correctIndex: checkpoint.correctIndex,
     availableEvidence: checkpoint.records.map((_, record) => evidenceId(index, record)),
     requiredEvidence: (checkpoint.requiredRecordIndexes ?? [0, 1]).map(record => evidenceId(index, record)),
-    hint: `phase=${checkpoint.id}`, explanation: checkpoint.explanation,
+    hint: [...new Set(checkpoint.records.flatMap(record => record.match(/\bsource=([^\s]+)/)?.[1] ?? []))].map(source => 'source="' + source + '"').join(' OR ') || '*', explanation: checkpoint.explanation,
     proof: legacyProofs[index] ?? `flag{${lab.id.replace(/-/g, '_')}_${checkpoint.id}}`,
   }));
   return {

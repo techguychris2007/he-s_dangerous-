@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 @theme {
-  --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-display: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "Ubuntu Mono", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-sans: "Ubuntu", "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: "Ubuntu", "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
 
   /* Type scale extensions: fills gaps below Tailwind's default `xs` (12px) step and standardizes
      code-panel sizing. Before this, the codebase had drifted into arbitrary `text-[10px]`,
@@ -26,8 +26,8 @@
   --color-heading: #0d1220;
   --color-navy: #0d1220;
   --color-navy-dim: #1a2033;
-  --color-accent: #2563eb;
-  --color-accent-dim: #1d4ed8;
+  --color-accent: #4c5fd5;
+  --color-accent-dim: #3a4ab8;
   --color-accent-2: #9333ea;
   --color-warn: #c2760a;
   --color-danger: #dc2626;
@@ -60,6 +60,21 @@
   --term-error-text: #ff8a7a;
   --term-success: #7ee081;
 
+  /* Chrome palette: the navy sidebar, portal bar and room banners stay dark in both themes (the
+     TryHackMe-style "console" frame around light content). Highlights derive from the crest-indigo
+     accent so the chrome and the content read as one system. */
+  --chrome-bg: #0f1424;
+  --chrome-raise: #172036;
+  --chrome-hover: #1b2440;
+  --chrome-line: #252e48;
+  --chrome-line-strong: #36405f;
+  --chrome-ink: #f3f5ff;
+  --chrome-text: #c4cae0;
+  --chrome-muted: #98a1bf;
+  --chrome-active: #2b3480;
+  --chrome-highlight: #a3aeff;
+  --chrome-danger: #ffb3bd;
+
   /* Elevation scale: colored/soft rather than flat black, since a default black box-shadow is nearly
      invisible on the dark theme's near-black surfaces. `--shadow-*` tokens auto-generate matching
      `shadow-*` utilities in Tailwind v4 — color-mix references var(--color-accent)/var(--color-heading)
@@ -76,8 +91,8 @@
   --color-heading: #f2f4fb;
   --color-navy: #141826;
   --color-navy-dim: #1f2438;
-  --color-accent: #3b9bff;
-  --color-accent-dim: #7ac1ff;
+  --color-accent: #5468ee;
+  --color-accent-dim: #aebfff;
   --color-accent-2: #b285f7;
   --color-warn: #fbbf24;
   --color-danger: #f43f5e;
@@ -102,8 +117,8 @@
     --color-heading: #f2f4fb;
     --color-navy: #141826;
     --color-navy-dim: #1f2438;
-    --color-accent: #3b9bff;
-    --color-accent-dim: #7ac1ff;
+    --color-accent: #5468ee;
+    --color-accent-dim: #aebfff;
     --color-accent-2: #b285f7;
     --color-warn: #fbbf24;
     --color-danger: #f43f5e;

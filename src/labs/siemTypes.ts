@@ -18,6 +18,8 @@ export type SiemTool =
 /** A single raw record the analyst is investigating — an IDS alert, a UDM log event, or a packet line.
  *  The tool-specific console renders this generically; only the "line" text is ever pattern-matched. */
 export interface SiemEntry {
+  fields?: Record<string, string | number | boolean | null>;
+  background?: boolean;
   evidenceId?: string;
   /** what actually gets searched/filtered against the analyst's query (case-insensitive substring or regex) */
   line: string;
@@ -48,6 +50,7 @@ export interface SiemNarrative {
 }
 
 export interface SiemLabScenario {
+  workbook?: InvestigationWorkbook;
   id: string;
   title: string;
   difficulty: 'Easy' | 'Medium' | 'Hard';
@@ -63,6 +66,28 @@ export interface SiemLabScenario {
   /** When present, the lab is rendered as a gamified story investigation instead of a plain guide */
   narrative?: SiemNarrative;
   investigation?: InvestigationCase;
+  /** KC7-style casebooks (src/labs/casebooks) belong to a season and are ordered by episode. */
+  season?: number;
+  episode?: number;
+  /** The legacy drill a casebook supersedes in the SOC portal; the drill stays playable. */
+  replaces?: string;
+}
+
+export interface InvestigationQuestion {
+  id: string;
+  chapter: string;
+  prompt: string;
+  teaching: string;
+  query: string;
+  column: string;
+  answerType?: 'text' | 'number' | 'timestamp';
+  hint: string;
+}
+export interface InvestigationWorkbook {
+  version: number;
+  chapters: { id: string; title: string }[];
+  questions: InvestigationQuestion[];
+  provenance: string;
 }
 
 const FLAG_RE = /flag\{[^}]+\}/i;

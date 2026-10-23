@@ -3,11 +3,13 @@ import { Link } from 'react-router-dom';
 import { MODULES } from '../data/curriculum';
 import { useProgress } from '../state/progressStore';
 import { useLabsData, retryLabsData } from '../state/useLabsData';
-import { ACHIEVEMENTS, computeStreak } from '../data/achievements';
-import { IconChart, IconFlask, IconCheck, IconFlag, IconArrowRight, IconLightning, ModuleIcon } from '../components/layout/icons';
+import { ACHIEVEMENTS } from '../data/achievements';
+import { IconChart, IconFlask, IconCheck, IconFlag, IconArrowRight, ModuleIcon } from '../components/layout/icons';
 import './learning-pages.css';
-import AcademyHero from '../components/common/AcademyHero';
 import StatCard from '../components/common/StatCard';
+import CharacterAvatar from '../components/characters/CharacterAvatar';
+import { ProfileHeader, ContinueCard, DailyOpCard, WeekCard, CrewPicker, type ContinueTarget } from '../components/dashboard/DashboardWidgets';
+import { guideForArea } from '../data/characters';
 import AchievementShelf from '../components/common/AchievementShelf';
 import { CATEGORY_BANNER } from '../data/labCategoryBanner';
 
@@ -47,7 +49,6 @@ export default function HomePage() {
     };
   }, [progress.labFlags, labsData, totalFlagsInCatalog]);
 
-  const streak = useMemo(() => computeStreak(progress.activityDates), [progress.activityDates]);
   const unlockedAchievements = useMemo(
     () => ACHIEVEMENTS.filter((a) => a.isUnlocked(progress)),
     [progress],
@@ -87,30 +88,51 @@ export default function HomePage() {
   );
 
 
+  const nextModule = nextLesson ? MODULES.find((m) => m.slug === nextLesson.moduleSlug) : undefined;
+  const continueTarget: ContinueTarget = inProgressLab
+    ? {
+        title: inProgressLab.scenario.title,
+        detail: `${progress.labFlags[inProgressLab.scenario.id]?.length ?? 0} of ${inProgressLab.scenario.totalFlags} flags · ${inProgressLab.scenario.difficulty}`,
+        to: '/lab/' + inProgressLab.slug,
+        label: 'Resume room',
+        percent: (100 * (progress.labFlags[inProgressLab.scenario.id]?.length ?? 0)) / inProgressLab.scenario.totalFlags,
+        guide: guideForArea(inProgressLab.scenario.category),
+      }
+    : nextLesson && nextModule
+      ? {
+          title: nextLesson.title,
+          detail: 'From ' + nextLesson.moduleTitle,
+          to: '/module/' + nextLesson.moduleSlug + '/lesson/' + nextLesson.slug,
+          label: 'Continue learning',
+          percent: (100 * nextModule.lessons.filter((l) => progress.completedLessons[l.id]).length) / nextModule.lessons.length,
+          guide: guideForArea(nextLesson.moduleSlug),
+        }
+      : { title: 'Put your knowledge to work', detail: 'Choose a practical challenge from the lab catalog.', to: '/labs', label: 'Explore labs', percent: 0, guide: 'vex' };
+
   return (
-    <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-12">
-      <AcademyHero eyebrow="DarkWorld / The academy" title="Your academy dashboard" description="Understand the systems. Practice the techniques. Build the judgment. Your next chapter starts with one focused lesson."
-        stats={[{label: 'Lessons complete', value: completedLessonCount + ' / ' + TOTAL_LESSONS}, {label: 'Labs solved', value: labsLoaded ? labsDone + ' / ' + totalLabs : 'Loading…'}, {label: 'Current streak', value: streak.current + ' days'}]}
-        action={{ title: inProgressLab?.scenario.title ?? nextLesson?.title ?? 'Put your knowledge to work', detail: inProgressLab ? 'Return to your investigation and follow the evidence.' : nextLesson ? 'From ' + nextLesson.moduleTitle : 'Choose a practical challenge from the lab catalog.', to: inProgressLab ? '/lab/' + inProgressLab.slug : nextLesson ? '/module/' + nextLesson.moduleSlug + '/lesson/' + nextLesson.slug : '/labs', label: inProgressLab ? 'Resume investigation' : nextLesson ? 'Continue learning' : 'Explore labs' }} />
-      {!labsLoaded && <div role="status" className="mb-6 flex flex-wrap items-center gap-3 rounded-lg border border-[var(--color-border)] p-4 text-sm text-[var(--color-text-dim)]"><span>Loading your lab catalog. If this takes longer than expected, check your connection.</span><button onClick={retryLabsData} className="font-semibold text-[var(--color-accent-dim)] underline">Retry loading</button></div>}
-      <div className="academy-path-choices mb-6 grid gap-4 sm:grid-cols-3">
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-12">
+      <ProfileHeader name={progress.learnerName} badges={unlockedAchievements.length} badgeTotal={ACHIEVEMENTS.length} />
+      {!labsLoaded && <div role="status" className="mb-5 flex flex-wrap items-center gap-3 rounded-lg border border-[var(--color-border)] p-4 text-sm text-[var(--color-text-dim)]"><span>Loading your lab catalog. If this takes longer than expected, check your connection.</span><button onClick={retryLabsData} className="font-semibold text-[var(--color-accent-dim)] underline">Retry loading</button></div>}
+      <div className="dw-dashboard-row">
+        <ContinueCard next={continueTarget} />
+        {labsLoaded && <DailyOpCard />}
+        <WeekCard />
+      </div>
+      <div className="mb-5"><CrewPicker /></div>
+
+      <h2 className="text-base font-bold text-[var(--color-heading)] mb-4">Learning paths</h2>
+      <div className="grid gap-4 sm:grid-cols-3 mb-10">
         {[
-          { track: 'presecurity', label: 'Start here', title: 'Pre-security', description: 'Computers, networks, systems, and safe practice.' },
-          { track: 'security', label: 'Assess & discover', title: 'Offensive security', description: 'From reconnaissance to complete pentest engagements.' },
-          { track: 'defensive', label: 'Investigate & protect', title: 'Defensive security', description: 'SOC Tier 1 through response and security leadership.' },
-        ].map(path => <Link key={path.track} to={`/roadmap?track=${path.track}`} className="premium-card premium-card-hover group rounded-2xl p-5 overflow-hidden"><p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-[var(--color-accent-dim)]">{path.label}</p><h2 className="mb-2 text-base font-bold text-[var(--color-heading)]">{path.title} →</h2><p className="text-xs leading-6 text-[var(--color-text-dim)]">{path.description}</p></Link>)}
+          { track: 'presecurity', label: 'Start here', title: 'Pre-security', description: 'Computers, networks, systems, and safe practice.', guide: 'byte' as const },
+          { track: 'security', label: 'Assess & discover', title: 'Offensive security', description: 'From reconnaissance to complete pentest engagements.', guide: 'vex' as const },
+          { track: 'defensive', label: 'Investigate & protect', title: 'Defensive security', description: 'SOC Tier 1 through response and security leadership.', guide: 'sentinel' as const },
+        ].map(path => <Link key={path.track} to={`/roadmap?track=${path.track}`} className="dw-card hover:bg-[var(--color-surface-2)] transition-colors"><div className="flex items-center gap-3"><CharacterAvatar id={path.guide} size={40} decorative /><div><p className="dw-card__label">{path.label}</p><h3 className="dw-card__title">{path.title}</h3></div></div><p className="dw-card__note">{path.description}</p></Link>)}
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10 reveal" style={{ '--reveal-delay': '0.08s' } as React.CSSProperties}>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10 reveal" style={{ '--reveal-delay': '0.08s' } as React.CSSProperties}>
         <StatCard icon={<IconChart className="w-5 h-5" />} color="var(--color-accent-2)" label="Lessons completed" value={`${completedLessonCount} / ${TOTAL_LESSONS}`} />
         <StatCard icon={<IconFlask className="w-5 h-5" />} color="var(--color-accent)" label="Labs solved" value={labsLoaded ? `${labsDone} / ${totalLabs}` : 'Loading…'} />
         <StatCard icon={<IconCheck className="w-5 h-5" />} color="var(--color-success)" label="Flags captured" value={labsLoaded ? `${capturedFlags} / ${totalFlags}` : `${capturedFlags} captured`} />
-        <StatCard
-          icon={<IconLightning className="w-5 h-5" />}
-          color="var(--color-warn)"
-          label={streak.current > 0 ? 'Current streak' : 'Longest streak'}
-          value={`${streak.current > 0 ? streak.current : streak.longest} day${(streak.current > 0 ? streak.current : streak.longest) === 1 ? '' : 's'}`}
-        />
       </div>
 
       <div className="reveal" style={{ '--reveal-delay': '0.12s' } as React.CSSProperties}>

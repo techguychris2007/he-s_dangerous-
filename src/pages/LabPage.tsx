@@ -1,176 +1,153 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Navigate, useParams } from 'react-router-dom';
-import { findLab } from '../data/labs';
+import { findLab, type LabEntry } from '../data/labs';
 import { useProgress } from '../state/progressStore';
 import Terminal, { type TerminalHandle } from '../components/terminal/Terminal';
 import type { LabSnapshot } from '../labs/engine';
 import LiveWebsiteLab from '../components/labs/LiveWebsiteLab';
 import DirectoryAttackGraph from '../components/labs/DirectoryAttackGraph';
 import PreSecurityWorkbench from '../components/labs/PreSecurityWorkbench';
-import StepChecklist from '../components/lesson/StepChecklist';
 import ShareWriteupModal from '../components/labs/ShareWriteupModal';
 import CyberLabAI from '../components/labs/CyberLabAI';
 import LabRatingWidget from '../components/labs/LabRatingWidget';
 import LabComments from '../components/labs/LabComments';
-import DifficultyPill from '../components/common/DifficultyPill';
-import LabLearningBridge from '../components/labs/LabLearningBridge';
+import RoomHero from '../components/common/RoomHero';
+import { estimateMinutes } from '../data/rooms';
+import TaskList from '../components/common/TaskList';
+import RoomAside from '../components/common/RoomAside';
+import CharacterAvatar from '../components/characters/CharacterAvatar';
+import { guideForArea } from '../data/characters';
+import { labXpReward } from '../data/levels';
 import LabAccess from '../components/labs/LabAccess';
-import { IconFlag, IconCheck } from '../components/layout/icons';
+import { labReference } from '../labs/labReference';
+import '../components/labs/lab-mission.css';
 
 export default function LabPage() {
   const { labSlug } = useParams();
-  const progress = useProgress();
-  const [sharing, setSharing] = useState(false);
-  const [guideExpanded, setGuideExpanded] = useState(false);
   const entry = findLab(labSlug);
-  const scenarioId = entry?.scenario.id;
-  const transcriptRef = useRef('');
+  return entry ? <LabMission key={entry.scenario.id} entry={entry} /> : <Navigate to="/labs" replace />;
+}
+
+function LabMission({ entry }: { entry: LabEntry }) {
+  const { scenario } = entry;
+  const progress = useProgress();
+  const roomRef = useRef<HTMLDialogElement>(null);
+  const startRef = useRef<HTMLButtonElement>(null);
   const terminalRef = useRef<TerminalHandle>(null);
+  const transcriptRef = useRef('');
+  const [started, setStarted] = useState(false);
+  const [sharing, setSharing] = useState(false);
+  const [tab, setTab] = useState<'briefing' | 'objectives' | 'hints' | 'reference'>('briefing');
+  const [stage, setStage] = useState(0);
+  const [reviewed, setReviewed] = useState<Set<number>>(() => new Set());
+  const [hintCount, setHintCount] = useState(0);
+  const [view, setView] = useState<'terminal' | 'target'>('terminal');
   const [snapshot, setSnapshot] = useState<LabSnapshot>();
   const [busy, setBusy] = useState(false);
-
-  useEffect(() => {
-    transcriptRef.current = '';
-  }, [scenarioId]);
-
-  if (!entry) return <Navigate to="/" replace />;
-  const { scenario } = entry;
+  const [fullscreenError, setFullscreenError] = useState('');
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const captured = progress.flagCount(scenario.id);
   const done = captured >= scenario.totalFlags;
-  const progressPct = Math.round((100 * captured) / Math.max(scenario.totalFlags, 1));
-  // Ties off to real, verified progress (flags actually captured), not commands typed — typing
-  // wrong or unrelated commands must never tick a guided step off. Steps and flags aren't 1:1 in
-  // every lab, so this checks off a proportional share of the list per flag captured, and only
-  // guarantees the full list once every flag is in.
-  const autoCheckedCount = done
-    ? scenario.objectives.length
-    : Math.floor((scenario.objectives.length * captured) / Math.max(scenario.totalFlags, 1));
+  const percent = Math.min(100, Math.round(captured / Math.max(1, scenario.totalFlags) * 100));
+  const step = scenario.objectives[stage];
+  const objective = typeof step === 'string' ? { text: step } : step;
+  const reference = labReference[scenario.id] ?? scenario.objectives.flatMap(item => typeof item !== 'string' && item.why ? [{ title: item.text, body: item.why, code: undefined }] : []);
+  const hasTarget = Boolean(scenario.webApplication || scenario.directoryMap);
 
-  return (
-    <div className="h-full min-h-0 flex flex-col overflow-hidden lg:flex-row">
-      <aside className="lg:w-[26rem] min-h-0 max-h-[42%] lg:max-h-none shrink-0 overscroll-contain border-b lg:border-b-0 lg:border-r border-[var(--color-border)] surface-glass overflow-y-auto">
-        <div className="sticky top-0 z-10 border-b border-[var(--color-border)] surface-glass px-4 py-3 sm:px-6">
-          <div className="mb-2 flex items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-2">
-              <DifficultyPill difficulty={scenario.difficulty} />
-              <span className="truncate text-xs font-semibold uppercase tracking-wide text-[var(--color-text-dim)]">{scenario.category}</span>
-            </div>
-            <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-[var(--color-text-dim)]">
-              <IconFlag className="h-3.5 w-3.5" />
-              {captured}/{scenario.totalFlags}
-            </span>
-          </div>
-          <div className="h-1.5 overflow-hidden rounded-full bg-[var(--color-surface-2)]">
-            <div
-              className={`h-full rounded-full transition-all duration-300 ${done ? 'bg-[var(--color-success)]' : 'bg-[var(--color-accent)]'}`}
-              style={{ width: `${progressPct}%` }}
-            />
-          </div>
-        </div>
-        <div className="px-4 py-4 sm:px-6 sm:py-6">
-        <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight leading-tight text-[var(--color-heading)] mb-2 sm:mb-3">{scenario.title}</h1>
-        <LabAccess scenario={scenario} />
-        <button className="lg:hidden mb-3 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-sm font-semibold text-[var(--color-heading)]" aria-expanded={guideExpanded} aria-controls="lab-guide-panel" onClick={() => setGuideExpanded(value => !value)}>{guideExpanded ? 'Hide briefing & guide' : 'Show briefing & guide'}</button>
-        <div id="lab-guide-panel" className={guideExpanded ? '' : 'hidden lg:block'}>
-        <p className="text-xs sm:text-sm text-[var(--color-text-dim)] leading-relaxed mb-4 sm:mb-5">{scenario.briefing}</p>
-        <LabLearningBridge scenario={scenario} />
-        {/* The single most important thing to see the moment the last flag lands — placed before the
-            checklist instead of appended after it, so it's never buried below a long objectives list. */}
-        {done && (
-          <div
-            className="premium-card rounded-2xl border border-[var(--color-success)]/30 bg-[var(--color-success)]/5 p-4 mb-6"
-          >
-            <div className="flex items-center gap-2 text-sm font-semibold text-[var(--color-success)] mb-3">
-              <IconCheck className="w-4 h-4" /> Lab complete — all flags captured!
-            </div>
-            <button
-              onClick={() => setSharing(true)}
-              className="w-full px-4 py-2.5 rounded-lg bg-[var(--color-accent)] text-white text-sm font-semibold hover:brightness-110 transition"
-            >
-              Open evidence notebook &rarr;
-            </button>
-          </div>
-        )}
+  useEffect(() => () => { if (roomRef.current?.open) roomRef.current.close(); }, []);
+  useEffect(() => {
+    const changed = () => setIsFullscreen(document.fullscreenElement === roomRef.current && roomRef.current !== null);
+    document.addEventListener('fullscreenchange', changed);
+    return () => document.removeEventListener('fullscreenchange', changed);
+  }, []);
 
-        {done && <LabRatingWidget labId={scenario.id} />}
+  const openRoom = () => {
+    roomRef.current?.showModal();
+    setStarted(true);
+  };
+  const closeRoom = async () => {
+    if (document.fullscreenElement) await document.exitFullscreen().catch(() => {});
+    roomRef.current?.close();
+    startRef.current?.focus();
+  };
+  const fullscreen = async () => {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await roomRef.current?.requestFullscreen();
+      setFullscreenError('');
+    } catch { setFullscreenError('Browser fullscreen is unavailable. The focused workspace remains open.'); }
+  };
 
-        <div className="mb-6">
-          <StepChecklist steps={scenario.objectives} autoCheckedCount={autoCheckedCount} title="Lab Guide" variant="prominent" />
-        </div>
-
-        {!done && (
-          <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-2)] p-3 text-xs text-[var(--color-text-dim)] leading-relaxed">
-            Stuck? {scenario.preSecurityTool ? 'Use the guided controls in the tool bench and compare each result to the lab guide.' : <>Type <code className="text-[var(--color-accent-2)]">hint</code> in the terminal for a
-            progressive nudge, or <code className="text-[var(--color-accent-2)]">objectives</code> to
-            re-read your goals. Type <code className="text-[var(--color-accent-2)]">help</code> for the full
-            command list.</>}
-          </div>
-        )}
-
-        <LabComments labId={scenario.id} />
-        </div>
-        </div>
-      </aside>
-
-      <section className="flex flex-1 min-w-0 min-h-0 flex-col gap-3 overflow-hidden bg-[var(--color-bg)] p-2 sm:p-4" aria-label="Lab workspace">
-        <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 premium-card rounded-2xl px-3 py-2">
-          <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--color-accent-dim)]">Workspace</p>
-            <p className="truncate text-xs text-[var(--color-text-dim)]">{scenario.preSecurityTool ? 'Guided tool bench' : scenario.webApplication || scenario.directoryMap ? 'Terminal synced with visual evidence' : 'Attack terminal'}</p>
-          </div>
-          <button onClick={() => setSharing(true)} className="shrink-0 rounded-lg border border-[var(--color-border)] px-3 py-2 text-xs font-semibold text-[var(--color-heading)] hover:border-[var(--color-accent)]/60 hover:bg-[var(--color-surface-2)]">{done ? 'Evidence notebook & certificate' : 'Evidence notebook'}</button>
-        </div>
-        {(scenario.webApplication || scenario.directoryMap) && <div className="min-h-0 max-h-[45%] shrink overflow-y-auto overscroll-contain premium-card rounded-2xl p-2" aria-label="Visual lab evidence">
-        {scenario.webApplication && <LiveWebsiteLab application={scenario.webApplication} snapshot={snapshot?.scenarioId === scenario.id ? snapshot.webApplication : undefined} onCommand={command => terminalRef.current?.executeCommand(command)} disabled={busy} />}
-        {scenario.directoryMap && <DirectoryAttackGraph key={scenario.id} map={scenario.directoryMap} snapshot={snapshot?.scenarioId === scenario.id ? snapshot : undefined} />}
-        </div>}
-        <div className="min-h-0 flex-1 overflow-hidden">
-        {scenario.preSecurityTool ? (
-          <PreSecurityWorkbench
-            key={scenario.id}
-            mode={scenario.preSecurityTool}
-            scenarioId={scenario.id}
-            onFlagCaptured={(flag) => progress.captureFlag(scenario.id, flag, scenario.totalFlags)}
-            onTranscriptChange={(transcript) => {
-              transcriptRef.current = transcript;
-            }}
-          />
-        ) : (
-          <Terminal
-            key={scenario.id}
-            ref={terminalRef}
-            onStateChange={setSnapshot}
-            onBusyChange={setBusy}
-            scenario={scenario}
-            onFlagCaptured={(flag) => progress.captureFlag(scenario.id, flag, scenario.totalFlags)}
-            onTranscriptChange={(transcript) => {
-              transcriptRef.current = transcript;
-            }}
-          />
-        )}
-        </div>
-      </section>
-
-      {sharing && <ShareWriteupModal entry={entry} onClose={() => setSharing(false)} />}
-
-      <CyberLabAI
-        key={scenario.id}
-        getContext={() => ({
-          kind: 'lab',
-          title: scenario.title,
-          subtitle: `${scenario.difficulty} · ${scenario.category}`,
-          bodyText:
-            scenario.briefing +
-            '\n\nGuided steps:\n' +
-            scenario.objectives
-              .map((o, i) => {
-                const step = typeof o === 'string' ? { text: o } : o;
-                return `${i + 1}. ${step.text}${step.why ? ` (Why: ${step.why})` : ''}`;
-              })
-              .join('\n'),
-          terminalTranscript: transcriptRef.current,
-        })}
+  return <>
+    <section className="dw-mission-launch">
+      <div className="dw-room-page"><div className="min-w-0">
+      <RoomHero
+        ref={startRef}
+        guide={guideForArea(scenario.category)}
+        crumbs={[{ label: 'Rooms', to: '/labs' }, { label: scenario.category, to: `/labs?category=${encodeURIComponent(scenario.category)}` }, { label: scenario.title }]}
+        title={scenario.title}
+        summary={scenario.briefing}
+        difficulty={scenario.difficulty}
+        minutes={estimateMinutes(scenario.difficulty, scenario.objectives.length)}
+        facts={[`${scenario.objectives.length} tasks`, `${scenario.totalFlags} proof${scenario.totalFlags === 1 ? '' : 's'}`]}
+        xp={labXpReward(scenario.difficulty, scenario.totalFlags)}
+        percent={percent}
+        progressLabel={done ? 'Room complete' : 'Room progress'}
+        saved={progress.isBookmarked(scenario.id)}
+        onToggleSave={() => progress.toggleBookmark(scenario.id)}
+        primaryLabel={done ? 'Review workspace' : started ? 'Resume workspace' : captured > 0 ? 'Continue lab' : 'Start lab'}
+        onPrimary={openRoom}
       />
-    </div>
-  );
+      <TaskList
+        title="Tasks"
+        tasks={scenario.objectives.map((item, index) => ({ text: typeof item === 'string' ? item : item.text, done: done || reviewed.has(index) }))}
+        onOpen={index => { setStage(index); setTab('objectives'); openRoom(); }}
+      />
+      <div className="dw-mission-preflight"><h2>Your workspace</h2><p>The guide and tools sit side by side in a focused room. Read the briefing, work through one objective at a time, and inspect the results yourself. Checklist marks are your notes; only captured proofs count toward lab completion.</p><p>This is a local browser simulation with a supported command set, rather than a full Kali virtual machine. Type <code>help</code> to see available commands. Your live terminal session is kept when you return to this overview, until you leave or reload this lab.</p><LabAccess scenario={scenario} /></div>
+      {done && <LabRatingWidget labId={scenario.id} />}
+      <LabComments labId={scenario.id} />
+      </div>
+      <RoomAside
+        difficulty={scenario.difficulty}
+        minutes={estimateMinutes(scenario.difficulty, scenario.objectives.length)}
+        xp={labXpReward(scenario.difficulty, scenario.totalFlags)}
+        facts={[{ label: 'Category', value: scenario.category }, { label: 'Tasks', value: String(scenario.objectives.length) }, { label: 'Proofs', value: `${captured}/${scenario.totalFlags}` }]}
+        outcomes={scenario.objectives.map(item => typeof item === 'string' ? item : item.text)}
+        outcomesTitle="Tasks in this room"
+        guide={guideForArea(scenario.category)}
+        backTo="/labs"
+        backLabel="All rooms"
+      />
+      </div>
+    </section>
+
+    {createPortal(<dialog ref={roomRef} className="dw-mission-room" aria-labelledby="mission-room-title" onCancel={event => { if (sharing) { event.preventDefault(); setSharing(false); } }}>
+      <header className="dw-mission-header">
+        <div><CharacterAvatar id={guideForArea(scenario.category)} size={42} decorative /><div className="min-w-0"><span className="dw-mission-eyebrow">{scenario.category} · {scenario.difficulty}</span><h2 id="mission-room-title">{scenario.title}</h2></div></div>
+        <div className="dw-mission-header-actions"><span className={done ? 'dw-mission-complete' : ''} role="status">{done ? 'Lab complete · ' : ''}{captured}/{scenario.totalFlags} proofs</span>{document.fullscreenEnabled && <button onClick={fullscreen} aria-pressed={isFullscreen}>{isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}</button>}<button onClick={() => void closeRoom()}>Return to overview</button></div>
+      </header>
+      <div className="dw-mission-progress" role="progressbar" aria-label="Verified lab progress" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${percent}%` }} /><b>Room progress: {percent}%</b></div>
+      {fullscreenError && <p className="dw-mission-notice" role="status">{fullscreenError}</p>}
+      <div className="dw-mission-body">
+        <aside className="dw-mission-guide" aria-label="Lab guide">
+          <nav aria-label="Guide sections">{(['briefing', 'objectives', 'hints', 'reference'] as const).map(item => <button key={item} aria-pressed={tab === item} onClick={() => setTab(item)}>{item === 'objectives' ? 'Objectives' : item[0].toUpperCase() + item.slice(1)}</button>)}</nav>
+          <div className="dw-mission-guide-content" key={tab}>
+            {tab === 'briefing' && <><span className="dw-mission-eyebrow">01 / Situation</span><h3>The brief</h3><p>{scenario.briefing}</p><h4>Environment & scope</h4><p>You begin as <code>{scenario.attacker.user}</code> on <code>{scenario.attacker.hostname}</code>. {scenario.network.length ? 'Only the following simulated hosts belong to this exercise.' : 'This exercise uses files on your local lab workstation.'}</p>{scenario.network.length > 0 && <ul className="dw-mission-hosts">{scenario.network.map(host => <li key={host.ip}><strong>{host.hostname}</strong><code>{host.ip}</code></li>)}</ul>}<LabAccess scenario={scenario} /><button className="dw-mission-primary" onClick={() => setTab('objectives')}>Read the first objective →</button></>}
+            {tab === 'objectives' && <><span className="dw-mission-eyebrow">Objective {stage + 1} of {scenario.objectives.length}</span><h3>{objective?.text ?? 'Explore the evidence'}</h3>{objective?.why && <><h4>Why this matters</h4><p>{objective.why}</p></>}<p className="dw-mission-note">Try the task in the workspace, read its output, then mark it reviewed when you can explain the result. This checklist does not award a proof.</p><label className="dw-mission-review"><input type="checkbox" checked={reviewed.has(stage)} onChange={() => setReviewed(previous => { const next = new Set(previous); if (next.has(stage)) next.delete(stage); else next.add(stage); return next; })} />I have practiced and understood this objective</label><div className="dw-mission-stage-nav"><button disabled={stage === 0} onClick={() => setStage(value => value - 1)}>← Previous</button><button disabled={stage >= scenario.objectives.length - 1} onClick={() => setStage(value => value + 1)}>Next objective →</button></div><details><summary>All objectives · {reviewed.size} reviewed</summary><ol className="dw-mission-objective-list">{scenario.objectives.map((item, index) => <li key={index}><button aria-current={stage === index ? 'step' : undefined} onClick={() => setStage(index)}>{reviewed.has(index) ? '✓ ' : ''}{typeof item === 'string' ? item : item.text}</button></li>)}</ol></details></>}
+            {tab === 'hints' && <><span className="dw-mission-eyebrow">Optional assistance</span><h3>A nudge when you need it</h3><p>Reveal one hint at a time. Compare it with what you have already observed before revealing another.</p>{scenario.hints.slice(0, hintCount).map((hint, index) => <section className="dw-mission-hint" key={index}><h4>Hint {index + 1}</h4><p>{hint}</p></section>)}<button className="dw-mission-primary" disabled={hintCount >= scenario.hints.length} onClick={() => setHintCount(count => count + 1)}>{hintCount >= scenario.hints.length ? 'All hints revealed' : 'Reveal next hint'}</button></>}
+            {tab === 'reference' && <><span className="dw-mission-eyebrow">Field notes</span><h3>Concepts & commands</h3>{reference.length ? reference.map(note => <section key={note.title}><h4>{note.title}</h4><p>{note.body}</p>{note.code && <pre>{note.code}</pre>}</section>) : <p>{scenario.briefing}</p>}<h4>Terminal controls</h4><p>↑ / ↓ recall commands. Tab completes a supported command or path. Ctrl+C interrupts a pending command; selected text can still be copied. Ctrl+L clears the view. Clearing the view does not reset the machine.</p></>}
+          </div>
+          <footer className="dw-mission-guide-footer"><span>{reviewed.size}/{scenario.objectives.length} objectives reviewed</span><button onClick={() => setSharing(true)}>Optional notebook ↗</button></footer>
+        </aside>
+        <section className="dw-mission-tools" aria-label="Lab tools">
+          <div className="dw-mission-tool-tabs"><button aria-pressed={view === 'terminal'} onClick={() => setView('terminal')}>{scenario.preSecurityTool ? 'Tool bench' : 'Terminal'}</button>{hasTarget && <button aria-pressed={view === 'target'} onClick={() => setView('target')}>Visual target</button>}<span>Local sandbox · {busy ? 'Command running' : 'Ready'}</span></div>
+          <div className="dw-mission-terminal" hidden={view !== 'terminal'}>{scenario.preSecurityTool ? <PreSecurityWorkbench mode={scenario.preSecurityTool} scenarioId={scenario.id} onFlagCaptured={flag => progress.captureFlag(scenario.id, flag, scenario.totalFlags)} onTranscriptChange={value => { transcriptRef.current = value; }} /> : <Terminal ref={terminalRef} scenario={scenario} onFlagCaptured={flag => progress.captureFlag(scenario.id, flag, scenario.totalFlags)} onStateChange={setSnapshot} onBusyChange={setBusy} onTranscriptChange={value => { transcriptRef.current = value; }} />}</div>
+          {hasTarget && <div className="dw-mission-target" hidden={view !== 'target'}>{scenario.webApplication && <LiveWebsiteLab application={scenario.webApplication} snapshot={snapshot?.webApplication} onCommand={command => terminalRef.current?.executeCommand(command)} disabled={busy} />}{scenario.directoryMap && <DirectoryAttackGraph map={scenario.directoryMap} snapshot={snapshot} />}</div>}
+        </section>
+        <CyberLabAI getContext={() => ({ kind: 'lab', title: scenario.title, subtitle: `${scenario.difficulty} · ${scenario.category}`, bodyText: scenario.briefing + '\n' + scenario.objectives.map(item => typeof item === 'string' ? item : `${item.text}\n${item.why ?? ''}`).join('\n'), terminalTranscript: transcriptRef.current })} />
+      </div>
+      {sharing && <ShareWriteupModal entry={entry} onClose={() => setSharing(false)} />}
+    </dialog>, document.body)}
+  </>;
 }

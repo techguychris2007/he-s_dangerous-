@@ -1,0 +1,27 @@
+/* ML portal: sticky module jump bar and uniform lesson cards (same tokens as the room catalog). */
+.ml-jump { position: sticky; top: 0; z-index: 20; display: flex; gap: .4rem; overflow-x: auto; margin: 1.5rem 0 2rem; padding: .6rem; border: 1px solid var(--color-border); border-radius: 12px; background: color-mix(in srgb, var(--color-surface) 94%, transparent); backdrop-filter: blur(10px); scrollbar-width: thin; }
+.ml-jump a { display: inline-flex; align-items: center; gap: .45rem; flex-shrink: 0; padding: .35rem .7rem .35rem .4rem; border: 1px solid var(--color-border); border-radius: 99px; font-size: .78rem; font-weight: 600; white-space: nowrap; color: var(--color-text-dim); background: var(--color-bg); text-decoration: none; }
+.ml-jump a:hover { color: var(--color-heading); border-color: var(--color-accent); }
+.ml-jump b { display: grid; place-items: center; width: 1.35rem; height: 1.35rem; border-radius: 50%; font-family: var(--font-mono); font-size: .7rem; color: #fff; background: var(--color-accent); }
+.ml-jump a[data-done='true'] b { background: var(--color-success); }
+
+.ml-module { margin-bottom: 2.5rem; scroll-margin-top: 5rem; }
+.ml-module__title { display: flex; align-items: center; gap: 1rem; }
+.ml-module__num { font-family: var(--font-mono); font-size: 14px; margin-top: -10%; }
+
+.ml-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: .8rem; }
+.ml-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: start; gap: .8rem; padding: .9rem 1rem; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); text-decoration: none; transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease; }
+.ml-card:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--color-accent) 55%, var(--color-border)); box-shadow: 0 14px 28px -22px var(--color-accent); }
+.ml-card__num { display: grid; place-items: center; width: 2.1rem; height: 2.1rem; border-radius: 9px; font-family: var(--font-mono); font-size: .8rem; font-weight: 700; color: var(--chrome-ink); background: var(--chrome-bg); box-shadow: inset 0 -3px 0 var(--chrome-active); }
+.ml-card[data-done='true'] .ml-card__num { color: #fff; background: var(--color-success); box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--color-success) 60%, #000); }
+.ml-card__body { display: grid; gap: .2rem; min-width: 0; }
+.ml-card__body small { font-family: var(--font-mono); font-size: .7rem; color: var(--color-text-dim); }
+.ml-card__body strong { font-size: .92rem; font-weight: 700; line-height: 1.35; color: var(--color-heading); }
+.ml-card:hover .ml-card__body strong { color: var(--color-accent-dim); }
+.ml-card__tags { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .3rem; }
+.ml-card__tags em { display: inline-flex; align-items: center; gap: .25rem; padding: .1rem .5rem; border-radius: 99px; font-style: normal; font-size: .7rem; font-weight: 600; color: var(--color-text-dim); background: var(--color-surface-2); }
+.ml-card__tags em[data-done='true'] { color: var(--color-success); background: color-mix(in srgb, var(--color-success) 12%, var(--color-surface)); }
+.ml-card__tags em.is-demo { color: var(--color-accent-dim); background: color-mix(in srgb, var(--color-accent) 12%, var(--color-surface)); }
+.ml-card__go { align-self: center; font-weight: 700; color: var(--color-text-dim); }
+.ml-card:hover .ml-card__go { color: var(--color-accent); }
+@media (prefers-reduced-motion: reduce) { .ml-card { transition: none; } .ml-card:hover { transform: none; } }

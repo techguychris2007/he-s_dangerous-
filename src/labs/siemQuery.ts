@@ -39,7 +39,9 @@ export function matchesRecordQuery(entry: SiemEntry | string, query: string): bo
   } catch { /* Most fixtures use key=value text rather than JSON. */ }
   let hasCondition = false;
   let failed = false;
-  let remaining = filter.replace(/([\w.]+)\s*(==|=~|=|:)\s*(?:"([^"]*)"|'([^']*)'|([^\s|()]+))/g, (_, field: string, operator: string, quoted: string, single: string, bare: string) => {
+  const phrases = [...filter.matchAll(/"[^"]*"|'[^']*'/g)].map(match => ({ start: match.index!, end: match.index! + match[0].length }));
+  let remaining = filter.replace(/([\w.]+)\s*(==|=~|=|:)\s*(?:"([^"]*)"|'([^']*)'|([^\s|()]+))/g, (match: string, field: string, operator: string, quoted: string, single: string, bare: string, offset: number) => {
+    if (phrases.some(phrase => offset > phrase.start && offset < phrase.end)) return match;
     hasCondition = true;
     const expected = (quoted ?? single ?? bare).toLowerCase();
     const keys = aliases[field.toLowerCase()] ?? [field.toLowerCase()];

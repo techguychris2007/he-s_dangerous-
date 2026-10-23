@@ -8,11 +8,13 @@ import { modernLinuxLessons, modernWebLessons } from '../content/kali-foundation
 import { exploitationBinaryLessons } from '../content/exploitation-foundations/binary';
 import { exploitationNetworkLessons, exploitationEngineeringLessons, exploitationCryptoLessons } from '../content/exploitation-foundations/network-security';
 import { MODERN_COLLECTION_LESSON_LABS } from './modernCollectionCurriculum';
+import { SE_LESSON_TASKS } from './softwareEngineeringCurriculum';
 
 export const LESSON_LABS: Record<string, string[]> = {
   ...MODERN_COLLECTION_LESSON_LABS,
   ...ADVANCED_LESSON_LABS,
   ...PRE_SECURITY_LESSON_LABS,
+  ...SE_LESSON_TASKS,
   ...DEFENSIVE_LESSON_LABS,
   ...KALI_FOUNDATION_LESSON_LABS,
   ...Object.fromEntries([...modernNetworkingLessons, ...modernLinuxLessons, ...modernWebLessons].map(lesson => [lesson.id, lesson.labs])),

@@ -2,6 +2,8 @@ import type { SiemLabScenario } from './siemTypes';
 import { CLOUTHAUS_BREACH } from './scenarios/siem-narrative-clouthaus';
 import { DEFENSIVE_INVESTIGATIONS } from './scenarios/defensive-investigations';
 import { upgradeDefensiveChain } from './scenarios/defensive-chain-upgrades';
+import { phishingWorkbook } from './scenarios/phishing-workbook';
+import { CASEBOOK_LABS } from './casebooks';
 
 const BASE_SIEM_LABS: SiemLabScenario[] = [
   ...DEFENSIVE_INVESTIGATIONS,
@@ -885,7 +887,7 @@ const BASE_SIEM_LABS: SiemLabScenario[] = [
       { text: 'Confirm the anomalous source region for those API calls and capture the first flag', why: 'API activity using a legitimate key but originating from a region no employee or service ever operates from is the clearest sign the key itself, not the account owner, is what\'s being used.' },
       { text: 'Identify the S3 bucket accessed and the scope of data exposed, then capture the second flag', why: 'Scoping exactly what was reachable with the leaked key is what turns this from "a key was exposed" into a properly quantified breach — 57 million riders and drivers, in the real incident.' },
     ],
-    hints: ['AKIA', 'ap-southeast', 's3://uber-rider-data'],
+    hints: ['AKIA', 'ap-southeast', '"s3://uber-rider-data"'],
     totalFlags: 2,
     entries: [
       { timestamp: '2016-11-01 03:12', eventType: 'CloudAuditLogs', line: 'access_key=AKIAEXAMPLELEAKEDKEY action=ListBuckets source_region=us-east-1 (normal, matches expected ops region)' },
@@ -1370,4 +1372,4 @@ const BASE_SIEM_LABS: SiemLabScenario[] = [
   },
 ];
 
-export const SIEM_LABS: SiemLabScenario[] = BASE_SIEM_LABS.map(upgradeDefensiveChain);
+export const SIEM_LABS: SiemLabScenario[] = [phishingWorkbook, ...CASEBOOK_LABS, ...BASE_SIEM_LABS.map(upgradeDefensiveChain)];

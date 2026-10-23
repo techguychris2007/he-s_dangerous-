@@ -36,7 +36,7 @@ for (const { scenario } of LABS) {
 assert.equal(starterAccessFor(LABS.find(lab => lab.slug === 'privesc-find').scenario), undefined, 'Discovered credentials must stay part of the exercise');
 const firewall = new TerminalEngine(LABS.find(lab => lab.slug === 'guided-pentest-soc-ghcorp-firewall-triage').scenario);
 const flags = [];
-assert.equal(firewall.run('grep -c "DENY" firewall.log', flag => flags.push(flag)).map(line => line.text).join('\n'), '7');
+assert.equal(firewall.run('grep "203.0.113.44" firewall.log | grep -c "DENY"', flag => flags.push(flag)).map(line => line.text).join('\n'), '7');
 assert.equal(flags.length, 0, 'Counting matching lines must not expose hidden proof annotations');
 firewall.run('grep -A 1 "ALLOW" firewall.log', flag => flags.push(flag));
 assert.equal(flags.length, 1, 'Context should expose the neighboring proof annotation');

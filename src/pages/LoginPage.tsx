@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../state/authStore';
 import Logo from '../components/layout/Logo';
 import './entry-pages.css';
+import CharacterAvatar from '../components/characters/CharacterAvatar';
 import { IconUser, IconLock, IconMail } from '../components/layout/icons';
 
 type Mode = 'signin' | 'signup' | 'reset';
@@ -104,6 +105,7 @@ export default function LoginPage() {
           <h2>Build skills<br />that stand up<br /><em>to practice.</em></h2>
           <p>Learn the foundations, work through guided challenges and investigate security incidents in a dedicated learning workspace.</p>
           <ul className="dw-auth-benefits"><li>Structured lessons, from fundamentals onward</li><li>Terminal, coding and investigation labs</li><li>Saved progress and a portfolio of your work</li></ul>
+          <div className="dw-auth-crew"><CharacterAvatar id="sentinel" size={52} decorative /><p><strong>SENTINEL · SOC LEAD</strong>Your desk is ready, operator. Sign in and pick up the case where you left it.</p></div>
         </div>
         <p className="dw-auth-footnote">Purpose-built for learning on your computer.</p>
       </aside>

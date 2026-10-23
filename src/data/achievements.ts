@@ -1,49 +1,12 @@
 import type { ProgressState } from '../state/progressStore';
 import { LABS, LAB_CATEGORIES, labsForCategory, findLab } from './labs';
+import { computeStreak } from './streak';
 
 /** Every quantity here is derived live from existing progress state on every render — nothing new
  *  is persisted except `activityDates` (see progressStore.ts), so this whole system ships with zero
  *  Supabase schema change and can never drift out of sync with the stats it's built on. */
 
-export interface StreakInfo {
-  /** consecutive days of activity ending today or yesterday — 0 if the streak is already broken */
-  current: number;
-  /** the longest run of consecutive-day activity this learner has ever had, even if broken now */
-  longest: number;
-}
-
-function daysBetween(a: string, b: string): number {
-  return Math.round((new Date(b + 'T00:00:00').getTime() - new Date(a + 'T00:00:00').getTime()) / 86_400_000);
-}
-
-export function computeStreak(activityDates: string[]): StreakInfo {
-  if (activityDates.length === 0) return { current: 0, longest: 0 };
-  const sorted = [...new Set(activityDates)].sort();
-
-  let longest = 1;
-  let run = 1;
-  for (let i = 1; i < sorted.length; i++) {
-    run = daysBetween(sorted[i - 1], sorted[i]) === 1 ? run + 1 : 1;
-    longest = Math.max(longest, run);
-  }
-
-  const today = (() => {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  })();
-  const lastActive = sorted[sorted.length - 1];
-  const gapFromToday = daysBetween(lastActive, today);
-  // A streak survives through "haven't logged in yet today" (gap 1) but breaks once a full day was
-  // skipped (gap 2+) — the same grace real streak features (Duolingo etc.) give.
-  if (gapFromToday > 1) return { current: 0, longest };
-
-  let current = 1;
-  for (let i = sorted.length - 1; i > 0; i--) {
-    if (daysBetween(sorted[i - 1], sorted[i]) === 1) current++;
-    else break;
-  }
-  return { current, longest };
-}
+export { computeStreak, FREEZE_EVERY, MAX_FREEZES, type StreakInfo } from './streak';
 
 export interface Achievement {
   id: string;

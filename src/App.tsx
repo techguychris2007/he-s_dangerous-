@@ -202,7 +202,7 @@ function App() {
       <AuthContext.Provider value={auth}>
         <SyncAuthToProgress />
         <ProgressSync />
-        {auth.user && <InstallPrompt />}
+        <InstallPrompt />
         <HashRouter>
           <Routes>
             <Route path="/welcome" element={<IntroPage />} />

@@ -1,0 +1,23 @@
+/* Room tiles and the room catalog banner. Tones are platform tokens: offensive rooms use the accent,
+   defensive rooms gold, analysis/research rooms accent-2. */
+
+.dw-rooms-hero {
+  --room-text: color-mix(in srgb, white 88%, var(--color-navy));
+  --room-dim: color-mix(in srgb, white 60%, var(--color-navy));
+  position: relative;
+  display: grid;
+  gap: 24px;
+  margin-bottom: 24px;
+  padding: 28px clamp(20px, 3vw, 36px);
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--color-navy);
+  color: var(--room-text);
+}
+@media (min-width: 1024px) { .dw-rooms-hero { grid-template-columns: minmax(0, 1fr) 300px; align-items: end; } }
+.dw-rooms-hero__grid { position: absolute; inset: 0; opacity: .5; background-image: linear-gradient(color-mix(in srgb, white 5%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, white 5%, transparent) 1px, transparent 1px); background-size: 28px 28px; pointer-events: none; }
+.dw-rooms-hero > * { position: relative; }
+.dw-rooms-hero h1 { margin: 0 0 8px; font-family: var(--font-display); font-size: clamp(2rem, 4vw, 2.8rem); font-weight: 700; color: white; }
+.dw-rooms-hero p { margin: 0; max-width: 60ch; font-size: 16px; line-height: 1.6; color: var(--room-text); }
+.dw-rooms-hero__stats { display: flex; flex-wrap: wrap; gap: 10px 26px; margin-top: 20px; font-size: 14px; color: var(--room-dim); }
+.dw-r

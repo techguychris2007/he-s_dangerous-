@@ -6,7 +6,10 @@ import { ML_TASKS } from '../labs/mlTasks';
 import { useProgress } from '../state/progressStore';
 import LinearRegressionDemo from '../components/ml/LinearRegressionDemo';
 import KMeansDemo from '../components/ml/KMeansDemo';
-import { IconCheck, IconCode, IconExternal } from '../components/layout/icons';
+import { IconCheck, IconExternal } from '../components/layout/icons';
+import CharacterAvatar from '../components/characters/CharacterAvatar';
+import CodeTaskCard from '../components/code/CodeTaskCard';
+import { codeTaskXp } from '../data/xp';
 import '../components/lesson/lesson-reader.css';
 
 export default function MlLessonPage() {
@@ -56,12 +59,34 @@ export default function MlLessonPage() {
       <div className="reader-progress" role="progressbar" aria-label="Reading progress" aria-valuenow={readingProgress} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${readingProgress}%` }} /></div>
       <div className="reader-layout">
         <main className="min-w-0">
-          <header className="reader-header ml-reader-header">
-            <Link to="/ml-portal" className="reader-back">← Machine Learning Roadmap</Link>
-            <div className="reader-eyebrow">DarkWorld ML Academy <span aria-hidden="true">/</span> Lesson {String(index + 1).padStart(2, '0')}</div>
-            <h1 dangerouslySetInnerHTML={{ __html: lesson.title }} />
-            <p className="reader-summary">Study the idea, follow practical code walkthroughs, and connect each modeling choice to its real effect.</p>
-            <div className="reader-meta"><span>{lesson.source}</span><span>Module lesson {modulePosition} of {moduleLessons.length}</span><span>{challenge ? 'Python lab included' : 'Concept lesson'}</span></div>
+          <header className="reader-room">
+            <nav aria-label="Breadcrumb" className="reader-room__crumbs">
+              <Link to="/ml-portal">ML Portal</Link><span aria-hidden="true"> › </span>
+              <span>{lesson.source}</span><span aria-hidden="true"> › </span>
+              <span aria-current="page" dangerouslySetInnerHTML={{ __html: lesson.title }} />
+            </nav>
+            <div className="reader-room__head">
+              <CharacterAvatar id="beacon" size={84} />
+              <div className="min-w-0">
+                <h1 dangerouslySetInnerHTML={{ __html: lesson.title }} />
+                <p className="reader-room__summary">Study the idea, follow practical code walkthroughs, and connect each modeling choice to its real effect.</p>
+                <ul className="reader-room__meta">
+                  <li>Lesson {String(index + 1).padStart(2, '0')} of {ML_LESSONS.length}</li>
+                  <li>Module lesson {modulePosition} of {moduleLessons.length}</li>
+                  <li>{challenge ? 'Python lab included' : 'Concept lesson'}</li>
+                  {challenge && <li className="reader-room__xp">+{codeTaskXp(0, false)} XP</li>}
+                  {challengeDone && <li className="reader-room__done"><IconCheck className="w-3.5 h-3.5" />Lab solved</li>}
+                </ul>
+              </div>
+            </div>
+            <div className="reader-room__actions">
+              {challenge && <button type="button" onClick={() => jumpTo('ml-python-lab')}>{challengeDone ? 'Review the lab' : 'Jump to the lab'}</button>}
+              <Link to="/ml-portal" className="reader-room__link">Back to the roadmap</Link>
+            </div>
+            <div className="reader-room__progress" role="progressbar" aria-label="Reading progress" aria-valuenow={readingProgress} aria-valuemin={0} aria-valuemax={100}>
+              <span style={{ width: `${readingProgress}%` }} />
+              <b>Room progress: {readingProgress}%</b>
+            </div>
           </header>
 
           <details className="reader-mobile-outline"><summary>In this lesson</summary><nav className="reader-toc">{sections.map(section => <button key={section.id} type="button" onClick={() => jumpTo(section.id)}>{section.heading}</button>)}{challenge && <button type="button" onClick={() => jumpTo('ml-python-lab')}>Python lab</button>}</nav></details>
@@ -84,27 +109,20 @@ export default function MlLessonPage() {
               <p className="reader-eyebrow">Learn by coding</p>
               <h2>Python lab for this concept</h2>
               <p className="reader-summary">Implement the concept in Python, check your results with the tests, and use any failing cases to understand the assumptions behind your code.</p>
-              <Link to={`/code-task/${challenge.id}`} className="premium-card premium-card-hover flex items-center justify-between gap-4 rounded-3xl border border-[var(--color-accent)]/40 bg-[var(--color-accent)]/10 p-5">
-                <div>
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-[var(--color-accent)] uppercase tracking-wide mb-1"><IconCode className="w-3.5 h-3.5" /> Python lab</div>
-                  <div className="font-semibold text-[var(--color-heading)] text-sm">{challenge.title}</div>
-                  <p className="mt-1 text-xs leading-relaxed text-[var(--color-text-dim)]">{challenge.difficulty} · {challenge.category}</p>
-                </div>
-                {challengeDone ? <span className="pill bg-[var(--color-success)]/15 text-[var(--color-success)] flex items-center gap-1 shrink-0"><IconCheck className="w-3 h-3" /> Solved</span> : <span className="text-sm font-semibold text-[var(--color-accent)] shrink-0">Start →</span>}
-              </Link>
+              <CodeTaskCard task={challenge} />
             </section>
           )}
 
           {lesson.resources && lesson.resources.length > 0 && (
-            <section className="ml-resource-panel premium-card rounded-3xl p-5">
+            <section className="ml-resource-panel">
               <p className="reader-eyebrow">Go deeper</p>
               <h2>Real resources for this module</h2>
-              <div className="grid sm:grid-cols-2 gap-3">
+              <div className="grid gap-3 sm:grid-cols-2">
                 {lesson.resources.map((r) => (
-                  <a key={r.url} href={r.url} target="_blank" rel="noopener noreferrer" className="block rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-2)] p-3 hover:border-[var(--color-accent)]/60 transition-colors">
-                    <div className="flex items-center justify-between gap-2 mb-1"><span className="font-semibold text-[var(--color-heading)] text-xs">{r.title}</span><IconExternal className="w-3 h-3 text-[var(--color-text-dim)] shrink-0" /></div>
-                    <span className="pill bg-[var(--color-accent)]/10 text-[var(--color-accent)] text-2xs mb-1.5 inline-block capitalize">{r.kind}</span>
-                    <p className="text-2xs text-[var(--color-text-dim)] leading-relaxed">{r.note}</p>
+                  <a key={r.url} href={r.url} target="_blank" rel="noopener noreferrer" className="ml-resource">
+                    <span className="ml-resource__kind">{r.kind}</span>
+                    <strong>{r.title}<IconExternal className="h-3 w-3 shrink-0" /></strong>
+                    <p>{r.note}</p>
                   </a>
                 ))}
               </div>

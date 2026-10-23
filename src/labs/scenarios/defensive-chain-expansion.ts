@@ -183,7 +183,7 @@ export const ADDITIONAL_DEFENSIVE_CHAINS: Record<string, DefensiveChain> = {
         briefing: 'A service account may reach hosts that an endpoint sensor cannot currently see. Join the positive executions, the authentication pivot and coverage inventory. Keep possible exposure separate from confirmed execution and involve the warehouse owner.',
         records: [
           'source=execution_hunt artifact=branch-update.dat confirmed_hosts=UPDATE-01,BRANCH-02 window=11:02Z-11:08Z',
-          'source=auth_hunt account=svc-tax source=BRANCH-02 destination=WAREHOUSE-01 result=success time=11:06Z remote_execution=unknown',
+          'source=auth_hunt account=svc-tax source_host=BRANCH-02 destination=WAREHOUSE-01 result=success time=11:06Z remote_execution=unknown',
           'source=coverage host=WAREHOUSE-01 endpoint_sensor=offline auth_logs=available dispatch_dependency=critical collection_owner=DFIR_with_logistics',
           'source=dashboard host=WAREHOUSE-01 alerts=0 verdict=clean basis=endpoint_alert_count',
         ], requiredRecordIndexes: [0, 1, 2],
@@ -208,7 +208,7 @@ export const ADDITIONAL_DEFENSIVE_CHAINS: Record<string, DefensiveChain> = {
         id: 'eradicate', title: 'Validate clean builds and identity boundaries', tool: 'elastic',
         briefing: 'A restore can reintroduce the same compromised update or credentials. Inspect the image provenance, patch/hardening assessment and replacement service-account boundary before reconnecting the two confirmed hosts.',
         records: [
-          'source=restore_validation case=IR-W21 hosts=UPDATE-01,BRANCH-02 source=offline_verified_backup image_integrity=passed unsafe_update=excluded restored_in=isolated_network',
+          'source=restore_validation case=IR-W21 hosts=UPDATE-01,BRANCH-02 backup_source=offline_verified_backup image_integrity=passed unsafe_update=excluded restored_in=isolated_network',
           'source=identity_validation case=IR-W21 replacement_account=svc-tax-v2 old_account=disabled privileges=reduced sessions_reviewed=true credential_rotation=complete',
           'source=control_validation case=IR-W21 SMB_patch_assessment=passed remote_admin_scope=restricted update_provenance_check=enabled owner=infrastructure',
           'source=quick_fix case=IR-W21 action=remove_ransom_note image_provenance=unknown controls=untested',

@@ -3,6 +3,8 @@ import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
 import Companion from '../companion/Companion';
+import XpToaster from '../common/XpToaster';
+import HandleWelcome from '../characters/HandleWelcome';
 import '../common/academy.css';
 
 export default function AppLayout() {
@@ -61,6 +63,8 @@ export default function AppLayout() {
         Skip to main content
       </a>
       <Companion />
+      <XpToaster />
+      <HandleWelcome />
       <div
         id="platform-navigation"
         ref={navRef}

@@ -35,7 +35,7 @@ export default function LabLearningBridge({ scenario }: { scenario: { category: 
   const isEnhancedSimulator = Boolean(scenario.preSecurityTool || scenario.webApplication || scenario.directoryMap);
   return (
     <section className="mb-6 rounded-2xl border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/5 p-4">
-      <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-[var(--color-accent-dim)]">How to think about this lab</p>
+      <p className="mb-2 text-2xs font-bold uppercase tracking-widest text-[var(--color-accent-dim)]">How to think about this lab</p>
       <p className="text-sm leading-6 text-[var(--color-text)]">{copy.mentalModel}</p>
       <div className="mt-4 grid gap-3">
         <div>

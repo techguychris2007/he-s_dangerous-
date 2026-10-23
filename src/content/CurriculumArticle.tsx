@@ -39,6 +39,17 @@ export default function CurriculumArticle({ lesson }: { lesson: CurriculumLesson
           {section.code && <CodeBlock label={section.label ?? 'Worked example'}>{section.code}</CodeBlock>}
         </section>
       ))}
+      {lesson.table.rows.length > 0 && (
+        <section aria-labelledby={`${lesson.id}-table`}>
+          <h2 id={`${lesson.id}-table`}>At a glance</h2>
+          <div className="lesson-table-wrap">
+            <table className="lesson-table">
+              <thead><tr>{lesson.table.headers.map(header => <th key={header} scope="col">{header}</th>)}</tr></thead>
+              <tbody>{lesson.table.rows.map(row => <tr key={row.join('|')}>{row.map((cell, index) => index === 0 ? <th key={index} scope="row">{cell}</th> : <td key={index}>{cell}</td>)}</tr>)}</tbody>
+            </table>
+          </div>
+        </section>
+      )}
       <section className="my-8 rounded-2xl border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/5 p-5 sm:p-6">
         <p className="!mt-0 text-xs font-bold uppercase tracking-[0.15em] text-[var(--color-accent)]">Applied practice</p>
         <h2 className="!mt-2">Practice exercise</h2>

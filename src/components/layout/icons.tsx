@@ -532,6 +532,10 @@ const ICONS: Record<string, (p: IconProps) => ReactElement> = {
   mobile: IconMobile,
   chip: IconChip,
   brain: IconBrain,
+  route: IconRoute,
+  layers: IconLayers,
+  refresh: IconRefresh,
+  book: IconBook,
 };
 
 export function ModuleIcon({ icon, className }: { icon: string; className?: string }) {

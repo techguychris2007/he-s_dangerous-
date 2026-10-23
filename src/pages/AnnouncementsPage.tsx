@@ -1,4 +1,4 @@
-import { IconMegaphone } from '../components/layout/icons';
+import WorkspaceHeader from '../components/common/WorkspaceHeader';
 
 interface Announcement {
   date: string;
@@ -41,14 +41,8 @@ const ANNOUNCEMENTS: Announcement[] = [
 
 export default function AnnouncementsPage() {
   return (
-    <div className="max-w-5xl mx-auto px-8 py-14">
-      <div className="gold-eyebrow mb-2">// changelog</div>
-      <h1 className="text-3xl font-bold text-[var(--color-heading)] mb-3 flex items-center gap-3">
-        <IconMegaphone className="w-7 h-7 text-[var(--color-accent)]" /> Announcements
-      </h1>
-      <p className="text-[var(--color-text-dim)] mb-8 leading-relaxed max-w-2xl">
-        What actually changed on the platform, most recent first.
-      </p>
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <WorkspaceHeader eyebrow="Changelog" title="Announcements" guide="beacon" description={<>What actually changed on the platform, most recent first.</>} />
 
       <div className="flex flex-col gap-4">
         {ANNOUNCEMENTS.map((a, i) => (

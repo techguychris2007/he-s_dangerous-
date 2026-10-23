@@ -13,6 +13,7 @@ export const LEARNING_PATHS = [
   { title: 'Offensive security', to: '/roadmap?track=security', track: 'security' },
   { title: 'Defensive security', to: '/roadmap?track=defensive', track: 'defensive' },
   { title: 'Programming', to: '/roadmap?track=programming', track: 'programming' },
+  { title: 'Software engineering', to: '/roadmap?track=software', track: 'software' },
 ] as const;
 export const ACADEMY_DESTINATIONS: AcademyDestination[] = [
   { title: 'Overview', to: '/', group: 'Your workspace', description: 'Your academy dashboard', keywords: 'home dashboard' },
@@ -20,8 +21,8 @@ export const ACADEMY_DESTINATIONS: AcademyDestination[] = [
   { title: 'Learning paths', to: '/roadmap', group: 'Learn', description: 'Explore every cybersecurity learning path', keywords: 'roadmap modules courses' },
   ...LEARNING_PATHS.map(path => ({ title: path.title, to: path.to, group: 'Learning paths', description: 'Open the ' + path.title.toLowerCase() + ' roadmap' })),
   { title: 'Machine learning', to: '/ml-portal', group: 'Learn', description: 'Python, data science and model engineering', keywords: 'ml ai statistics' },
-  { title: 'Lab catalog', to: '/labs', group: 'Practice', description: 'Terminal, website and directory labs', keywords: 'pentest linux kali' },
-  { title: 'SOC investigations', to: '/soc-portal', group: 'Practice', description: 'SIEM casefiles and defensive investigations', keywords: 'blue team sentinel splunk' },
+  { title: 'Rooms', to: '/labs', group: 'Practice', description: 'Hands-on rooms: terminal, website and directory labs', keywords: 'labs catalog pentest linux kali' },
+  { title: 'SOC casebooks', to: '/soc-portal', group: 'Practice', description: 'Season 1 casebooks and SIEM investigations', keywords: 'soc investigations blue team sentinel splunk kql' },
   { title: 'Coding practice', to: '/code-portal', group: 'Practice', description: 'Programming exercises and tests', keywords: 'python javascript cpp code portal' },
   { title: 'Build projects', to: '/build-portal', group: 'Practice', description: 'Software engineering and agentic AI assignments', keywords: 'projects build portal' },
   { title: 'Library', to: '/library', group: 'Reference', description: 'Read and save technical books' },

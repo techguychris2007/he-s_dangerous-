@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { BOOKS, booksInTrack, type Book, type BookTrack } from '../data/books';
 import PortalNavigation from '../components/layout/PortalNavigation';
 import { IconBook, IconCheck, IconDownload, IconExternal, IconSearch, IconX } from '../components/layout/icons';
+import CharacterAvatar from '../components/characters/CharacterAvatar';
 
 type OfflineBookStatus = 'checking' | 'ready' | 'saving' | 'saved' | 'removing' | 'error' | 'unsupported';
 
@@ -171,6 +172,7 @@ export default function LibraryPage() {
         className="portal-masthead relative overflow-hidden border-b border-[var(--color-border)]"
         style={{ background: 'var(--color-navy)' }}
       >
+        <span className="portal-masthead__crew" aria-hidden="true"><CharacterAvatar id="ledger" size={168} decorative /></span>
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
           <div className="text-[var(--color-accent-dim)] font-mono text-xs tracking-[0.2em] uppercase mb-2 sm:mb-3">
             Free, Legally Open Books
@@ -186,19 +188,19 @@ export default function LibraryPage() {
           <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl">
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
               <div className="text-2xl font-black text-white">{books.length}</div>
-              <div className="text-[10px] uppercase tracking-[0.16em] text-white/55">This shelf</div>
+              <div className="text-2xs uppercase tracking-[0.16em] text-white/55">This shelf</div>
             </div>
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
               <div className="text-2xl font-black text-white">{cachedBooks}</div>
-              <div className="text-[10px] uppercase tracking-[0.16em] text-white/55">In-library PDFs</div>
+              <div className="text-2xs uppercase tracking-[0.16em] text-white/55">In-library PDFs</div>
             </div>
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
               <div className="text-2xl font-black text-white">{savedOfflineCount}</div>
-              <div className="text-[10px] uppercase tracking-[0.16em] text-white/55">Saved on device</div>
+              <div className="text-2xs uppercase tracking-[0.16em] text-white/55">Saved on device</div>
             </div>
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
               <div className="text-2xl font-black text-white">{externalBooks}</div>
-              <div className="text-[10px] uppercase tracking-[0.16em] text-white/55">Official sources</div>
+              <div className="text-2xs uppercase tracking-[0.16em] text-white/55">Official sources</div>
             </div>
           </div>
         </div>

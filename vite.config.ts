@@ -9,13 +9,13 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      // Auto-updates the service worker in the background the moment a new build is online,
-      // while still serving the last fully-cached build instantly to anyone currently offline.
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
+      injectRegister: false,
       includeAssets: ['favicon.svg', 'icons/*.png'],
       manifest: {
         name: 'DarkWorld — Cybersecurity Academy',
         short_name: 'DarkWorld',
+        id: '/',
         description:
           'Pre-security foundations, offensive and defensive learning paths, interactive labs, and evidence-based learning portfolios.',
         start_url: '/',
@@ -24,6 +24,11 @@ export default defineConfig({
         background_color: '#0a1420',
         theme_color: '#101827',
         orientation: 'any',
+        shortcuts: [
+          { name: 'My learning', url: '/#/my-learning', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
+          { name: 'Lab catalog', url: '/#/labs', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
+          { name: 'Coding practice', url: '/#/code-portal', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
+        ],
         icons: [
           { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
           { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
@@ -32,9 +37,10 @@ export default defineConfig({
         ],
       },
       workbox: {
+        clientsClaim: true,
         // Precache every hashed build artifact (JS/CSS/fonts) plus the shell + icons, so the whole
         // app boots and runs with zero network requests once a single online visit has completed.
-        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2,ttf}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,webp,ico,woff2,ttf}'],
         navigateFallback: '/index.html',
         // The main bundle passed 2 MiB once @supabase/supabase-js was added, then passed 5 MiB as
         // the Build Portal's SE task catalog (taskIndex.ts — metadata only, but eagerly imported by

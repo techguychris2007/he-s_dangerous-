@@ -1,70 +1,17 @@
 /* One brand system for authenticated pages, public entry pages and standalone portals. */
-:root {
-  --color-bg: #f4f6fb;
-  --color-surface: #ffffff;
-  --color-surface-2: #edf1f9;
-  --color-border: #dde3f0;
-  --color-heading: #0d1220;
-  --color-text: #414863;
-  --color-text-dim: #5f6684;
-  --color-navy: #0d1220;
-  --color-navy-dim: #1a2033;
-  --color-accent: #2563eb;
-  --color-accent-dim: #1d4ed8;
-  --color-accent-2: #9333ea;
-  --color-gold: #a8792f;
-  --color-gold-dim: #8a6323;
-  --color-gold-soft: #a8792f26;
-  --color-ai-text: #12161f;
-}
-:root[data-theme="dark"] {
-  --color-bg: #090c14;
-  --color-surface: #10141f;
-  --color-surface-2: #171c2c;
-  --color-border: #232a42;
-  --color-heading: #f2f4fb;
-  --color-text: #b6bdd6;
-  --color-text-dim: #7e85a3;
-  --color-navy: #141826;
-  --color-navy-dim: #1f2438;
-  --color-accent: #3b9bff;
-  --color-accent-dim: #7ac1ff;
-  --color-accent-2: #b285f7;
-  --color-gold: #c9a15f;
-  --color-gold-dim: #e9c98a;
-  --color-gold-soft: #c9a15f22;
-  --color-ai-text: #4ade80;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --color-bg: #090c14; --color-surface: #10141f; --color-surface-2: #171c2c;
-    --color-border: #232a42; --color-heading: #f2f4fb; --color-text: #b6bdd6;
-    --color-text-dim: #7e85a3; --color-navy: #141826; --color-navy-dim: #1f2438;
-    --color-accent: #3b9bff; --color-accent-dim: #7ac1ff; --color-accent-2: #b285f7;
-    --color-gold: #c9a15f; --color-gold-dim: #e9c98a; --color-gold-soft: #c9a15f22;
-    --color-ai-text: #4ade80;
-  }
-}
+/* Colour tokens live in index.css only (single source of truth); this file used to repeat them, which
+   let the two copies drift apart. */
 body { background: var(--color-bg); color: var(--color-text); }
 .app-shell-bg, .academy-shell, #main-content, .ml-reader { background: var(--color-bg); background-image: none; }
 h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; }
 h1 { letter-spacing: -.035em; }
-.workspace-header h1, .academy-hero h1 { font-family: var(--font-display); font-weight: 650; line-height: 1.15; letter-spacing: -.04em; }
-.workspace-eyebrow, .academy-eyebrow, .reader-eyebrow { color: var(--color-accent-dim); letter-spacing: .12em; }
+
+.academy-eyebrow, .reader-eyebrow { color: var(--color-accent-dim); letter-spacing: .12em; }
 .academy-hero { background: var(--color-surface); color: var(--color-heading); border-color: var(--color-border); border-radius: 12px; }
 .academy-path-art { display: none; }
 .academy-hero-copy > p, .academy-hero-stats span { color: var(--color-text-dim); }
 .academy-hero-stats { border-color: var(--color-border); }
-.academy-resume { background: var(--color-navy); color: #edf4f7; }
-.academy-resume-label { color: var(--color-gold-dim); }
-.academy-resume p { color: #ccdae4; }
-.academy-primary-action { background: var(--color-gold); color: #fff; border-radius: 6px; }
-.academy-primary-action:hover { background: var(--color-gold); }
-:root[data-theme="dark"] .academy-primary-action { background: var(--color-gold-dim); color: #171b27; }
-:root[data-theme="dark"] .academy-primary-action:hover { background: var(--color-gold); }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .academy-primary-action { background: var(--color-gold-dim); color: #171b27; }
-  :root:not([data-theme="light"]) .academy-primary-action:hover { background: var(--color-gold); }
 }
 .premium-card, .stat-card, .reader-briefing-card, .ml-reader-header, .lesson-tool-workflow, .lesson-key-terms {
   background: var(--color-surface); background-image: none;
@@ -77,19 +24,11 @@ h1 { letter-spacing: -.035em; }
 .reader-briefing { gap: 1rem; }
 .reader-briefing-card { padding: 1.25rem; box-shadow: none; }
 .lesson-body, .ml-lesson-body { line-height: 1.85; }
-.prerequisite-primer { padding-bottom: 1.75rem; margin-bottom: 2rem; border-bottom: 1px solid var(--color-border); }
-.prerequisite-primer h3 { margin-top: 1.5rem; font-size: 1.08em; }
 .reader-outline-inner { background: var(--color-surface); border-color: var(--color-border); border-radius: 10px; }
 .ml-lesson-section h2::before { background: var(--color-accent); height: 2px; }
 .task-board-list, .module-catalog, .learning-sequence { border-color: var(--color-border); border-radius: 10px; }
 .task-lab-row, .module-catalog-card { box-shadow: none; }
 .task-lab-row:hover, .module-catalog-card:hover { background: var(--color-surface-2); }
-.lesson-code { background: #0c0d10; border: 1px solid #2b2c30; border-radius: 10px; box-shadow: none; }
-.lesson-code-header { background: #17191e; border-bottom: 1px solid #2b2c30; }
-.lesson-code pre { background: #0c0d10; color: #d8d0c0; }
-.lesson-code-line-number { color: #7a7264; }
-.lesson-code-label { color: #f2c46d; white-space: normal; }
-.lesson-code-status { color: #a99d88; }
 .code-portal-hero, .labs-catalog-hero, .soc-portal-hero { background-image: none; }
 .learning-module-banner { background-image: none; }
 .my-learning-float, .my-learning-float-slow { animation: none; }
@@ -102,24 +41,20 @@ input, select, textarea { accent-color: var(--color-accent); }
   .reader-briefing { grid-template-columns: 1fr; }
 }
 
-.academy-resume-footnote { color: #a7bccb; font-size: .75rem; }
 .academy-shell #main-content { background: var(--color-bg); }
 
-.portal-masthead h1 { font-size: clamp(2.75rem, 5vw, 4rem); font-weight: 650; line-height: 1.15; letter-spacing: -.04em; }
-.portal-masthead { background: var(--color-navy); }
+/* Portal mastheads (SOC, Code, Build, Library, ML): the same navy chrome band as page banners,
+   with headline sizes matched to the rest of the platform. */
+.portal-masthead { isolation: isolate; background: radial-gradient(90% 120% at 100% 0%, color-mix(in srgb, var(--color-accent) 28%, transparent), transparent 60%), var(--chrome-bg) !important; border-color: var(--chrome-line) !important; }
+.portal-masthead::after { content: ""; position: absolute; inset: 0; z-index: -1; opacity: .45; background-image: linear-gradient(var(--chrome-line) 1px, transparent 1px), linear-gradient(90deg, var(--chrome-line) 1px, transparent 1px); background-size: 32px 32px; mask-image: linear-gradient(90deg, transparent 40%, #000); -webkit-mask-image: linear-gradient(90deg, transparent 40%, #000); pointer-events: none; }
+.portal-masthead h1 { font-size: clamp(2rem, 3.4vw, 2.75rem) !important; font-weight: 700; line-height: 1.15; letter-spacing: -.03em; }
+.portal-masthead h1 + p, .portal-masthead p.text-lg { font-size: .98rem !important; line-height: 1.7 !important; color: var(--chrome-text); }
 .portal-masthead [class~="text-[var(--color-gold-dim)]"],
-.portal-masthead [class~="text-[var(--color-accent)]"] { color: var(--color-gold); }
-
-:root {
-  --term-bg: #0c0d10;
-  --term-output: #d8d0c0;
-  --term-input: #f2c46d;
-  --term-system: #e8a33d;
-  --term-muted: #7a7264;
-  --term-error: #ff6b5e;
-  --term-error-text: #ff8a7a;
-  --term-success: #7ee081;
-}
+.portal-masthead [class~="text-[var(--color-gold)]"],
+.portal-masthead [class~="text-[var(--color-accent)]"],
+.portal-masthead [class~="text-[var(--color-accent-dim)]"] { color: var(--chrome-highlight); }
+.portal-masthead__guide { position: absolute; right: max(2rem, calc((100vw - 72rem) / 2)); bottom: 0; z-index: 0; height: 88%; max-height: 330px; width: auto; pointer-events: none; mix-blend-mode: lighten; -webkit-mask-image: radial-gradient(ellipse 50% 60% at 50% 45%, #000 60%, transparent 100%); mask-image: radial-gradient(ellipse 50% 60% at 50% 45%, #000 60%, transparent 100%); }
+@media (max-width: 1180px) { .portal-masthead__guide { display: none; } }
 
 .reveal { animation: none; opacity: 1; transform: none; }
 .academy-shell #platform-navigation aside,
@@ -131,16 +66,6 @@ input, select, textarea { accent-color: var(--color-accent); }
 .academy-shell .ml-reader {
   background: var(--color-bg);
   background-image: none;
-}
-.academy-shell .ml-reader-header,
-.academy-shell .ml-lesson-body {
-  background: var(--color-surface);
-  border-color: var(--color-border);
-  border-radius: 12px;
-  box-shadow: var(--shadow-card);
-}
-.academy-shell .ml-lesson-body {
-  padding: clamp(1.25rem, 3vw, 2.5rem);
 }
 .academy-shell .ml-lesson-body .prose-hh a,
 .academy-shell .lesson-body .prose-hh a {
@@ -160,6 +85,5 @@ input, select, textarea { accent-color: var(--color-accent); }
   border-color: var(--color-border);
   border-radius: 10px;
 }
-@media (max-width: 700px) {
-  .academy-shell .ml-lesson-body { padding: 1.125rem; }
-}
+.portal-masthead__crew { position: absolute; top: 50%; right: max(2.5rem, calc((100vw - 72rem) / 2)); z-index: 0; transform: translateY(-50%); filter: drop-shadow(0 18px 30px #0009); pointer-events: none; }
+@media (max-width: 1180px) { .portal-masthead__crew { display: none; } }

@@ -16,7 +16,7 @@ export default function AchievementShelf({ achievements, total }: AchievementShe
     <section className="mb-10 overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[0_8px_24px_rgba(15,23,42,.045)]">
       <div className="flex flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-5">
         <div>
-          <p className="mb-1 text-[10px] font-black uppercase tracking-[.18em] text-[var(--color-accent)]">Learning record</p>
+          <p className="mb-1 text-2xs font-black uppercase tracking-[.18em] text-[var(--color-accent)]">Learning record</p>
           <h2 className="text-base font-bold tracking-[-.02em] text-[var(--color-heading)]">Achievements</h2>
         </div>
         <div className="flex items-center gap-3">
@@ -47,7 +47,7 @@ export default function AchievementShelf({ achievements, total }: AchievementShe
                   <IconCheck className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-success)]" />
                 </div>
                 <p className="mt-1 line-clamp-2 text-xs leading-5 text-[var(--color-text-dim)]">{achievement.description}</p>
-                <p className="mt-2 text-[9px] font-black uppercase tracking-[.14em] text-[var(--color-accent)]">Awarded</p>
+                <p className="mt-2 text-2xs font-black uppercase tracking-[.14em] text-[var(--color-accent)]">Awarded</p>
               </div>
             </article>
           ))}

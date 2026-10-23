@@ -1,12 +1,9 @@
 import { useEffect, useRef } from 'react';
-import Editor, { type Monaco } from '@monaco-editor/react';
+import Editor from '@monaco-editor/react';
 import type { editor as MonacoEditorNs } from 'monaco-editor';
 import type { ProjectFile } from '../../labs/projectTypes';
 import { javascriptDefaults } from '../../lib/monacoLoader';
-
-function readVsTheme(): 'vs-dark' | 'vs' {
-  return document.documentElement.dataset.theme === 'light' ? 'vs' : 'vs-dark';
-}
+import { EDITOR_OPTIONS, THEME, defineEditorTheme } from './editorTheme';
 
 interface MonacoProjectEditorProps {
   /** The files to load when this component MOUNTS. Deliberately not re-read after mount — the parent
@@ -23,7 +20,6 @@ interface MonacoProjectEditorProps {
 /** Multi-file Monaco editor: one real model per file (Monaco's own multi-model API, not N separate
  *  editor instances), switched via `activePath` while preserving cursor/scroll/undo per file. */
 export default function MonacoProjectEditor({ initialFiles, activePath, onFileChange, disabled }: MonacoProjectEditorProps) {
-  const monacoRef = useRef<Monaco | null>(null);
   const editorRef = useRef<MonacoEditorNs.IStandaloneCodeEditor | null>(null);
   const modelsRef = useRef<Map<string, MonacoEditorNs.ITextModel>>(new Map());
   const viewStatesRef = useRef<Map<string, MonacoEditorNs.ICodeEditorViewState | null>>(new Map());
@@ -52,18 +48,6 @@ export default function MonacoProjectEditor({ initialFiles, activePath, onFileCh
   }, [activePath]);
 
   useEffect(() => {
-    // Repaint on theme toggle — deliberately NOT calling this app's own useTheme() hook here (it's
-    // local component state, not a shared store; a second instance would just drift out of sync with
-    // the header's, not stay in sync with it). Watching the DOM attribute the hook itself writes is
-    // the one source of truth every consumer can observe consistently.
-    const observer = new MutationObserver(() => {
-      monacoRef.current?.editor.setTheme(readVsTheme());
-    });
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
     // Dispose every model this instance created — skipping this leaks memory across a browsing
     // session and is exactly what causes a later "model already exists" error if a URI got reused.
     // The Map's identity never changes after this ref is created, so capturing it here (rather than
@@ -78,20 +62,19 @@ export default function MonacoProjectEditor({ initialFiles, activePath, onFileCh
 
   return (
     <Editor
-      theme={readVsTheme()}
+      theme={THEME}
+      beforeMount={defineEditorTheme}
+      loading={<div className="grid h-full place-items-center font-mono text-xs text-[var(--chrome-muted)]">Loading editor&hellip;</div>}
       options={{
-        fontSize: 13,
-        fontFamily: "ui-monospace, 'SF Mono', 'Cascadia Code', Consolas, monospace",
-        minimap: { enabled: false },
-        automaticLayout: true,
+        ...EDITOR_OPTIONS,
+        fontSize: 14,
+        lineHeight: 22,
         readOnly: disabled,
-        scrollBeyondLastLine: false,
-        renderLineHighlight: 'gutter',
         tabSize: initialFiles.find((f) => f.path === activePath)?.language === 'python' ? 4 : 2,
       }}
       onMount={(editor, monaco) => {
         editorRef.current = editor;
-        monacoRef.current = monaco;
+        monaco.editor.setTheme(THEME);
 
         // JS/TS diagnostics would otherwise red-squiggle every reference to a global the test harness
         // provides (check/checkText/require/etc.) that isn't declared anywhere in the file itself.

@@ -4,7 +4,7 @@ import { findModule, ROADMAP } from '../data/curriculum';
 import { labsForLesson } from '../data/lessonLabs';
 import { useProgress } from '../state/progressStore';
 import type { ModuleMeta, LessonMeta } from '../types';
-import Quiz from '../components/lesson/Quiz';
+import LessonTasks from '../components/lesson/LessonTasks';
 import PrerequisitePrimer from '../components/lesson/PrerequisitePrimer';
 import LessonLabCard from '../components/lesson/LessonLabCard';
 import CodeTaskCard from '../components/code/CodeTaskCard';
@@ -13,6 +13,9 @@ import { SIEM_LABS } from '../labs/siemScenarios';
 import { PYTHON_TASKS } from '../labs/pythonTasks';
 import CyberLabAI from '../components/labs/CyberLabAI';
 import { IconCheck } from '../components/layout/icons';
+import CharacterAvatar from '../components/characters/CharacterAvatar';
+import { guideForArea } from '../data/characters';
+import { LESSON_XP, QUIZ_MAX_XP } from '../data/levels';
 import '../components/lesson/lesson-reader.css';
 
 type Heading = { id: string; title: string; level: number };
@@ -34,8 +37,8 @@ function LessonReader({ mod, lesson }: { mod: ModuleMeta; lesson: LessonMeta }) 
   const [readingProgress, setReadingProgress] = useState(0);
   const [wide, setWide] = useState(false);
   const [fontSize, setFontSize] = useState(() => {
-    try { const size = Number(localStorage.getItem('darkworld.reader.fontSize')); return [16, 18, 20].includes(size) ? size : 16; }
-    catch { return 16; }
+    try { const size = Number(localStorage.getItem('darkworld.reader.fontSize')); return [17, 19, 21].includes(size) ? size : 17; }
+    catch { return 17; }
   });
   const idx = mod.lessons.indexOf(lesson);
   const prev = mod.lessons[idx - 1];
@@ -105,20 +108,37 @@ function LessonReader({ mod, lesson }: { mod: ModuleMeta; lesson: LessonMeta }) 
         <div className="reader-progress" role="progressbar" aria-label="Reading progress" aria-valuenow={readingProgress} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${readingProgress}%` }} /></div>
         <div className={`reader-layout ${wide ? 'reader-layout-wide' : ''}`}>
           <div className="min-w-0">
-            <header className="reader-header">
-              <Link to={`/module/${mod.slug}`} className="reader-back">← {mod.title}</Link>
-              <div className="reader-eyebrow">DarkWorld Academy <span aria-hidden="true">/</span> Lesson {String(idx + 1).padStart(2, '0')}</div>
-              <h1>{lesson.title}</h1>
-              <p className="reader-summary">{lesson.summary}</p>
-              <div className="reader-meta"><span>{lesson.minutes} min study</span><span>{labSlugs.length} practice {labSlugs.length === 1 ? 'lab' : 'labs'}</span><span>{complete ? 'Completed' : 'In progress'}</span></div>
-              {lesson.objectives?.length ? <div className="reader-briefing">
-                {lesson.objectives?.length ? <div className="reader-briefing-card"><span>You will be able to</span><ul>{lesson.objectives.map(item => <li key={item}>{item}</li>)}</ul></div> : null}
-              </div> : null}
-              <div className="reader-controls">
-                <label>Text size <select aria-label="Lesson text size" value={fontSize} onChange={event => { const size = Number(event.target.value); setFontSize(size); try { localStorage.setItem('darkworld.reader.fontSize', String(size)); } catch { /* Reading remains available without storage. */ } }}><option value={16}>Standard</option><option value={18}>Large</option><option value={20}>Extra large</option></select></label>
-                <button aria-pressed={wide} onClick={() => setWide(current => !current)}>{wide ? 'Show outline' : 'Focus reading'}</button>
+            <header className="reader-room">
+              <nav aria-label="Breadcrumb" className="reader-room__crumbs">
+                <Link to={`/roadmap?track=${track}`}>Roadmap</Link><span aria-hidden="true"> › </span>
+                <Link to={`/module/${mod.slug}`}>{mod.title}</Link><span aria-hidden="true"> › </span>
+                <span aria-current="page">{lesson.title}</span>
+              </nav>
+              <div className="reader-room__head">
+                <CharacterAvatar id={guideForArea(mod.slug)} size={84} />
+                <div className="min-w-0">
+                  <h1>{lesson.title}</h1>
+                  <p className="reader-room__summary">{lesson.summary}</p>
+                  <ul className="reader-room__meta">
+                    <li>Lesson {idx + 1} of {mod.lessons.length}</li>
+                    <li>~{lesson.minutes} min</li>
+                    {labSlugs.length > 0 && <li>{labSlugs.length} practice {labSlugs.length === 1 ? 'lab' : 'labs'}</li>}
+                    <li className="reader-room__xp">+{LESSON_XP + (lesson.quiz?.length ? QUIZ_MAX_XP : 0)} XP</li>
+                    {complete && <li className="reader-room__done"><IconCheck className="w-3.5 h-3.5" />Completed</li>}
+                  </ul>
+                </div>
+              </div>
+              <div className="reader-room__actions">
+                <button type="button" onClick={() => jumpTo('lesson-checkpoint')}>{complete ? 'Review checkpoint' : 'Jump to questions'}</button>
+                <button type="button" aria-pressed={wide} onClick={() => setWide(current => !current)}>{wide ? 'Show outline' : 'Focus reading'}</button>
+                <label>Text size <select aria-label="Lesson text size" value={fontSize} onChange={event => { const size = Number(event.target.value); setFontSize(size); try { localStorage.setItem('darkworld.reader.fontSize', String(size)); } catch { /* Reading remains available without storage. */ } }}><option value={17}>Standard</option><option value={19}>Large</option><option value={21}>Extra large</option></select></label>
+              </div>
+              <div className="reader-room__progress" role="progressbar" aria-label="Room progress" aria-valuenow={complete ? 100 : readingProgress} aria-valuemin={0} aria-valuemax={100}>
+                <span style={{ width: `${complete ? 100 : readingProgress}%` }} />
+                <b>Room progress: {complete ? 100 : readingProgress}%</b>
               </div>
             </header>
+            {lesson.objectives?.length ? <section className="reader-objectives" aria-label="Learning objectives"><h2>What you will be able to do</h2><ul>{lesson.objectives.map(item => <li key={item}>{item}</li>)}</ul></section> : null}
             <details className="reader-mobile-outline"><summary>In this lesson</summary>{tableOfContents}</details>
             <div ref={contentRef} className="lesson-body">
               <PrerequisitePrimer moduleSlug={mod.slug} prerequisite={lesson.prerequisite} />
@@ -140,8 +160,9 @@ function LessonReader({ mod, lesson }: { mod: ModuleMeta; lesson: LessonMeta }) 
                 return <LessonLabCard key={slug} labSlug={slug} />;
               })}
             </section>}
-            <section id="lesson-checkpoint" tabIndex={-1} aria-label="Knowledge checkpoint">
-              {lesson.quiz?.length ? <Quiz questions={lesson.quiz} onComplete={score => { const ratio = score / lesson.quiz!.length; progress.recordQuizScore(lesson.id, Math.round(ratio * 100)); if (ratio >= 0.7) progress.completeLesson(lesson.id); }} /> : <button onClick={() => progress.completeLesson(lesson.id)} disabled={complete} className="reader-complete"><IconCheck className="w-4 h-4" />{complete ? 'Lesson completed' : 'Mark lesson complete'}</button>}
+            <section id="lesson-checkpoint" tabIndex={-1} aria-labelledby="lesson-checkpoint-title" className="reader-questions">
+              <h2 id="lesson-checkpoint-title" className="sr-only">Answer the questions below</h2>
+              <LessonTasks lesson={lesson} labSlugs={labSlugs} />
             </section>
             <nav aria-label="Previous and next lessons" className="reader-pagination">
               {prev ? <Link to={`/module/${mod.slug}/lesson/${prev.slug}`}><span>Previous lesson</span>{prev.title}</Link> : <Link to={`/module/${mod.slug}`}><span>Back to module</span>{mod.title}</Link>}

@@ -2,8 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../state/authStore';
 import { submitFeedback, fetchMyFeedback, type FeedbackCategory, type FeedbackEntry } from '../lib/feedback';
-import { IconMail, IconCheck } from '../components/layout/icons';
+import { IconCheck } from '../components/layout/icons';
 import { SkeletonList } from '../components/common/Skeleton';
+import WorkspaceHeader from '../components/common/WorkspaceHeader';
 
 const CATEGORIES: { value: FeedbackCategory; label: string; hint: string }[] = [
   { value: 'bug', label: 'Bug report', hint: 'Something broke, looked wrong, or a lab/lesson didn\'t behave as described.' },
@@ -65,15 +66,8 @@ export default function FeedbackPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-8 py-8 sm:py-14">
-      <div className="gold-eyebrow mb-2">// tell us what's not working</div>
-      <h1 className="text-3xl font-bold text-[var(--color-heading)] mb-3 flex items-center gap-3">
-        <IconMail className="w-7 h-7 text-[var(--color-accent)]" /> Feedback
-      </h1>
-      <p className="text-[var(--color-text-dim)] mb-8 leading-relaxed max-w-2xl">
-        Found a bug, spotted something wrong in a lesson or lab, or have an idea? This goes straight into a
-        real inbox tied to your account — not a mailto link that might go nowhere.
-      </p>
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <WorkspaceHeader eyebrow="Support" title="Feedback" guide="byte" description={<>Found a bug, spotted something wrong in a lesson or lab, or have an idea? This goes straight into a real inbox tied to your account — not a mailto link that might go nowhere.</>} />
 
       <form onSubmit={submit} className="premium-card rounded-2xl p-5 mb-8">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">

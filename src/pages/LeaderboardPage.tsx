@@ -3,7 +3,14 @@ import { useProgress } from '../state/progressStore';
 import { useAuth } from '../state/authStore';
 import { fetchLeaderboard, computeLabPoints, type LeaderboardEntry } from '../lib/leaderboard';
 import { LABS } from '../data/labs';
-import { IconTrophy, IconFlag, IconCrown, IconUser } from '../components/layout/icons';
+import { IconFlag, IconCrown, IconUser } from '../components/layout/icons';
+import { LeagueCard, LeagueChip } from '../components/common/LeagueChip';
+import CharacterSays from '../components/characters/CharacterSays';
+import Podium from '../components/common/Podium';
+import WorkspaceHeader from '../components/common/WorkspaceHeader';
+import { OperatorAvatar } from '../components/characters/CharacterAvatar';
+import { useHandle } from '../state/useHandle';
+import { cyberHandle } from '../data/handles';
 
 /** Rank-specific ring/badge treatment for the top 3 — everyone else gets the same plain numbered
  *  badge as before. Colors reuse the existing gold-accent tokens for #1 (this app's one established
@@ -50,8 +57,7 @@ export default function LeaderboardPage() {
   const auth = useAuth();
   const [entries, setEntries] = useState<LeaderboardEntry[] | null | undefined>(undefined);
 
-  // ✅ Safe fallback for initial if learnerName is null or empty
-  const initial = (progress.learnerName || 'Anonymous').trim().charAt(0).toUpperCase() || '?';
+  const { seed: handleSeed, handle } = useHandle();
 
   useEffect(() => {
     fetchLeaderboard().then(setEntries);
@@ -75,15 +81,8 @@ export default function LeaderboardPage() {
   const yourRank = ranked.findIndex((e) => e.userId === auth.user?.id);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-14">
-      <div className="gold-eyebrow mb-1.5 sm:mb-2">// where you stand</div>
-      <h1 className="text-3xl sm:text-5xl font-black tracking-[-0.05em] text-[var(--color-heading)] mb-2 sm:mb-3 flex items-center gap-2.5 sm:gap-3">
-        <IconTrophy className="w-6 h-6 sm:w-7 sm:h-7 text-[var(--color-accent)] shrink-0" /> Leaderboard
-      </h1>
-      <p className="text-xs sm:text-sm text-[var(--color-text-dim)] leading-relaxed mb-6 max-w-xl">
-        Ranked by lab points — every captured flag counts, weighted by difficulty. Entirely opt-in: your
-        name and score only ever appear here if you turn it on below.
-      </p>
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <WorkspaceHeader eyebrow="Community" title="Leaderboard" guide="vex" description={<>Ranked by lab points — every captured flag counts, weighted by difficulty. Entirely opt-in: your name and score only ever appear here if you turn it on below.</>} />
 
       <label className="flex items-start gap-3 premium-card rounded-2xl p-4 mb-8 cursor-pointer hover:border-[var(--color-accent)]/40 transition-colors">
         <input
@@ -98,6 +97,8 @@ export default function LeaderboardPage() {
           if you turn this on. Your progress stays private otherwise.
         </span>
       </label>
+
+      <LeagueCard points={points} />
 
       {progress.leaderboardOptIn && yourRank >= 0 && (
         <div className="rounded-xl border border-[var(--color-accent)]/40 bg-[var(--color-accent)]/5 px-4 py-3 mb-6 flex items-center gap-2.5 text-sm">
@@ -117,30 +118,31 @@ export default function LeaderboardPage() {
             Live leaderboard is unavailable right now (offline, or this Supabase project hasn't run the
             leaderboard migration yet) — showing just your own progress.
           </div>
-          <YouCard initial={initial} name={progress.learnerName || 'Learner'} labsCompleted={labsCompleted} points={points} />
+          <YouCard seed={handleSeed} name={handle} labsCompleted={labsCompleted} points={points} />
         </>
       )}
 
       {entries !== undefined && entries !== null && (
         <>
           {ranked.length === 0 ? (
-            <div className="premium-card rounded-2xl border-dashed bg-[var(--color-surface)] p-8 mb-6 flex flex-col items-center text-center gap-2">
-              <span className="w-12 h-12 rounded-full bg-[var(--color-accent)]/10 flex items-center justify-center mb-1">
-                <IconTrophy className="w-6 h-6 text-[var(--color-accent)]" />
-              </span>
+            <div className="premium-card rounded-2xl border-dashed bg-[var(--color-surface)] p-8 mb-6 flex flex-col items-center text-center gap-3">
               <div className="font-bold text-[var(--color-heading)]">No one's opted in yet</div>
               <p className="text-sm text-[var(--color-text-dim)] max-w-sm">
                 Flip on "Show me on the leaderboard" above and you'll be the very first name here.
               </p>
+              <CharacterSays id="wraith" size={44} className="text-left">An empty board. I'll take first place, then.</CharacterSays>
             </div>
           ) : (
+            <>
+            {ranked.length >= 3 && <Podium top={ranked.slice(0, 3)} youId={auth.user?.id} />}
             <div className="flex flex-col gap-2 mb-6">
               {ranked.map((e, i) => {
+                // The podium already shows the top three; the list picks up from #4.
+                if (ranked.length >= 3 && i < 3) return null;
                 const isYou = e.userId === auth.user?.id;
                 const rank = i + 1;
                 const medal = RANK_STYLE[rank];
-                const displayName = e.displayName || 'Anonymous';
-                const avatarChar = displayName.trim().charAt(0).toUpperCase() || '?';
+                const displayName = e.displayName || cyberHandle(e.userId);
 
                 return (
                   <div
@@ -156,17 +158,16 @@ export default function LeaderboardPage() {
                     >
                       {rank === 1 ? <IconCrown className="w-4 h-4" /> : rank}
                     </span>
-                    <span
-                      className={`w-11 h-11 rounded-full bg-[var(--color-accent)] text-white text-base font-bold flex items-center justify-center shrink-0 ${medal?.ring ?? ''}`}
-                    >
-                      {avatarChar}
+                    <span className={`rounded-full shrink-0 ${medal?.ring ?? ''}`}>
+                      <OperatorAvatar seed={e.userId} size={44} />
                     </span>
                     <div className="flex-1 min-w-0">
                       <div className="font-bold text-[var(--color-heading)] truncate">
                         {displayName}
                         {isYou && <span className="ml-2 text-xs font-semibold text-[var(--color-accent)]">(you)</span>}
                       </div>
-                      <div className="text-xs text-[var(--color-text-dim)] flex items-center gap-1.5">
+                      <div className="text-xs text-[var(--color-text-dim)] flex items-center gap-1.5 flex-wrap">
+                        <LeagueChip points={e.points} />
                         <IconFlag className="w-3 h-3" /> {e.labsCompleted}/{LABS.length} labs completed
                       </div>
                     </div>
@@ -178,6 +179,7 @@ export default function LeaderboardPage() {
                 );
               })}
             </div>
+            </>
           )}
 
           {!progress.leaderboardOptIn && (
@@ -185,7 +187,7 @@ export default function LeaderboardPage() {
               <div className="text-xs font-bold uppercase tracking-wide text-[var(--color-text-dim)] mb-2">
                 Your progress (not shown to others)
               </div>
-              <YouCard initial={initial} name={progress.learnerName || 'Learner'} labsCompleted={labsCompleted} points={points} />
+              <YouCard seed={handleSeed} name={handle} labsCompleted={labsCompleted} points={points} />
             </>
           )}
         </>
@@ -194,12 +196,10 @@ export default function LeaderboardPage() {
   );
 }
 
-function YouCard({ initial, name, labsCompleted, points }: { initial: string; name: string | null; labsCompleted: number; points: number }) {
+function YouCard({ seed, name, labsCompleted, points }: { seed: string; name: string | null; labsCompleted: number; points: number }) {
   return (
     <div className="premium-card rounded-2xl p-6 flex items-center gap-5">
-      <span className="w-14 h-14 rounded-full bg-[var(--color-accent)] text-white text-xl font-bold flex items-center justify-center shrink-0">
-        {initial}
-      </span>
+      <OperatorAvatar seed={seed} size={56} className="shrink-0" />
       <div className="flex-1 min-w-0">
         <div className="font-bold text-[var(--color-heading)] truncate">{name || 'Learner'}</div>
         <div className="text-xs text-[var(--color-text-dim)] flex items-center gap-1.5">

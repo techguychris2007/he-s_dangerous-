@@ -6,6 +6,8 @@ import { useProgress } from '../../state/progressStore';
 import { useTheme } from '../../state/theme';
 import { useSyncStatus } from '../../state/syncStatus';
 import { IconMenu, IconSun, IconMoon, IconBell, IconCheck, IconFlag } from './icons';
+import InstallAppButton from './InstallAppButton';
+import LevelHud from '../common/LevelHud';
 
 /** completedLessons is keyed by lesson id, not slug — there's no direct id lookup in curriculum.ts,
  *  so this scans once. Fine at this scale (a few hundred lessons total, called from a useMemo). */
@@ -42,11 +44,11 @@ function usePageTitle(): string {
   const parts = pathname.split('/').filter(Boolean);
 
   if (parts.length === 0) return 'Dashboard';
-  if (parts[0] === 'labs') return 'Labs';
+  if (parts[0] === 'labs') return 'Rooms';
   if (parts[0] === 'progress') return 'Progress';
   if (parts[0] === 'roadmap') return 'Roadmap';
   if (parts[0] === 'my-learning') return 'My Learning';
-  if (parts[0] === 'lab') return labsData?.findLab(parts[1])?.scenario.title ?? 'Lab';
+  if (parts[0] === 'lab') return labsData?.findLab(parts[1])?.scenario.title ?? 'Room';
   if (parts[0] === 'module' && parts[2] === 'lesson') {
     return findLesson(parts[1], parts[3])?.lesson.title ?? 'Lesson';
   }
@@ -118,12 +120,14 @@ export default function TopBar({ onMenuClick, menuOpen = false }: { onMenuClick:
         <IconMenu className="w-5 h-5" />
       </button>
       <div className="min-w-0 flex-1">
-        <div className="text-[10px] font-black uppercase tracking-[0.22em] text-[var(--color-accent-dim)]">DarkWorld Platform</div>
-        <div className="text-sm sm:text-lg font-black tracking-[-0.03em] text-[var(--color-heading)] truncate">{title}</div>
+        <div className="hidden sm:block text-2xs font-bold uppercase tracking-[0.18em] text-[var(--color-accent-dim)]">DarkWorld Platform</div>
+        <div className="text-base sm:text-lg font-bold tracking-[-0.02em] text-[var(--color-heading)] truncate">{title}</div>
       </div>
 
       <div className="ml-auto flex items-center gap-1 sm:gap-1.5 shrink-0">
-        {sync !== 'idle' && <span role="status" title={sync === 'local' ? 'Progress is saved on this device. Cloud sync will retry.' : 'Account progress sync'} className={`hidden md:inline-flex items-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1 mr-2 text-[10px] font-bold ${sync === 'local' ? 'text-[var(--color-warn)]' : 'text-[var(--color-text-dim)]'}`}>{sync === 'local' ? 'Saved locally' : sync === 'loading' ? 'Loading…' : sync === 'saving' ? 'Saving…' : 'Synced'}</span>}
+        <InstallAppButton />
+        <LevelHud />
+        {sync !== 'idle' && <span role="status" title={sync === 'local' ? 'Progress is saved on this device. Cloud sync will retry.' : 'Account progress sync'} className={`hidden md:inline-flex items-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1 mr-2 text-2xs font-bold ${sync === 'local' ? 'text-[var(--color-warn)]' : 'text-[var(--color-text-dim)]'}`}>{sync === 'local' ? 'Saved locally' : sync === 'loading' ? 'Loading…' : sync === 'saving' ? 'Saving…' : 'Synced'}</span>}
         <button
           onClick={toggle}
           title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}

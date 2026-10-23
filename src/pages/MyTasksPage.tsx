@@ -60,7 +60,7 @@ export default function MyTasksPage() {
 
   return (
     <div className="task-board max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-14">
-      <WorkspaceHeader eyebrow="DarkWorld / Practice desk" title="Practice tasks" description="Find a challenge, follow the evidence, and build confidence through hands-on practice. Your saved work and progress are always close by."><strong>{counts.completed} / {counts.all}</strong><span>terminal labs completed</span></WorkspaceHeader>
+      <WorkspaceHeader eyebrow="Practice desk" guide="byte" title="Practice tasks" description="Find a challenge, follow the evidence, and build confidence through hands-on practice. Your saved work and progress are always close by."><strong>{counts.completed} / {counts.all}</strong><span>terminal labs completed</span></WorkspaceHeader>
       <div className="mb-5 flex flex-wrap items-center gap-3"><input type="search" aria-label="Search tasks" placeholder="Search labs, categories, or difficulty…" value={search} onChange={event => {setSearch(event.target.value); setVisibleCount(PAGE_SIZE);}} className="min-w-0 flex-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm text-[var(--color-heading)]" /><button aria-pressed={savedOnly} onClick={() => {setSavedOnly(value => !value);setVisibleCount(PAGE_SIZE);}} className="rounded-lg border border-[var(--color-border)] px-4 py-3 text-sm text-[var(--color-heading)]">{savedOnly ? 'Saved labs only ✓' : 'Show saved labs'}</button></div>
       <div className="task-board-filters">
         {(

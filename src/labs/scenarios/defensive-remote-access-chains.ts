@@ -261,7 +261,7 @@ export const REMOTE_ACCESS_CHAINS: Record<string, DefensiveChain> = {
         "briefing": "A VPN tunnel provides a network path but does not by itself prove host compromise. Link the assigned address, destination authentication and process execution using session context and times.",
         "records": [
           "source=tunnel_assignment session=V-61 account=legacy-ops address=10.31.6.11 window=21:10Z-21:40Z",
-          "source=host_logon host=BILL-03 session=L-61 source=10.31.6.11 account=legacy-ops type=remote_interactive time=21:13Z",
+          "source=host_logon host=BILL-03 session=L-61 src_ip=10.31.6.11 account=legacy-ops type=remote_interactive time=21:13Z",
           "source=process_start host=BILL-03 logon_session=L-61 image=unknown-helper.exe path=C:/ProgramData/cache-helper.exe approved_change=none time=21:14Z",
           "source=host_logon host=TEST-03 session=L-62 account=oncall-admin change=CH-71 time=10:00Z"
         ],
@@ -383,7 +383,7 @@ export const REMOTE_ACCESS_CHAINS: Record<string, DefensiveChain> = {
         "tool": "elastic",
         "briefing": "Review the rebuild and remote-access policy tests. Adding MFA enrollment does not prove enforcement; test the actual access path and ensure retired identities cannot use fallback exceptions.",
         "records": [
-          "source=restore_receipt case=IR-V61 host=BILL-03 source=BK-60 trusted_image=verified unsafe_artifact=absent restore_network=isolated",
+          "source=restore_receipt case=IR-V61 host=BILL-03 backup_id=BK-60 trusted_image=verified unsafe_artifact=absent restore_network=isolated",
           "source=policy_test case=IR-V61 retired_account=denied new_access=approved_named_identity MFA_enforcement=passed managed_device_gate=passed exception_inventory=reviewed",
           "source=policy_proposal case=IR-V61 action=invite_users_to_enroll_MFA enforcement=not_tested",
           "source=quick_fix host=BILL-03 action=delete_ransom_note trust_validation=none"

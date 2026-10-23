@@ -3,12 +3,16 @@ import { Link } from 'react-router-dom';
 import { findModule } from '../data/curriculum';
 import { DEFENSIVE_MODULES } from '../data/defensiveCurriculum';
 import { SIEM_LABS } from '../labs/siemScenarios';
+import { CASEBOOK_LABS } from '../labs/casebooks';
 import { labsForCategory } from '../data/labs';
 import { useProgress } from '../state/progressStore';
 import SiemLabCard from '../components/siem/SiemLabCard';
+import SeasonSection from '../components/siem/SeasonSection';
 import LabCard from '../components/labs/LabCard';
 import PortalNavigation from '../components/layout/PortalNavigation';
-import { IconCheck, IconFlag, IconCalendar, IconTerminal } from '../components/layout/icons';
+import { IconFlag, IconTerminal } from '../components/layout/icons';
+import LessonPath from '../components/learning/LessonPath';
+import '../components/labs/catalog.css';
 
 const TOOL_ORDER = ['splunk', 'sentinel', 'qradar', 'elastic', 'suricata', 'chronicle', 'tcpdump'] as const;
 const TOOL_META: Record<string, { title: string; blurb: string }> = {
@@ -25,6 +29,12 @@ const SOC_MODULE_SLUGS = ['soc', 'soc-siem-platforms', 'soc-detection-engineerin
 
 export default function SocPortalPage() {
   const progress = useProgress();
+
+  // Season 1 casebooks lead the portal; the drills they supersede move into "Classic drills".
+  const casebookIds = useMemo(() => new Set(CASEBOOK_LABS.map((c) => c.id)), []);
+  const replacedIds = useMemo(() => new Set(CASEBOOK_LABS.map((c) => c.replaces).filter((id): id is string => Boolean(id))), []);
+  const standaloneWorkbooks = useMemo(() => SIEM_LABS.filter((l) => l.workbook && !casebookIds.has(l.id)), [casebookIds]);
+  const classicDrills = useMemo(() => SIEM_LABS.filter((l) => replacedIds.has(l.id)), [replacedIds]);
 
   const socModules = useMemo(
     () => SOC_MODULE_SLUGS.map((slug) => findModule(slug)).filter((m): m is NonNullable<typeof m> => Boolean(m)),
@@ -56,11 +66,11 @@ export default function SocPortalPage() {
   return (
     <div className="min-h-screen" style={{ background: 'var(--color-bg)' }}>
       <PortalNavigation />
-      {/* hero */}
       <div
         className="portal-masthead relative overflow-hidden border-b border-[var(--color-border)]"
         style={{ background: 'var(--color-navy)' }}
       >
+        <img src={`${import.meta.env.BASE_URL}characters/sentinel-full.webp`} alt="" aria-hidden="true" className="portal-masthead__guide" decoding="async" />
         <div className="relative max-w-5xl mx-auto px-6 sm:px-8 py-10">
           <div className="text-[var(--color-accent-dim)] font-mono text-xs tracking-[0.2em] uppercase mb-3">
             Blue Team &middot; Detection &amp; Response
@@ -93,64 +103,60 @@ export default function SocPortalPage() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-6 sm:px-8 py-10">
-        <section className="mb-12" aria-labelledby="linked-investigations">
-          <p className="text-xs font-semibold uppercase tracking-widest text-[var(--color-accent-dim)] mb-2">Investigation casefiles</p>
-          <h2 id="linked-investigations" className="text-xl font-bold text-[var(--color-heading)]">Follow an incident from alert to verified recovery</h2>
-          <p className="mt-2 mb-5 text-sm leading-relaxed text-[var(--color-text-dim)]">Search the records in the existing consoles, select supporting evidence and submit a decision at each checkpoint. Progress is saved between sessions. Every case explains its public sources and reconstructed data.</p>
-          <div className="grid gap-4 lg:grid-cols-3">{SIEM_LABS.filter(lab => lab.investigation).map(lab => <SiemLabCard key={lab.id} lab={lab} />)}</div>
-        </section>
-        {/* lessons — 4 modules */}
-        <div className="mb-12">
-          <div className="flex items-center gap-2 mb-1">
-            <IconCalendar className="w-4 h-4 text-[var(--color-accent)]" />
-            <h2 className="text-lg font-bold text-[var(--color-heading)]">SOC Curriculum — {socModules.length} Modules</h2>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <SeasonSection episodes={CASEBOOK_LABS} />
+
+        <section className="mb-12" aria-labelledby="standalone-workbooks">
+          <div className="dw-section-head">
+            <div><p className="dw-catalog-eyebrow dw-catalog-eyebrow--ink">Side cases</p><h2 id="standalone-workbooks">Standalone casebooks</h2><p className="dw-section-sub">Self-contained KC7-style investigations outside the season — query the evidence and submit your findings. Practice five query dialects against the same dataset.</p></div>
+            <span>{standaloneWorkbooks.length} {standaloneWorkbooks.length === 1 ? 'case' : 'cases'}</span>
           </div>
-          <p className="text-sm text-[var(--color-text-dim)] mb-4">
-            Broken into modules the same way the offensive-security roadmap is: fundamentals, the SIEM
-            platforms themselves, detection engineering, and incident response/compliance.
-          </p>
-          {socModules.map((mod) => (
-            <div key={mod.slug} className="mb-6">
-              <Link to={`/module/${mod.slug}`} className="font-semibold text-[var(--color-heading)] text-sm hover:text-[var(--color-accent-dim)] transition-colors">
-                {mod.title} &rarr;
-              </Link>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
-                {mod.lessons.map((lesson) => {
-                  const done = progress.isLessonComplete(lesson.id);
-                  return (
-                    <Link
-                      key={lesson.id}
-                      to={`/module/${mod.slug}/lesson/${lesson.slug}`}
-                      className="premium-card premium-card-hover rounded-2xl p-4"
-                    >
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-xs font-mono text-[var(--color-text-dim)]">{lesson.minutes} min read</span>
-                        {done && <IconCheck className="w-4 h-4 text-[var(--color-success)]" />}
-                      </div>
-                      <div className="font-semibold text-[var(--color-heading)] text-sm mb-1">{lesson.title}</div>
-                      <p className="text-xs text-[var(--color-text-dim)] leading-relaxed">{lesson.summary}</p>
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
+          <div className="grid gap-4 lg:grid-cols-3">{standaloneWorkbooks.map(lab => <SiemLabCard key={lab.id} lab={lab} />)}</div>
+        </section>
+
+        <details className="mb-12 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
+          <summary className="cursor-pointer text-sm font-bold text-[var(--color-heading)]">Classic drills ({classicDrills.length}) — the earlier checkpoint-style investigations</summary>
+          <p className="mt-2 mb-4 text-xs leading-relaxed text-[var(--color-text-dim)]">These original casefiles stay playable. Most have a newer, KC7-style Season 1 episode above that covers the same incident on a richer dataset.</p>
+          <div className="grid gap-4 lg:grid-cols-3">{classicDrills.map(lab => <SiemLabCard key={lab.id} lab={lab} />)}</div>
+        </details>
+        <section className="mb-12" aria-labelledby="soc-curriculum">
+          <div className="dw-section-head">
+            <div><p className="dw-catalog-eyebrow dw-catalog-eyebrow--ink">Learning path</p><h2 id="soc-curriculum">SOC curriculum</h2><p className="dw-section-sub">Fundamentals, the SIEM platforms, detection engineering and incident response — module by module, each one lighting up as you clear its lessons.</p></div>
+            <span>{lessonsDone}/{totalLessons} lessons</span>
+          </div>
+          <LessonPath
+            eyebrow={`Defensive track · ${socModules.filter((m) => m.lessons.every((l) => progress.isLessonComplete(l.id))).length}/${socModules.length} modules cleared`}
+            title="Blue team curriculum"
+            guide="sentinel"
+            nodes={socModules.map((mod, i) => {
+              const doneCount = mod.lessons.filter((l) => progress.isLessonComplete(l.id)).length;
+              const complete = mod.lessons.length > 0 && doneCount === mod.lessons.length;
+              const current = socModules.findIndex((m) => m.lessons.some((l) => !progress.isLessonComplete(l.id))) === i;
+              return {
+                id: mod.slug,
+                title: mod.title,
+                to: `/module/${mod.slug}`,
+                state: complete ? 'done' : current ? 'current' : 'open',
+                percent: current && mod.lessons.length ? (100 * doneCount) / mod.lessons.length : undefined,
+                icon: mod.icon,
+                meta: `Module ${i + 1} · ${doneCount}/${mod.lessons.length} lessons`,
+              };
+            })}
+          />
+        </section>
 
         {/* SIEM tool labs, grouped by tool */}
         {TOOL_ORDER.map((tool) => {
-          const labs = SIEM_LABS.filter((l) => l.tool === tool && !l.investigation);
+          const labs = SIEM_LABS.filter((l) => l.tool === tool && !l.investigation && !l.workbook && !replacedIds.has(l.id) && !casebookIds.has(l.id));
           if (labs.length === 0) return null;
           const meta = TOOL_META[tool];
           return (
             <div key={tool} className="mb-12">
-              <div className="flex items-center gap-2 mb-1">
-                <IconFlag className="w-4 h-4 text-[var(--color-accent)]" />
-                <h2 className="text-lg font-bold text-[var(--color-heading)]">{meta.title}</h2>
+              <div className="dw-section-head">
+                <div><p className="dw-catalog-eyebrow dw-catalog-eyebrow--ink"><IconFlag className="mr-1 inline h-3.5 w-3.5" />Tool drills</p><h2>{meta.title}</h2><p className="dw-section-sub">{meta.blurb}</p></div>
+                <span>{labs.length} labs</span>
               </div>
-              <p className="text-sm text-[var(--color-text-dim)] mb-4">{meta.blurb}</p>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
                 {labs.map((lab) => (
                   <SiemLabCard key={lab.id} lab={lab} />
                 ))}
@@ -162,15 +168,11 @@ export default function SocPortalPage() {
         {/* Terminal investigations and assessment campaigns */}
         {terminalLabs.length > 0 && (
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <IconTerminal className="w-4 h-4 text-[var(--color-accent)]" />
-              <h2 className="text-lg font-bold text-[var(--color-heading)]">Terminal Investigations</h2>
+            <div className="dw-section-head">
+              <div><p className="dw-catalog-eyebrow dw-catalog-eyebrow--ink"><IconTerminal className="mr-1 inline h-3.5 w-3.5" />Hands-on</p><h2>Terminal investigations</h2><p className="dw-section-sub">Investigate records with terminal tools, document findings, and complete the guided assessment and verification phases.</p></div>
+              <span>{terminalLabs.length} rooms</span>
             </div>
-            <p className="text-sm text-[var(--color-text-dim)] mb-4">
-              Investigate records with terminal tools, document findings, and complete the guided
-              assessment and verification phases.
-            </p>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
               {terminalLabs.map((lab) => (
                 <LabCard key={lab.slug} lab={lab} variant="catalog" />
               ))}

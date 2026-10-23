@@ -93,7 +93,7 @@ assert.equal(matchesQuery(record, 'host=WS-*'), true);
 assert.equal(matchesQuery(record, 'port 443 and host 192.0.2.2'), false);
 assert.equal(matchesQuery(record, 'port 443 and host 192.0.2.1'), true);
 assert.equal(matchesQuery(record, 'unseen | stats count'), false);
-for (const lab of SIEM_LABS.filter(lab => !lab.investigation)) {
+for (const lab of SIEM_LABS.filter(lab => !lab.investigation && !lab.workbook)) {
   const flags = new Set(lab.entries.filter(entry => lab.hints.some(hint => matchesQuery(entry, hint))).flatMap(entry => entry.line.match(/flag\{[^}]+\}/gi) ?? []));
   assert.equal(flags.size, lab.totalFlags, lab.id + ': existing hints must reach all proofs');
 }

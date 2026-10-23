@@ -61,8 +61,9 @@ function loadScript(src: string): Promise<void> {
     const script = document.createElement('script');
     script.src = src;
     script.dataset.pyodideLoader = src;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error('Could not load the Python runtime — check your internet connection and try again.'));
+    const timeout = window.setTimeout(() => { script.remove(); reject(new Error('The Python runtime download timed out. Check your connection and retry.')); }, 30000);
+    script.onload = () => { clearTimeout(timeout); resolve(); };
+    script.onerror = () => { clearTimeout(timeout); reject(new Error('Could not load the Python runtime — check your internet connection and try again.')); };
     document.head.appendChild(script);
   });
 }

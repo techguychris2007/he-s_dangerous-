@@ -53,11 +53,11 @@ export default function SiemLabCard({ lab }: { lab: LabCardData }) {
               {tool.short}
             </div>
             <div className="min-w-0">
-              <div className="truncate text-[11px] font-semibold uppercase tracking-[.1em] text-[var(--color-text-dim)]">Investigation case</div>
+              <div className="truncate text-2xs font-semibold uppercase tracking-[.1em] text-[var(--color-text-dim)]">Investigation case</div>
               <div className="mt-1 flex flex-wrap items-center gap-1.5">
                 <span className="text-xs font-semibold text-[var(--color-heading)]">{tool.label}</span>
                 <span aria-hidden className="text-[var(--color-border)]">·</span>
-                <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${DIFFICULTY_CLASS[lab.difficulty]}`}>{lab.difficulty}</span>
+                <span className={`rounded-full border px-2 py-0.5 text-2xs font-bold ${DIFFICULTY_CLASS[lab.difficulty]}`}>{lab.difficulty}</span>
               </div>
             </div>
           </div>
@@ -77,7 +77,7 @@ export default function SiemLabCard({ lab }: { lab: LabCardData }) {
         <div className="mt-auto pt-4" aria-label={`${progressPct}% complete`}>
           <div className="mb-2 flex items-center justify-between text-xs">
             <span className="flex items-center gap-2 font-semibold text-[var(--color-text-dim)]"><span className={`h-1.5 w-1.5 rounded-full ${done ? 'bg-[var(--color-success)]' : captured > 0 ? 'bg-[var(--color-accent)]' : 'bg-[var(--color-border)]'}`} />{status}</span>
-            <span className="font-mono text-[11px] font-semibold text-[var(--color-text-dim)]">{captured}/{total} flags</span>
+            <span className="font-mono text-2xs font-semibold text-[var(--color-text-dim)]">{captured}/{total} flags</span>
           </div>
           <div className="h-1.5 overflow-hidden rounded-full bg-[var(--color-surface-2)]" role="progressbar" aria-label={`${lab.title} completion`} aria-valuenow={progressPct} aria-valuemin={0} aria-valuemax={100}>
             <div className={`h-full rounded-full transition-all duration-300 motion-reduce:transition-none ${done ? 'bg-[var(--color-success)]' : 'bg-[var(--color-accent)]'}`} style={{ width: `${progressPct}%` }} />
