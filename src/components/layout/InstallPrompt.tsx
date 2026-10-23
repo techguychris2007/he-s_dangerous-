@@ -1,137 +1,48 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useAuth } from '../../state/authStore';
+import { applyAppUpdate, installApp, usePwa } from '../../state/pwa';
+import OfflineRuntimeCard from './OfflineRuntimeCard';
+import InstallAppButton from './InstallAppButton';
 import Logo from './Logo';
-
-const DISMISS_KEY = 'hackerhub.installPromptDismissedAt';
-const DISMISS_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000; // don't re-nag for a week after a dismissal
-
-interface BeforeInstallPromptEvent extends Event {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
-}
-
-function isStandalone(): boolean {
-  return (
-    window.matchMedia('(display-mode: standalone)').matches ||
-    (window.navigator as unknown as { standalone?: boolean }).standalone === true
-  );
-}
+import './app-install.css';
 
 export default function InstallPrompt() {
-  const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
-  const [visible, setVisible] = useState(false);
-  const [installed, setInstalled] = useState(false);
-  const [installing, setInstalling] = useState(false);
-  const [error, setError] = useState('');
-  const [manualGuide, setManualGuide] = useState(false);
-
+  const pwa = usePwa();
+  const auth = useAuth();
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [online, setOnline] = useState(() => navigator.onLine);
+  const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
-    if (isStandalone()) return;
-
-    let lastDismissed = 0;
-    try { lastDismissed = Number(localStorage.getItem(DISMISS_KEY) ?? 0) || 0; } catch { /* Storage can be unavailable in private or restricted browsers. */ }
-    const cooledDown = Date.now() - lastDismissed > DISMISS_COOLDOWN_MS;
-    let nativePromptAvailable = false;
-    const fallbackTimer = window.setTimeout(() => {
-      if (!nativePromptAvailable && cooledDown) {
-        setManualGuide(true);
-        setVisible(true);
-      }
-    }, 2500);
-
-    const onBeforeInstall = (e: Event) => {
-      e.preventDefault();
-      nativePromptAvailable = true;
-      window.clearTimeout(fallbackTimer);
-      setManualGuide(false);
-      setDeferred(e as BeforeInstallPromptEvent);
-      if (cooledDown) setVisible(true);
-    };
-    const onInstalled = () => {
-      setInstalled(true);
-      setVisible(false);
-    };
-
-    window.addEventListener('beforeinstallprompt', onBeforeInstall);
-    window.addEventListener('appinstalled', onInstalled);
-    return () => {
-      window.clearTimeout(fallbackTimer);
-      window.removeEventListener('beforeinstallprompt', onBeforeInstall);
-      window.removeEventListener('appinstalled', onInstalled);
-    };
+    const show = () => setOpen(true);
+    const network = () => setOnline(navigator.onLine);
+    window.addEventListener('darkworld:app-settings', show);
+    window.addEventListener('online', network); window.addEventListener('offline', network);
+    return () => { window.removeEventListener('darkworld:app-settings', show); window.removeEventListener('online', network); window.removeEventListener('offline', network); };
   }, []);
-
-  const dismiss = () => {
-    try { localStorage.setItem(DISMISS_KEY, String(Date.now())); } catch { /* Dismissal should still work without persistent storage. */ }
-    setVisible(false);
-  };
-
-  const install = async () => {
-    if (!deferred || installing) return;
-    setInstalling(true);
-    setError('');
-    try {
-      await deferred.prompt();
-      const { outcome } = await deferred.userChoice;
-      if (outcome === 'dismissed') dismiss();
-      else setVisible(false);
-      setDeferred(null);
-    } catch {
-      setError('Installation could not start. You can keep learning in this browser.');
-    } finally { setInstalling(false); }
-  };
-
-  if (!visible || installed) return null;
-
-  const userAgent = navigator.userAgent;
-  const isAppleMobile = /iPad|iPhone|iPod/.test(userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  const isSafari = /Safari/.test(userAgent) && !/Chrome|Chromium|CriOS|Edg|OPR|FxiOS/.test(userAgent);
-  const isFirefox = /Firefox|FxiOS/.test(userAgent);
-  const manualInstructions = isAppleMobile
-    ? 'Open DarkWorld in Safari, tap Share, choose Add to Home Screen, then tap Add.'
-    : isSafari
-      ? 'In Safari on macOS, choose File → Add to Dock to keep DarkWorld in your Dock.'
-      : isFirefox
-        ? 'This browser does not offer an app-install prompt. Open DarkWorld in Safari, Chrome, or Edge and use its Add to Home Screen or Install option.'
-        : 'Open your browser menu and choose Install DarkWorld, Install app, or Add to Home Screen. The exact label depends on your browser.';
-
-  return (
-    <div className="fixed bottom-4 inset-x-4 sm:inset-x-auto sm:right-4 sm:left-auto sm:w-96 z-50">
-      <div className="premium-card rounded-2xl p-4 flex items-start gap-3">
-        <Logo className="w-10 h-10 shrink-0" />
-        <div className="min-w-0 flex-1">
-          <div className="font-bold text-[var(--color-heading)] text-sm mb-0.5">{manualGuide ? 'Add DarkWorld to your device' : 'Install DarkWorld'}</div>
-          <p className="text-xs text-[var(--color-text-dim)] leading-relaxed mb-3">
-            {manualGuide
-              ? manualInstructions
-              : 'Add it to your device for a full-screen, app-like experience with faster loads. Your learning progress stays in this browser.'}
-          </p>
-          <div className="flex items-center gap-2">
-            {!manualGuide && (
-              <button
-                onClick={install}
-                disabled={installing}
-                className="px-3.5 py-1.5 rounded-lg bg-[var(--color-accent)] text-white text-xs font-semibold hover:brightness-110 transition"
-              >
-                {installing ? 'Opening…' : 'Install'}
-              </button>
-            )}
-            <button
-              onClick={dismiss}
-              className="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-heading)] transition-colors"
-            >
-              Not now
-            </button>
-          </div>
-          {error && <p role="alert" className="mt-2 text-xs text-[var(--color-danger)]">{error}</p>}
-        </div>
-        <button
-          onClick={dismiss}
-          aria-label="Dismiss"
-          className="text-[var(--color-text-dim)] hover:text-[var(--color-heading)] text-lg leading-none shrink-0"
-        >
-          &times;
-        </button>
+  useEffect(() => {
+    if (open && !dialog.current?.open) dialog.current?.showModal();
+    if (!open && dialog.current?.open) dialog.current.close();
+  }, [open]);
+  const safari = /Safari/.test(navigator.userAgent) && !/Chrome|Chromium|Edg|OPR/.test(navigator.userAgent);
+  const firefox = /Firefox/.test(navigator.userAgent);
+  return <>
+    {!auth.user && <div className="dw-entry-install"><InstallAppButton/></div>}
+    <dialog ref={dialog} className="dw-app-dialog" aria-labelledby="dw-app-title" onCancel={() => setOpen(false)} onClose={() => setOpen(false)} onClick={event => { if (event.target === event.currentTarget) setOpen(false); }}>
+      <header><Logo className="h-12 w-12"/><div><p>YOUR DESKTOP WORKSPACE</p><h2 id="dw-app-title">DarkWorld, ready when you are.</h2></div><button type="button" aria-label="Close app and offline settings" onClick={() => setOpen(false)}>×</button></header>
+      <div className="dw-app-content">
+        <section className="dw-app-install-section"><h3>{pwa.installed ? 'You’re using the desktop app' : 'Install DarkWorld'}</h3><p>Keep DarkWorld in its own window and open it from your desktop or app launcher. Installation is handled by your browser; no separate installer is needed.</p>
+          {pwa.installable && <button type="button" className="dw-app-primary" disabled={busy} onClick={async () => { setBusy(true); try { await installApp(); } finally { setBusy(false); } }}>{busy ? 'Opening installer…' : 'Install desktop app'}</button>}
+          {!pwa.installable && !pwa.installed && <p className="dw-app-instructions">{safari ? 'Safari on Mac: open File → Add to Dock.' : firefox ? 'For installation, open this address in Chrome or Edge and choose the install option in the address bar or browser menu. You can continue learning in Firefox.' : 'Chrome: open the browser menu → Cast, save and share → Install page as app. Edge: open the browser menu → Apps → Install this site as an app. If already installed, open DarkWorld from your apps.'}</p>}
+        </section>
+        <section className="dw-app-offline-section"><div className="dw-app-status"><h3>Offline learning</h3><span>{!online ? 'Offline' : pwa.offlineReady ? 'App saved on this device' : import.meta.env.DEV ? 'Development preview' : 'Preparing app files…'}</span></div>
+          <p>{import.meta.env.DEV ? 'Installation and offline caching are tested in the built app or deployed site, not this development preview.' : pwa.offlineReady ? 'Lessons, browser-based security labs and JavaScript/C++ exercises are saved for offline use. Stay signed in before disconnecting.' : 'Keep this page open and connected while DarkWorld saves its app files. Once ready, you can reopen it without internet.'}</p>
+          <p>Save books individually in the Library. Prepare Python below before disconnecting. Sign-in, cloud sync, AI help, live rankings and external websites need internet. This browser’s local labs do not run a remote Kali machine.</p>
+          <OfflineRuntimeCard/>
+        </section>
+        {pwa.updateAvailable && <section className="dw-app-update"><h3>A new version is ready</h3><p>Finish your current task before updating. This reloads DarkWorld.</p><button type="button" className="dw-app-primary" onClick={() => { void applyAppUpdate(); }}>Update and reload</button></section>}
+        {pwa.error && <p role="alert" className="dw-app-error">{pwa.error}</p>}
       </div>
-    </div>
-  );
+    </dialog>
+  </>;
 }

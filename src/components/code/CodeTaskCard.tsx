@@ -1,13 +1,10 @@
 import { Link } from 'react-router-dom';
 import type { CodeTask } from '../../labs/codeTypes';
 import { useProgress } from '../../state/progressStore';
-import { IconCheck, IconCode } from '../layout/icons';
-
-const DIFFICULTY_CLASS: Record<string, string> = {
-  Easy: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
-  Medium: 'bg-amber-500/10 text-amber-700 border-amber-500/25',
-  Hard: 'bg-rose-500/10 text-rose-600 border-rose-500/25',
-};
+import IsoBlock from '../labs/IsoBlock';
+import { IconCheck, IconCode, ModuleIcon } from '../layout/icons';
+import { codeTaskXp } from '../../data/xp';
+import './practice-card.css';
 
 const LANGUAGE_LABEL: Record<string, string> = {
   python: 'Python',
@@ -15,53 +12,38 @@ const LANGUAGE_LABEL: Record<string, string> = {
   javascript: 'JavaScript',
 };
 
-const LANGUAGE_MARK: Record<string, string> = {
-  python: 'PY',
-  cpp: 'C++',
-  javascript: 'JS',
-};
+function iconFor(task: CodeTask): string {
+  if (task.category.startsWith('Security:')) return 'shield';
+  if (task.category.startsWith('ML:')) return 'brain';
+  if (task.category === 'Software Engineering') return 'engineering';
+  return task.language === 'python' ? 'python' : task.language === 'cpp' ? 'chip' : 'code';
+}
 
 export default function CodeTaskCard({ task }: { task: CodeTask }) {
   const progress = useProgress();
   const done = progress.isCodeTaskComplete(task.id);
+  const started = (progress.codeTaskAttempts[task.id] ?? 0) > 0;
   const url = `/code-task/${task.id}`;
 
   return (
-    <article className="group relative h-full overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[0_2px_8px_-5px_var(--color-heading)] transition duration-200 hover:-translate-y-0.5 hover:border-[var(--color-accent)]/50 hover:shadow-[0_10px_24px_-16px_var(--color-accent)]">
-      <div aria-hidden className="absolute inset-x-0 top-0 h-0.5 bg-[var(--color-accent)] opacity-70 transition-opacity group-hover:opacity-100" />
-      <div className="flex h-full flex-col p-4 sm:p-5">
-        <div className="mb-4 flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] font-mono text-xs font-bold text-[var(--color-accent)]">
-              {LANGUAGE_MARK[task.language]}
-            </div>
-            <div className="min-w-0">
-              <div className="text-[11px] font-semibold uppercase tracking-[.1em] text-[var(--color-text-dim)]">{LANGUAGE_LABEL[task.language]}</div>
-              <div className="mt-1 truncate text-xs font-semibold text-[var(--color-accent)]">{task.category}</div>
-            </div>
-          </div>
-          {done ? (
-            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[var(--color-success)] text-white">
-              <IconCheck className="h-4 w-4" />
-            </span>
-          ) : (
-            <span className={`shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-black ${DIFFICULTY_CLASS[task.difficulty]}`}>{task.difficulty}</span>
-          )}
+    <article className="dw-pcard" data-state={done ? 'done' : started ? 'started' : 'new'}>
+      <div className="dw-pcard__banner">
+        <IsoBlock width={56} depth={11} tone={done ? 'done' : started ? 'progress' : task.category.startsWith('Security:') ? 'defense' : 'analysis'} crest={<ModuleIcon icon={iconFor(task)} />} className="dw-pcard__emblem" />
+        <div className="dw-pcard__kicker">
+          <small>{LANGUAGE_LABEL[task.language]}</small>
+          <span>{task.category}</span>
         </div>
-
-        <Link to={url} className="block text-[17px] font-bold leading-snug tracking-[-.02em] text-[var(--color-heading)] transition-colors group-hover:text-[var(--color-accent)]">
-          {task.title}
-        </Link>
-
-        <p className="mt-2.5 line-clamp-3 min-h-[4.25rem] text-[13px] leading-[1.65] text-[var(--color-text-dim)]">{task.prompt}</p>
-
-        <div className="mt-auto flex items-center justify-between gap-3 border-t border-[var(--color-border)] pt-4">
-          <span className="text-xs font-semibold text-[var(--color-text-dim)]">{done ? 'Completed' : 'Auto-graded lab'}</span>
-          <Link to={url} className="inline-flex h-9 items-center gap-2 rounded-md bg-[var(--color-accent)] px-3.5 text-sm font-semibold text-white transition hover:bg-[var(--color-accent-dim)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2">
-            <IconCode className="h-3.5 w-3.5" /> {done ? 'Review' : 'Start'}
-          </Link>
-        </div>
+        {done ? <span className="dw-pcard__done" title="Solved"><IconCheck className="h-4 w-4" /></span> : <span className="dw-pcard__level" data-level={task.difficulty}>{task.difficulty}</span>}
       </div>
+      <div className="dw-pcard__body">
+        <h3><Link to={url}>{task.title}</Link></h3>
+        <p>{task.prompt}</p>
+      </div>
+      <footer className="dw-pcard__foot">
+        <span><IconCode className="h-3.5 w-3.5" />Auto-graded</span>
+        <span className="dw-pcard__xp">+{codeTaskXp(0, false)} XP</span>
+        <Link to={url} className="dw-pcard__cta">{done ? 'Review' : started ? 'Continue' : 'Solve'} <span aria-hidden>→</span></Link>
+      </footer>
     </article>
   );
 }

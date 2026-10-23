@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { Navigate, useParams, Link } from 'react-router-dom';
 import { SIEM_LABS } from '../labs/siemScenarios';
+import { withBackgroundTraffic } from '../labs/siemTraffic';
 import { OSINT_LABS } from '../labs/osintScenarios';
 import { useProgress } from '../state/progressStore';
 import StepChecklist from '../components/lesson/StepChecklist';
 import SiemConsole from '../components/siem/SiemConsole';
 import InvestigationWorkbench from '../components/siem/InvestigationWorkbench';
+import CaseWorkbook from '../components/siem/CaseWorkbook';
 import OsintTerminal from '../components/labs/OsintTerminal';
 import CyberLabAI from '../components/labs/CyberLabAI';
 import LabComments from '../components/labs/LabComments';
@@ -110,7 +112,8 @@ export default function SiemLabPage() {
   const [hintIndex, setHintIndex] = useState(0);
   const [guideExpanded, setGuideExpanded] = useState(false);
   const [sharing, setSharing] = useState(false);
-  const siemScenario = SIEM_LABS.find((s) => s.id === labId);
+  const baseScenario = SIEM_LABS.find((s) => s.id === labId);
+  const siemScenario = baseScenario ? baseScenario.workbook ? baseScenario : withBackgroundTraffic(baseScenario) : undefined;
   const osintScenario = OSINT_LABS.find((s) => s.id === labId);
   const scenario = siemScenario ?? osintScenario;
   const isOsint = !siemScenario && !!osintScenario;
@@ -136,6 +139,16 @@ export default function SiemLabPage() {
     : Math.floor((scenario.objectives.length * captured) / Math.max(scenario.totalFlags, 1));
 
   const narrative = siemScenario?.narrative;
+
+  if (siemScenario?.workbook) return <CaseWorkbook key={siemScenario.id} scenario={siemScenario} />;
+
+  if (siemScenario?.investigation) return (
+    <div className="investigation-casefile">
+      <header className="investigation-casefile-header"><div><Link to="/soc-portal">← Back to SOC Portal</Link><h1>{scenario.title}</h1></div><button type="button" onClick={() => setSharing(true)}>{done ? 'Evidence notebook & certificate' : 'Evidence notebook'}</button></header>
+      <InvestigationWorkbench key={siemScenario.id} scenario={siemScenario} completed={progress.labFlags[siemScenario.id] ?? []} onComplete={onFlagCaptured} onTranscriptChange={transcript => { transcriptRef.current = transcript; }} />
+      {sharing && <ShareWriteupModal entry={{ slug: scenario.id, scenario: { id: scenario.id, title: scenario.title, category: 'SOC', difficulty: scenario.difficulty, totalFlags: scenario.totalFlags, briefing: scenario.briefing, objectives: scenario.objectives } }} onClose={() => setSharing(false)} />}
+    </div>
+  );
 
   return (
     <div className="h-full min-h-0 flex flex-col overflow-hidden lg:flex-row">
@@ -185,7 +198,7 @@ export default function SiemLabPage() {
             long objectives list — same fix as the offensive-lab LabPage. */}
         {captured >= scenario.totalFlags && (
           <div className="rounded-xl border border-[var(--color-success)]/30 bg-[var(--color-success)]/5 p-4 mb-6 flex items-center gap-2 text-sm font-semibold text-[var(--color-success)]">
-            <IconCheck className="w-4 h-4" /> {narrative ? 'Case closed — investigation complete!' : 'Lab complete — all flags captured!'}
+            <IconCheck className="w-4 h-4" /> {siemScenario?.investigation ? 'Training complete — all evidence checkpoints verified.' : narrative ? 'Case closed — investigation complete!' : 'Lab complete — all flags captured!'}
           </div>
         )}
 
@@ -235,13 +248,13 @@ export default function SiemLabPage() {
       <section className="flex flex-1 min-w-0 min-h-0 flex-col gap-3 overflow-hidden bg-[var(--color-bg)] p-2 sm:p-4 lg:p-5" aria-label="Investigation workspace">
         <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 premium-card rounded-2xl px-3 py-2">
           <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--color-accent-dim)]">{isOsint ? 'OSINT workspace' : 'SIEM investigation'}</p>
+            <p className="text-2xs font-bold uppercase tracking-widest text-[var(--color-accent-dim)]">{isOsint ? 'OSINT workspace' : 'SIEM investigation'}</p>
             <p className="truncate text-xs text-[var(--color-text-dim)]">{TOOL_LABEL[scenario.tool]} · {scenario.totalFlags} proof points</p>
           </div>
-          <span className={`rounded-full px-3 py-1 text-xs font-semibold ${done ? 'bg-[var(--color-success)]/10 text-[var(--color-success)]' : 'bg-[var(--color-accent)]/10 text-[var(--color-accent-dim)]'}`}>{done ? 'Case closed' : 'Case active'}</span>
+          <span className={`rounded-full px-3 py-1 text-xs font-semibold ${done ? 'bg-[var(--color-success)]/10 text-[var(--color-success)]' : 'bg-[var(--color-accent)]/10 text-[var(--color-accent-dim)]'}`}>{done ? siemScenario?.investigation ? 'Training complete' : 'Case closed' : 'Case active'}</span>
         </div>
         <div className="min-h-0 flex-1 overflow-hidden">
-        {siemScenario?.investigation ? <InvestigationWorkbench key={siemScenario.id} scenario={siemScenario} completed={progress.labFlags[siemScenario.id] ?? []} onComplete={onFlagCaptured} onTranscriptChange={transcript => { transcriptRef.current = transcript; }} /> : osintScenario ? (
+        {osintScenario ? (
           <OsintTerminal
             key={osintScenario.id}
             scenario={osintScenario}

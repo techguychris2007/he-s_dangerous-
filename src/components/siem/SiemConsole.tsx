@@ -1,14 +1,8 @@
 import { useState } from 'react';
 import type { SiemLabScenario, SiemTool } from '../../labs/siemTypes';
 import { matchesQuery, extractFlag } from '../../labs/siemTypes';
-import QRadarConsole from './QRadarConsole';
-import SplunkConsole from './SplunkConsole';
-import SentinelConsole from './SentinelConsole';
-import ChronicleConsole from './ChronicleConsole';
-import ElasticConsole from './ElasticConsole';
-import SuricataConsole from './SuricataConsole';
-import TcpdumpConsole from './TcpdumpConsole';
 import SiemWorkspace from './SiemWorkspace';
+import QueryConsole from './QueryConsole';
 
 interface Branding {
   name: string;
@@ -292,7 +286,9 @@ export default function SiemConsole(props: {
   onFlagCaptured: (flag: string) => void;
   onTranscriptChange?: (transcript: string) => void;
   onResults?: (entries: SiemLabScenario['entries']) => void;
+  embedded?: boolean;
 }) {
+  if (props.embedded) return <div className="siem-console-embedded"><ToolConsole {...props} compact /></div>;
   return (
     <SiemWorkspace scenario={props.scenario}>
       <ToolConsole key={props.scenario.id} {...props} />
@@ -312,40 +308,20 @@ function ToolConsole({
    *  role as Terminal's onTranscriptChange, for the AI lab tutor to see real session activity. */
   onTranscriptChange?: (transcript: string) => void;
   onResults?: (entries: SiemLabScenario['entries']) => void;
+  compact?: boolean;
 }) {
-  // QRadar and Splunk get dedicated, visually authentic consoles — a real IBM Carbon-style Log
-  // Activity grid and a real Search & Reporting layout — instead of the shared generic template
-  // every other tool below still uses. See QRadarConsole/SplunkConsole for why these two specifically:
-  // they're this platform's two highest-usage SIEM tools across existing lab content.
-  if (scenario.tool === 'qradar') {
-    return <QRadarConsole scenario={scenario} onFlagCaptured={onFlagCaptured} onTranscriptChange={onTranscriptChange} />;
-  }
-  if (scenario.tool === 'splunk') {
-    return <SplunkConsole scenario={scenario} onFlagCaptured={onFlagCaptured} onTranscriptChange={onTranscriptChange} onResults={onResults} />;
-  }
-  if (scenario.tool === 'sentinel') {
-    return <SentinelConsole scenario={scenario} onFlagCaptured={onFlagCaptured} onTranscriptChange={onTranscriptChange} onResults={onResults} />;
-  }
-  if (scenario.tool === 'chronicle') {
-    return <ChronicleConsole scenario={scenario} onFlagCaptured={onFlagCaptured} onTranscriptChange={onTranscriptChange} />;
-  }
-  if (scenario.tool === 'elastic') {
-    return <ElasticConsole scenario={scenario} onFlagCaptured={onFlagCaptured} onTranscriptChange={onTranscriptChange} onResults={onResults} />;
-  }
-  if (scenario.tool === 'suricata') {
-    return <SuricataConsole scenario={scenario} onFlagCaptured={onFlagCaptured} onTranscriptChange={onTranscriptChange} />;
-  }
-  if (scenario.tool === 'tcpdump') {
-    return <TcpdumpConsole scenario={scenario} onFlagCaptured={onFlagCaptured} onTranscriptChange={onTranscriptChange} />;
+  if (['qradar', 'splunk', 'sentinel', 'chronicle', 'elastic', 'suricata', 'tcpdump'].includes(scenario.tool)) {
+    return <QueryConsole scenario={scenario} onFlagCaptured={onFlagCaptured} onTranscriptChange={onTranscriptChange} onResults={onResults}/>;
   }
 
-  return <GenericConsole scenario={scenario} onFlagCaptured={onFlagCaptured} onTranscriptChange={onTranscriptChange} />;
+  return <GenericConsole scenario={scenario} onFlagCaptured={onFlagCaptured} onTranscriptChange={onTranscriptChange} onResults={onResults} />;
 }
 
-function GenericConsole({ scenario, onFlagCaptured, onTranscriptChange }: {
+function GenericConsole({ scenario, onFlagCaptured, onTranscriptChange, onResults }: {
   scenario: SiemLabScenario;
   onFlagCaptured: (flag: string) => void;
   onTranscriptChange?: (transcript: string) => void;
+  onResults?: (entries: SiemLabScenario['entries']) => void;
 }) {
   const b = BRANDING[scenario.tool];
   const [query, setQuery] = useState('');
@@ -362,6 +338,7 @@ function GenericConsole({ scenario, onFlagCaptured, onTranscriptChange }: {
       setRan(true);
     setAppliedQuery(q);
       const visible = scenario.entries.filter((e) => matchesQuery(e, q));
+      onResults?.(visible);
       visible.forEach((e) => {
         const flag = extractFlag(e.line);
         if (flag) onFlagCaptured(flag);

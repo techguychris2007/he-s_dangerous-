@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { IconCheck, IconDownload, IconLightning } from './icons';
 import {
   prepareOfflinePythonRuntime,
@@ -6,6 +6,7 @@ import {
   PYODIDE_CACHE_NAME,
   PYODIDE_VERSION,
 } from '../../lib/pyodideRunner';
+import { hasOfflinePythonFiles } from '../../lib/offlineRuntime';
 
 const READY_KEY = 'darkworld.offline.python.' + PYODIDE_VERSION;
 
@@ -14,14 +15,10 @@ type RuntimeStatus = 'checking' | 'idle' | 'preparing' | 'ready' | 'error';
 async function isRuntimeCached(): Promise<boolean> {
   if (!('caches' in window)) return false;
   try {
-    const prepared = localStorage.getItem(READY_KEY) === 'true';
-    if (!prepared) return false;
     const cache = await caches.open(PYODIDE_CACHE_NAME);
     const keys = await cache.keys();
-    const hasLoader = keys.some((request) => request.url === PYODIDE_BASE_URL + 'pyodide.js');
-    const hasNumpy = keys.some((request) => new URL(request.url).pathname.includes('numpy-'));
-    const hasPandas = keys.some((request) => new URL(request.url).pathname.includes('pandas-'));
-    return hasLoader && hasNumpy && hasPandas;
+    const manifest = await cache.match(PYODIDE_BASE_URL + 'pyodide-lock.json');
+    return hasOfflinePythonFiles(keys.map(request => request.url), PYODIDE_BASE_URL, manifest ? await manifest.json() : null);
   } catch {
     return false;
   }
@@ -31,7 +28,10 @@ async function waitForServiceWorkerControl(): Promise<void> {
   if (!('serviceWorker' in navigator)) {
     throw new Error('This browser does not support offline app storage.');
   }
-  await navigator.serviceWorker.ready;
+  await new Promise<void>((resolve, reject) => {
+    const timeout = window.setTimeout(() => reject(new Error('Offline storage is not ready. Open the deployed DarkWorld app while online, then try again.')), 12000);
+    void navigator.serviceWorker.ready.then(() => { clearTimeout(timeout); resolve(); }, error => { clearTimeout(timeout); reject(error); });
+  });
   if (navigator.serviceWorker.controller) return;
 
   await new Promise<void>((resolve) => {
@@ -49,6 +49,7 @@ async function waitForServiceWorkerControl(): Promise<void> {
 }
 
 export default function OfflineRuntimeCard() {
+  const headingId = useId();
   const [status, setStatus] = useState<RuntimeStatus>('checking');
   const [online, setOnline] = useState(() => navigator.onLine);
   const [message, setMessage] = useState('');
@@ -80,7 +81,13 @@ export default function OfflineRuntimeCard() {
         // Persistent storage is a browser preference; preparation can still succeed without it.
       }
       await prepareOfflinePythonRuntime();
-      const ready = await isRuntimeCachedAfterPreparation();
+      // Workbox may still be completing cache.put after the runtime has executed.
+      // Confirm actual files, with a short bounded retry instead of a readiness marker.
+      let ready = false;
+      for (let attempt = 0; attempt < 8 && !ready; attempt++) {
+        ready = await isRuntimeCachedAfterPreparation();
+        if (!ready) await new Promise(resolve => setTimeout(resolve, 250));
+      }
       if (!ready) {
         throw new Error('Python ran, but its offline files were not confirmed in the app cache. Reload while online and try once more.');
       }
@@ -99,7 +106,7 @@ export default function OfflineRuntimeCard() {
 
   return (
     <section
-      aria-labelledby="offline-runtime-title"
+      aria-labelledby={headingId}
       className="mb-8 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 sm:p-5"
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -108,7 +115,7 @@ export default function OfflineRuntimeCard() {
             {status === 'ready' ? <IconCheck className="h-5 w-5" /> : <IconLightning className="h-5 w-5" />}
           </div>
           <div className="min-w-0">
-            <h2 id="offline-runtime-title" className="text-sm font-bold text-[var(--color-heading)]">
+            <h2 id={headingId} className="text-sm font-bold text-[var(--color-heading)]">
               Offline coding readiness
             </h2>
             <p className="mt-1 max-w-3xl text-sm leading-6 text-[var(--color-text-dim)]">
@@ -150,14 +157,5 @@ export default function OfflineRuntimeCard() {
 }
 
 async function isRuntimeCachedAfterPreparation(): Promise<boolean> {
-  if (!('caches' in window)) return false;
-  try {
-    const cache = await caches.open(PYODIDE_CACHE_NAME);
-    const keys = await cache.keys();
-    return keys.some((request) => request.url === PYODIDE_BASE_URL + 'pyodide.js')
-      && keys.some((request) => new URL(request.url).pathname.includes('numpy-'))
-      && keys.some((request) => new URL(request.url).pathname.includes('pandas-'));
-  } catch {
-    return false;
-  }
+  return isRuntimeCached();
 }

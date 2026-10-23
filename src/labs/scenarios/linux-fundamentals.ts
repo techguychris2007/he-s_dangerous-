@@ -7,12 +7,15 @@ export const linuxFundamentalsLab: LabScenario = {
   difficulty: 'Easy',
   category: 'Linux',
   briefing:
-    'Your attack box has a leftover project directory from a previous engagement. Somewhere inside it ' +
-    'is a flag left by a teammate, hidden behind ordinary Linux misdirection: a dotfile buried inside a ' +
-    'nested backup directory. Use navigation, cat, find, and grep to track it down.',
+    'A teammate has left a training artifact in /root/projects, alongside ordinary project notes and a stale database export. '+
+    'Your task is to locate and read that artifact without editing or deleting the project files. '+
+    'You already have a root shell on your local lab workstation; there is no remote login or privilege escalation in this exercise. '+
+    'Practice reading directory listings, following absolute paths, and distinguishing a filename search from a content search. '+
+    'Some names begin with a dot, so a normal listing does not show the entire directory. The Reference tab explains each command before you use it.',
   objectives: [
-    { text: 'Explore the /root/projects directory tree with ls -la', why: 'plain ls silently skips dotfiles — real engagements hide notes, credentials, and backups behind a leading dot constantly, so -a is never optional during recon.' },
-    { text: "Locate the hidden flag file with find /root -name '*.txt' or grep -r flag /root/projects", why: 'find and grep -r are how you search a filesystem faster than clicking through directories by hand — the same technique you\'ll use to hunt for SUID binaries and credentials later in this course.' },
+    { text: 'Identify your user and current directory, then inspect /root/projects', why: 'whoami identifies your account and pwd identifies your location. /root/projects is an absolute path, so it works regardless of your current directory.' },
+    { text: 'Compare a normal directory listing with one that includes hidden names', why: 'ls -a includes dotfiles; ls -l adds metadata. A leading dot changes listing behavior, not the file’s access permissions.' },
+    { text: 'Locate the artifact using either a filename search or a recursive content search', why: "find /root/projects -name '*.txt' matches names. grep -r flag /root/projects matches text inside files. Quote the wildcard so find receives the pattern unchanged." },
     { text: 'Read the flag with cat', why: 'cat is the fastest way to dump a small file to the terminal — you\'ll reach for less/head/tail instead once files get large enough to scroll.' },
   ],
   hints: [

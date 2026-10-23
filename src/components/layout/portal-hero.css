@@ -1,0 +1,43 @@
+/* Gamified portal masthead (Build / Code portals): navy chrome, stats, guide and an isometric
+   board of track stations. Colours come from --chrome-* and platform tokens. */
+.dw-phero { position: relative; isolation: isolate; overflow: hidden; color: var(--chrome-ink); border-bottom: 1px solid var(--chrome-line); background:
+  radial-gradient(60% 90% at 85% 40%, color-mix(in srgb, var(--color-accent) 30%, transparent), transparent 70%),
+  radial-gradient(40% 60% at 0% 100%, color-mix(in srgb, var(--color-gold) 10%, transparent), transparent 70%),
+  var(--chrome-bg); }
+.dw-phero::before { content: ""; position: absolute; inset: 0; z-index: -1; opacity: .35; background-image: linear-gradient(var(--chrome-line) 1px, transparent 1px), linear-gradient(90deg, var(--chrome-line) 1px, transparent 1px); background-size: 44px 44px; mask-image: radial-gradient(80% 90% at 70% 50%, #000, transparent 75%); }
+.dw-phero__inner { display: grid; grid-template-columns: minmax(0, 1fr) minmax(360px, 520px); align-items: center; gap: 2rem 3rem; max-width: 80rem; margin: 0 auto; padding: 2.5rem clamp(1.25rem, 3vw, 2rem) 2.25rem; }
+.dw-phero__eyebrow { display: flex; align-items: center; gap: .55rem; margin: 0 0 .7rem; font-size: .72rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--chrome-highlight); }
+.dw-phero__eyebrow span { width: 22px; height: 2px; border-radius: 2px; background: var(--color-gold); }
+.dw-phero h1 { margin: 0; font-family: var(--font-display); font-size: clamp(2.1rem, 4vw, 3rem); font-weight: 700; letter-spacing: -.03em; line-height: 1.05; color: var(--chrome-ink); }
+.dw-phero__lede { max-width: 40rem; margin-top: .9rem; font-size: 1rem; line-height: 1.7; color: var(--chrome-text); }
+.dw-phero__actions { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1.4rem; }
+.dw-phero__actions a, .dw-phero__actions button { display: inline-flex; align-items: center; gap: .45rem; height: 2.6rem; padding: 0 1.1rem; border: 1px solid var(--chrome-line-strong); border-radius: 9px; font-size: .88rem; font-weight: 700; color: var(--chrome-ink); background: var(--chrome-raise); }
+.dw-phero__actions a:hover, .dw-phero__actions button:hover { border-color: var(--chrome-highlight); }
+.dw-phero__actions .is-primary { border-color: transparent; color: #fff; background: var(--color-accent); box-shadow: 0 10px 24px -14px var(--color-accent); }
+.dw-phero__actions .is-primary:hover { border-color: transparent; filter: brightness(1.08); }
+.dw-phero__stats { display: flex; flex-wrap: wrap; gap: .6rem; margin: 1.5rem 0 0; }
+.dw-phero__stats div { min-width: 7.5rem; padding: .6rem .85rem; border: 1px solid var(--chrome-line); border-radius: 10px; background: color-mix(in srgb, var(--chrome-raise) 75%, transparent); }
+.dw-phero__stats dt { font-size: .64rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--chrome-muted); }
+.dw-phero__stats dd { margin: .2rem 0 0; font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; color: var(--chrome-ink); }
+.dw-phero__stats dd small { font-size: .8rem; font-weight: 500; color: var(--chrome-muted); }
+.dw-phero__guide { display: flex; align-items: center; gap: .75rem; max-width: 34rem; margin-top: 1.25rem; }
+.dw-phero__guide p { position: relative; margin: 0; padding: .55rem .8rem; border: 1px solid var(--chrome-line); border-radius: 10px; font-size: .84rem; line-height: 1.5; color: var(--chrome-text); background: var(--chrome-raise); }
+.dw-phero__guide b { margin-right: .4rem; color: var(--chrome-highlight); }
+
+.dw-phero__board { position: relative; aspect-ratio: 4 / 3; min-height: 300px; }
+.dw-phero__grid { position: absolute; inset: 6% 2%; width: 96%; height: 88%; overflow: visible; }
+.dw-phero__grid path { fill: color-mix(in srgb, var(--color-accent) 7%, transparent); stroke: var(--chrome-line-strong); stroke-width: 1.2; vector-effect: non-scaling-stroke; }
+.dw-phero__grid path.is-faint { fill: none; stroke: var(--chrome-line); stroke-dasharray: 3 6; }
+.dw-phero__station { position: absolute; display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -62%); background: none; border: 0; padding: 0; color: inherit; transition: transform .2s ease; }
+button.dw-phero__station { cursor: pointer; }
+button.dw-phero__station:hover { transform: translate(-50%, -66%); }
+.dw-phero__station:focus-visible { outline: 2px solid var(--chrome-highlight); outline-offset: 4px; border-radius: 10px; }
+.dw-phero__label { display: grid; justify-items: center; gap: .1rem; min-width: 7.5rem; margin-top: -.25rem; padding: .35rem .6rem .45rem; border: 1px solid var(--chrome-line); border-radius: 9px; background: color-mix(in srgb, var(--chrome-bg) 88%, transparent); box-shadow: 0 8px 20px -14px #000; }
+.dw-phero__label strong { font-size: .8rem; font-weight: 700; color: var(--chrome-ink); }
+.dw-phero__label small { font-size: .68rem; color: var(--chrome-muted); }
+.dw-phero__label i { display: block; width: 100%; height: 4px; margin-top: .2rem; border-radius: 99px; background: var(--chrome-line); overflow: hidden; }
+.dw-phero__label em { display: block; height: 100%; background: var(--color-success); }
+.dw-phero__station[aria-pressed='true'] .dw-phero__label { border-color: var(--chrome-highlight); background: var(--chrome-active); }
+@media (max-width: 1023px) { .dw-phero__inner { grid-template-columns: minmax(0, 1fr); } .dw-phero__board { max-width: 520px; width: 100%; margin: 0 auto; } }
+@media (max-width: 520px) { .dw-phero__board { min-height: 260px; } .dw-phero__station .iso-block { transform: scale(.78); } .dw-phero__label { min-width: 6rem; } }
+@media (prefers-reduced-motion: reduce) { .dw-phero__station { transition: none; } }

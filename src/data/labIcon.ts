@@ -33,7 +33,18 @@ const CATEGORY_FALLBACK: Record<string, string> = {
   'Binary Analysis': 'binary',
   Malware: 'skull',
   'Security Engineering': 'engineering',
+  API: 'key',
+  Cryptography: 'lock',
+  Mobile: 'mobile',
+  Wireless: 'wifi',
+  IoT: 'chip',
+  'AI Security': 'brain',
 };
+
+/** Icon key that represents a whole lab category (the room world map and card emblems). */
+export function categoryIconKey(category: string): string {
+  return CATEGORY_FALLBACK[category] ?? 'terminal';
+}
 
 /** Picks a small representative icon key for a lab based on its id/title, falling back to its category. */
 export function getLabIconKey(lab: LabEntry): string {

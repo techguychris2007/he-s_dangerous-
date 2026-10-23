@@ -1,5 +1,5 @@
 import { createElement } from 'react';
-import type { ModuleMeta, QuizQuestion } from '../types';
+import type { ModuleMeta, QuizQuestion, TypedQuestion } from '../types';
 import CurriculumArticle from './CurriculumArticle';
 
 export interface CurriculumLesson {
@@ -20,6 +20,8 @@ export interface CurriculumLesson {
   misconceptions: string[];
   sources: { title: string; url: string }[];
   labs: string[];
+  /** Typed-answer questions for the end-of-lesson tasks (1–2 is ideal). */
+  questions?: TypedQuestion[];
   quiz: (Omit<QuizQuestion, 'id'> | { question: string; options: string[]; answer: number; explanation?: string })[];
 }
 
@@ -28,6 +30,7 @@ export function curriculumModule(meta: Omit<ModuleMeta, 'lessons' | 'status'>, l
   return { ...meta, status: 'available', lessons: lessons.map(lesson => ({
     id: lesson.id, slug: lesson.slug, title: lesson.title, summary: lesson.summary, minutes: lesson.minutes,
     objectives: lesson.outcomes, prerequisite: lesson.prerequisite,
+    questions: lesson.questions, keyTerms: lesson.keyTerms,
     Content: () => createElement(CurriculumArticle, { lesson }),
     quiz: lesson.quiz.map((question, index) => 'prompt' in question
       ? { ...question, id: `${lesson.id}-q${index + 1}` }

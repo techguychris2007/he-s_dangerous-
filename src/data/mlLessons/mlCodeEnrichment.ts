@@ -1,6 +1,6 @@
 import type { MlLesson, MlLessonSection } from './types';
 
-const code = (value: string) => `<pre><code>${value.trim()}</code></pre>`;
+const code = (value: string) => `<pre><code>${value.trim().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code></pre>`;
 
 const pythonSections: Record<string, MlLessonSection[]> = {
   'py-ml-vars-types': [

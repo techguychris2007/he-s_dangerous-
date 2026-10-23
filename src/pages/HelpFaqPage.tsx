@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
-import { IconHelp, IconMail } from '../components/layout/icons';
+import { IconMail } from '../components/layout/icons';
+import WorkspaceHeader from '../components/common/WorkspaceHeader';
 
 const FAQS: { q: string; a: string }[] = [
   {
@@ -42,14 +43,8 @@ const FAQS: { q: string; a: string }[] = [
 
 export default function HelpFaqPage() {
   return (
-    <div className="max-w-5xl mx-auto px-8 py-14">
-      <div className="gold-eyebrow mb-2">// support</div>
-      <h1 className="text-3xl font-bold text-[var(--color-heading)] mb-3 flex items-center gap-3">
-        <IconHelp className="w-7 h-7 text-[var(--color-accent)]" /> Help &amp; FAQ
-      </h1>
-      <p className="text-[var(--color-text-dim)] mb-8 leading-relaxed max-w-2xl">
-        Straight answers about how this portal actually works — no support ticket required.
-      </p>
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <WorkspaceHeader eyebrow="Support" title={'Help & FAQ'} guide="sentinel" description={<>Straight answers about how this portal actually works — no support ticket required.</>} />
 
       <div className="flex flex-col gap-3">
         {FAQS.map((item) => (

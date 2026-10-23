@@ -1,0 +1,74 @@
+/* Isometric game piece. Each tone defines a lit palette (light from the top-left): top-face gradient,
+   left face brighter than right, a raised plate, a glowing rim and side light strips. Built on
+   platform tokens via color-mix so tiles follow the brand in both themes. */
+.iso-block {
+  position: relative; display: inline-block; flex-shrink: 0;
+  --c: #8e97b0;
+  --top1: #f7f8fc; --top2: #cfd5e3;
+  --left1: #c2c9da; --left2: #9aa3bb;
+  --right1: #9099b2; --right2: #687190;
+  --plate1: #ffffff; --plate2: #e6e9f2; --plate-side: #b9c0d1;
+  --rim: #c3c9da; --glow: transparent; --strip: transparent;
+  --crest1: #97a1c0; --crest2: #66718f; --crest3: #77819f; --crest4: #48516d; --crest-rim: #2d3450;
+  --edge: rgba(255, 255, 255, .85);
+}
+.iso-block--done {
+  --c: var(--color-success);
+  --top1: color-mix(in srgb, var(--c) 70%, #ffffff); --top2: color-mix(in srgb, var(--c) 82%, #05210f);
+  --left1: color-mix(in srgb, var(--c) 78%, #0a2e17); --left2: color-mix(in srgb, var(--c) 55%, #031109);
+  --right1: color-mix(in srgb, var(--c) 58%, #04170b); --right2: color-mix(in srgb, var(--c) 36%, #020a05);
+  --plate1: color-mix(in srgb, var(--c) 55%, #ffffff); --plate2: color-mix(in srgb, var(--c) 92%, #0b3a1d); --plate-side: color-mix(in srgb, var(--c) 50%, #031109);
+  --rim: color-mix(in srgb, var(--c) 30%, #ffffff); --glow: color-mix(in srgb, var(--c) 70%, #ffffff); --strip: color-mix(in srgb, var(--c) 35%, #ffffff);
+  --crest1: color-mix(in srgb, var(--c) 60%, #ffffff); --crest2: color-mix(in srgb, var(--c) 92%, #0b3a1d); --crest3: color-mix(in srgb, var(--c) 80%, #0b3a1d); --crest4: color-mix(in srgb, var(--c) 55%, #031109); --crest-rim: color-mix(in srgb, var(--c) 40%, #020a05);
+}
+.iso-block--progress {
+  --c: var(--color-accent);
+  --top1: #ffffff; --top2: color-mix(in srgb, var(--c) 18%, #e9ecf7);
+  --left1: color-mix(in srgb, var(--c) 88%, #ffffff); --left2: color-mix(in srgb, var(--c) 60%, #0c0f26);
+  --right1: color-mix(in srgb, var(--c) 55%, #0c0f26); --right2: color-mix(in srgb, var(--c) 35%, #05061a);
+  --plate1: #ffffff; --plate2: color-mix(in srgb, var(--c) 10%, #f1f3fb); --plate-side: color-mix(in srgb, var(--c) 30%, #c9cee0);
+  --rim: var(--c); --glow: color-mix(in srgb, var(--c) 80%, #ffffff); --strip: color-mix(in srgb, var(--c) 45%, #ffffff);
+  --crest1: color-mix(in srgb, var(--c) 55%, #ffffff); --crest2: var(--c); --crest3: color-mix(in srgb, var(--c) 82%, #0c0f26); --crest4: color-mix(in srgb, var(--c) 52%, #05061a); --crest-rim: color-mix(in srgb, var(--c) 35%, #05061a);
+}
+.iso-block--locked {
+  --top1: var(--chrome-line-strong); --top2: var(--chrome-raise); --left1: var(--chrome-raise); --left2: #0a0e1b; --right1: #0f1526; --right2: #070a14;
+  --plate1: var(--chrome-line-strong); --plate2: var(--chrome-raise); --plate-side: #0a0e1b; --rim: var(--chrome-line-strong);
+  --crest1: var(--chrome-line-strong); --crest2: var(--chrome-raise); --crest3: var(--chrome-raise); --crest4: #0a0e1b; --crest-rim: #05070e; --edge: rgba(255, 255, 255, .18);
+}
+.iso-block--offense, .iso-block--defense, .iso-block--analysis {
+  --top1: color-mix(in srgb, var(--c) 45%, #ffffff); --top2: color-mix(in srgb, var(--c) 75%, #10142a);
+  --left1: color-mix(in srgb, var(--c) 72%, #10142a); --left2: color-mix(in srgb, var(--c) 48%, #05061a);
+  --right1: color-mix(in srgb, var(--c) 52%, #05061a); --right2: color-mix(in srgb, var(--c) 32%, #020310);
+  --plate1: color-mix(in srgb, var(--c) 30%, #ffffff); --plate2: color-mix(in srgb, var(--c) 70%, #10142a); --plate-side: color-mix(in srgb, var(--c) 45%, #05061a);
+  --rim: color-mix(in srgb, var(--c) 35%, #ffffff);
+  --crest1: color-mix(in srgb, var(--c) 55%, #ffffff); --crest2: var(--c); --crest3: color-mix(in srgb, var(--c) 80%, #10142a); --crest4: color-mix(in srgb, var(--c) 50%, #05061a); --crest-rim: color-mix(in srgb, var(--c) 35%, #05061a);
+}
+.iso-block--offense { --c: var(--color-accent); }
+.iso-block--defense { --c: var(--color-gold); }
+.iso-block--analysis { --c: var(--color-accent-2); }
+
+.iso-s-top1 { stop-color: var(--top1); } .iso-s-top2 { stop-color: var(--top2); }
+.iso-s-left1 { stop-color: var(--left1); } .iso-s-left2 { stop-color: var(--left2); }
+.iso-s-right1 { stop-color: var(--right1); } .iso-s-right2 { stop-color: var(--right2); }
+.iso-s-plate1 { stop-color: var(--plate1); } .iso-s-plate2 { stop-color: var(--plate2); }
+.iso-s-crest1 { stop-color: var(--crest1); } .iso-s-crest2 { stop-color: var(--crest2); }
+.iso-s-crest3 { stop-color: var(--crest3); } .iso-s-crest4 { stop-color: var(--crest4); }
+
+.iso-block__svg { position: absolute; left: 0; bottom: 0; overflow: visible; filter: drop-shadow(-8px 14px 12px rgba(0, 0, 0, .5)); }
+.iso-block__plate-side { fill: var(--plate-side); }
+.iso-block__plate-side.is-right { fill: color-mix(in srgb, var(--plate-side) 70%, #000); }
+.iso-block__rim { fill: none; stroke: var(--rim); stroke-width: 1.6; stroke-linejoin: round; }
+.iso-block__rim-glow { fill: none; stroke: var(--glow); stroke-width: 4; opacity: .9; }
+.iso-block__strip { fill: var(--strip); filter: drop-shadow(0 0 3px var(--strip)); }
+.iso-block__edge { fill: none; stroke: var(--edge); stroke-width: 1.3; stroke-linejoin: round; stroke-linecap: round; }
+.iso-block__edge.is-front { stroke-opacity: .45; }
+.iso-block__edge.is-corner { stroke: var(--edge); stroke-opacity: .3; }
+.iso-block.is-glowing .iso-block__svg { filter: drop-shadow(0 0 12px color-mix(in srgb, var(--c) 85%, transparent)) drop-shadow(-8px 14px 12px rgba(0, 0, 0, .5)); }
+.iso-block--idle.is-glowing .iso-block__svg { filter: drop-shadow(0 0 12px color-mix(in srgb, var(--color-accent) 70%, transparent)) drop-shadow(-8px 14px 12px rgba(0, 0, 0, .5)); }
+
+.iso-block__crest { position: absolute; left: 50%; z-index: 1; display: grid; place-items: center; transform: translateX(-50%); color: #fff; filter: drop-shadow(-3px 8px 6px rgba(0, 0, 0, .55)); }
+.iso-block__shield { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.iso-block__shield-rim { fill: var(--crest-rim); }
+.iso-block__shield-shine { fill: rgba(255, 255, 255, .35); }
+.iso-block__crest-icon { position: relative; display: grid; place-items: center; width: 100%; height: 100%; padding-bottom: 12%; text-shadow: 0 1px 2px rgba(0, 0, 0, .45); }
+.iso-block__crest-icon svg { width: 44%; height: 44%; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .45)); }

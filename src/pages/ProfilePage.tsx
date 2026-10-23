@@ -8,6 +8,9 @@ import { IconUser, IconFlag, IconCheck, IconBookmark, IconCode, IconLightning, I
 import StatCard from '../components/common/StatCard';
 import DarkWorldBadge from '../components/common/DarkWorldBadge';
 import AchievementMark from '../components/common/AchievementMark';
+import RankCard from '../components/common/RankCard';
+import { ProfileHeader } from '../components/dashboard/DashboardWidgets';
+import { useHandle } from '../state/useHandle';
 
 const POINTS: Record<string, number> = { Easy: 10, Medium: 20, Hard: 30 };
 
@@ -104,7 +107,7 @@ function GuestUpgradeCard() {
 export default function ProfilePage() {
   const progress = useProgress();
   const auth = useAuth();
-  const initial = (progress.learnerName ?? '?').trim().charAt(0).toUpperCase();
+  const { handle, reroll: rerollHandle } = useHandle();
 
   const totalLessons = useMemo(() => MODULES.reduce((sum, m) => sum + m.lessons.length, 0), []);
   const completedLessons = useMemo(
@@ -165,41 +168,30 @@ export default function ProfilePage() {
   }, [progress.codeTaskAttempts, progress.completedCodeTasks, progress.codeTaskHintsUsed, progress.codeTaskSolutionRevealed]);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-14">
-      <div className="premium-card rounded-3xl p-6 sm:p-8 mb-8">
-        <div className="gold-eyebrow mb-1.5 sm:mb-2">// your progress</div>
-        <h1 className="text-3xl sm:text-5xl font-black tracking-[-0.05em] text-[var(--color-heading)] mb-2">Profile</h1>
-        <p className="text-sm text-[var(--color-text-dim)] max-w-2xl leading-relaxed">Your learning identity, achievements, lab evidence, and progress signals in one clean portfolio view.</p>
-      </div>
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex flex-col gap-6 [&>*]:!mb-0">
+      <ProfileHeader name={progress.learnerName} badges={unlockedAchievements.length} badgeTotal={ACHIEVEMENTS.length} heading={handle}>
+        <div className="dw-profile__actions">
+          <span className="dw-profile__chip"><strong>{points}</strong> league pts</span>
+          <span className="dw-profile__chip"><strong>{totalFlags}</strong> flags</span>
+          <button type="button" onClick={rerollHandle}>Generate another cyber name</button>
+        </div>
+      </ProfileHeader>
 
       {auth.isGuest && <GuestUpgradeCard />}
 
-      <div className="premium-card premium-card-hover rounded-3xl p-6 flex items-center gap-4 mb-8 flex-wrap">
-        <span className="w-16 h-16 rounded-full bg-[var(--color-accent)] text-white text-2xl font-bold flex items-center justify-center shrink-0">
-          {initial}
-        </span>
-        <div className="min-w-0 flex-1">
-          <div className="text-lg font-bold text-[var(--color-heading)] truncate">{progress.learnerName}</div>
-          <div className="text-sm text-[var(--color-text-dim)]">DarkWorld Academy &middot; Cybersecurity learner</div>
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <div className="flex items-center gap-1.5 rounded-full border border-[var(--color-gold)]/40 bg-[var(--color-gold-soft)] px-3.5 py-1.5">
-            <span className="text-sm font-mono font-bold text-[var(--color-gold-dim)]">{points}</span>
-            <span className="text-xs text-[var(--color-text-dim)]">pts</span>
-          </div>
-          {streak.current > 0 && (
-            <div className="flex items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3.5 py-1.5">
-              <IconLightning className="h-4 w-4 text-[var(--color-gold-dim)]" />
-              <span className="text-sm font-bold text-[var(--color-heading)]">{streak.current}</span>
-              <span className="text-xs text-[var(--color-text-dim)]">day streak</span>
-            </div>
-          )}
-        </div>
-      </div>
+      <RankCard />
 
-      <div className="mb-8 flex flex-wrap items-center gap-5 premium-card rounded-2xl border border-[var(--color-gold)]/30 p-5">
-        <DarkWorldBadge className="h-28 w-28 shrink-0" />
-        <div className="min-w-0 flex-1"><p className="mb-1 text-[10px] font-semibold uppercase tracking-widest text-[var(--color-accent-dim)]">Our community mark</p><h2 className="text-lg font-bold text-[var(--color-heading)]">DarkWorld Learning Guild</h2><p className="mt-2 text-xs leading-6 text-[var(--color-text-dim)]">A shared identity for curious builders, testers, and defenders. Use this platform badge alongside your own portfolio; individual lab certificates record your learning progress.</p><a href={`${import.meta.env.BASE_URL}darkworld-badge.svg`} download="darkworld-learning-guild.svg" className="mt-3 inline-block text-xs font-semibold text-[var(--color-accent)]">Download the badge →</a></div>
+      <div className="mb-8 flex flex-wrap items-center gap-6 premium-card rounded-2xl border border-[var(--color-border)] p-6">
+        <DarkWorldBadge className="h-36 w-36 shrink-0" />
+        <div className="min-w-0 flex-1">
+          <p className="mb-1 text-2xs font-semibold uppercase tracking-widest text-[var(--color-accent-dim)]">Our community mark</p>
+          <h2 className="text-lg font-bold text-[var(--color-heading)]">The DarkWorld badge</h2>
+          <p className="mt-2 text-xs leading-6 text-[var(--color-text-dim)]">A shared identity for curious builders, testers, and defenders. Use this platform badge alongside your own portfolio; individual lab certificates record your learning progress.</p>
+          <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-semibold text-[var(--color-accent)]">
+            <a href={`${import.meta.env.BASE_URL}darkworld-badge.png`} download="darkworld-badge.png">Download badge · PNG →</a>
+            <a href={`${import.meta.env.BASE_URL}darkworld-badge.svg`} download="darkworld-badge.svg">Vector · SVG →</a>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
@@ -240,7 +232,7 @@ export default function ProfilePage() {
                 <div className="min-w-0">
                   <div className="text-sm font-bold text-[var(--color-heading)] leading-tight">{a.title}</div>
                   <div className="text-xs text-[var(--color-text-dim)] leading-snug mt-0.5">{a.description}</div>
-                  <div className={`mt-2 text-[9px] font-black uppercase tracking-[.14em] ${unlocked ? 'text-[var(--color-accent)]' : 'text-[var(--color-text-dim)]'}`}>
+                  <div className={`mt-2 text-2xs font-black uppercase tracking-[.14em] ${unlocked ? 'text-[var(--color-accent)]' : 'text-[var(--color-text-dim)]'}`}>
                     {unlocked ? 'Awarded' : 'Locked'}
                   </div>
                 </div>

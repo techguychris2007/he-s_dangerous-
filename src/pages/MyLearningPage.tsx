@@ -7,16 +7,15 @@ import { OSINT_LABS } from '../labs/osintScenarios';
 import { useProgress } from '../state/progressStore';
 import './learning-pages.css';
 import AcademyHero from '../components/common/AcademyHero';
+import LessonPath from '../components/learning/LessonPath';
+import type { CharacterId } from '../data/characters';
 import DifficultyPill from '../components/common/DifficultyPill';
 import {
-  ModuleIcon,
   IconCheck,
-  IconChest,
   IconRoute,
   IconRefresh,
   IconBookmark,
   IconFlask,
-  IconArrowRight,
 } from '../components/layout/icons';
 import type { RoadmapStage, RoadmapTrack } from '../types';
 
@@ -41,45 +40,6 @@ interface StageInfo {
   complete: boolean;
 }
 
-function PathStopCard({ index, info, isHere }: { index: number; info: StageInfo; isHere: boolean }) {
-  const { stage, mod, doneLessons, totalLessons, complete } = info;
-  return (
-    <Link to={stage.href ?? (mod ? '/module/' + mod.slug : '/labs')} className={'learning-module-row' + (isHere ? ' learning-module-row--current' : '')}>
-      <span className="learning-module-number">{complete ? <IconCheck className="h-5 w-5" /> : String(index + 1).padStart(2, '0')}</span>
-      <div className="min-w-0 flex-1">
-        <div className="learning-module-meta">{complete ? 'Completed' : isHere ? 'Your next module' : mod ? 'Learning module' : 'Practice'}{mod && <span> · {totalLessons} lessons</span>}</div>
-        <h3 className="learning-module-title">{stage.title}</h3>
-        <p className="learning-module-description">{mod?.description ?? 'Apply your knowledge in the lab catalog.'}</p>
-        {mod && <div className="learning-module-progress"><progress value={doneLessons} max={Math.max(totalLessons, 1)} aria-label={stage.title + ' completion'} /><span>{doneLessons} of {totalLessons} lessons complete</span></div>}
-      </div>
-      <span className="learning-module-action"><span>{complete ? 'Review' : isHere ? 'Continue' : 'View module'}</span><IconArrowRight className="h-4 w-4" /></span>
-      {!mod && <IconChest className="h-5 w-5" />}
-    </Link>
-  );
-}
-
-function CompletedStrip({ items }: { items: StageInfo[] }) {
-  const withModules = items.filter((i) => i.mod);
-  if (withModules.length === 0) return null;
-  return (
-    <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-1">
-      <span className="text-2xs font-mono font-bold uppercase tracking-widest text-[var(--color-text-dim)] shrink-0">
-        Already done
-      </span>
-      {withModules.map((info) => (
-        <Link
-          key={info.stage.title}
-          to={`/module/${info.mod!.slug}`}
-          title={info.stage.title}
-          className="shrink-0 w-8 h-8 rounded-full bg-[var(--color-success)]/15 text-[var(--color-success)] flex items-center justify-center hover:bg-[var(--color-success)]/25 transition-colors"
-        >
-          <ModuleIcon icon={info.mod!.icon} className="w-4 h-4" />
-        </Link>
-      ))}
-    </div>
-  );
-}
-
 function CurrentPathTab({ track }: { track: RoadmapTrack }) {
   const progress = useProgress();
   const stages = ROADMAP.filter((s) => s.track === track);
@@ -99,61 +59,33 @@ function CurrentPathTab({ track }: { track: RoadmapTrack }) {
   const lessonsTotal = stageInfo.reduce((sum, s) => sum + s.totalLessons, 0);
   const lessonsDone = stageInfo.reduce((sum, s) => sum + s.doneLessons, 0);
 
-  const windowStart = allDone ? Math.max(0, stageInfo.length - 4) : Math.max(0, currentIndex - 1);
-  const windowEnd = Math.min(stageInfo.length, windowStart + 5);
-  const before = stageInfo.slice(0, windowStart);
-  const windowed = stageInfo.slice(windowStart, windowEnd);
-  const after = stageInfo.slice(windowEnd);
+
+  const trackName: Record<string, string> = { presecurity: 'Pre-security', security: 'Offensive security', defensive: 'Defensive security', programming: 'Programming', software: 'Software engineering' };
+  const trackGuide: Record<string, CharacterId> = { presecurity: 'byte', security: 'vex', defensive: 'sentinel', programming: 'cipher', software: 'cipher' };
 
   return (
     <>
-      <div className="learning-summary">
-        <div className="learning-summary-item">
-          <div className="text-lg font-bold text-[var(--color-heading)]">
-            {modulesDone}/{modulesTotal}
-          </div>
-          <div className="text-2xs text-[var(--color-text-dim)] uppercase tracking-wide">Modules complete</div>
-        </div>
-        <div className="learning-summary-item">
-          <div className="text-lg font-bold text-[var(--color-heading)]">
-            {lessonsDone}/{lessonsTotal}
-          </div>
-          <div className="text-2xs text-[var(--color-text-dim)] uppercase tracking-wide">Lessons complete</div>
-        </div>
-      </div>
-
       {allDone && (
         <div className="rounded-xl border border-[var(--color-success)]/30 bg-[var(--color-success)]/10 px-4 py-3 mb-6 text-sm text-[var(--color-success)] font-semibold">
           You've completed the lessons on this path. Revisit any module below, or head to the{' '}
-          <Link to="/labs" className="underline">
-            lab catalog
-          </Link>{' '}
+          <Link to="/labs" className="underline">rooms</Link>{' '}
           for more practice.
         </div>
       )}
-
-      <CompletedStrip items={before} />
-
-      <div className="learning-module-list"><div className="flex flex-col">
-          {windowed.map((info, i) => (
-            <PathStopCard
-              key={info.stage.title}
-              index={windowStart + i}
-              info={info}
-              isHere={windowStart + i === currentIndex}
-            />
-          ))}
-        </div>
-      </div>
-
-      {after.length > 0 && (
-        <Link
-          to={`/roadmap?track=${track}`}
-          className="mt-6 flex items-center justify-center gap-1.5 text-sm font-semibold text-[var(--color-accent)] hover:underline"
-        >
-          {after.length} more stop{after.length === 1 ? '' : 's'} on the full path <IconArrowRight className="w-3.5 h-3.5" />
-        </Link>
-      )}
+      <LessonPath
+        eyebrow={`Learning path · ${modulesDone}/${modulesTotal} modules · ${lessonsDone}/${lessonsTotal} lessons`}
+        title={trackName[track] ?? 'Learning path'}
+        guide={trackGuide[track]}
+        nodes={stageInfo.map((info, i) => ({
+          id: info.stage.title,
+          title: info.mod?.title ?? info.stage.title,
+          to: info.mod ? `/module/${info.mod.slug}` : info.stage.href,
+          state: info.complete ? 'done' : i === currentIndex ? 'current' : 'open',
+          percent: i === currentIndex && info.totalLessons ? (info.doneLessons / info.totalLessons) * 100 : undefined,
+          icon: info.mod?.icon,
+          meta: info.mod ? `Module ${i + 1} · ${info.doneLessons}/${info.totalLessons} lessons` : 'Practice',
+        }))}
+      />
     </>
   );
 }
@@ -266,7 +198,7 @@ function SavedTab() {
 export default function MyLearningPage() {
   const [tab, setTab] = useState<TabId>('current');
   const [params, setParams] = useSearchParams();
-  const paths = [['presecurity', 'Pre-security'], ['security', 'Offensive security'], ['defensive', 'Defensive security']] as const;
+  const paths = [['presecurity', 'Pre-security'], ['security', 'Offensive security'], ['defensive', 'Defensive security'], ['programming', 'Programming'], ['software', 'Software engineering']] as const;
   const track = paths.find(([id]) => id === params.get('track'))?.[0] ?? 'presecurity';
   const progress = useProgress();
   const modules = ROADMAP.filter(stage => stage.track === track).map(stage => findModule(stage.moduleSlug)).filter(mod => mod !== undefined);
@@ -278,7 +210,7 @@ export default function MyLearningPage() {
     <div className="relative">
 
       <div className="learning-page mx-auto max-w-6xl px-4 sm:px-7 py-8 sm:py-12">
-        <AcademyHero eyebrow="Your personal workspace" title="My Learning" description="A little focused practice goes a long way. Continue your chapter, revisit your work, or find a new skill to build."
+        <AcademyHero guide="sentinel" eyebrow="Your personal workspace" title="My Learning" description="A little focused practice goes a long way. Continue your chapter, revisit your work, or find a new skill to build."
           stats={[{label: 'Current path', value: paths.find(([id]) => id === track)?.[1] ?? ''}, {label: 'Lessons complete', value: done + ' / ' + lessons.length}]}
           action={{title: next?.title ?? 'Your next challenge awaits', detail: next?.description ?? 'Explore practical labs and put your knowledge to work.', to: next ? '/module/' + next.slug : '/labs', label: next ? 'Continue your chapter' : 'Find a practice lab'}} />
         <div className="flex items-center gap-4 sm:gap-6 border-b border-[var(--color-border)] mb-6 sm:mb-8 overflow-x-auto">

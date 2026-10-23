@@ -9,7 +9,7 @@ import { CPP_TASKS } from '../labs/cppTasks';
 import { JS_TASKS } from '../labs/jsTasks';
 import { SECURITY_TASKS } from '../labs/securityTasks';
 import { ML_TASKS } from '../labs/mlTasks';
-import { IconCheck, IconChart, IconFlask, IconCode, IconTrophy, IconArrowRight, IconLightning, ModuleIcon } from '../components/layout/icons';
+import { IconCheck, IconChart, IconFlask, IconCode, IconTrophy, IconArrowRight, IconLightning, IconBook, IconStar, ModuleIcon } from '../components/layout/icons';
 import StatCard from '../components/common/StatCard';
 import AchievementShelf from '../components/common/AchievementShelf';
 import DifficultyPill from '../components/common/DifficultyPill';
@@ -119,7 +119,7 @@ export default function ProgressPage() {
 
   return (
     <div className="progress-workspace max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-14">
-      <WorkspaceHeader eyebrow="DarkWorld / Learning record" title="Learning progress" description="See the progress behind your practice: lessons completed, challenges solved, and the subjects you are developing. Return to any chapter to keep building."><strong>{streak.current}</strong><span>{streak.current === 1 ? 'day of current practice streak' : 'days of current practice streak'}</span></WorkspaceHeader>
+      <WorkspaceHeader eyebrow="Learning record" guide="ledger" title="Learning progress" description="See the progress behind your practice: lessons completed, challenges solved, and the subjects you are developing. Return to any chapter to keep building."><strong>{streak.current}</strong><span>{streak.current === 1 ? 'day of current practice streak' : 'days of current practice streak'}</span></WorkspaceHeader>
 
       {/* Overview: overall completion ring + the two highest-signal counts beside it. */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -147,8 +147,8 @@ export default function ProgressPage() {
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-10">
         <StatCard icon={<IconCheck className="w-5 h-5" />} color="var(--color-success)" label="Flags captured" value={`${capturedFlags} / ${totalFlags}`} />
         <StatCard icon={<IconCode className="w-5 h-5" />} color="var(--color-accent)" label="Code tasks done" value={`${codeTasksDone} / ${ALL_CODE_TASKS.length}`} />
-        <StatCard label="Quizzes taken" value={quizzesTaken} />
-        <StatCard label="Avg. quiz score" value={`${avgQuizScore}%`} />
+        <StatCard icon={<IconBook className="w-5 h-5" />} color="var(--color-accent-2)" label="Quizzes taken" value={quizzesTaken} />
+        <StatCard icon={<IconStar className="w-5 h-5" />} color="var(--color-gold)" label="Avg. quiz score" value={`${avgQuizScore}%`} />
         <Link to="/profile" className="block">
           <StatCard icon={<IconTrophy className="w-5 h-5" />} color="var(--color-gold)" label="Achievements" value={`${unlockedAchievements.length} / ${ACHIEVEMENTS.length}`} />
         </Link>

@@ -8,6 +8,7 @@ import { PYTHON_ETHICAL_HACKING_AGENT_TASKS } from './ethicalHackingAgents';
 import type { CodeTask } from '../codeTypes';
 import { enrichCodeTasks } from '../enrichCodeTasks';
 import { CLOUD_PROTOCOL_TASKS } from './cloudAndProtocols';
+import { SE_TASKS } from './softwareEngineering';
 
 const RAW_PYTHON_TASKS: CodeTask[] = [
   ...PYTHON_FUNDAMENTALS_TASKS,
@@ -19,6 +20,6 @@ const RAW_PYTHON_TASKS: CodeTask[] = [
   ...PYTHON_ETHICAL_HACKING_AGENT_TASKS,
 ];
 
-export const PYTHON_TASKS: CodeTask[] = [...enrichCodeTasks(RAW_PYTHON_TASKS), ...CLOUD_PROTOCOL_TASKS];
+export const PYTHON_TASKS: CodeTask[] = [...enrichCodeTasks(RAW_PYTHON_TASKS), ...CLOUD_PROTOCOL_TASKS, ...SE_TASKS];
 
-export const PYTHON_TASK_CATEGORIES = ['Fundamentals', 'Cryptography & Encoding', 'OOP', 'Advanced', 'Capstone', 'AI Agents'] as const;
+export const PYTHON_TASK_CATEGORIES = ['Fundamentals', 'Cryptography & Encoding', 'OOP', 'Advanced', 'Capstone', 'AI Agents', 'Software Engineering'] as const;

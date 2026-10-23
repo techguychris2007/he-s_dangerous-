@@ -85,7 +85,7 @@ export default function PreSecurityWorkbench({
             {Object.entries(checkpointLabels).map(([checkpoint, label]) => (
               <span
                 key={checkpoint}
-                className={`rounded-full border px-2.5 py-1 text-[11px] ${state.completed.includes(checkpoint) ? 'border-[var(--color-success)]/40 bg-[var(--color-success)]/10 text-[var(--color-success)]' : 'border-[var(--color-border)] text-[var(--color-text-dim)]'}`}
+                className={`rounded-full border px-2.5 py-1 text-2xs ${state.completed.includes(checkpoint) ? 'border-[var(--color-success)]/40 bg-[var(--color-success)]/10 text-[var(--color-success)]' : 'border-[var(--color-border)] text-[var(--color-text-dim)]'}`}
               >
                 {state.completed.includes(checkpoint) ? 'Done: ' : ''}{label}
               </span>

@@ -11,11 +11,13 @@ export default function SentinelConsole({
   onFlagCaptured,
   onTranscriptChange,
   onResults,
+  compact = false,
 }: {
   scenario: SiemLabScenario;
   onFlagCaptured: (flag: string) => void;
   onTranscriptChange?: (transcript: string) => void;
   onResults?: (entries: SiemLabScenario['entries']) => void;
+  compact?: boolean;
 }) {
   const [query, setQuery] = useState('');
   const [ran, setRan] = useState(false);
@@ -46,16 +48,16 @@ export default function SentinelConsole({
       {/* Azure portal top bar */}
       <div className="flex items-center gap-3 px-4 h-11 bg-[#0078d4] text-white shrink-0">
         <span className="font-semibold text-sm">Microsoft Sentinel</span>
-        <span className="text-xs text-white/70 hidden sm:inline">| {scenario.datasetLabel}</span>
+        {!compact && <span className="text-xs text-white/70 hidden sm:inline">| {scenario.datasetLabel}</span>}
         <div className="ml-auto flex items-center gap-1.5 text-xs text-white/80">
           <span className="w-2 h-2 rounded-full bg-[#6bb700]" />
-          Connected
+          {compact ? 'Offline case' : 'Connected'}
         </div>
       </div>
 
       <div className="flex flex-1 min-h-0">
         {/* Left resource nav */}
-        <div className="w-40 shrink-0 bg-[#faf9f8] border-r border-black/10 py-2 hidden md:block">
+        {!compact && <div className="w-40 shrink-0 bg-[#faf9f8] border-r border-black/10 py-2 hidden md:block">
           {LEFT_NAV.map((item) => (
             <div
               key={item}
@@ -68,11 +70,11 @@ export default function SentinelConsole({
               {item}
             </div>
           ))}
-        </div>
+        </div>}
 
         <div className="flex-1 min-w-0 flex flex-col">
           {/* Table picker strip */}
-          <div className="flex items-center gap-1.5 px-3 py-2 border-b border-black/10 bg-[#faf9f8] overflow-x-auto shrink-0">
+          {!compact && <div className="flex items-center gap-1.5 px-3 py-2 border-b border-black/10 bg-[#faf9f8] overflow-x-auto shrink-0">
             {TABLES.map((t) => (
               <span
                 key={t}
@@ -81,11 +83,11 @@ export default function SentinelConsole({
                 {t}
               </span>
             ))}
-          </div>
+          </div>}
 
           {/* KQL editor */}
           <div className="px-3 py-3 border-b border-black/10 shrink-0">
-            <div className="text-xs font-semibold text-[#605e5c] uppercase tracking-wide mb-1.5">New Query 1*</div>
+            <div className="text-xs font-semibold text-[#605e5c] uppercase tracking-wide mb-1.5">{compact ? 'Search case evidence' : 'New Query 1*'}</div>
             <textarea
               aria-label="Investigation query"
               value={query}
@@ -96,8 +98,8 @@ export default function SentinelConsole({
                   run(query);
                 }
               }}
-              placeholder={'OfficeActivity\n| where Operation == "MailItemsAccessed"\n| where ClientIP !in (KnownIPs)'}
-              rows={3}
+              placeholder={compact ? 'Filter case records, e.g. phase=triage' : 'OfficeActivity\n| where Operation == "MailItemsAccessed"\n| where ClientIP !in (KnownIPs)'}
+              rows={compact ? 2 : 3}
               className="w-full bg-[#1e1e1e] text-[#d4d4d4] border border-black/10 rounded px-3 py-2.5 text-sm font-mono outline-none focus:ring-1 focus:ring-[#0078d4] resize-none"
             />
             <div className="flex items-center gap-2 mt-2">
@@ -112,8 +114,9 @@ export default function SentinelConsole({
           </div>
 
           {/* Results table */}
-          <div className="flex-1 overflow-y-auto">
-            <table className="w-full text-sm">
+          <div className="flex-1 min-h-0 overflow-auto">
+            <table className={`w-full text-sm ${compact ? 'table-fixed min-w-[600px]' : ''}`}>
+              {compact && <colgroup><col style={{ width: 180 }} /><col style={{ width: 125 }} /><col /></colgroup>}
               <thead className="sticky top-0 bg-[#faf9f8] text-[#605e5c] text-xs font-semibold uppercase tracking-wide border-b border-black/10">
                 <tr>
                   <th className="text-left px-3 py-2 whitespace-nowrap">TimeGenerated</th>
@@ -130,7 +133,7 @@ export default function SentinelConsole({
                         {e.eventType ?? 'Event'}
                       </span>
                     </td>
-                    <td className="px-3 py-2 align-top font-mono text-xs text-[#323130] break-all">{e.line}</td>
+                    <td className="px-3 py-2 align-top font-mono text-xs text-[#323130] break-words">{e.line}</td>
                   </tr>
                 ))}
                 {results.length === 0 && (

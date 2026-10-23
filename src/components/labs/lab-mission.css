@@ -1,0 +1,71 @@
+.dw-mission-launch{height:100%;overflow:auto;padding:32px clamp(20px,4vw,64px);color:var(--color-heading);background:var(--color-bg)}
+.dw-mission-back{font-size:13px;color:var(--color-text-dim)}
+.dw-mission-intro,.dw-mission-preflight{max-width:1000px;margin:24px auto;border:1px solid var(--color-border);background:var(--color-surface);border-radius:12px;padding:clamp(24px,4vw,44px)}
+.dw-mission-eyebrow{display:block;font-size:10px;font-weight:750;letter-spacing:.13em;text-transform:uppercase;color:#526880}
+.dw-mission-intro h1{max-width:760px;font-size:clamp(28px,3.2vw,44px);font-weight:750;letter-spacing:-.04em;line-height:1.12;margin:14px 0 20px}
+.dw-mission-meta{display:flex;align-items:center;flex-wrap:wrap;gap:18px;font-size:12px;color:var(--color-text-dim)}
+.dw-mission-intro>p,.dw-mission-preflight p{max-width:76ch;font-size:15px;line-height:1.85;white-space:pre-line;margin:24px 0;color:var(--color-text-dim)}
+.dw-mission-launch-footer{border-top:1px solid var(--color-border);padding-top:24px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.dw-mission-launch-footer strong,.dw-mission-launch-footer span{display:block;font-size:13px}.dw-mission-launch-footer span{margin-top:5px;color:var(--color-text-dim)}
+.dw-mission-launch-footer button,.dw-mission-primary{background:var(--color-accent);color:white!important;border:0!important;border-radius:6px;padding:12px 18px;font-size:13px;font-weight:650}
+.dw-mission-preflight h2{font-size:19px;font-weight:700}.dw-mission-launch>.space-y-6{max-width:1000px;margin:auto}
+/* ── Lab workspace (the "room"): TryHackMe split — tasks on the left, machine on the right. ─────────
+   Theme-aware: every colour is a platform token; the header is the navy band used by room banners. */
+.dw-mission-room{position:fixed;inset:0;width:100vw;max-width:none;height:100dvh;max-height:none;margin:0;padding:0;border:0;background:var(--color-bg);color:var(--color-text);overflow:hidden;font-family:var(--font-sans)}
+.dw-mission-room[open]{display:flex;flex-direction:column}.dw-mission-room::backdrop{background:var(--color-navy)}
+.dw-mission-header{--room-text:color-mix(in srgb,white 88%,var(--color-navy));--room-dim:color-mix(in srgb,white 60%,var(--color-navy));min-height:68px;display:flex;align-items:center;justify-content:space-between;padding:12px 22px;gap:20px;background:var(--color-navy);color:var(--room-text);flex-shrink:0}
+.dw-mission-header>div:first-child{display:flex;align-items:center;gap:14px;min-width:0}
+.dw-mission-header .dw-mission-eyebrow{color:var(--room-dim);font-size:11px;letter-spacing:.12em}
+.dw-mission-header h2{font-family:var(--font-display);font-size:18px;font-weight:700;margin:3px 0 0;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dw-mission-header-actions{display:flex;align-items:center;gap:10px;font-size:13px;flex-shrink:0}.dw-mission-header-actions>span{color:var(--room-dim)}
+.dw-mission-header button{min-height:38px;padding:0 14px;border:1px solid color-mix(in srgb,white 28%,transparent);border-radius:6px;color:var(--room-text);background:transparent;font-size:13px;font-weight:500}
+.dw-mission-header button:hover{background:color-mix(in srgb,white 8%,transparent)}
+.dw-mission-header .dw-mission-complete{color:var(--color-success);font-weight:700}
+.dw-mission-progress{position:relative;height:22px;background:color-mix(in srgb,var(--color-accent) 22%,var(--color-navy));flex-shrink:0}
+.dw-mission-progress span{position:absolute;inset:0 auto 0 0;background:var(--color-accent);transition:width .25s}
+.dw-mission-progress b{position:relative;display:block;text-align:center;font-size:11px;line-height:22px;font-weight:700;color:white}
+.dw-mission-body{display:flex;flex:1;min-height:0;overflow:hidden}
+/* The guide pane can be dragged wider from its bottom-right corner. */
+.dw-mission-guide{width:400px;min-width:300px;max-width:62vw;resize:horizontal;overflow:hidden;flex-shrink:0;display:flex;flex-direction:column;border-right:1px solid var(--color-border);background:var(--color-surface);min-height:0}
+.dw-mission-guide>nav{display:flex;padding:0 12px;border-bottom:1px solid var(--color-border);gap:2px;flex-shrink:0;background:var(--color-surface-2)}
+.dw-mission-guide>nav button{padding:14px 12px;font-size:14px;font-weight:500;color:var(--color-text-dim);border-bottom:2px solid transparent}
+.dw-mission-guide>nav button:hover{color:var(--color-heading)}
+.dw-mission-guide>nav button[aria-pressed=true]{border-color:var(--color-accent);color:var(--color-heading);font-weight:700}
+.dw-mission-guide-content{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:22px 24px}
+.dw-mission-guide-content>.dw-mission-eyebrow{display:flex;align-items:center;gap:10px;padding:12px 14px;margin:-4px 0 16px;border:1px solid var(--color-border);border-left:3px solid var(--color-accent);border-radius:6px;background:var(--color-surface-2);color:var(--color-accent);font-size:14px;font-weight:500;letter-spacing:0;text-transform:none}
+.dw-mission-guide h3{font-family:var(--font-display);font-size:20px;font-weight:700;line-height:1.35;margin:0 0 14px;color:var(--color-heading)}
+.dw-mission-guide h4{font-family:var(--font-display);font-size:15px;font-weight:700;margin:22px 0 8px;color:var(--color-heading)}
+.dw-mission-guide p{font-size:15px;line-height:1.75;color:var(--color-text);white-space:pre-line;margin:0 0 14px}
+.dw-mission-guide code{font-family:var(--font-mono);font-size:14px;padding:1px 5px;border-radius:4px;background:var(--color-surface-2);color:var(--color-heading);overflow-wrap:anywhere}
+.dw-mission-guide pre{font-family:var(--font-mono);font-size:14px;line-height:1.65;white-space:pre-wrap;background:var(--term-bg);color:var(--term-output);padding:12px 14px;border-radius:6px;margin:12px 0;overflow-wrap:anywhere}
+.dw-mission-hosts{font-size:14px;margin:12px 0 22px;padding:0;list-style:none;border:1px solid var(--color-border);border-radius:6px;overflow:hidden}
+.dw-mission-hosts li{padding:10px 14px;display:flex;justify-content:space-between;gap:12px;color:var(--color-heading)}.dw-mission-hosts li+li{border-top:1px solid var(--color-border)}
+.dw-mission-primary{display:inline-flex;align-items:center;min-height:40px;padding:0 16px!important;border-radius:6px!important;background:var(--color-accent)!important;color:white!important;font-size:14px!important;font-weight:700!important}
+.dw-mission-primary:hover{background:var(--color-accent-dim)!important}
+.dw-mission-guide-footer{padding:12px 20px;border-top:1px solid var(--color-border);font-size:13px;color:var(--color-text-dim);display:flex;justify-content:space-between;gap:8px;background:var(--color-surface-2)}
+.dw-mission-guide-footer button{color:var(--color-accent-dim);font-weight:600}
+.dw-mission-review{display:flex;gap:10px;font-size:14px;line-height:1.6;padding:14px;background:var(--color-surface-2);border:1px solid var(--color-border);border-radius:6px;color:var(--color-heading)}
+.dw-mission-review input{align-self:flex-start;margin-top:4px;accent-color:var(--color-accent)}
+.dw-mission-stage-nav{display:flex;justify-content:space-between;gap:12px;margin:18px 0}
+.dw-mission-stage-nav button{font-size:14px;font-weight:600;color:var(--color-heading);border:1px solid var(--color-border);padding:8px 14px;border-radius:6px;background:var(--color-surface)}
+.dw-mission-stage-nav button:hover{background:var(--color-surface-2)}
+.dw-mission-room button:disabled{opacity:.4;cursor:not-allowed}
+.dw-mission-room button:focus-visible,.dw-mission-room summary:focus-visible{outline:2px solid var(--color-accent-dim);outline-offset:3px}
+.dw-mission-room details{font-size:14px;color:var(--color-text-dim)}
+.dw-mission-objective-list{list-style:none;padding:12px 0 0;margin:0;display:grid;gap:6px}
+.dw-mission-objective-list button{width:100%;text-align:left;line-height:1.5;padding:10px 12px;border:1px solid var(--color-border);border-radius:6px;background:var(--color-surface);color:var(--color-heading);font-size:14px}
+.dw-mission-objective-list button[aria-current]{border-left:3px solid var(--color-accent);font-weight:700}
+.dw-mission-hint{margin-top:14px;padding:12px 14px;border:1px solid var(--color-border);border-left:3px solid var(--color-gold);border-radius:6px;background:var(--color-surface-2)}
+.dw-mission-hint h4{margin-top:0!important;color:var(--color-gold-dim)!important}
+.dw-mission-guide p.dw-mission-note{font-size:13px;color:var(--color-text-dim)}
+.dw-mission-tools{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;padding:0 14px 14px;background:var(--color-bg)}
+.dw-mission-tool-tabs{height:52px;display:flex;align-items:center;gap:6px;flex-shrink:0}
+.dw-mission-tool-tabs button{font-size:14px;font-weight:500;color:var(--color-text-dim);padding:7px 14px;border-radius:6px;border:1px solid transparent}
+.dw-mission-tool-tabs button[aria-pressed=true]{color:var(--color-heading);background:var(--color-surface);border-color:var(--color-border);font-weight:700}
+.dw-mission-tool-tabs>span{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--color-text-dim)}
+.dw-mission-tool-tabs>span::before{content:"";width:8px;height:8px;border-radius:999px;background:var(--color-success)}
+.dw-mission-terminal,.dw-mission-target{flex:1;min-height:0;overflow:hidden;border-radius:8px}
+.dw-mission-target{overflow:auto}.dw-mission-terminal[hidden],.dw-mission-target[hidden]{display:none}
+.dw-mission-notice{font-size:13px;padding:8px 22px;background:var(--color-gold-soft);color:var(--color-heading)}
+@media(max-width:1000px){.dw-mission-guide{width:330px}.dw-mission-header{padding:10px 14px}.dw-mission-header-actions{gap:8px}.dw-mission-header-actions>span{display:none}.dw-mission-body>aside:last-child{max-width:280px}}
+@media(max-width:700px){.dw-mission-header{align-items:flex-start}.dw-mission-header-actions{flex-direction:column;align-items:stretch}.dw-mission-header h2{font-size:15px}.dw-mission-body{flex-direction:column}.dw-mission-guide{width:auto;max-width:none;resize:none;max-height:43%;border-bottom:1px solid var(--color-border)}.dw-mission-guide-content{padding:16px 18px}.dw-mission-guide-footer{display:none}.dw-mission-tools{padding:0 8px 8px}.dw-mission-tool-tabs{height:44px}}

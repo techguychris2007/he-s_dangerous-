@@ -86,7 +86,7 @@ export default function LessonLabCard({ labSlug }: { labSlug: string }) {
           <div className="p-4 border-b border-[var(--color-border)]">
             <StepChecklist steps={scenario.objectives} title="Follow these steps" />
           </div>
-          <div className="bg-[#0d1420] p-4 h-[420px]">
+          <div className="bg-[var(--chrome-bg)] p-4 h-[420px]">
             <Terminal scenario={scenario} onFlagCaptured={(flag) => progress.captureFlag(scenario.id, flag, scenario.totalFlags)} />
           </div>
         </div>

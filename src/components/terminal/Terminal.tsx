@@ -1,6 +1,7 @@
 import { useEffect, useImperativeHandle, useRef, useState, type Ref } from 'react';
 import { TerminalEngine, COMMAND_LATENCY_MS, type OutLine, type LabSnapshot } from '../../labs/engine';
 import type { LabScenario } from '../../labs/types';
+import './terminal.css';
 
 interface DisplayLine extends OutLine {
   id: number;
@@ -44,6 +45,9 @@ export default function Terminal({ ref, scenario, onFlagCaptured, onTranscriptCh
   const [historyList, setHistoryList] = useState<string[]>([]);
   const [historyPos, setHistoryPos] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
+  const [fontSize, setFontSize] = useState(14);
+  const [wrap, setWrap] = useState(true);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const pendingRevealRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -123,16 +127,15 @@ export default function Terminal({ ref, scenario, onFlagCaptured, onTranscriptCh
       setHistoryList((prev) => [...prev, raw]);
     }
 
-    // The engine itself runs synchronously (state changes — cd, ssh login, etc. — happen right
-    // away, exactly when the real command would take effect); only REVEALING the output is
-    // delayed, the same way a real nmap/hydra/hashcat run makes you wait before printing results.
-    const result = engine.run(raw, (flag) => onFlagCaptured(flag));
-    onStateChangeRef.current?.(engine.getSnapshot());
+    // Defer execution as well as output: cancelling a pending command must not silently
+    // change sessions, capture a proof, or mutate a file behind the learner's back.
     const firstWord = raw.trim().split(/\s+/)[0]?.toLowerCase();
     const latency = isPassword ? 0 : (COMMAND_LATENCY_MS[firstWord] ?? 0);
 
     const reveal = () => {
       pendingRevealRef.current = null;
+      const result = engine.run(raw, (flag) => onFlagCaptured(flag));
+      onStateChangeRef.current?.(engine.getSnapshot());
       const outLines: DisplayLine[] = [];
       for (const line of result) {
         if (line.text === '__CLEAR__') {
@@ -236,6 +239,7 @@ export default function Terminal({ ref, scenario, onFlagCaptured, onTranscriptCh
       e.preventDefault();
       setLines([]);
     } else if (e.key === 'c' && e.ctrlKey) {
+      if (window.getSelection()?.toString()) return;
       e.preventDefault();
       // If a command is still "running" (its output delayed to mimic real latency), actually cancel
       // that pending reveal instead of just echoing ^C and letting the output show up moments later
@@ -254,14 +258,24 @@ export default function Terminal({ ref, scenario, onFlagCaptured, onTranscriptCh
   };
 
   const isPassword = engineRef.current.isAwaitingPassword();
+  const downloadSession = () => {
+    const blob = new Blob([lines.map(line => line.text).join('\n')], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${scenario.id}-session.txt`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
 
   return (
     <div
-      className="flex flex-col h-full min-h-0 min-w-0 bg-[var(--term-bg)] border border-[var(--color-accent)]/40 rounded-xl overflow-hidden font-mono text-xs sm:text-sm shadow-[0_0_40px_-12px_var(--color-accent)]"
+      className={`dw-terminal flex flex-col h-full min-h-0 min-w-0 overflow-hidden font-mono ${wrap ? '' : 'dw-terminal-nowrap'}`}
+      style={{ '--dw-terminal-font-size': `${fontSize}px` } as React.CSSProperties}
       onClick={focusInput}
     >
       <div className="flex items-center gap-1.5 px-3 py-2 bg-[#15171c] border-b border-[var(--color-accent)]/30">
-        <span className="text-xs text-[var(--term-input)] truncate">{scenario.attacker.hostname} — bash</span>
+        <span className="text-xs text-[var(--term-input)] truncate">{scenario.attacker.hostname} / shell</span>
         <div className="ml-auto hidden sm:flex items-center gap-1">
           {['help', 'hint', 'objectives'].map(command => (
             <button
@@ -269,7 +283,7 @@ export default function Terminal({ ref, scenario, onFlagCaptured, onTranscriptCh
               type="button"
               onClick={(event) => { event.stopPropagation(); runShortcut(command); }}
               disabled={busy || engineRef.current.isAwaitingPassword()}
-              className="rounded-md border border-white/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--term-muted)] hover:border-[var(--color-accent)]/50 hover:text-[var(--term-output)] disabled:cursor-not-allowed disabled:opacity-40"
+              className="rounded-md border border-white/10 px-2 py-1 text-2xs font-semibold uppercase tracking-wide text-[var(--term-muted)] hover:border-[var(--color-accent)]/50 hover:text-[var(--term-output)] disabled:cursor-not-allowed disabled:opacity-40"
             >
               {command}
             </button>
@@ -277,12 +291,18 @@ export default function Terminal({ ref, scenario, onFlagCaptured, onTranscriptCh
           <button
             type="button"
             onClick={(event) => { event.stopPropagation(); clearTerminal(); }}
-            className="rounded-md border border-white/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--term-muted)] hover:border-[var(--color-accent)]/50 hover:text-[var(--term-output)]"
+            className="rounded-md border border-white/10 px-2 py-1 text-2xs font-semibold uppercase tracking-wide text-[var(--term-muted)] hover:border-[var(--color-accent)]/50 hover:text-[var(--term-output)]"
           >
             clear
           </button>
         </div>
         {busy && <span className="ml-auto text-2xs text-[var(--term-muted)] animate-pulse shrink-0">running&hellip;</span>}
+      </div>
+      <div className="dw-terminal-controls" onClick={event => event.stopPropagation()}>
+        <div className="dw-terminal-history"><button aria-expanded={historyOpen} onClick={() => setHistoryOpen(value => !value)}>History {historyList.length > 0 ? `(${historyList.length})` : ''}</button>{historyOpen && <div className="dw-terminal-history-menu" aria-label="Command history">{historyList.length ? [...historyList].reverse().map((command, index) => <button key={index} title={command} disabled={isPassword} onClick={() => { setInput(command); setHistoryPos(null); setHistoryOpen(false); focusInput(); }}>{command}</button>) : <p>No commands yet. Passwords are never stored here.</p>}</div>}</div>
+        <button onClick={downloadSession}>Save session</button>
+        <button aria-pressed={wrap} onClick={() => setWrap(value => !value)}>Wrap {wrap ? 'on' : 'off'}</button>
+        <div className="dw-terminal-font"><button aria-label="Decrease terminal font size" disabled={fontSize <= 12} onClick={() => setFontSize(value => value - 1)}>A−</button><span>{fontSize}px</span><button aria-label="Increase terminal font size" disabled={fontSize >= 20} onClick={() => setFontSize(value => value + 1)}>A+</button></div>
       </div>
       <div className="grid grid-cols-4 gap-1 border-b border-[var(--color-accent)]/20 bg-[#11141a] p-1.5 sm:hidden">
         {['help', 'hint', 'objectives'].map(command => (
@@ -291,7 +311,7 @@ export default function Terminal({ ref, scenario, onFlagCaptured, onTranscriptCh
             type="button"
             onClick={(event) => { event.stopPropagation(); runShortcut(command); }}
             disabled={busy || engineRef.current.isAwaitingPassword()}
-            className="rounded-md border border-white/10 px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--term-muted)] disabled:opacity-40"
+            className="rounded-md border border-white/10 px-2 py-1.5 text-2xs font-semibold uppercase tracking-wide text-[var(--term-muted)] disabled:opacity-40"
           >
             {command === 'objectives' ? 'goals' : command}
           </button>
@@ -299,7 +319,7 @@ export default function Terminal({ ref, scenario, onFlagCaptured, onTranscriptCh
         <button
           type="button"
           onClick={(event) => { event.stopPropagation(); clearTerminal(); }}
-          className="rounded-md border border-white/10 px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--term-muted)]"
+          className="rounded-md border border-white/10 px-2 py-1.5 text-2xs font-semibold uppercase tracking-wide text-[var(--term-muted)]"
         >
           clear
         </button>
@@ -341,7 +361,7 @@ export default function Terminal({ ref, scenario, onFlagCaptured, onTranscriptCh
           <button
             type="button"
             onClick={(event) => { event.stopPropagation(); focusInput(); }}
-            className="sm:hidden rounded-md border border-white/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--term-muted)]"
+            className="sm:hidden rounded-md border border-white/10 px-2 py-1 text-2xs font-semibold uppercase tracking-wide text-[var(--term-muted)]"
           >
             focus
           </button>

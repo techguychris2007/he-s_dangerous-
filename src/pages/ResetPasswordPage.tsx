@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../state/authStore';
 import Logo from '../components/layout/Logo';
-import AgencyBackdrop from '../components/layout/AgencyBackdrop';
 import { IconLock } from '../components/layout/icons';
+import './entry-pages.css';
+import CharacterAvatar from '../components/characters/CharacterAvatar';
 
 /** Landing page for a Supabase password-recovery email link. Only reachable with a valid (temporary)
  *  recovery session — authStore.ts's onAuthStateChange forces the app here the moment it detects
@@ -33,128 +34,47 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center px-4 py-10 relative overflow-hidden bg-[#0d1824]">
-      <div className="absolute inset-0">
-        <AgencyBackdrop />
-      </div>
-
-      <div
-        className="relative w-full max-w-[440px] rounded-2xl px-7 py-8 sm:px-9 sm:py-10 reveal"
-        style={{
-          '--reveal-delay': '0.1s',
-          background: 'linear-gradient(180deg, #20394d 0%, #142638 100%)',
-          border: '1px solid #79d0d588',
-          boxShadow: '0 0 0 1px rgba(121,208,213,0.15), 0 0 60px -12px rgba(63,140,255,0.35), 0 30px 60px -20px rgba(0,0,0,0.6)',
-        } as React.CSSProperties}
-      >
-        <div className="flex flex-col items-center text-center mb-7">
-          <div
-            className="w-16 h-16 rounded-xl flex items-center justify-center mb-4"
-            style={{
-              background: 'linear-gradient(180deg, #20394d 0%, #142638 100%)',
-              border: '1px solid #79d0d566',
-              boxShadow: 'inset 0 0 18px rgba(63,140,255,0.25), 0 0 22px -6px rgba(63,140,255,0.5)',
-            }}
-          >
-            <Logo className="w-14 h-14" />
-          </div>
-          <h1
-            className="font-display text-3xl tracking-wide"
-            style={{
-              backgroundImage: 'linear-gradient(180deg, #d1eff0 0%, #79d0d5 60%, #4b929a 100%)',
-              WebkitBackgroundClip: 'text',
-              backgroundClip: 'text',
-              color: 'transparent',
-            }}
-          >
-            DARKWORLD
-          </h1>
-          <p className="font-display text-[13px] tracking-[0.2em] uppercase text-[#8fa7c4] mt-1">Set a new password</p>
+    <main className="dw-entry dw-auth">
+      <aside className="dw-auth-story">
+        <Link to="/welcome" className="dw-brand"><Logo className="dw-brand-mark" /><span>DARKWORLD<small>CYBERSECURITY ACADEMY</small></span></Link>
+        <div className="dw-auth-story-copy">
+          <div className="dw-entry-world dw-auth-world" aria-hidden="true" />
+          <p className="dw-eyebrow">Account recovery</p>
+          <h2>Back in<br />the field,<br /><em>securely.</em></h2>
+          <p>Choose a new password for your workspace. Your progress, XP and streak stay exactly as you left them.</p>
+          <div className="dw-auth-crew"><CharacterAvatar id="sentinel" size={52} decorative /><p><strong>SENTINEL · SOC LEAD</strong>New credentials, same operator. Lock it down and get back to the case board.</p></div>
         </div>
-
-        {auth.loading ? <p role="status" className="text-sm text-[#a9c0da]">Checking your recovery session…</p> : !auth.user ? (
-          <div className="flex flex-col items-center text-center gap-4">
-            <p className="text-sm text-[#a9c0da] leading-relaxed">
-              This reset link is invalid or has expired. Request a new one from the sign-in page.
-            </p>
-            <Link
-              to="/login"
-              className="text-2xs font-semibold text-[#7c93ae] hover:text-[#c9e0ff] transition-colors"
-            >
-              &larr; Back to sign in
-            </Link>
-          </div>
-        ) : done ? (
-          <div className="flex flex-col items-center text-center gap-4">
-            <p className="text-sm text-[var(--term-success)] leading-relaxed">
-              Password updated. You're signed in with your new password.
-            </p>
-            <button
-              onClick={() => navigate('/', { replace: true })}
-              className="text-2xs font-semibold text-[#7c93ae] hover:text-[#c9e0ff] transition-colors"
-            >
-              Continue to dashboard &rarr;
-            </button>
-          </div>
-        ) : (
-          <form onSubmit={submit} className="flex flex-col gap-3.5">
-            <label
-              className="flex items-center gap-3 px-4 py-3 rounded-lg"
-              style={{ background: 'rgba(6,13,22,0.55)', border: '1px solid #79d0d54d' }}
-            >
-              <IconLock className="w-4 h-4 text-[#79d0d5] shrink-0" />
-              <span className="sr-only">New password (min. 6 characters)</span>
-              <input
-                autoFocus
-                type="password"
-                autoComplete="new-password"
-                required
-                minLength={6}
-                disabled={submitting}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="New password (min. 6 characters)"
-                className="flex-1 min-w-0 bg-transparent outline-none text-sm text-[#e8edf5] placeholder:text-[#9db5c7]"
-              />
-            </label>
-
-            <label
-              className="flex items-center gap-3 px-4 py-3 rounded-lg"
-              style={{ background: 'rgba(6,13,22,0.55)', border: '1px solid #79d0d54d' }}
-            >
-              <IconLock className="w-4 h-4 text-[#79d0d5] shrink-0" />
-              <span className="sr-only">Confirm new password</span>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirm new password"
-                className="flex-1 min-w-0 bg-transparent outline-none text-sm text-[#e8edf5] placeholder:text-[#9db5c7]"
-              />
-            </label>
-
-            {error && (
-              <div role="alert" className="text-xs text-[var(--term-error-text)] bg-[var(--term-error)]/8 border border-[var(--term-error)]/30 rounded-lg px-3 py-2 leading-relaxed">
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={submitting}
-              className="w-full mt-1 px-4 py-3.5 font-mono tracking-[0.25em] uppercase text-sm disabled:opacity-45 disabled:cursor-not-allowed transition-transform active:scale-[0.98]"
-              style={{
-                background: '#142638',
-                color: '#79d0d5',
-                border: '1px solid #79d0d5',
-                boxShadow: '0 0 0 3px #06090f, 0 0 0 4px #79d0d555, 0 10px 24px -10px rgba(0,0,0,0.7)',
-              }}
-            >
-              {submitting ? 'Updating…' : 'Update password'}
-            </button>
-          </form>
-        )}
-      </div>
-    </div>
+        <p className="dw-auth-footnote">Use a password you don’t use anywhere else.</p>
+      </aside>
+      <section className="dw-auth-main" aria-labelledby="reset-title">
+        <Link to="/login" className="dw-back">← Back to sign in</Link>
+        <div className="dw-auth-form">
+          <p className="dw-eyebrow">Your learning workspace</p>
+          <h1 id="reset-title">Set a new password.</h1>
+          {auth.loading ? <p role="status" className="dw-auth-description">Checking your recovery session…</p> : !auth.user ? (
+            <>
+              <p className="dw-auth-description">This reset link is invalid or has expired. Request a new one from the sign-in page.</p>
+              <Link to="/login" className="dw-button dw-button-primary dw-auth-wide">Back to sign in<span aria-hidden="true">→</span></Link>
+            </>
+          ) : done ? (
+            <>
+              <p role="status" className="dw-auth-info dw-auth-gap">Password updated. You’re signed in with your new password.</p>
+              <button type="button" className="dw-button dw-button-primary dw-auth-wide" onClick={() => navigate('/', { replace: true })}>Continue to dashboard<span aria-hidden="true">→</span></button>
+            </>
+          ) : (
+            <>
+              <p className="dw-auth-description">Pick something at least 6 characters long.</p>
+              <form onSubmit={submit} className="dw-auth-fields" aria-busy={submitting}>
+                <label><span>New password</span><div className="dw-field"><IconLock className="h-4 w-4" /><input autoFocus type="password" autoComplete="new-password" required minLength={6} disabled={submitting} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 6 characters" /></div></label>
+                <label><span>Confirm new password</span><div className="dw-field"><IconLock className="h-4 w-4" /><input type="password" autoComplete="new-password" required disabled={submitting} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Re-enter your password" /></div></label>
+                {error && <p role="alert" className="dw-auth-error">{error}</p>}
+                <button className="dw-button dw-button-primary" type="submit" disabled={submitting}>{submitting ? 'Updating…' : 'Update password'}<span aria-hidden="true">→</span></button>
+              </form>
+            </>
+          )}
+        </div>
+        <p className="dw-auth-footer">DarkWorld Academy · Learn with purpose.</p>
+      </section>
+    </main>
   );
 }

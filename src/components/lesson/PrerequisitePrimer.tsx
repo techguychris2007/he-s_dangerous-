@@ -53,6 +53,9 @@ const matchers: [string, RegExp][] = [
   ['containers', /\b(container|kubernetes|docker)\b/i], ['http', /\b(http|request|browser|web)\b/i],
 ];
 function foundationKeys(moduleSlug: string, prerequisite = ''): string[] {
+  // Software Engineering lessons build on each other and state their own prerequisite; the
+  // security primers (identity, networking) would be off-topic there.
+  if (moduleSlug.startsWith('se-')) return [];
   const base = defaults[moduleSlug] ?? (/soc|defensive/.test(moduleSlug) ? ['logs', 'detection']
     : /identity/.test(moduleSlug) ? ['identity', 'sessions']
     : /software-delivery/.test(moduleSlug) ? ['containers', 'identity']
@@ -62,6 +65,7 @@ function foundationKeys(moduleSlug: string, prerequisite = ''): string[] {
 }
 export default function PrerequisitePrimer({ moduleSlug, prerequisite }: { moduleSlug: string; prerequisite?: string }) {
   const keys = foundationKeys(moduleSlug, prerequisite);
+  if (keys.length === 0) return null;
   return <section className="prerequisite-primer" aria-labelledby="lesson-foundations">
     <h2 id="lesson-foundations">Foundations for this lesson</h2>
     {keys.map(key => {

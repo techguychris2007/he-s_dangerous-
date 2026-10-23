@@ -5,8 +5,9 @@ import ProjectFileTabs from './ProjectFileTabs';
 import ProjectFileTree from './ProjectFileTree';
 import DomPreviewPane from './DomPreviewPane';
 import { RUN_TARGET_RUNNERS } from '../../lib/projectRunners';
-import { parseTestResult, type TestSummary } from '../../lib/testResult';
-import { IconCheck } from '../layout/icons';
+import { parseChecks, parseTestResult, type TestSummary } from '../../lib/testResult';
+import { IconCheck, IconRefresh, IconX } from '../layout/icons';
+import './code-workspace.css';
 
 interface ProjectConsoleProps {
   task: ProjectTask;
@@ -124,85 +125,93 @@ export default function ProjectConsole({ task, onAllTestsPassed, onFilesChange, 
 
   const dirtyPaths = new Set(task.files.filter((f) => contentsRef.current[f.path] !== f.content).map((f) => f.path));
 
+  const passing = task.targets.filter((t) => {
+    const sm = targetStates[t.id].summary;
+    return !!sm && sm.total > 0 && sm.passed === sm.total;
+  }).length;
+  const anyBusy = task.targets.some((t) => targetStates[t.id].status === 'running');
+  const editable = task.files.filter((f) => f.editable).length;
+
   return (
-    <div className="flex flex-col h-full gap-3">
-      <div className="flex-1 min-h-[280px] rounded-lg border border-[var(--color-accent)]/30 overflow-hidden flex flex-col">
-        <ProjectFileTabs files={task.files} activePath={activePath} onSelect={setActivePath} dirtyPaths={dirtyPaths} />
-        <div className="flex-1 flex min-h-0">
-          {showTree && <ProjectFileTree files={task.files} activePath={activePath} onSelect={setActivePath} />}
-          <div className="flex-1 min-w-0">
-            <MonacoProjectEditor
-              key={resetKey}
-              initialFiles={task.files}
-              activePath={activePath}
-              onFileChange={handleFileChange}
-            />
+    <div className="dw-project">
+      <div className="dw-ide dw-ide--project">
+        <div className="dw-ide__bar">
+          <ProjectFileTabs files={task.files} activePath={activePath} onSelect={setActivePath} dirtyPaths={dirtyPaths} />
+          <div className="dw-ide__actions">
+            <button type="button" className="dw-ide__btn dw-ide__btn--ghost" onClick={reset} title="Restore every file to its starting content">
+              <IconRefresh className="h-3.5 w-3.5" /><span>Reset all</span>
+            </button>
           </div>
+        </div>
+        <div className="dw-ide__workspace">
+          {showTree && <ProjectFileTree files={task.files} activePath={activePath} onSelect={setActivePath} />}
+          <div className="dw-ide__editor">
+            <MonacoProjectEditor key={resetKey} initialFiles={task.files} activePath={activePath} onFileChange={handleFileChange} />
+          </div>
+        </div>
+
+        <div className="dw-ide__targets">
+          {task.targets.map((target) => {
+            const st = targetStates[target.id];
+            const busy = st.status === 'running';
+            const checks = st.summary ? parseChecks(st.output) : [];
+            const ok = !!st.summary && st.summary.total > 0 && st.summary.passed === st.summary.total;
+            return (
+              <section key={target.id} className="dw-ide__target" data-ok={st.summary ? ok : undefined}>
+                <header>
+                  <span className="dw-ide__dot" data-state={busy ? 'running' : st.summary ? (ok ? 'done' : 'error') : st.status} />
+                  <strong>{target.label}</strong>
+                  {st.summary && (
+                    <span className="dw-ide__status-pill" data-ok={ok}>{st.summary.passed}/{st.summary.total} checks</span>
+                  )}
+                  <span className="dw-ide__target-actions">
+                    <button type="button" className="dw-ide__btn" onClick={() => run(target.id, false)} disabled={busy}>
+                      <span className="dw-ide__play" aria-hidden="true" /><span>Run</span>
+                    </button>
+                    <button type="button" className="dw-ide__btn dw-ide__btn--primary" onClick={() => run(target.id, true)} disabled={busy}>
+                      <IconCheck className="h-3.5 w-3.5" /><span>Run tests</span>
+                    </button>
+                  </span>
+                </header>
+                <div className="dw-ide__panel-body" role="status" aria-live="polite">
+                  {busy ? (
+                    <p className="dw-ide__hint"><span className="dw-ide__spinner" aria-hidden="true" />Running {target.label}&hellip;</p>
+                  ) : checks.length ? (
+                    <>
+                      {ok && <div className="dw-ide__win"><IconCheck className="h-4 w-4" />All {st.summary?.total} checks passed.</div>}
+                      <ul className="dw-ide__checks">
+                        {checks.map((c, i) => (
+                          <li key={i} data-ok={c.ok}>
+                            <span className="dw-ide__check-icon">{c.ok ? <IconCheck className="h-3 w-3" /> : <IconX className="h-3 w-3" />}</span>
+                            <strong>{c.name}</strong>
+                            {!c.ok && <code>{c.detail}</code>}
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  ) : st.output ? (
+                    <pre className={st.status === 'error' ? 'is-error' : ''}>{st.output}</pre>
+                  ) : (
+                    <p className="dw-ide__hint">Press <kbd>Run</kbd> to execute or <kbd>Run tests</kbd> to grade this target.</p>
+                  )}
+                </div>
+              </section>
+            );
+          })}
+        </div>
+
+        <div className="dw-ide__status">
+          <span className="dw-ide__dot" data-state={anyBusy ? 'running' : passing === task.targets.length ? 'done' : 'idle'} />
+          <span>{anyBusy ? 'Running…' : `${passing}/${task.targets.length} target${task.targets.length === 1 ? '' : 's'} passing`}</span>
+          <span className="dw-ide__status-sep" />
+          <span>{task.files.length} files · {editable} editable</span>
+          {dirtyPaths.size > 0 && <><span className="dw-ide__status-sep" /><span>{dirtyPaths.size} modified</span></>}
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <button
-          onClick={reset}
-          className="px-3 py-2 rounded-lg text-xs font-semibold text-[var(--color-text-dim)] hover:text-[var(--color-heading)] hover:bg-[var(--color-surface-2)] transition-colors"
-        >
-          Reset all files
-        </button>
-      </div>
-
-      {task.targets.map((target) => {
-        const st = targetStates[target.id];
-        const busy = st.status === 'running';
-        return (
-          <div key={target.id} className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-3">
-            <div className="flex flex-wrap items-center gap-2 mb-2">
-              <span className="text-xs font-bold text-[var(--color-heading)] uppercase tracking-wide">{target.label}</span>
-              <button
-                onClick={() => run(target.id, false)}
-                disabled={busy}
-                className="px-3 py-1.5 rounded-lg border border-[var(--color-border)] text-xs font-semibold text-[var(--color-text)] hover:bg-[var(--color-surface-2)] disabled:opacity-50 transition-colors"
-              >
-                Run
-              </button>
-              <button
-                onClick={() => run(target.id, true)}
-                disabled={busy}
-                className="px-3 py-1.5 rounded-lg bg-[var(--color-accent)] text-white text-xs font-semibold hover:brightness-110 disabled:opacity-50 transition"
-              >
-                Run tests
-              </button>
-              {busy && <span className="text-2xs text-[var(--color-text-dim)] font-mono">Running&hellip;</span>}
-              {st.summary && (
-                <span
-                  className={`ml-auto flex items-center gap-1.5 text-2xs font-bold px-2.5 py-1 rounded-full ${
-                    st.summary.passed === st.summary.total
-                      ? 'bg-[var(--color-success)]/15 text-[var(--color-success)]'
-                      : 'bg-[var(--color-warn)]/15 text-[var(--color-warn)]'
-                  }`}
-                >
-                  {st.summary.passed === st.summary.total && <IconCheck className="w-3 h-3" />}
-                  {st.summary.passed}/{st.summary.total} tests passed
-                </span>
-              )}
-            </div>
-            {(st.output || busy) && (
-              <pre
-                className={`rounded-lg border p-2.5 font-mono text-2xs leading-relaxed whitespace-pre-wrap break-words max-h-56 overflow-y-auto ${
-                  st.status === 'error'
-                    ? 'border-[var(--color-danger)]/30 bg-[var(--color-danger)]/5 text-[var(--color-danger)]'
-                    : 'border-[var(--color-border)] bg-[var(--color-surface-2)] text-[var(--color-text)]'
-                }`}
-              >
-                {busy ? 'Working…' : st.output}
-              </pre>
-            )}
-          </div>
-        );
-      })}
-
       {domTarget && (
-        <div>
-          <div className="text-2xs font-mono font-bold uppercase tracking-wide text-[var(--color-text-dim)] mb-1.5">Live preview</div>
+        <div className="dw-project__preview">
+          <div className="dw-project__preview-head">Live preview</div>
           <DomPreviewPane files={currentFiles} entryPath={domTarget.entry} />
         </div>
       )}

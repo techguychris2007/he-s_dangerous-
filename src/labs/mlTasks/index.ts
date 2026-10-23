@@ -10,6 +10,7 @@ import { ML_NEURAL_NETWORKS_TASKS } from './neuralNetworks';
 import { ML_NLP_TASKS } from './nlp';
 import { ML_TIME_SERIES_TASKS } from './timeSeries';
 import { ML_MLOPS_TASKS } from './mlops';
+import { ML_ENGINEERING_PRACTICE } from './engineeringPractice';
 import type { CodeTask } from '../codeTypes';
 import { enrichCodeTasks } from '../enrichCodeTasks';
 
@@ -26,6 +27,7 @@ const RAW_ML_TASKS: CodeTask[] = [
   ...ML_NLP_TASKS,
   ...ML_TIME_SERIES_TASKS,
   ...ML_MLOPS_TASKS,
+  ...ML_ENGINEERING_PRACTICE,
 ];
 
 export const ML_TASKS: CodeTask[] = enrichCodeTasks(RAW_ML_TASKS);

@@ -100,10 +100,19 @@ function getSnapshot(): ProgressState {
   return currentState;
 }
 
-function updateState(updater: (prev: ProgressState) => ProgressState) {
+/** Where the most recent state change came from — lets XP/level-up toasts celebrate a learner's own
+ *  actions without firing for progress that merely arrived from the cloud or another account. */
+export type ProgressChangeSource = 'local' | 'sync';
+let lastChangeSource: ProgressChangeSource = 'sync';
+export function getLastChangeSource(): ProgressChangeSource {
+  return lastChangeSource;
+}
+
+function updateState(updater: (prev: ProgressState) => ProgressState, source: ProgressChangeSource = 'local') {
   const next = updater(currentState);
   if (next !== currentState) {
     currentState = next;
+    lastChangeSource = source;
     emitChange();
   }
 }
@@ -158,7 +167,7 @@ export const progressActions = {
         lastUserId: userId,
         learnerName: accountState.learnerName || fallbackName.trim(),
       };
-    });
+    }, 'sync');
   },
   toggleBookmark: (labId: string) => {
     updateState((s) => ({ ...s, bookmarkedLabs: { ...s.bookmarkedLabs, [labId]: !s.bookmarkedLabs[labId] } }));
@@ -257,7 +266,7 @@ export const progressActions = {
         codeTaskSolutionRevealed,
         leaderboardOptIn,
       };
-    });
+    }, 'sync');
   },
 };
 

@@ -3,11 +3,18 @@ import { Link } from 'react-router-dom';
 import { ML_LESSONS, ML_MODULES } from '../data/mlLessons';
 import { ML_TASKS } from '../labs/mlTasks';
 import { useProgress } from '../state/progressStore';
-import Logo from '../components/layout/Logo';
-import { IconCheck, IconCode } from '../components/layout/icons';
+import PortalNavigation from '../components/layout/PortalNavigation';
+import { IconCheck, IconCode, IconLightning } from '../components/layout/icons';
 import OfflineRuntimeCard from '../components/layout/OfflineRuntimeCard';
+import CharacterAvatar from '../components/characters/CharacterAvatar';
+import LessonPath, { type PathNode } from '../components/learning/LessonPath';
+import IsoBlock from '../components/labs/IsoBlock';
+import '../components/labs/catalog.css';
+import '../components/learning/ml-portal.css';
 
 const LIVE_DEMO_COUNT = ML_LESSONS.filter((l) => l.demo).length;
+/** One crest per module, in curriculum order. */
+const MODULE_ICONS = ['python', 'database', 'binary', 'layers', 'lightning', 'radar', 'flag', 'brain', 'brain', 'book', 'refresh', 'cloud', 'engineering'];
 
 export default function MlPortalPage() {
   const progress = useProgress();
@@ -16,109 +23,102 @@ export default function MlPortalPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [progress.completedCodeTasks],
   );
-  const liveDemoCount = LIVE_DEMO_COUNT;
+
+  // A lesson counts as cleared once its coding challenge passes; lessons without one count as open.
+  const units = useMemo(() => ML_MODULES.map((unit, i) => {
+    const lessons = ML_LESSONS.filter((l) => l.unit === unit.id);
+    const graded = lessons.filter((l) => l.challengeTaskId);
+    const solved = graded.filter((l) => progress.isCodeTaskComplete(l.challengeTaskId!)).length;
+    const next = lessons.find((l) => l.challengeTaskId && !progress.isCodeTaskComplete(l.challengeTaskId)) ?? lessons[0];
+    return { unit, lessons, graded: graded.length, solved, next, icon: MODULE_ICONS[i % MODULE_ICONS.length] };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [progress.completedCodeTasks]);
+  const currentIndex = units.findIndex((u) => u.graded > 0 && u.solved < u.graded);
+
+  const nodes: PathNode[] = units.filter((u) => u.lessons.length).map((u, i) => {
+    const complete = u.graded > 0 && u.solved === u.graded;
+    const current = units.indexOf(u) === currentIndex;
+    return {
+      id: u.unit.id,
+      title: u.unit.title.replace(/^Module \d+ · /, ''),
+      to: u.next ? `/ml-lesson/${u.next.id}` : undefined,
+      state: complete ? 'done' : current ? 'current' : 'open',
+      percent: current && u.graded ? (100 * u.solved) / u.graded : undefined,
+      icon: u.icon,
+      meta: `Module ${i + 1} · ${u.solved}/${u.graded} challenges`,
+    };
+  });
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--color-bg)' }}>
-      {/* hero */}
-      <div
-        className="portal-masthead relative overflow-hidden border-b border-[var(--color-border)]"
-        style={{ background: 'var(--color-navy)' }}
-      >
-<div className="relative max-w-5xl mx-auto px-6 sm:px-8 py-10">
-          <div className="flex items-center justify-between mb-8">
-            <Link to="/" className="flex items-center gap-2 text-sm font-semibold text-white/70 hover:text-white transition-colors">
-              <Logo className="w-6 h-6" />
-              &larr; Back to DarkWorld
-            </Link>
-            <span className="pill bg-white/10 text-white/80 border border-white/20">Professional Roadmap</span>
-          </div>
-          <div className="text-[var(--color-accent-dim)] font-mono text-xs tracking-[0.2em] uppercase mb-3">
-            Data Science &amp; Machine Learning
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-3">Machine Learning Roadmap</h1>
+      <PortalNavigation />
+      <div className="portal-masthead relative overflow-hidden border-b border-[var(--color-border)]" style={{ background: 'var(--color-navy)' }}>
+        <span className="portal-masthead__crew" aria-hidden="true"><CharacterAvatar id="beacon" size={168} decorative /></span>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <div className="text-[var(--color-accent-dim)] font-mono text-xs tracking-[0.2em] uppercase mb-3">Data science &amp; machine learning</div>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-3">Machine Learning</h1>
           <p className="text-white/70 max-w-2xl leading-relaxed mb-6">
-            A full machine learning curriculum, grounded in the GCI World course and expanded into {ML_MODULES.length}
-            modules — from Python and statistics foundations through classical ML, neural networks, NLP, time
-            series, MLOps, and production system design. Lessons connect concepts to practical Python challenges, and two
-            lessons run live ML algorithms right in your browser.
+            {ML_MODULES.length} modules from Python and statistics foundations through classical ML, neural networks, NLP,
+            time series, MLOps and production system design. Every lesson pairs a concept with a Python challenge, and
+            {' '}{LIVE_DEMO_COUNT} lessons run live algorithms in your browser.
           </p>
-          <div className="flex flex-wrap gap-4">
-            <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
-              <div className="text-lg font-bold text-white">{ML_LESSONS.length}</div>
-              <div className="text-2xs text-white/60 uppercase tracking-wide">Lessons across {ML_MODULES.length} modules</div>
-            </div>
-            <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
-              <div className="text-lg font-bold text-white">{tasksDone}/{ML_TASKS.length}</div>
-              <div className="text-2xs text-white/60 uppercase tracking-wide">Python labs solved</div>
-            </div>
-            <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
-              <div className="text-lg font-bold text-white">{liveDemoCount}</div>
-              <div className="text-2xs text-white/60 uppercase tracking-wide">Live in-browser demos</div>
-            </div>
+          <div className="flex flex-wrap gap-3">
+            <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3"><div className="text-lg font-bold text-white font-mono">{ML_LESSONS.length}</div><div className="text-2xs text-white/60 uppercase tracking-wide">Lessons</div></div>
+            <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3"><div className="text-lg font-bold text-white font-mono">{tasksDone}/{ML_TASKS.length}</div><div className="text-2xs text-white/60 uppercase tracking-wide">Python labs solved</div></div>
+            <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3"><div className="text-lg font-bold text-white font-mono">{LIVE_DEMO_COUNT}</div><div className="text-2xs text-white/60 uppercase tracking-wide">Live demos</div></div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-6 sm:px-8 py-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <section className="mb-10" aria-labelledby="ml-journey">
+          <div className="dw-section-head">
+            <div><p className="dw-catalog-eyebrow dw-catalog-eyebrow--ink">Learning path</p><h2 id="ml-journey">Your ML journey</h2><p className="dw-section-sub">Each tile is a module. Clear its coding challenges to light it up; the glowing tile is your next stop.</p></div>
+            <span>{units.reduce((n, u) => n + u.solved, 0)}/{units.reduce((n, u) => n + u.graded, 0)} challenges</span>
+          </div>
+          <LessonPath eyebrow={`Machine learning track · ${units.filter((u) => u.graded && u.solved === u.graded).length}/${nodes.length} modules cleared`} title="From Python to production ML" guide="beacon" nodes={nodes} />
+        </section>
+
         <OfflineRuntimeCard />
-        {/* module jump nav */}
-        <div className="flex flex-wrap gap-2 mb-10 sticky top-0 z-10 bg-[var(--color-bg)] py-3 -mx-6 px-6 sm:-mx-8 sm:px-8 border-b border-[var(--color-border)]">
-          {ML_MODULES.map((unit) => (
-            <a
-              key={unit.id}
-              href={`#module-${unit.id}`}
-              className="px-3 py-1.5 rounded-full text-xs font-semibold border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-dim)] hover:text-[var(--color-heading)] hover:border-[var(--color-accent)]/50 transition-colors"
-            >
-              {unit.title}
+
+        <nav className="ml-jump" aria-label="Jump to a module">
+          {units.filter((u) => u.lessons.length).map((u, i) => (
+            <a key={u.unit.id} href={`#module-${u.unit.id}`} onClick={(e) => { e.preventDefault(); document.getElementById(`module-${u.unit.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }} data-done={u.graded > 0 && u.solved === u.graded}>
+              <b>{i + 1}</b>{u.unit.title.replace(/^Module \d+ · /, '')}
             </a>
           ))}
-        </div>
+        </nav>
 
-        {ML_MODULES.map((unit) => {
-          const lessons = ML_LESSONS.filter((l) => l.unit === unit.id);
-          if (lessons.length === 0) return null;
-          return (
-            <div key={unit.id} id={`module-${unit.id}`} className="mb-12 scroll-mt-20">
-              <h2 className="text-lg font-bold text-[var(--color-heading)] mb-1">{unit.title}</h2>
-              <p className="text-sm text-[var(--color-text-dim)] mb-4 max-w-2xl">{unit.blurb}</p>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {lessons.map((lesson) => {
-                  const hasChallenge = Boolean(lesson.challengeTaskId);
-                  const challengeDone = lesson.challengeTaskId ? progress.isCodeTaskComplete(lesson.challengeTaskId) : false;
-                  return (
-                    <Link
-                      key={lesson.id}
-                      to={`/ml-lesson/${lesson.id}`}
-                      className="premium-card premium-card-hover rounded-2xl p-4"
-                    >
-                      <div className="flex items-center justify-between mb-1.5 gap-2">
-                        <span className="text-xs font-mono text-[var(--color-text-dim)]">{lesson.source}</span>
-                        <div className="flex items-center gap-1 shrink-0">
-                          {lesson.demo && (
-                            <span className="pill bg-[var(--color-accent)]/15 text-[var(--color-accent)] border border-[var(--color-accent)]/30 text-2xs">
-                              Live demo
-                            </span>
-                          )}
-                          {challengeDone && <IconCheck className="w-4 h-4 text-[var(--color-success)]" />}
-                        </div>
-                      </div>
-                      <div
-                        className="font-semibold text-[var(--color-heading)] text-sm mb-1"
-                        dangerouslySetInnerHTML={{ __html: lesson.title }}
-                      />
-                      {hasChallenge && (
-                        <div className="flex items-center gap-1 text-2xs text-[var(--color-text-dim)]">
-                          <IconCode className="w-3 h-3" /> Coding challenge included
-                        </div>
-                      )}
-                    </Link>
-                  );
-                })}
+        {units.filter((u) => u.lessons.length).map((u, m) => (
+          <section key={u.unit.id} id={`module-${u.unit.id}`} className="ml-module" aria-labelledby={`ml-mod-${u.unit.id}`}>
+            <div className="dw-section-head">
+              <div className="ml-module__title">
+                <IsoBlock width={54} depth={10} tone={u.graded && u.solved === u.graded ? 'done' : m === currentIndex ? 'progress' : 'analysis'} crest={<b className="ml-module__num">{m + 1}</b>} />
+                <div><p className="dw-catalog-eyebrow dw-catalog-eyebrow--ink">Module {m + 1}</p><h2 id={`ml-mod-${u.unit.id}`}>{u.unit.title.replace(/^Module \d+ · /, '')}</h2><p className="dw-section-sub">{u.unit.blurb}</p></div>
               </div>
+              <span>{u.solved}/{u.graded} challenges</span>
             </div>
-          );
-        })}
+            <div className="ml-grid">
+              {u.lessons.map((lesson, i) => {
+                const solved = lesson.challengeTaskId ? progress.isCodeTaskComplete(lesson.challengeTaskId) : false;
+                return (
+                  <Link key={lesson.id} to={`/ml-lesson/${lesson.id}`} className="ml-card" data-done={solved}>
+                    <span className="ml-card__num" aria-hidden="true">{solved ? <IconCheck className="h-3.5 w-3.5" /> : String(i + 1).padStart(2, '0')}</span>
+                    <span className="ml-card__body">
+                      <small>{lesson.source}</small>
+                      <strong dangerouslySetInnerHTML={{ __html: lesson.title }} />
+                      <span className="ml-card__tags">
+                        {lesson.challengeTaskId && <em data-done={solved}><IconCode className="h-3 w-3" />{solved ? 'Challenge solved' : 'Coding challenge'}</em>}
+                        {lesson.demo && <em className="is-demo"><IconLightning className="h-3 w-3" />Live demo</em>}
+                      </span>
+                    </span>
+                    <span className="ml-card__go" aria-hidden="true">→</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        ))}
       </div>
     </div>
   );

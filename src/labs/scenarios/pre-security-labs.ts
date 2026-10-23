@@ -42,13 +42,13 @@ export const preSecurityLabs: LabScenario[] = [
     title: 'Netcat and Service Banners',
     difficulty: 'Easy',
     category: 'Network',
-    briefing: 'Practice the first safe network habit: prove what is in scope, identify a listening service, then connect to a banner without guessing. This lab uses Netcat-style service interaction and a simple HTTP health check.',
+    briefing: 'The training portal at 10.10.10.20 has two services: a plain TCP banner listener and an HTTP application. You are checking which services answer and whether the application health endpoint is ready. Discover the services, read the banner, then request /health using the protocol appropriate to the web service. Compare a refused connection with a successful one. This is service discovery, not exploitation: no credentials or payloads are needed. Each service has its own training proof, so reading one proof repeatedly cannot complete the exercise. The Reference tab explains ports, service probing, Netcat and HTTP requests.',
     objectives: [
-      { text: 'Scan 10.10.10.20 with nmap -sV', why: 'Service names and versions matter more than port numbers by themselves.' },
-      { text: 'Connect with nc 10.10.10.20 31337 and read the banner', why: 'Netcat is the quickest way to understand how a plain TCP service speaks.' },
-      { text: 'Check http://10.10.10.20/health with curl', why: 'A health endpoint often tells you whether a web service is alive before deeper testing begins.' },
+      { text: 'Identify the listening services on the in-scope host', why: 'nmap -sV probes service behavior. A port number is a convention, while the returned banner provides an additional clue about the application.' },
+      { text: 'Read the plain TCP service banner', why: 'nc connects to a TCP listener. The banner service sends text immediately; it does not require an HTTP request. Inspect its response rather than assuming every port serves a website.' },
+      { text: 'Request the web application’s /health endpoint and read its response', why: 'curl constructs an HTTP request. The URL supplies the host and resource path. A ready health response establishes readiness for this endpoint, not the security of the entire application.' },
       { text: 'Compare the banner service to the HTTP service in your own words', why: 'Beginners must learn that different services speak different protocols even when they live on the same host.' },
-      { text: 'Record which command proved each service fact', why: 'Good pentest notes tie every claim to the exact command or request that proved it.' },
+      { text: 'Compare a connection to closed port 9999 with the working services', why: 'A refused connection supplies no banner or proof. On real networks, a refusal and a timeout are different observations; do not treat either as a successful service check.' },
     ],
     hints: [
       'Use nmap -sV 10.10.10.20.',

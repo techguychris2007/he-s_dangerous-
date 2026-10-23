@@ -1,314 +1,196 @@
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../state/authStore';
-import { MODULES } from '../data/curriculum';
+import { MODULES, ROADMAP } from '../data/curriculum';
+import { CHARACTERS, type CharacterId } from '../data/characters';
+import { LEAGUES } from '../data/levels';
+import { useLabsData } from '../state/useLabsData';
 import Logo from '../components/layout/Logo';
-import AgencyBackdrop from '../components/layout/AgencyBackdrop';
-import {
-  IconTerminal,
-  IconShieldCheck,
-  IconChart,
-  IconCertificate,
-  IconFlask,
-  IconRadar,
-  IconUser,
-  IconFlag,
-} from '../components/layout/icons';
+import CharacterAvatar from '../components/characters/CharacterAvatar';
+import IsoBlock, { type IsoTone } from '../components/labs/IsoBlock';
+import { IconArrowRight, IconBook, IconCheck, IconCode, IconFlag, IconLightning, IconShieldCheck, IconTerminal, IconTrophy, ModuleIcon } from '../components/layout/icons';
+import type { RoadmapTrack } from '../types';
+import './entry-pages.css';
+import './landing.css';
 
-// Hardcoded fallback counts to keep main bundle small (~0KB lab import)
-const FALLBACK_TOTAL_LABS = 669;
-const FALLBACK_TOTAL_FLAGS = 759;
+const PATHS: { track: RoadmapTrack; title: string; label: string; body: string; icon: string; tone: IsoTone; guide: CharacterId }[] = [
+  { track: 'presecurity', label: 'Start here', title: 'Pre-security', body: 'Computers, networks, Linux and the tools every lab uses — from zero.', icon: 'terminal', tone: 'progress', guide: 'byte' },
+  { track: 'security', label: 'Red team', title: 'Offensive security', body: 'Recon, web, Active Directory and cloud attacks against controlled targets.', icon: 'crosshair', tone: 'offense', guide: 'vex' },
+  { track: 'defensive', label: 'Blue team', title: 'Defensive security', body: 'Triage alerts, query telemetry and run KC7-style incident casebooks.', icon: 'shield', tone: 'defense', guide: 'sentinel' },
+  { track: 'programming', label: 'Build tools', title: 'Programming', body: 'Python, JavaScript and C++ with auto-graded challenges in the browser.', icon: 'code', tone: 'analysis', guide: 'cipher' },
+  { track: 'software', label: 'Engineer', title: 'Software engineering', body: 'Specs, testing, design, delivery and secure development — the full craft.', icon: 'layers', tone: 'done', guide: 'cipher' },
+];
 
 const STEPS = [
-  { n: '01', title: 'Create your account', body: 'Free, in under a minute. Your progress saves on this device and syncs to your account when you are online.' },
-  { n: '02', title: 'Pick a module', body: 'Start from Linux and networking fundamentals, or jump straight into web hacking, red teaming, or SOC work.' },
-  { n: '03', title: 'Put it into practice', body: 'Each topic leads into a guided lab where you can apply the skill in a controlled simulation.' },
+  { title: 'Learn the concept', body: 'Room-style lessons with worked examples, diagrams and code you can run.', icon: <IconBook />, tone: 'progress' as IsoTone },
+  { title: 'Hack the lab', body: 'Real terminals, live websites, SIEM consoles and directory maps — all sandboxed.', icon: <IconTerminal />, tone: 'offense' as IsoTone },
+  { title: 'Capture the flag', body: 'Submit flags and typed answers to clear the room and earn XP.', icon: <IconFlag />, tone: 'done' as IsoTone },
 ];
 
-const FEATURES = [
-  {
-    Icon: IconTerminal,
-    title: 'A browser-based training terminal',
-    body: 'Practice Linux workflows in a browser-based shell with simulated files, services and supported training commands.',
-  },
-  {
-    Icon: IconRadar,
-    title: 'SOC & SIEM simulations',
-    body: 'Investigate real, publicly documented breaches inside simulated Splunk, Microsoft Sentinel, IBM QRadar, Elastic, Suricata, Chronicle, and tcpdump consoles.',
-  },
-  {
-    Icon: IconShieldCheck,
-    title: 'Structured curriculum',
-    body: 'Follow a structured path from networking and Linux through web, cloud, identity, malware analysis and defensive operations.',
-  },
-  {
-    Icon: IconChart,
-    title: 'Progress that sticks',
-    body: 'Lessons and practice progress save on this device. When you reconnect, your account can sync progress across devices.',
-  },
-  {
-    Icon: IconCertificate,
-    title: 'Shareable writeups & certificates',
-    body: 'Every solved lab can generate a professional PDF writeup or certificate you can actually put in a portfolio.',
-  },
-  {
-    Icon: IconFlask,
-    title: 'Learn by breaking things',
-    body: 'Guided labs reinforce lesson concepts in simulated targets without requiring access to external systems.',
-  },
-];
+const CREW: CharacterId[] = ['sentinel', 'ledger', 'beacon', 'vex', 'cipher', 'byte'];
 
-export default function IntroPage() {
-  const auth = useAuth();
-
-  if (!auth.loading && auth.user) return <Navigate to="/" replace />;
-
-  const totalLessons = MODULES.reduce((n, m) => n + m.lessons.length, 0);
-  const totalLabs = FALLBACK_TOTAL_LABS;
-  const totalFlags = FALLBACK_TOTAL_FLAGS;
-
+/** The hero scene: an isometric island of rooms joined by a lit path, the DarkWorld crest in the
+ *  middle, Sentinel standing guard and floating progress badges. Built from the platform's own
+ *  3D tiles so the landing page previews exactly what learners get. */
+function HeroScene() {
+  const tiles: { x: number; y: number; tone: IsoTone; icon: string; depth: number }[] = [
+    { x: 150, y: 250, tone: 'done', icon: 'terminal', depth: 16 },
+    { x: 250, y: 190, tone: 'done', icon: 'network', depth: 22 },
+    { x: 350, y: 250, tone: 'progress', icon: 'web', depth: 28 },
+    { x: 250, y: 310, tone: 'idle', icon: 'soc', depth: 14 },
+    { x: 350, y: 370, tone: 'idle', icon: 'cloud', depth: 18 },
+    { x: 450, y: 310, tone: 'idle', icon: 'crown', depth: 24 },
+  ];
   return (
-    <div className="min-h-screen w-full bg-[#060d16]">
-      {/* ---------- hero ---------- */}
-      <div className="relative overflow-hidden min-h-screen flex flex-col">
-        <AgencyBackdrop variant="subtle" />
-
-        <div className="relative max-w-5xl mx-auto px-6 sm:px-8 pt-8 pb-20 flex-1 flex flex-col justify-center w-full">
-          <div className="flex items-center justify-between mb-16 sm:mb-24 reveal" style={{ '--reveal-delay': '0s' } as React.CSSProperties}>
-            <div className="flex items-center gap-2.5">
-              <Logo className="w-8 h-8" />
-              <span
-                className="font-serif text-xl tracking-wide"
-                style={{
-                  backgroundImage: 'linear-gradient(180deg, #f3e3bd 0%, #c9a15f 60%, #8f7136 100%)',
-                  WebkitBackgroundClip: 'text',
-                  backgroundClip: 'text',
-                  color: 'transparent',
-                }}
-              >
-                DARKWORLD
-              </span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Link
-                to="/login"
-                className="px-4 py-2 rounded-lg text-sm font-semibold text-[#c9e0ff] hover:text-white transition-colors"
-              >
-                Sign in
-              </Link>
-              <Link
-                to="/login?mode=signup"
-                className="px-4 py-2 rounded-lg font-semibold text-sm transition hover:brightness-110"
-                style={{
-                  background: 'linear-gradient(180deg, #e9c98a 0%, #c9a15f 45%, #a17f42 100%)',
-                  color: '#241a08',
-                  border: '1px solid #8f7136',
-                }}
-              >
-                Create free account
-              </Link>
-            </div>
-          </div>
-
-          <div className="text-center max-w-3xl mx-auto reveal" style={{ '--reveal-delay': '0.1s' } as React.CSSProperties}>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-2xs font-mono tracking-[0.2em] uppercase text-[#c9a15f] border border-[#c9a15f4d] mb-6">
-              Offensive &amp; defensive security, hands-on
-            </div>
-            <h1 className="text-4xl sm:text-6xl font-extrabold text-white leading-tight mb-5">
-              Stop reading about hacking.
-              <br />
-              <span
-                style={{
-                  backgroundImage: 'linear-gradient(90deg, #6fb2ff 0%, #9f7bea 100%)',
-                  WebkitBackgroundClip: 'text',
-                  backgroundClip: 'text',
-                  color: 'transparent',
-                }}
-              >
-                Start doing it.
-              </span>
-            </h1>
-            <p className="text-[#a9c0da] text-lg leading-relaxed mb-9">
-              A structured offensive and defensive security curriculum with detailed lessons and browser-based
-              practice. Work through simulated terminal challenges and SIEM investigations based on publicly
-              documented incidents.
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-3">
-              <Link
-                to="/login?mode=signup"
-                className="px-6 py-3 rounded-lg font-serif tracking-[0.15em] uppercase text-sm transition hover:brightness-110"
-                style={{
-                  background: 'linear-gradient(180deg, #e9c98a 0%, #c9a15f 45%, #a17f42 100%)',
-                  color: '#241a08',
-                  boxShadow: '0 1px 0 rgba(255,255,255,0.4) inset, 0 4px 14px -4px rgba(201,161,95,0.6)',
-                  border: '1px solid #8f7136',
-                }}
-              >
-                Get started free &rarr;
-              </Link>
-              <Link
-                to="/login"
-                className="px-6 py-3 rounded-lg font-semibold text-sm text-[#c9e0ff] border border-[#3f8cff4d] hover:bg-[#3f8cff14] transition"
-              >
-                I already have an account
-              </Link>
-            </div>
-          </div>
-
-          {/* terminal mockup */}
-          <div className="relative max-w-2xl mx-auto mt-14 reveal" style={{ '--reveal-delay': '0.22s' } as React.CSSProperties}>
-            <div
-              className="rounded-xl overflow-hidden font-mono text-code leading-relaxed"
-              style={{
-                background: 'var(--term-bg)',
-                border: '1px solid #3f8cff4d',
-                boxShadow: '0 0 60px -16px rgba(63,140,255,0.4), 0 30px 60px -24px rgba(0,0,0,0.7)',
-              }}
-            >
-              <div className="flex items-center gap-1.5 px-3.5 py-2.5 bg-[#15171c] border-b border-white/10">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#ff5f56]" />
-                <span className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]" />
-                <span className="w-2.5 h-2.5 rounded-full bg-[#27c93f]" />
-                <span className="ml-2.5 text-2xs text-[#c9a15f]">attacker@darkworld — bash</span>
-              </div>
-              <div className="px-4 py-4 text-left space-y-1.5">
-                <div><span className="text-[var(--term-input)]">$</span> <span className="text-[var(--term-output)]">sudo -l</span></div>
-                <div className="text-[var(--term-muted)]">Matching Defaults entries for www-data on target:</div>
-                <div className="text-[var(--term-muted)]">User www-data may run the following commands:</div>
-                <div className="text-[var(--term-success)]">&nbsp;&nbsp;(root) NOPASSWD: /usr/bin/openssl</div>
-                <div className="mt-2"><span className="text-[var(--term-input)]">$</span> <span className="text-[var(--term-output)]">openssl enc -in /root/flag.txt</span></div>
-                <div className="text-[var(--term-system)]">[+] privilege escalation path confirmed</div>
-                <div><span className="text-[var(--term-input)]">$</span> <span className="animate-pulse text-[var(--term-output)]">_</span></div>
-              </div>
-            </div>
-            <div
-              className="absolute -bottom-4 -right-3 sm:-right-8 flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#0c2417] shadow-lg"
-              style={{ background: 'linear-gradient(180deg, #8ff0a4 0%, #4ade80 100%)' }}
-            >
-              <IconFlag className="w-3.5 h-3.5" />
-              flag captured
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-14 mt-20 reveal" style={{ '--reveal-delay': '0.32s' } as React.CSSProperties}>
-            <Stat value={`${MODULES.length}`} label="Modules" />
-            <Stat value={`${totalLessons}+`} label="Lessons" />
-            <Stat value={`${totalLabs}+`} label="Hands-on labs" />
-            <Stat value={`${totalFlags}+`} label="Flags to capture" />
-          </div>
-        </div>
-
-        <button
-          onClick={() => { const root = document.getElementById('root'); root?.scrollTo({ top: root.clientHeight, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' }); }}
-          aria-label="Scroll down"
-          className="relative mx-auto mb-6 flex flex-col items-center gap-1 text-[#7c93ae] hover:text-[#c9e0ff] transition-colors animate-bounce"
-        >
-          <span className="text-2xs font-mono uppercase tracking-[0.2em]">Scroll</span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M12 5v14M5 12l7 7 7-7" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
-      </div>
-
-      {/* ---------- features ---------- */}
-      <div className="max-w-5xl mx-auto px-6 sm:px-8 py-16 sm:py-20">
-        <div className="text-center mb-12">
-          <div className="text-xs font-mono tracking-[0.25em] uppercase text-[#6fb2ff] mb-2">
-            Why DarkWorld
-          </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white">Everything a real SOC or pentest engagement throws at you</h2>
-        </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {FEATURES.map(({ Icon, title, body }) => (
-            <div
-              key={title}
-              className="group rounded-xl p-5 border border-white/10 bg-white/[0.03] hover:border-[#c9a15f4d] hover:bg-white/[0.05] hover:-translate-y-0.5 transition-all"
-            >
-              <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 transition-shadow group-hover:shadow-[0_0_18px_-4px_rgba(201,161,95,0.6)]"
-                style={{ background: 'linear-gradient(180deg, #1c2f45 0%, #0e1826 100%)', border: '1px solid #c9a15f4d' }}
-              >
-                <Icon className="w-5 h-5 text-[#c9a15f]" />
-              </div>
-              <div className="font-bold text-white mb-1.5">{title}</div>
-              <p className="text-sm text-[#a9c0da] leading-relaxed">{body}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ---------- how it works ---------- */}
-      <div className="border-t border-white/10 bg-white/[0.015]">
-        <div className="max-w-5xl mx-auto px-6 sm:px-8 py-16 sm:py-20">
-          <div className="text-center mb-12">
-            <div className="text-xs font-mono tracking-[0.25em] uppercase text-[#6fb2ff] mb-2">
-              How it works
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-white">From zero to first flag, fast</h2>
-          </div>
-          <div className="grid sm:grid-cols-3 gap-6 relative">
-            {STEPS.map(({ n, title, body }, i) => (
-              <div key={n} className="relative">
-                <div
-                  className="font-mono text-4xl font-extrabold mb-3"
-                  style={{
-                    backgroundImage: 'linear-gradient(180deg, #f3e3bd 0%, #c9a15f 60%, #8f7136 100%)',
-                    WebkitBackgroundClip: 'text',
-                    backgroundClip: 'text',
-                    color: 'transparent',
-                  }}
-                >
-                  {n}
-                </div>
-                <div className="font-bold text-white mb-1.5">{title}</div>
-                <p className="text-sm text-[#a9c0da] leading-relaxed">{body}</p>
-                {i < STEPS.length - 1 && (
-                  <div className="hidden sm:block absolute top-5 left-[calc(100%-0.5rem)] w-6 h-px bg-gradient-to-r from-[#c9a15f66] to-transparent" />
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* ---------- final CTA ---------- */}
-      <div className="border-t border-white/10 relative overflow-hidden">
-        <div
-          aria-hidden
-          className="absolute inset-0 pointer-events-none"
-          style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(63,140,255,0.12) 0%, transparent 60%)' }}
-        />
-        <div className="relative max-w-5xl mx-auto px-6 sm:px-8 py-16 sm:py-20 text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-2xs font-mono tracking-[0.2em] uppercase text-[#c9a15f] border border-[#c9a15f4d] mb-5">
-            <IconUser className="w-3 h-3" /> free account, no credit card
-          </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white mb-3">Create your account and start your first lab in under a minute</h2>
-          <p className="text-[#a9c0da] mb-8 max-w-xl mx-auto">
-            Your learning progress is saved on this device and syncs with your account when you are online.
-            Continue across devices after your connection returns.
-          </p>
-          <Link
-            to="/login?mode=signup"
-            className="inline-block px-7 py-3.5 rounded-lg font-serif tracking-[0.15em] uppercase text-sm transition hover:brightness-110"
-            style={{
-              background: 'linear-gradient(180deg, #e9c98a 0%, #c9a15f 45%, #a17f42 100%)',
-              color: '#241a08',
-              boxShadow: '0 1px 0 rgba(255,255,255,0.4) inset, 0 4px 14px -4px rgba(201,161,95,0.6)',
-              border: '1px solid #8f7136',
-            }}
-          >
-            Create free account &rarr;
-          </Link>
-        </div>
-      </div>
+    <div className="ln-scene" aria-hidden="true">
+      <svg className="ln-scene__trail" viewBox="0 0 600 480">
+        <polyline points="150,250 250,190 350,250" className="is-lit" />
+        <polyline points="350,250 250,310 350,370 450,310" />
+      </svg>
+      {tiles.map((t, i) => (
+        <span key={i} className="ln-scene__tile" style={{ left: t.x, top: t.y, zIndex: 10 + Math.round(t.y / 10) }}>
+          <IsoBlock width={96} depth={t.depth} tone={t.tone} glow={t.tone === 'progress'} crest={<ModuleIcon icon={t.icon} />} />
+        </span>
+      ))}
+      <img className="ln-scene__sentinel" src={`${import.meta.env.BASE_URL}characters/sentinel-full.webp`} alt="" decoding="async" />
+      <div className="ln-chip ln-chip--xp"><IconLightning className="h-4 w-4" /><b>+60 XP</b><span>Room cleared</span></div>
+      <div className="ln-chip ln-chip--flag"><IconFlag className="h-4 w-4" /><code>flag&#123;first_blood&#125;</code></div>
+      <div className="ln-chip ln-chip--rank"><span className="ln-chip__rank">0x3</span><span><b>Packet Sniffer</b><small>Level 9 · Gold league</small></span></div>
+      <div className="ln-chip ln-chip--streak"><IconTrophy className="h-4 w-4" /><b>7-day streak</b></div>
     </div>
   );
 }
 
-function Stat({ value, label }: { value: string; label: string }) {
+export default function IntroPage() {
+  const auth = useAuth();
+  const labsData = useLabsData();
+  if (!auth.loading && auth.user) return <Navigate to="/" replace />;
+  const lessons = MODULES.reduce((total, module) => total + module.lessons.length, 0);
+  const rooms = labsData?.LABS.length;
+  const modulesIn = (track: RoadmapTrack) => ROADMAP.filter((s) => s.track === track && s.moduleSlug).length;
+  const jump = (id: string) => (event: React.MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    document.getElementById(id)?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
+  };
+
   return (
-    <div className="text-center">
-      <div className="text-2xl sm:text-3xl font-extrabold text-[#ffffff]">{value}</div>
-      <div className="text-2xs font-mono uppercase tracking-[0.2em] text-[#7c93ae] mt-1">{label}</div>
-    </div>
+    <main className="dw-entry ln">
+      <header className="ln-nav">
+        <div className="ln-wrap ln-nav__inner">
+          <Link to="/welcome" className="dw-brand ln-brand"><Logo className="dw-brand-mark" /><span>DARKWORLD<small>CYBERSECURITY ACADEMY</small></span></Link>
+          <nav aria-label="Academy navigation">
+            <a href="#how" onClick={jump('how')}>How it works</a>
+            <a href="#paths" onClick={jump('paths')}>Learning paths</a>
+            <a href="#levels" onClick={jump('levels')}>Level up</a>
+            <Link to="/login">Sign in</Link>
+            <Link to="/login?mode=signup" className="ln-btn ln-btn--primary">Join for free <IconArrowRight className="h-4 w-4" /></Link>
+          </nav>
+        </div>
+      </header>
+
+      <section className="ln-hero" aria-labelledby="entry-title">
+        <div className="ln-wrap ln-hero__inner">
+          <div className="ln-hero__copy">
+            <p className="ln-kicker"><span />Hands-on cybersecurity training</p>
+            <h1 id="entry-title">Learn security<br />by <em>doing it.</em></h1>
+            <p className="ln-lead">Gamified rooms, real terminals and KC7-style investigations. Learn a concept, hack the lab, capture the flag — and level up from Initiate to Operator.</p>
+            <div className="ln-actions">
+              <Link to="/login?mode=signup" className="ln-btn ln-btn--primary ln-btn--lg">Start learning free <IconArrowRight className="h-4 w-4" /></Link>
+              <a href="#paths" onClick={jump('paths')} className="ln-btn ln-btn--ghost ln-btn--lg">Explore paths</a>
+            </div>
+            <dl className="ln-stats">
+              <div><dt>Hands-on rooms</dt><dd>{rooms ?? '600+'}</dd></div>
+              <div><dt>Lessons</dt><dd>{lessons}</dd></div>
+              <div><dt>Modules</dt><dd>{MODULES.length}</dd></div>
+              <div><dt>Casebook episodes</dt><dd>38</dd></div>
+            </dl>
+          </div>
+          <HeroScene />
+        </div>
+      </section>
+
+      <section id="how" className="ln-section ln-wrap" aria-labelledby="how-title">
+        <div className="ln-head"><p className="ln-kicker ln-kicker--ink"><span />How it works</p><h2 id="how-title">Every room is a mission.</h2><p>Read, hack, prove. The same loop takes you from your first terminal to a full incident investigation.</p></div>
+        <ol className="ln-steps">
+          {STEPS.map((s, i) => (
+            <li key={s.title}>
+              <IsoBlock width={92} depth={16} tone={s.tone} crest={s.icon} />
+              <span className="ln-steps__num">0{i + 1}</span>
+              <h3>{s.title}</h3>
+              <p>{s.body}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <section id="paths" className="ln-band" aria-labelledby="paths-title">
+        <div className="ln-wrap">
+          <div className="ln-head ln-head--light"><p className="ln-kicker"><span />Learning paths</p><h2 id="paths-title">Choose your side. Clear the map.</h2><p>Five paths, each a roadmap of modules lit tile by tile as you progress. Start with pre-security if you are new.</p></div>
+          <div className="ln-paths">
+            {PATHS.map((p) => (
+              <Link key={p.track} to="/login?mode=signup" className="ln-path">
+                <div className="ln-path__top">
+                  <IsoBlock width={74} depth={14} tone={p.tone} crest={<ModuleIcon icon={p.icon} />} />
+                  <CharacterAvatar id={p.guide} size={40} decorative />
+                </div>
+                <small>{p.label}</small>
+                <h3>{p.title}</h3>
+                <p>{p.body}</p>
+                <span className="ln-path__foot">{modulesIn(p.track)} modules <IconArrowRight className="h-4 w-4" /></span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="levels" className="ln-section ln-wrap" aria-labelledby="levels-title">
+        <div className="ln-head"><p className="ln-kicker ln-kicker--ink"><span />Level up</p><h2 id="levels-title">Progress you can see.</h2><p>Every flag, answer and solved challenge earns XP. Climb hexadecimal ranks, keep your streak alive and rise through the leagues.</p></div>
+        <div className="ln-game">
+          <article className="ln-card ln-card--rank">
+            <span className="ln-card__label">Your rank</span>
+            <div className="ln-rank"><span className="ln-rank__hex">0x5</span><div><b>Root Seeker</b><small>Level 17 · 4,180 XP</small></div></div>
+            <div className="ln-xp"><i style={{ width: '68%' }} /></div>
+            <small className="ln-card__note">320 XP to level 18</small>
+          </article>
+          <article className="ln-card">
+            <span className="ln-card__label">Daily streak</span>
+            <div className="ln-week">{['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => <span key={i} data-on={i < 5}>{i < 5 ? <IconCheck className="h-3.5 w-3.5" /> : d}</span>)}</div>
+            <small className="ln-card__note">Streak freezes protect a missed day.</small>
+          </article>
+          <article className="ln-card">
+            <span className="ln-card__label">Leagues</span>
+            <ul className="ln-leagues">{LEAGUES.map((l) => <li key={l.name} style={{ '--tone': l.color } as React.CSSProperties}><IconShieldCheck className="h-4 w-4" />{l.name}</li>)}</ul>
+          </article>
+          <article className="ln-card">
+            <span className="ln-card__label">Daily Op</span>
+            <div className="ln-op"><IsoBlock width={58} depth={10} tone="offense" crest={<IconCode />} /><div><b>SQL Injection: Product Catalog</b><small>+50 XP bonus today</small></div></div>
+          </article>
+        </div>
+      </section>
+
+      <section className="ln-section ln-wrap" aria-labelledby="crew-title">
+        <div className="ln-head"><p className="ln-kicker ln-kicker--ink"><span />Meet the crew</p><h2 id="crew-title">Guides on both sides of the fight.</h2><p>Breach Unit teaches you to attack with permission. Bastion teaches you to detect and respond. They walk with you through every room.</p></div>
+        <div className="ln-crew">
+          {CREW.map((id) => (
+            <article key={id} className="ln-crew__card" data-crew={CHARACTERS[id].crew}>
+              <CharacterAvatar id={id} size={72} decorative />
+              <h3>{CHARACTERS[id].name}</h3>
+              <small>{CHARACTERS[id].role}</small>
+              <p>“{CHARACTERS[id].bio}”</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="ln-cta ln-wrap" aria-labelledby="cta-title">
+        <div className="ln-cta__art" aria-hidden="true"><IsoBlock width={120} depth={26} tone="done" glow crest={<IconFlag />} /></div>
+        <div>
+          <h2 id="cta-title">Your first room takes ten minutes.</h2>
+          <p>Free to begin. Built for laptops and desktops. Your progress, XP and streak save automatically.</p>
+        </div>
+        <Link to="/login?mode=signup" className="ln-btn ln-btn--primary ln-btn--lg">Create your account <IconArrowRight className="h-4 w-4" /></Link>
+      </section>
+
+      <footer className="ln-footer ln-wrap"><span>© {new Date().getFullYear()} DarkWorld Academy</span><p>Learn deliberately. Practice responsibly.</p><Link to="/login">Enter your workspace →</Link></footer>
+    </main>
   );
 }

@@ -1,0 +1,25 @@
+.dw-app-button { display:inline-flex; align-items:center; gap:7px; min-height:36px; padding:8px 11px; border:1px solid var(--color-border); border-radius:6px; color:var(--color-heading); background:var(--color-surface); font-size:11px; font-weight:600; white-space:nowrap; cursor:pointer; }
+.dw-app-button:focus-visible { outline:2px solid var(--color-accent); outline-offset:3px; }
+.dw-portal-navigation .dw-app-button,.dw-entry-install .dw-app-button { color:var(--chrome-ink); background:var(--chrome-raise); border-color:var(--chrome-line-strong); }
+.dw-portal-navigation .dw-app-button:focus-visible,.dw-entry-install .dw-app-button:focus-visible { outline-color:var(--chrome-highlight); }
+.dw-app-update-dot { width:6px; height:6px; border-radius:50%; background:var(--chrome-highlight); }
+.dw-entry-install { position:fixed; right:22px; bottom:20px; z-index:40; }
+.dw-app-dialog { position:fixed; inset:7vh 0 auto; width:min(780px,calc(100vw - 40px)); max-height:86vh; padding:0; margin:0 auto; overflow:auto; overscroll-behavior:contain; border:1px solid var(--color-border); border-radius:14px; background:var(--color-surface); color:var(--color-text); box-shadow:0 25px 100px #0005; }
+.dw-app-dialog::backdrop { background:color-mix(in srgb, var(--chrome-bg) 70%, transparent); backdrop-filter:blur(4px); }
+.dw-app-dialog > header { display:flex; align-items:center; gap:14px; padding:24px 28px; border-bottom:1px solid var(--color-border); }
+.dw-app-dialog header p { font-size:9px; letter-spacing:1.6px; font-weight:650; color:var(--color-text-dim); margin-bottom:5px; }
+.dw-app-dialog h2 { font-size:21px; font-weight:650; letter-spacing:-.5px; color:var(--color-heading); line-height:1.3; }
+.dw-app-dialog header > button { margin-left:auto; padding:4px 8px; font-size:24px; cursor:pointer; }
+.dw-app-content { padding:24px 28px; }
+.dw-app-content h3 { color:var(--color-heading); font-size:15px; font-weight:650; margin-bottom:8px; }
+.dw-app-content p { font-size:13px; line-height:1.8; margin-bottom:13px; }
+.dw-app-primary { padding:10px 16px; border-radius:6px; font-size:12px; font-weight:600; color:#fff; background:var(--color-accent); cursor:pointer; }
+.dw-app-primary:disabled { opacity:.6; cursor:wait; }
+.dw-app-instructions { border-left:2px solid var(--color-accent); padding:8px 14px; background:var(--color-surface-2); }
+.dw-app-offline-section { border-top:1px solid var(--color-border); padding-top:22px; margin-top:24px; }
+.dw-app-status { display:flex; justify-content:space-between; align-items:baseline; gap:16px; }
+.dw-app-status > span { font-size:11px; color:var(--color-text-dim); }
+.dw-app-dialog .dw-app-error { color:var(--color-danger); }
+.dw-app-dialog :is(button,a):focus-visible { outline:2px solid var(--color-accent); outline-offset:3px; }
+.dw-app-update { border-top:1px solid var(--color-border); padding-top:18px; }
+@media(max-width:800px) { .dw-app-dialog > header,.dw-app-content { padding:20px; } .dw-portal-navigation > .dw-app-button { margin-left:auto; } }

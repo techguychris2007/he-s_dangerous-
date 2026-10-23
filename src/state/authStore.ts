@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase, AUTH_STORAGE_KEY } from '../lib/supabaseClient';
+import { cachedOfflineSession } from '../lib/offlineSession';
 
 interface AuthResult {
   error: string | null;
@@ -20,13 +21,7 @@ interface SignUpResult extends AuthResult {
  *  reads the one already sitting there. */
 function readCachedSessionForOfflineUse(): Session | null {
   try {
-    const raw = localStorage.getItem(AUTH_STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (parsed && typeof parsed === 'object' && 'access_token' in parsed && 'refresh_token' in parsed && 'user' in parsed) {
-      return parsed as Session;
-    }
-    return null;
+    return cachedOfflineSession<Session>(localStorage.getItem(AUTH_STORAGE_KEY), navigator.onLine);
   } catch {
     return null;
   }
@@ -61,21 +56,24 @@ interface AuthApi {
 export const AuthContext = createContext<AuthApi | null>(null);
 
 export function useAuthState(): AuthApi {
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [session, setSession] = useState<Session | null>(() => readCachedSessionForOfflineUse());
+  const [loading, setLoading] = useState(() => navigator.onLine);
 
   useEffect(() => {
+    let active = true;
+    let explicitlySignedOut = false;
     supabase.auth.getSession().then(({ data }) => {
       // See readCachedSessionForOfflineUse above: a null session while fully offline doesn't
       // necessarily mean "logged out" — it can mean "couldn't verify, no network." Falling back to
       // the raw cached value here only ever runs when the SDK itself couldn't establish a session, so
       // it can never override or race a real, verified one.
       const resolved = data.session ?? (navigator.onLine ? null : readCachedSessionForOfflineUse());
-      setSession(resolved);
-      setLoading(false);
-    });
+      if (active && !explicitlySignedOut) { setSession(resolved); setLoading(false); }
+    }).catch(() => { if (active && !explicitlySignedOut) { setSession(readCachedSessionForOfflineUse()); setLoading(false); } });
     const { data: subscription } = supabase.auth.onAuthStateChange((event, newSession) => {
-      setSession(newSession);
+      explicitlySignedOut = event === 'SIGNED_OUT';
+      setSession(newSession ?? (event !== 'SIGNED_OUT' ? readCachedSessionForOfflineUse() : null));
+      setLoading(false);
       // Fired once the recovery link's one-time token has been exchanged for a real (temporary)
       // session — this is the ONLY reliable signal that "the visitor just clicked a password-reset
       // email link," since the token itself arrives as a URL fragment/query param that HashRouter
@@ -91,10 +89,11 @@ export function useAuthState(): AuthApi {
     // TOKEN_REFRESHED) or correctly signs out a session that was never coming back (refresh token
     // itself was revoked/invalid — a genuine logout, not an offline artifact).
     const onOnline = () => {
-      supabase.auth.getSession();
+      void supabase.auth.getSession().catch(() => {});
     };
     window.addEventListener('online', onOnline);
     return () => {
+      active = false;
       subscription.subscription.unsubscribe();
       window.removeEventListener('online', onOnline);
     };

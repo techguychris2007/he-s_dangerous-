@@ -38,30 +38,25 @@ function basename(path: string): string {
 export default function ProjectFileTree({ files, activePath, onSelect }: ProjectFileTreeProps) {
   const groups = groupByDirectory(files);
   return (
-    <nav className="w-44 shrink-0 border-r border-[var(--color-border)] bg-[var(--color-surface-2)] overflow-y-auto py-1.5" aria-label="Project files">
+    <nav className="dw-ide__tree" aria-label="Project files">
+      <div className="dw-ide__tree-head">Explorer</div>
       {groups.map((g) => (
-        <div key={g.dir || '.'} className="mb-1">
-          {g.dir && (
-            <div className="px-2.5 pt-1.5 pb-0.5 text-2xs font-mono font-bold uppercase tracking-wide text-[var(--color-text-dim)]">
-              {g.dir}/
-            </div>
-          )}
-          {g.files.map((f) => {
-            const active = f.path === activePath;
-            return (
-              <button
-                key={f.path}
-                onClick={() => onSelect(f.path)}
-                title={f.path}
-                className={`w-full flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono text-left truncate transition-colors ${
-                  active ? 'bg-[var(--color-accent)]/15 text-[var(--color-heading)] font-semibold' : 'text-[var(--color-text-dim)] hover:text-[var(--color-heading)] hover:bg-[var(--color-surface)]'
-                } ${g.dir ? 'pl-4' : ''}`}
-              >
-                {!f.editable && <IconLock className="w-2.5 h-2.5 opacity-60 shrink-0" />}
-                <span className="truncate">{basename(f.path)}</span>
-              </button>
-            );
-          })}
+        <div key={g.dir || '.'}>
+          {g.dir && <div className="dw-ide__tree-dir">{g.dir}/</div>}
+          {g.files.map((f) => (
+            <button
+              key={f.path}
+              type="button"
+              onClick={() => onSelect(f.path)}
+              title={f.path}
+              aria-current={f.path === activePath}
+              className={`dw-ide__tree-file${g.dir ? ' is-nested' : ''}`}
+            >
+              <span className="dw-ide__ext" data-ext={f.path.split('.').pop()} aria-hidden="true" />
+              <span className="truncate">{basename(f.path)}</span>
+              {!f.editable && <IconLock className="ml-auto h-2.5 w-2.5 shrink-0" />}
+            </button>
+          ))}
         </div>
       ))}
     </nav>

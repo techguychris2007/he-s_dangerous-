@@ -68,9 +68,9 @@ export const MODEL_EVALUATION_LESSONS: MlLesson[] = [
         heading: 'Worked example: from confusion matrix to F1',
         body: `<p>A model makes 100 predictions on a positive class with 20 true cases: 15 true positives, 5
         false negatives, 10 false positives, 70 true negatives. Precision = 15/(15+10) = 0.6. Recall =
-        15/(15+5) = 0.75. F1 = 2&times;0.6&times;0.75/(0.6+0.75) &asymp; 0.667 — noticeably below either
-        individual number, exactly because F1 punishes the gap between precision and recall rather than
-        just averaging them. This is the same three-number output the coding challenge below computes.</p>`,
+        15/(15+5) = 0.75. F1 = 2&times;0.6&times;0.75/(0.6+0.75) &asymp; 0.667, between precision
+        and recall and below their arithmetic mean of 0.675. It is not below both inputs. This is the
+        same three-number output the coding challenge below computes.</p>`,
       },
     ],
   },

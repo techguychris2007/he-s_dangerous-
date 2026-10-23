@@ -1,0 +1,147 @@
+/* Room header + task list, shared by offensive labs and SOC cases. Theme-aware surfaces and platform
+   tokens only. */
+
+.dw-room-hero, .dw-tasks-section { max-width: 1000px; margin-inline: auto; }
+/* A host card that now leads with the hero gives up its own card chrome. */
+.dw-case-launch:has(> .dw-room-hero) { max-width: 1000px; padding: 0; background: none; border: 0; }
+
+.dw-room-hero {
+  overflow: hidden;
+  margin-bottom: 1.75rem;
+  border-radius: 1rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+.dw-room-hero__inner { padding: 1.5rem; }
+@media (min-width: 768px) { .dw-room-hero__inner { padding: 2rem 2.25rem 1.75rem; } }
+
+.dw-room-hero__crumbs { margin-bottom: 1.25rem; font-size: .8rem; color: var(--color-text-dim); }
+.dw-room-hero__crumbs a { color: var(--color-text-dim); text-decoration: none; }
+.dw-room-hero__crumbs a:hover { color: var(--color-accent-dim); text-decoration: underline; }
+.dw-room-hero__crumbs [aria-current] { color: var(--color-heading); }
+
+.dw-room-hero__head { display: flex; gap: 1.25rem; align-items: flex-start; }
+.dw-room-hero .dw-room-hero__head h1 { margin: 0; font-size: clamp(1.5rem, 3.2vw, 2.1rem); font-weight: 800; letter-spacing: -.03em; line-height: 1.15; color: var(--color-heading); }
+.dw-room-hero__summary { margin: .6rem 0 0; max-width: 46rem; font-size: .92rem; line-height: 1.65; color: var(--color-text-dim); }
+@media (max-width: 559px) {
+  .dw-room-hero__head { flex-direction: column; gap: .9rem; }
+  .dw-room-hero__head .dw-avatar { width: 56px !important; height: 56px !important; }
+}
+
+.dw-room-hero__meta { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem 1.1rem; margin: 1rem 0 0; padding: 0; list-style: none; font-size: .82rem; color: var(--color-text-dim); }
+.dw-room-hero__meta li { display: inline-flex; align-items: center; gap: .35rem; }
+.dw-room-hero__xp { font-weight: 700; color: var(--color-gold-dim); }
+
+.dw-diff { display: inline-flex; align-items: center; gap: .4rem; font-weight: 600; color: var(--color-heading); }
+.dw-diff > span { display: inline-flex; align-items: flex-end; gap: 2px; height: 12px; }
+.dw-diff i { display: block; width: 3px; border-radius: 1px; background: var(--color-border); }
+.dw-diff i:nth-child(1) { height: 5px; }
+.dw-diff i:nth-child(2) { height: 8px; }
+.dw-diff i:nth-child(3) { height: 12px; }
+.dw-diff[data-level='Easy'] i[data-on='true'] { background: var(--color-success); }
+.dw-diff[data-level='Medium'] i[data-on='true'] { background: var(--color-warn); }
+.dw-diff[data-level='Hard'] i[data-on='true'] { background: var(--color-danger); }
+
+.dw-room-hero__actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1.5rem; }
+.dw-room-hero__actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  min-height: 2.5rem;
+  padding: 0 1rem;
+  border-radius: .6rem;
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--color-heading);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.dw-room-hero__actions button:hover { background: var(--color-surface-2); }
+.dw-room-hero__actions button:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.dw-room-hero__actions button[aria-pressed='true'] { color: var(--color-gold-dim); border-color: var(--color-gold); }
+.dw-room-hero__actions .dw-room-hero__primary { color: #fff; font-weight: 700; background: var(--color-accent); border-color: var(--color-accent); }
+.dw-room-hero__actions .dw-room-hero__primary:hover { background: var(--color-accent-dim); border-color: var(--color-accent-dim); }
+
+.dw-room-hero__progress { display: flex; align-items: center; gap: .9rem; padding: .7rem 1.5rem; border-top: 1px solid var(--color-border); background: var(--color-surface-2); }
+@media (min-width: 768px) { .dw-room-hero__progress { padding-inline: 2.25rem; } }
+.dw-room-hero__progress b { flex-shrink: 0; font-size: .75rem; font-weight: 600; color: var(--color-text-dim); }
+.dw-room-hero__track { position: relative; flex: 1; height: 6px; border-radius: 999px; background: var(--color-border); overflow: hidden; }
+.dw-room-hero__track > span { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: var(--color-accent); transition: width 500ms ease; }
+
+/* ── Task list ──────────────────────────────────────────────── */
+.dw-tasks { overflow: hidden; margin: 0 0 1.75rem; padding: 0; list-style: none; border: 1px solid var(--color-border); border-radius: 1rem; background: var(--color-surface); }
+.dw-tasks li + li { border-top: 1px solid var(--color-border); }
+.dw-task {
+  display: flex;
+  align-items: center;
+  gap: .9rem;
+  width: 100%;
+  padding: .95rem 1.25rem;
+  background: none;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+}
+.dw-task:hover { background: var(--color-surface-2); }
+.dw-task:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+.dw-task__num { flex-shrink: 0; width: 3.25rem; font-size: .75rem; font-weight: 600; color: var(--color-text-dim); }
+.dw-task__dot { flex-shrink: 0; display: grid; place-items: center; width: 1.1rem; height: 1.1rem; border-radius: 999px; border: 1.5px solid var(--color-border); color: #fff; }
+.dw-task[data-done='true'] .dw-task__dot { border-color: var(--color-success); background: var(--color-success); }
+.dw-task__text { min-width: 0; flex: 1; font-size: .92rem; font-weight: 500; color: var(--color-heading); }
+.dw-task__go { flex-shrink: 0; font-size: .78rem; font-weight: 600; color: var(--color-accent-dim); opacity: 0; transition: opacity 150ms ease; }
+.dw-task:hover .dw-task__go, .dw-task:focus-visible .dw-task__go { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .dw-room-hero__track > span, .dw-task__go { transition: none; }
+}
+
+/* Navy room banner in both themes — the same band as lesson rooms and the lab workspace header. */
+.dw-room-hero {
+  --room-text: color-mix(in srgb, white 88%, var(--color-navy));
+  --room-dim: color-mix(in srgb, white 60%, var(--color-navy));
+  background: var(--color-navy);
+  border-color: var(--color-navy);
+}
+.dw-room-hero__crumbs, .dw-room-hero__crumbs a { color: var(--room-dim); }
+.dw-room-hero__crumbs [aria-current] { color: var(--room-text); }
+.dw-room-hero__crumbs a:hover { color: white; }
+.dw-room-hero .dw-room-hero__head h1 { color: white; }
+.dw-room-hero__summary, .dw-room-hero__meta { color: var(--room-text); }
+.dw-room-hero .dw-diff { color: white; }
+.dw-room-hero .dw-diff i { background: color-mix(in srgb, white 25%, transparent); }
+.dw-room-hero__xp { color: var(--color-gold); }
+.dw-room-hero__actions button { color: var(--room-text); background: transparent; border-color: color-mix(in srgb, white 28%, transparent); }
+.dw-room-hero__actions button:hover { background: color-mix(in srgb, white 8%, transparent); }
+.dw-room-hero__actions button[aria-pressed='true'] { color: var(--color-gold); border-color: var(--color-gold); }
+.dw-room-hero__progress { border-top: 0; background: color-mix(in srgb, var(--color-accent) 22%, var(--color-navy)); }
+.dw-room-hero__progress b { color: white; }
+.dw-room-hero__track { background: color-mix(in srgb, white 15%, transparent); }
+
+/* ── Room overview layout: content + details rail (fills wide screens, stacks on narrow) ─────────── */
+.dw-room-page { max-width: 1240px; margin-inline: auto; }
+@media (min-width: 1100px) {
+  .dw-room-page { display: grid; grid-template-columns: minmax(0, 1fr) 20rem; gap: 2rem; align-items: start; }
+  /* Inside the grid the hero and tasks span the full content column, not the old 1000px cap. */
+  .dw-room-page .dw-room-hero, .dw-room-page .dw-tasks-section { max-width: none; }
+  .dw-room-page .dw-case-launch:has(> .dw-room-hero) { max-width: none; }
+  .dw-room-aside { position: sticky; top: 1rem; }
+}
+.dw-room-aside { display: grid; gap: 1rem; min-width: 0; }
+.dw-room-aside__card { padding: 1.1rem 1.25rem; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); }
+.dw-room-aside__card h2 { margin: 0 0 .75rem; font-family: var(--font-display); font-size: .78rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--color-text-dim); }
+.dw-room-aside__facts { margin: 0; display: grid; gap: .55rem; }
+.dw-room-aside__facts > div { display: flex; align-items: center; justify-content: space-between; gap: 1rem; font-size: .85rem; }
+.dw-room-aside__facts dt { color: var(--color-text-dim); }
+.dw-room-aside__facts dd { margin: 0; font-weight: 600; color: var(--color-heading); }
+.dw-room-aside__xp { color: var(--color-gold-dim) !important; font-family: var(--font-mono); }
+.dw-room-aside__outcomes { margin: 0; padding: 0; list-style: none; display: grid; gap: .6rem; }
+.dw-room-aside__outcomes li { display: flex; gap: .65rem; font-size: .88rem; line-height: 1.4; color: var(--color-text); }
+.dw-room-aside__outcomes span { flex-shrink: 0; display: grid; place-items: center; width: 1.4rem; height: 1.4rem; border-radius: 999px; font-size: .72rem; font-weight: 700; color: var(--color-accent-dim); background: color-mix(in srgb, var(--color-accent) 12%, transparent); }
+.dw-room-aside__guide { display: flex; gap: .85rem; align-items: flex-start; }
+.dw-room-aside__guide-name { margin: 0; font-weight: 700; color: var(--color-heading); }
+.dw-room-aside__guide-role { margin: 0 0 .4rem; font-size: .78rem; color: var(--color-accent-dim); }
+.dw-room-aside__guide-bio { margin: 0; font-size: .82rem; line-height: 1.5; color: var(--color-text-dim); }
+.dw-room-aside__back { display: inline-block; font-size: .85rem; font-weight: 600; color: var(--color-accent-dim); }
+.dw-room-aside__back:hover { text-decoration: underline; }
