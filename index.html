@@ -6,7 +6,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16.png" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
-    <meta name="theme-color" content="#101827" />
+    <meta name="theme-color" content="#0f1424" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -17,8 +17,8 @@
     <script>
       (function () {
         try {
-          var saved = localStorage.getItem('hackerhub.theme');
-          var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+          var saved = localStorage.getItem('darkworld.theme.v2');
+          var theme = saved === 'light' ? 'light' : 'dark';
           document.documentElement.dataset.theme = theme;
         } catch (e) {}
       })();

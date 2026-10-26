@@ -84,24 +84,24 @@
 }
 
 :root[data-theme="dark"] {
-  --color-bg: #090c14;
-  --color-surface: #10141f;
-  --color-surface-2: #171c2c;
-  --color-border: #232a42;
-  --color-heading: #f2f4fb;
-  --color-navy: #141826;
-  --color-navy-dim: #1f2438;
+  --color-bg: #141c2e;
+  --color-surface: #1b2539;
+  --color-surface-2: #222d45;
+  --color-border: #2d3a57;
+  --color-heading: #f3f6fd;
+  --color-navy: #111829;
+  --color-navy-dim: #1c2539;
   --color-accent: #5468ee;
   --color-accent-dim: #aebfff;
   --color-accent-2: #b285f7;
   --color-warn: #fbbf24;
   --color-danger: #f43f5e;
   --color-success: #34d399;
-  --color-text: #b6bdd6;
+  --color-text: #c4cbe0;
   /* #7e85a3 (lightened from #6b7290): the old value was as low as ~3.6:1 against --color-surface-2,
      below the 4.5:1 AA threshold for normal text — this measures ~4.7:1 against the lightest
      surface it's used on while staying visibly darker/more muted than --color-text. */
-  --color-text-dim: #7e85a3;
+  --color-text-dim: #929cbc;
   --color-gold: #c9a15f;
   --color-gold-dim: #e9c98a;
   --color-gold-soft: #c9a15f22;
@@ -110,21 +110,21 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --color-bg: #090c14;
-    --color-surface: #10141f;
-    --color-surface-2: #171c2c;
-    --color-border: #232a42;
-    --color-heading: #f2f4fb;
-    --color-navy: #141826;
-    --color-navy-dim: #1f2438;
+    --color-bg: #141c2e;
+    --color-surface: #1b2539;
+    --color-surface-2: #222d45;
+    --color-border: #2d3a57;
+    --color-heading: #f3f6fd;
+    --color-navy: #111829;
+    --color-navy-dim: #1c2539;
     --color-accent: #5468ee;
     --color-accent-dim: #aebfff;
     --color-accent-2: #b285f7;
     --color-warn: #fbbf24;
     --color-danger: #f43f5e;
     --color-success: #34d399;
-    --color-text: #b6bdd6;
-    --color-text-dim: #7e85a3;
+    --color-text: #c4cbe0;
+    --color-text-dim: #929cbc;
     --color-gold: #c9a15f;
     --color-gold-dim: #e9c98a;
     --color-gold-soft: #c9a15f22;

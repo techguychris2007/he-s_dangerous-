@@ -76,7 +76,7 @@ function FullScreenLoader() {
   return (
     <div role="status" className="min-h-screen w-full flex flex-col gap-4 items-center justify-center" style={{ background: '#0a1420' }}>
       <div aria-hidden="true" className="w-8 h-8 rounded-full border-2 border-[#c9a15f] border-t-transparent animate-spin motion-reduce:animate-none" />
-      <p className="text-sm text-slate-300">Opening DarkWorld…</p>
+      <p className="text-sm text-[var(--chrome-text)]">Opening DarkWorld…</p>
     </div>
   );
 }

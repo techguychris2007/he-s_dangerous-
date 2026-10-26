@@ -60,7 +60,7 @@ export const LESSON_LABS: Record<string, string[]> = {
   'py-5': ['py-packet-sniffer-scapy-credential-parser'],
 
   // Web Application Hacking
-  'web-1': ['web-idor-invoice'],
+  'web-1': ['web-idor-invoice', 'php-october-2026-critical-rce-chain'],
   'web-2': ['web-sqli-product', 'web-sqli-login-bypass', 'web-sqli-search-filter'],
   'web-3': ['web-xss-search', 'web-xss-feedback'],
   'web-4': ['web-idor-profile-api', 'web-idor-coupon', 'web-auth-bypass-admin'],

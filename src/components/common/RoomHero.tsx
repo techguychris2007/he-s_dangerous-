@@ -2,7 +2,8 @@ import { forwardRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import type { CharacterId } from '../../data/characters';
 import CharacterAvatar from '../characters/CharacterAvatar';
-import { IconBookmark, IconCopy } from '../layout/icons';
+import IsoBlock, { type IsoTone } from '../labs/IsoBlock';
+import { IconBookmark, IconCopy, ModuleIcon } from '../layout/icons';
 import './room-hero.css';
 
 import type { Difficulty } from '../../data/rooms';
@@ -35,13 +36,16 @@ export interface RoomHeroProps {
   onToggleSave?: () => void;
   primaryLabel: string;
   onPrimary: () => void;
+  /** ModuleIcon key for the room emblem; without it the guide's portrait is shown. */
+  icon?: string;
+  tone?: IsoTone;
   children?: ReactNode;
 }
 
 /** The room banner shared by offensive labs and SOC cases: who guides you, what it costs, what it pays,
  *  how far you are — then one button in. Always dark, like a briefing screen, in either theme. */
 const RoomHero = forwardRef<HTMLButtonElement, RoomHeroProps>(function RoomHero(
-  { guide, crumbs, title, summary, difficulty, minutes, facts, xp, percent, progressLabel, saved, onToggleSave, primaryLabel, onPrimary, children },
+  { guide, crumbs, title, summary, difficulty, minutes, facts, xp, percent, progressLabel, saved, onToggleSave, primaryLabel, onPrimary, icon, tone = 'offense', children },
   primaryRef,
 ) {
   const [copied, setCopied] = useState(false);
@@ -66,7 +70,11 @@ const RoomHero = forwardRef<HTMLButtonElement, RoomHeroProps>(function RoomHero(
           ))}
         </nav>
         <div className="dw-room-hero__head">
-          <CharacterAvatar id={guide} size={72} />
+          {icon ? (
+            <span className="dw-room-hero__emblem" aria-hidden="true">
+              <IsoBlock width={112} depth={18} tone={pct >= 100 ? 'done' : tone} glow={pct > 0 && pct < 100} crest={<ModuleIcon icon={icon} />} />
+            </span>
+          ) : <CharacterAvatar id={guide} size={72} />}
           <div className="min-w-0">
             <h1 id="room-hero-title">{title}</h1>
             <p className="dw-room-hero__summary">{summary}</p>
@@ -75,6 +83,7 @@ const RoomHero = forwardRef<HTMLButtonElement, RoomHeroProps>(function RoomHero(
               <li>~{minutes} min</li>
               {facts.map((f) => <li key={f}>{f}</li>)}
               <li className="dw-room-hero__xp">+{xp.toLocaleString()} XP</li>
+              {icon && <li className="dw-room-hero__guide"><CharacterAvatar id={guide} size={22} decorative />Guide</li>}
             </ul>
           </div>
         </div>

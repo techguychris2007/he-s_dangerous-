@@ -1,3 +1,4 @@
+import '../components/code/code-workspace.css';
 import { useEffect, useRef, useState } from 'react';
 import { Navigate, useParams, Link } from 'react-router-dom';
 import { SIEM_LABS } from '../labs/siemScenarios';
@@ -5,13 +6,13 @@ import { withBackgroundTraffic } from '../labs/siemTraffic';
 import { OSINT_LABS } from '../labs/osintScenarios';
 import { useProgress } from '../state/progressStore';
 import StepChecklist from '../components/lesson/StepChecklist';
+import BeginnerGlossary from '../components/lesson/BeginnerGlossary';
 import SiemConsole from '../components/siem/SiemConsole';
 import InvestigationWorkbench from '../components/siem/InvestigationWorkbench';
 import CaseWorkbook from '../components/siem/CaseWorkbook';
 import OsintTerminal from '../components/labs/OsintTerminal';
 import CyberLabAI from '../components/labs/CyberLabAI';
 import LabComments from '../components/labs/LabComments';
-import DifficultyPill from '../components/common/DifficultyPill';
 import ShareWriteupModal from '../components/labs/ShareWriteupModal';
 import LabLearningBridge from '../components/labs/LabLearningBridge';
 import { IconFlag, IconCheck } from '../components/layout/icons';
@@ -153,33 +154,18 @@ export default function SiemLabPage() {
   return (
     <div className="h-full min-h-0 flex flex-col overflow-hidden lg:flex-row">
       <aside className="lg:w-[26rem] min-h-0 max-h-[42%] lg:max-h-none shrink-0 overscroll-contain border-b lg:border-b-0 lg:border-r border-[var(--color-border)] bg-[var(--color-surface)] overflow-y-auto">
-        <div className="sticky top-0 z-10 border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 px-4 py-3 backdrop-blur sm:px-6">
-          <div className="mb-2 flex items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-2">
-              <DifficultyPill difficulty={scenario.difficulty} />
-              <span className="pill bg-[var(--color-surface-2)] text-[var(--color-text-dim)]">{TOOL_LABEL[scenario.tool]}</span>
-            </div>
-            <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-[var(--color-text-dim)]">
-              <IconFlag className="h-3.5 w-3.5" />
-              {captured}/{scenario.totalFlags}
-            </span>
+        <header className="siem-brief-head">
+          <Link to={isOsint ? '/labs' : '/soc-portal'} className="siem-brief-head__back">&larr; {isOsint ? 'Lab catalog' : 'SOC Portal'}</Link>
+          <h1>{scenario.title}</h1>
+          <div className="siem-brief-head__meta">
+            <span className="dw-codetask__chip" data-level={scenario.difficulty}>{scenario.difficulty}</span>
+            <span className="dw-codetask__chip">{TOOL_LABEL[scenario.tool]}</span>
+            <span className="dw-codetask__chip"><IconFlag className="h-3 w-3" />{captured}/{scenario.totalFlags}</span>
+            {done && <span className="dw-codetask__chip dw-codetask__chip--solved"><IconCheck className="h-3 w-3" />Closed</span>}
           </div>
-          <div className="h-1.5 overflow-hidden rounded-full bg-[var(--color-surface-2)]">
-            <div
-              className={`h-full rounded-full transition-all duration-300 ${done ? 'bg-[var(--color-success)]' : 'bg-[var(--color-accent)]'}`}
-              style={{ width: `${progressPct}%` }}
-            />
-          </div>
-        </div>
+          <div className="siem-brief-head__bar" role="progressbar" aria-label="Investigation progress" aria-valuenow={progressPct} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${progressPct}%` }} /></div>
+        </header>
         <div className="px-4 py-4 sm:px-6 sm:py-6">
-        <Link
-          to={isOsint ? '/labs' : '/soc-portal'}
-          className="text-xs font-semibold text-[var(--color-accent)] hover:underline mb-3 inline-block"
-        >
-          &larr; Back to {isOsint ? 'Lab Catalog' : 'SOC Portal'}
-        </Link>
-
-        <h1 className="text-xl font-bold text-[var(--color-heading)] mb-3">{scenario.title}</h1>
         <button className="lg:hidden mb-3 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-sm font-semibold text-[var(--color-heading)]" aria-expanded={guideExpanded} aria-controls="investigation-guide" onClick={() => setGuideExpanded(value => !value)}>{guideExpanded ? 'Hide investigation guide' : 'Show investigation guide'}</button>
         <button onClick={() => setSharing(true)} className="mb-4 block rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm font-semibold text-[var(--color-heading)] hover:border-[var(--color-accent)]/60 hover:bg-[var(--color-surface-2)]">{done ? 'Open evidence notebook & certificate' : 'Open evidence notebook'}</button>
         <div id="investigation-guide" className={guideExpanded ? '' : 'hidden lg:block'}>
@@ -201,6 +187,11 @@ export default function SiemLabPage() {
             <IconCheck className="w-4 h-4" /> {siemScenario?.investigation ? 'Training complete — all evidence checkpoints verified.' : narrative ? 'Case closed — investigation complete!' : 'Lab complete — all flags captured!'}
           </div>
         )}
+
+        <BeginnerGlossary
+          text={[scenario.briefing, ...scenario.objectives.map(o => typeof o === 'string' ? o : `${o.text} ${o.why ?? ''}`)].join(' ')}
+          resetKey={scenario.id}
+        />
 
         <div className="mb-6">
           <LabLearningBridge scenario={{ category: 'SOC' }} />

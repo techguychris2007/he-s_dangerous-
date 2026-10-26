@@ -182,7 +182,7 @@ export default function BookReaderPage() {
             <div className="mt-8 grid lg:grid-cols-[1fr_320px] gap-8 items-end">
               <div>
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {book.track === 'security' && <span className="pill bg-white text-[var(--color-navy)] font-bold">#{book.order}</span>}
+                  {book.track === 'security' && <span className="pill bg-[var(--color-gold)] text-[#1b1200] font-bold">#{book.order}</span>}
                   {book.stage && <span className="pill bg-white/10 text-white/80 border border-white/20">{book.stage}</span>}
                   <span className="pill bg-[var(--color-warn)]/20 text-[var(--color-warn)] border border-[var(--color-warn)]/30">
                     Official source required

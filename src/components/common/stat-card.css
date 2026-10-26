@@ -1,0 +1,8 @@
+/* Stat tile: platform surface with a navy icon tile; the icon colour comes from --stat. */
+.dw-stat { --stat: var(--chrome-highlight); display: flex; align-items: center; gap: .9rem; min-width: 0; height: 100%; padding: 1rem 1.15rem; border: 1px solid var(--color-border); border-radius: 14px; background: var(--color-surface); box-shadow: 0 2px 10px -8px var(--color-heading); transition: border-color .15s, transform .15s; }
+.dw-stat:hover { border-color: color-mix(in srgb, var(--color-accent) 45%, var(--color-border)); }
+.dw-stat__icon { display: grid; place-items: center; flex-shrink: 0; width: 44px; height: 44px; border-radius: 12px; color: color-mix(in srgb, var(--stat) 55%, var(--chrome-highlight)); background: var(--chrome-bg); box-shadow: inset 0 0 0 1px var(--chrome-line), 0 8px 18px -12px #000; }
+.dw-stat__value { font-family: var(--font-display); font-size: 1.45rem; font-weight: 700; line-height: 1.1; letter-spacing: -.02em; color: var(--color-heading); font-variant-numeric: tabular-nums; }
+.dw-stat__label { margin-top: .2rem; font-size: .68rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--color-text-dim); }
+.dw-stat--plain { flex-direction: column; justify-content: center; gap: .1rem; text-align: center; }
+@media (prefers-reduced-motion: reduce) { .dw-stat { transition: none; } }

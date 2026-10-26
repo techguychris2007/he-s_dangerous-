@@ -278,7 +278,7 @@ export default function LibraryPage() {
                   <>
                     <div className="flex items-center gap-1.5 mb-4 flex-wrap">
                       {track === 'security' && (
-                        <span className="pill bg-[var(--color-heading)] text-[var(--color-bg)] font-bold">#{book.order}</span>
+                        <span className="pill bg-[var(--color-gold)] text-[#1b1200] font-bold">#{book.order}</span>
                       )}
                       {book.language && (
                         <span className="pill bg-[var(--color-accent)]/15 text-[var(--color-accent)] border border-[var(--color-accent)]/30">

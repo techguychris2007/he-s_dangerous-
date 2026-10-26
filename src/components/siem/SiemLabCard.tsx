@@ -12,9 +12,9 @@ interface LabCardData {
 }
 
 const DIFFICULTY_CLASS: Record<string, string> = {
-  Easy: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
-  Medium: 'bg-amber-500/10 text-amber-700 border-amber-500/25',
-  Hard: 'bg-rose-500/10 text-rose-600 border-rose-500/25',
+  Easy: 'bg-[var(--color-success)]/12 text-[var(--color-success)] border-[var(--color-success)]/30',
+  Medium: 'bg-[var(--color-warn)]/12 text-[var(--color-warn)] border-[var(--color-warn)]/30',
+  Hard: 'bg-[var(--color-danger)]/12 text-[var(--color-danger)] border-[var(--color-danger)]/30',
 };
 
 const TOOL_STYLE: Record<string, { label: string; short: string }> = {

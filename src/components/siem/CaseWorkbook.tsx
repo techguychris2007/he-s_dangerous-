@@ -66,6 +66,8 @@ function AccountCaseWorkbook({ scenario }: { scenario: SiemLabScenario }) {
         onToggleSave={() => progress.toggleBookmark(scenario.id)}
         primaryLabel={completed === book.questions.length ? 'Review case' : started || completed > 0 ? 'Resume investigation' : 'Open investigation'}
         onPrimary={openCase}
+        icon="soc"
+        tone="defense"
       />
       <TaskList
         title="Case chapters"
@@ -82,11 +84,12 @@ function AccountCaseWorkbook({ scenario }: { scenario: SiemLabScenario }) {
         minutes={estimateMinutes(scenario.difficulty, Math.ceil(book.questions.length / 2))}
         xp={labXpReward(scenario.difficulty, scenario.totalFlags)}
         facts={[{ label: 'Findings', value: `${completed}/${book.questions.length}` }, { label: 'Records', value: scenario.entries.length.toLocaleString() }, { label: 'Dialects', value: 'Five (KQL, SPL…)' }]}
-        outcomes={book.chapters.map(c => c.title)}
-        outcomesTitle="Investigation chapters"
+        outcomes={[]}
         guide={guideForArea(`${scenario.title} soc`)}
         backTo="/soc-portal"
         backLabel="All SOC casebooks"
+        percent={(100 * completed) / book.questions.length}
+        progressLabel={completed === book.questions.length ? 'Case closed' : 'Investigation progress'}
       />
       </div></section>
     {createPortal(<dialog ref={room} className="dw-case-room" aria-labelledby="case-title"><header><div><span className="dw-case-kicker">DarkWorld / Incident investigation</span><h2 id="case-title">{scenario.title}</h2></div><div><strong>{completed * 10} points · {completed}/{book.questions.length} verified</strong><button onClick={() => { void room.current?.requestFullscreen().catch(() => setFeedback('Browser fullscreen is unavailable; this workspace still fills the window.')); }}>Fullscreen</button><button onClick={async () => { if (document.fullscreenElement) await document.exitFullscreen().catch(() => {}); room.current?.close(); }}>Exit workspace</button></div></header>

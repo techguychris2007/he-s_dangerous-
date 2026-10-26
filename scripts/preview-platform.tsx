@@ -4,6 +4,9 @@ import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import '../src/index.css';
+import { applyInitialTheme } from '../src/state/theme';
+
+applyInitialTheme();
 import { AuthContext } from '../src/state/authStore';
 import { ProgressContext, type ProgressApi, type ProgressState } from '../src/state/progressStore';
 import AppLayout from '../src/components/layout/AppLayout';

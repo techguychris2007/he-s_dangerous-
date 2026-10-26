@@ -1,0 +1,14 @@
+/* Beginner glossary panel: platform surface, navy icon tile, two-column definitions. */
+.dw-glossary { margin: 0 0 28px; border: 1px solid var(--color-border); border-radius: 14px; background: var(--color-surface); box-shadow: inset 4px 0 0 var(--color-gold), 0 2px 10px -8px var(--color-heading); overflow: hidden; }
+.dw-glossary > summary { display: flex; align-items: center; gap: .8rem; padding: .85rem 1.1rem .85rem 1.3rem; cursor: pointer; list-style: none; }
+.dw-glossary > summary::-webkit-details-marker { display: none; }
+.dw-glossary > summary::after { content: ""; margin-left: auto; width: 8px; height: 8px; border-right: 2px solid var(--color-text-dim); border-bottom: 2px solid var(--color-text-dim); transform: rotate(45deg); transition: transform .15s; }
+.dw-glossary[open] > summary::after { transform: rotate(225deg); }
+.dw-glossary__icon { display: grid; place-items: center; flex-shrink: 0; width: 34px; height: 34px; border-radius: 9px; color: var(--color-gold); background: var(--chrome-bg); box-shadow: inset 0 0 0 1px var(--chrome-line-strong); }
+.dw-glossary summary b { display: block; font-size: .95rem; color: var(--color-heading); }
+.dw-glossary summary small { font-size: .76rem; color: var(--color-text-dim); }
+.dw-glossary dl { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: .6rem; margin: 0; padding: 0 1.1rem 1.1rem 1.3rem; }
+.dw-glossary dl > div { padding: .7rem .85rem; border: 1px solid var(--color-border); border-radius: 10px; background: var(--color-bg); }
+.dw-glossary dt { margin-bottom: .2rem; font-family: var(--font-display); font-size: .9rem; font-weight: 700; color: var(--color-heading); }
+.dw-glossary dd { margin: 0; font-size: .86rem; line-height: 1.6; color: var(--color-text); }
+@media (prefers-reduced-motion: reduce) { .dw-glossary > summary::after { transition: none; } }

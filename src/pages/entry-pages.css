@@ -86,6 +86,8 @@
 .dw-auth-divider { display: flex; align-items: center; gap: 14px; color: var(--color-text-dim); font-size: 11px; margin-block: 24px; }
 .dw-auth-divider::before, .dw-auth-divider::after { content: ''; height: 1px; flex: 1; background: var(--entry-line); }
 .dw-auth-form > .dw-button { width: 100%; }
+.dw-auth-socials { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 22px; }
+.dw-auth-socials .dw-button { width: 100%; min-height: 42px; padding-inline: 10px; font-size: 11px; }
 .dw-auth-note { color: var(--entry-muted); font-size: 11px; line-height: 1.8; margin-top: 14px !important; text-align: center; }
 .dw-auth-footer { color: var(--color-text-dim); font-size: 10px; }
 .dw-auth-error, .dw-auth-info { border: 1px solid; border-radius: 5px; padding: 12px; font-size: 12px; line-height: 1.7; }
@@ -99,6 +101,7 @@
 .dw-device-requirement { display: inline-block; border-top: 1px solid var(--entry-line); margin-top: 16px; padding-top: 20px; color: var(--entry-blue); font-size: 12px; font-weight: 600; }
 @media (max-width: 1100px) { .dw-entry-hero { gap: 36px; } .dw-entry-container { width: calc(100% - 64px); } .dw-entry-nav nav { gap: 18px; } .dw-auth-story { padding: 36px 30px; } }
 @media (max-width: 800px) { .dw-entry-nav nav > a:first-child { display: none; } .dw-entry-hero { grid-template-columns: 1fr; padding-top: 52px; } .dw-entry-preview { max-width: 540px; } .dw-path-grid { grid-template-columns: 1fr; } .dw-entry-section-heading { align-items: flex-start; flex-direction: column; gap: 20px; } .dw-entry-facts { gap: 24px; flex-wrap: wrap; } .dw-entry-facts > p { margin-left: 0; } .dw-entry-footer { flex-wrap: wrap; } .dw-auth { grid-template-columns: 1fr; } .dw-auth-story { display: none; } .dw-auth-main { min-height: 100dvh; padding-inline: 28px; } }
+@media (max-width: 430px) { .dw-auth-socials { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) { .dw-entry * { transition: none !important; scroll-behavior: auto !important; } }
 .dw-auth-wide { width: 100%; margin-top: 26px; }
 .dw-auth-gap { margin-top: 24px; }

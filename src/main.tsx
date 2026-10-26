@@ -13,7 +13,9 @@ import ErrorBoundary from './components/layout/ErrorBoundary.tsx'
 import ComputerAccessGate from './components/layout/ComputerAccessGate.tsx'
 import './academy-system.css';
 import { startPwa } from './state/pwa';
+import { applyInitialTheme } from './state/theme';
 
+applyInitialTheme();
 startPwa();
 
 createRoot(document.getElementById('root')!).render(

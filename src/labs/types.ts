@@ -188,6 +188,30 @@ export interface AttackerBox {
 export interface ObjectiveStep {
   text: string;
   why?: string;
+  /** What has changed in the scenario when this stage begins. */
+  scene?: string;
+  /** The question the learner must answer from evidence before moving on. */
+  question?: string;
+  /** Concrete fields, patterns, or output differences worth inspecting. */
+  observe?: string;
+  /** The conclusion or next-step decision the evidence should support. */
+  decision?: string;
+}
+
+/** KC7-style case scene for a lab: who the learner is, the story unfolding, what is at stake, and the
+ *  real-world event or technique it reconstructs. Rendered as a cinematic briefing on the lab overview
+ *  and in the workspace, so a lab reads as a realistic investigation rather than a checklist. */
+export interface LabNarrative {
+  /** Who the learner plays, e.g. "Tier-1 SOC analyst at Halcyon Freight". */
+  role: string;
+  /** 2–4 sentences setting the scene — what has happened and what the learner walks into. */
+  scene: string;
+  /** 1–2 sentences: what is at risk, why this matters now. */
+  stakes: string;
+  /** The real event, breach or technique this lab reconstructs (training reconstruction, not live). */
+  realBasis: string;
+  /** One-line mission statement shown as the call to action. */
+  mission?: string;
 }
 
 export interface LabScenario {
@@ -214,6 +238,8 @@ export interface LabScenario {
     | 'IoT'
     | 'AI Security';
   briefing: string;
+  /** Optional cinematic scene; when present it leads the overview and briefing instead of plain text. */
+  narrative?: LabNarrative;
   objectives: (string | ObjectiveStep)[];
   hints: string[];
   attacker: AttackerBox;

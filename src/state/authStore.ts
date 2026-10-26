@@ -38,6 +38,7 @@ interface AuthApi {
   loading: boolean;
   signUp: (email: string, password: string, fullName: string) => Promise<SignUpResult>;
   signIn: (email: string, password: string) => Promise<AuthResult>;
+  signInWithOAuth: (provider: 'google' | 'github') => Promise<AuthResult>;
   /** Starts an anonymous session — a real, RLS-scoped Supabase Auth account with no credentials, so
    *  the same progress-sync path every other account uses works immediately. There is no password to
    *  sign back in with afterward, so this identity only survives as long as this browser's session
@@ -114,6 +115,14 @@ export function useAuthState(): AuthApi {
     return { error: error ? error.message : null };
   }, []);
 
+  const signInWithOAuth = useCallback(async (provider: 'google' | 'github'): Promise<AuthResult> => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: `${window.location.origin}/#/auth/callback` },
+    });
+    return { error: error ? error.message : null };
+  }, []);
+
   const signInAsGuest = useCallback(async (): Promise<AuthResult> => {
     const { error } = await supabase.auth.signInAnonymously();
     return { error: error ? error.message : null };
@@ -153,13 +162,14 @@ export function useAuthState(): AuthApi {
       loading,
       signUp,
       signIn,
+      signInWithOAuth,
       signInAsGuest,
       upgradeGuestAccount,
       signOut,
       sendPasswordReset,
       updatePassword,
     }),
-    [session, loading, signUp, signIn, signInAsGuest, upgradeGuestAccount, signOut, sendPasswordReset, updatePassword],
+    [session, loading, signUp, signIn, signInWithOAuth, signInAsGuest, upgradeGuestAccount, signOut, sendPasswordReset, updatePassword],
   );
 }
 

@@ -18,7 +18,8 @@
     "test:documents": "node scripts/check-documents.cjs",
     "audit:labs": "node scripts/audit-lab-depth.cjs",
     "preview": "vite preview",
-    "test:casebooks": "node scripts/check-casebooks.cjs"
+    "test:casebooks": "node scripts/check-casebooks.cjs",
+    "test:php-october-2026": "node scripts/check-php-october-2026-lab.cjs"
   },
   "dependencies": {
     "@fontsource/ubuntu": "^5.2.5",

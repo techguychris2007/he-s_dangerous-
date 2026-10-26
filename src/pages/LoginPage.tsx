@@ -24,13 +24,14 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [guestSubmitting, setGuestSubmitting] = useState(false);
+  const [oauthSubmitting, setOauthSubmitting] = useState<'google' | 'github' | null>(null);
 
   useEffect(() => {
     if (!auth.loading && auth.user) navigate('/', { replace: true });
   }, [auth.loading, auth.user, navigate]);
 
   const switchMode = (next: Mode) => {
-    if (submitting || guestSubmitting) return;
+    if (submitting || guestSubmitting || oauthSubmitting) return;
     setSearchParams(next === 'signin' ? {} : { mode: next });
     setPassword(''); setConfirmPassword('');
     setError(null);
@@ -94,7 +95,19 @@ export default function LoginPage() {
     navigate('/', { replace: true });
   };
 
-  const busy = submitting || guestSubmitting;
+  const continueWithOAuth = async (provider: 'google' | 'github') => {
+    if (busy || oauthSubmitting) return;
+    setError(null);
+    setInfo(null);
+    setOauthSubmitting(provider);
+    const { error: oauthError } = await auth.signInWithOAuth(provider).catch(() => ({ error: `Could not start ${provider} sign in. Check your connection and retry.` }));
+    if (oauthError) {
+      setOauthSubmitting(null);
+      setError(oauthError);
+    }
+  };
+
+  const busy = submitting || guestSubmitting || Boolean(oauthSubmitting);
   return (
     <main className="dw-entry dw-auth">
       <aside className="dw-auth-story">
@@ -130,6 +143,14 @@ export default function LoginPage() {
             <button className="dw-button dw-button-primary" type="submit" disabled={busy}>{submitting ? 'Please wait…' : mode === 'signup' ? 'Create account' : mode === 'reset' ? 'Send reset link' : 'Sign in'}<span aria-hidden="true">→</span></button>
           </form>
           {mode === 'reset' ? <button type="button" disabled={busy} className="dw-text-button" onClick={() => switchMode('signin')}>Back to sign in</button> : <>
+            <div className="dw-auth-socials" aria-label="Social sign in options">
+              <button type="button" className="dw-button dw-button-secondary" disabled={busy} onClick={() => continueWithOAuth('google')}>
+                {oauthSubmitting === 'google' ? 'Connecting to Google…' : 'Continue with Google'}
+              </button>
+              <button type="button" className="dw-button dw-button-secondary" disabled={busy} onClick={() => continueWithOAuth('github')}>
+                {oauthSubmitting === 'github' ? 'Connecting to GitHub…' : 'Continue with GitHub'}
+              </button>
+            </div>
             <div className="dw-auth-divider"><span>or explore first</span></div>
             <button type="button" className="dw-button dw-button-secondary" disabled={busy} onClick={continueAsGuest}>{guestSubmitting ? 'Opening your workspace…' : 'Continue as guest'}</button>
             <p className="dw-auth-note">Try the lessons and labs before creating an account. Add an email from your profile to keep access to your progress.</p>

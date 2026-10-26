@@ -4,6 +4,7 @@ import { findModule, ROADMAP } from '../data/curriculum';
 import { labsForLesson } from '../data/lessonLabs';
 import { useProgress } from '../state/progressStore';
 import type { ModuleMeta, LessonMeta } from '../types';
+import BeginnerGlossary from '../components/lesson/BeginnerGlossary';
 import LessonTasks from '../components/lesson/LessonTasks';
 import PrerequisitePrimer from '../components/lesson/PrerequisitePrimer';
 import LessonLabCard from '../components/lesson/LessonLabCard';
@@ -140,6 +141,7 @@ function LessonReader({ mod, lesson }: { mod: ModuleMeta; lesson: LessonMeta }) 
             </header>
             {lesson.objectives?.length ? <section className="reader-objectives" aria-label="Learning objectives"><h2>What you will be able to do</h2><ul>{lesson.objectives.map(item => <li key={item}>{item}</li>)}</ul></section> : null}
             <details className="reader-mobile-outline"><summary>In this lesson</summary>{tableOfContents}</details>
+            <BeginnerGlossary targetRef={contentRef} exclude={(lesson.keyTerms ?? []).map(k => k.term)} resetKey={lesson.id} />
             <div ref={contentRef} className="lesson-body">
               <PrerequisitePrimer moduleSlug={mod.slug} prerequisite={lesson.prerequisite} />
               <Suspense fallback={<p role="status">Loading lesson content…</p>}><Content /></Suspense>

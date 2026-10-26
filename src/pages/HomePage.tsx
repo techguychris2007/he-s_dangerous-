@@ -1,23 +1,33 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MODULES } from '../data/curriculum';
+import { MODULES, ROADMAP, findModule } from '../data/curriculum';
 import { useProgress } from '../state/progressStore';
 import { useLabsData, retryLabsData } from '../state/useLabsData';
 import { ACHIEVEMENTS } from '../data/achievements';
-import { IconChart, IconFlask, IconCheck, IconFlag, IconArrowRight, ModuleIcon } from '../components/layout/icons';
-import './learning-pages.css';
-import StatCard from '../components/common/StatCard';
+import { IconBook, IconFlask, IconFlag, IconArrowRight, ModuleIcon } from '../components/layout/icons';
+import IsoBlock, { type IsoTone } from '../components/labs/IsoBlock';
+import type { RoadmapTrack } from '../types';
 import CharacterAvatar from '../components/characters/CharacterAvatar';
 import { ProfileHeader, ContinueCard, DailyOpCard, WeekCard, CrewPicker, type ContinueTarget } from '../components/dashboard/DashboardWidgets';
-import { guideForArea } from '../data/characters';
+import { guideForArea, type CharacterId } from '../data/characters';
 import AchievementShelf from '../components/common/AchievementShelf';
-import { CATEGORY_BANNER } from '../data/labCategoryBanner';
+import { categoryIconKey } from '../data/labIcon';
 
 const TOTAL_LESSONS = MODULES.reduce((n, m) => n + m.lessons.length, 0);
+const MODULE_PREVIEW = 9;
+
+const PATHS: { track: RoadmapTrack; label: string; title: string; icon: string; guide: CharacterId; tone: IsoTone }[] = [
+  { track: 'presecurity', label: 'Start here', title: 'Pre-security', icon: 'network', guide: 'byte', tone: 'idle' },
+  { track: 'security', label: 'Assess & discover', title: 'Offensive security', icon: 'crosshair', guide: 'vex', tone: 'offense' },
+  { track: 'defensive', label: 'Investigate & protect', title: 'Defensive security', icon: 'soc', guide: 'sentinel', tone: 'defense' },
+  { track: 'programming', label: 'Automate', title: 'Programming', icon: 'python', guide: 'cipher', tone: 'analysis' },
+  { track: 'software', label: 'Build & ship', title: 'Software engineering', icon: 'engineering', guide: 'cipher', tone: 'analysis' },
+];
 
 export default function HomePage() {
   const progress = useProgress();
   const [moduleSearch, setModuleSearch] = useState('');
+  const [showAllModules, setShowAllModules] = useState(false);
   const visibleModules = MODULES.filter(mod => (mod.title + ' ' + mod.description).toLowerCase().includes(moduleSearch.trim().toLowerCase()));
   const labsData = useLabsData();
   const labsLoaded = !!labsData;
@@ -97,6 +107,8 @@ export default function HomePage() {
         label: 'Resume room',
         percent: (100 * (progress.labFlags[inProgressLab.scenario.id]?.length ?? 0)) / inProgressLab.scenario.totalFlags,
         guide: guideForArea(inProgressLab.scenario.category),
+        icon: categoryIconKey(inProgressLab.scenario.category),
+        kind: 'Room',
       }
     : nextLesson && nextModule
       ? {
@@ -106,118 +118,132 @@ export default function HomePage() {
           label: 'Continue learning',
           percent: (100 * nextModule.lessons.filter((l) => progress.completedLessons[l.id]).length) / nextModule.lessons.length,
           guide: guideForArea(nextLesson.moduleSlug),
+          icon: nextModule.icon,
+          kind: 'Lesson',
         }
-      : { title: 'Put your knowledge to work', detail: 'Choose a practical challenge from the lab catalog.', to: '/labs', label: 'Explore labs', percent: 0, guide: 'vex' };
+      : { title: 'Put your knowledge to work', detail: 'Choose a practical challenge from the lab catalog.', to: '/labs', label: 'Explore labs', percent: 0, guide: 'vex', icon: 'flag', kind: 'Rooms' };
+
+  const paths = useMemo(() => PATHS.map((path) => {
+    const lessons = ROADMAP.filter((stage) => stage.track === path.track && stage.moduleSlug)
+      .flatMap((stage) => findModule(stage.moduleSlug)?.lessons ?? []);
+    const done = lessons.filter((l) => progress.completedLessons[l.id]).length;
+    return { ...path, done, total: lessons.length };
+  }), [progress.completedLessons]);
+
+  const shownModules = showAllModules || moduleSearch.trim() ? visibleModules : visibleModules.slice(0, MODULE_PREVIEW);
+  const numbers = [
+    { label: 'Lessons completed', icon: <IconBook className="h-4 w-4" />, value: completedLessonCount, total: TOTAL_LESSONS },
+    { label: 'Rooms cleared', icon: <IconFlask className="h-4 w-4" />, value: labsDone, total: labsLoaded ? totalLabs : 0 },
+    { label: 'Flags captured', icon: <IconFlag className="h-4 w-4" />, value: capturedFlags, total: labsLoaded ? totalFlags : 0 },
+  ];
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-12">
+    <div className="dw-dash">
       <ProfileHeader name={progress.learnerName} badges={unlockedAchievements.length} badgeTotal={ACHIEVEMENTS.length} />
-      {!labsLoaded && <div role="status" className="mb-5 flex flex-wrap items-center gap-3 rounded-lg border border-[var(--color-border)] p-4 text-sm text-[var(--color-text-dim)]"><span>Loading your lab catalog. If this takes longer than expected, check your connection.</span><button onClick={retryLabsData} className="font-semibold text-[var(--color-accent-dim)] underline">Retry loading</button></div>}
-      <div className="dw-dashboard-row">
-        <ContinueCard next={continueTarget} />
-        {labsLoaded && <DailyOpCard />}
-        <WeekCard />
-      </div>
-      <div className="mb-5"><CrewPicker /></div>
+      {!labsLoaded && <div role="status" className="dw-dash__notice"><span>Loading your lab catalog. If this takes longer than expected, check your connection.</span><button onClick={retryLabsData}>Retry loading</button></div>}
 
-      <h2 className="text-base font-bold text-[var(--color-heading)] mb-4">Learning paths</h2>
-      <div className="grid gap-4 sm:grid-cols-3 mb-10">
-        {[
-          { track: 'presecurity', label: 'Start here', title: 'Pre-security', description: 'Computers, networks, systems, and safe practice.', guide: 'byte' as const },
-          { track: 'security', label: 'Assess & discover', title: 'Offensive security', description: 'From reconnaissance to complete pentest engagements.', guide: 'vex' as const },
-          { track: 'defensive', label: 'Investigate & protect', title: 'Defensive security', description: 'SOC Tier 1 through response and security leadership.', guide: 'sentinel' as const },
-        ].map(path => <Link key={path.track} to={`/roadmap?track=${path.track}`} className="dw-card hover:bg-[var(--color-surface-2)] transition-colors"><div className="flex items-center gap-3"><CharacterAvatar id={path.guide} size={40} decorative /><div><p className="dw-card__label">{path.label}</p><h3 className="dw-card__title">{path.title}</h3></div></div><p className="dw-card__note">{path.description}</p></Link>)}
-      </div>
+      <div className="dw-dash__grid">
+        <div className="dw-dash__main">
+          <ContinueCard next={continueTarget} />
+          <CrewPicker />
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10 reveal" style={{ '--reveal-delay': '0.08s' } as React.CSSProperties}>
-        <StatCard icon={<IconChart className="w-5 h-5" />} color="var(--color-accent-2)" label="Lessons completed" value={`${completedLessonCount} / ${TOTAL_LESSONS}`} />
-        <StatCard icon={<IconFlask className="w-5 h-5" />} color="var(--color-accent)" label="Labs solved" value={labsLoaded ? `${labsDone} / ${totalLabs}` : 'Loading…'} />
-        <StatCard icon={<IconCheck className="w-5 h-5" />} color="var(--color-success)" label="Flags captured" value={labsLoaded ? `${capturedFlags} / ${totalFlags}` : `${capturedFlags} captured`} />
-      </div>
-
-      <div className="reveal" style={{ '--reveal-delay': '0.12s' } as React.CSSProperties}>
-        <AchievementShelf achievements={unlockedAchievements} total={ACHIEVEMENTS.length} />
-      </div>
-
-      <h2 className="text-base font-bold text-[var(--color-heading)] mb-4 reveal" style={{ '--reveal-delay': '0.16s' } as React.CSSProperties}>Skills</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-10 reveal" style={{ '--reveal-delay': '0.18s' } as React.CSSProperties}>
-        {!labsLoaded ? (
-          Array.from({ length: 8 }, (_, index) => (
-            <div key={index} className="premium-card rounded-2xl p-4">
-              <div className="mb-3 h-4 w-28 animate-pulse rounded bg-[var(--color-surface-2)]" />
-              <div className="mb-2 h-1.5 rounded-full bg-[var(--color-surface-2)]" />
-              <div className="h-3 w-14 animate-pulse rounded bg-[var(--color-surface-2)]" />
+          <section className="dw-dash__section" aria-labelledby="dw-tracks-title">
+            <div className="dw-dash__head">
+              <div><p>Your journey</p><h2 id="dw-tracks-title">Learning paths</h2></div>
+              <Link to="/my-learning">My learning →</Link>
             </div>
-          ))
-        ) : skillProgress.map(({ category, done, total }) => (
-          <Link
-            key={category}
-            to={`/labs?category=${encodeURIComponent(category)}`}
-            className="premium-card premium-card-hover rounded-2xl p-4 overflow-hidden"
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <ModuleIcon icon={CATEGORY_BANNER[category] ?? 'linux'} className="w-4 h-4 text-[var(--color-accent)] shrink-0" />
-              <span className="text-sm font-semibold text-[var(--color-heading)] truncate">{category}</span>
+            <div className="dw-tracks">
+              {paths.map((path) => {
+                const pct = path.total ? Math.round((100 * path.done) / path.total) : 0;
+                return (
+                  <Link key={path.track} to={`/roadmap?track=${path.track}`} className="dw-track">
+                    <span className="dw-track__art">
+                      <IsoBlock width={70} depth={12} tone={pct === 100 ? 'done' : pct > 0 ? 'progress' : path.tone} crest={<ModuleIcon icon={path.icon} />} />
+                      <CharacterAvatar id={path.guide} size={30} decorative className="dw-track__guide" />
+                    </span>
+                    <span className="dw-track__body">
+                      <small>{path.label}</small>
+                      <strong>{path.title}</strong>
+                      <span className="dw-track__bar"><i><b style={{ width: `${pct}%` }} /></i>{path.done}/{path.total}</span>
+                    </span>
+                  </Link>
+                );
+              })}
             </div>
-            <div className="h-1.5 rounded-full bg-[var(--color-surface-2)] overflow-hidden mb-1.5">
-              <div
-                className={`h-full rounded-full ${done === total && total > 0 ? 'bg-[var(--color-success)]' : 'bg-[var(--color-accent)]'}`}
-                style={{ width: `${total ? (100 * done) / total : 0}%` }}
-              />
+          </section>
+
+          <section className="dw-dash__section" aria-labelledby="dw-skills-title">
+            <div className="dw-dash__head">
+              <div><p>Room districts</p><h2 id="dw-skills-title">Skills</h2></div>
+              <Link to="/labs">All rooms →</Link>
             </div>
-            <div className="text-xs text-[var(--color-text-dim)]">{done}/{total} labs</div>
-          </Link>
-        ))}
-      </div>
+            <div className="dw-skills">
+              {!labsLoaded
+                ? Array.from({ length: 8 }, (_, index) => <div key={index} className="dw-skill--ghost" />)
+                : skillProgress.map(({ category, done, total }) => (
+                  <Link key={category} to={`/labs?category=${encodeURIComponent(category)}`} className="dw-skill" data-done={total > 0 && done === total}>
+                    <span className="dw-skill__icon"><ModuleIcon icon={categoryIconKey(category)} className="h-4 w-4" /></span>
+                    <strong>{category}</strong>
+                    <em>{done}/{total}</em>
+                    <i><b style={{ width: `${total ? (100 * done) / total : 0}%` }} /></i>
+                  </Link>
+                ))}
+            </div>
+          </section>
 
-      <div className="academy-section-heading"><div><h2>The course collection</h2><p>Find the knowledge behind your next skill. {visibleModules.length} modules to explore.</p></div><input type="search" aria-label="Search learning modules" placeholder="Find a subject…" value={moduleSearch} onChange={event => setModuleSearch(event.target.value)} className="academy-catalog-search" /></div>
-      {visibleModules.length === 0 && <p className="mb-6 text-sm text-[var(--color-text-dim)]">No modules match your search. Try another subject.</p>}
-      <div className="module-catalog-grid grid grid-cols-1 sm:grid-cols-2 gap-5 mb-10">
-        {visibleModules.map((mod, i) => {
-          const done = mod.lessons.filter((l) => progress.isLessonComplete(l.id)).length;
-          const lessonCount = mod.lessons.length;
-          return (
-            <Link
-              key={mod.id}
-              to={`/module/${mod.slug}`}
-              className="module-catalog-card group"
-              style={{ '--reveal-delay': `${0.26 + Math.min(i, 5) * 0.05}s` } as React.CSSProperties}
-            >
-              <div className="module-catalog-heading"><span className="module-catalog-icon"><ModuleIcon icon={mod.icon} className="h-5 w-5" /></span><span className="text-xs font-medium text-[var(--color-text-dim)]">{mod.lessons.length} lessons</span><IconArrowRight className="ml-auto h-4 w-4 text-[var(--color-text-dim)]" /></div>
-              <div className="module-catalog-body">
-                <h3 className="learning-module-title">{mod.title}</h3>
-                <p className="learning-module-description mb-6 flex-1">{mod.description}</p>
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 h-1.5 rounded-full bg-[var(--color-surface-2)] overflow-hidden">
-                    <div
-                      className="h-full bg-[var(--color-accent)] rounded-full"
-                      style={{ width: `${lessonCount ? (100 * done) / lessonCount : 0}%` }}
-                    />
-                  </div>
-                  <span className="text-xs text-[var(--color-text-dim)] shrink-0">{done}/{lessonCount} complete</span>
-                </div>
-              </div>
-            </Link>
-          );
-        })}
-      </div>
+          <AchievementShelf achievements={unlockedAchievements} total={ACHIEVEMENTS.length} />
 
-      <div
-        className="premium-card rounded-3xl p-6 flex items-center justify-between flex-wrap gap-3 reveal overflow-hidden"
-        style={{ '--reveal-delay': '0.4s' } as React.CSSProperties}
-      >
-        <div>
-          <h2 className="text-base font-bold text-[var(--color-heading)] mb-1 flex items-center gap-2">
-            <IconFlag className="w-4 h-4 text-[var(--color-accent)]" /> Full curriculum roadmap
-          </h2>
-          <p className="text-sm text-[var(--color-text-dim)]">
-            All {MODULES.length} core modules{labsLoaded ? ` and ${totalLabs} labs` : ''} are live — from Linux fundamentals through
-            Active Directory, cloud, malware analysis, and binary exploitation.
-          </p>
+          <section className="dw-dash__section" aria-labelledby="dw-courses-title">
+            <div className="dw-dash__head">
+              <div><p>Course collection</p><h2 id="dw-courses-title">{visibleModules.length} modules to explore</h2></div>
+              <input type="search" aria-label="Search learning modules" placeholder="Find a subject…" value={moduleSearch} onChange={(event) => setModuleSearch(event.target.value)} className="dw-search" />
+            </div>
+            {visibleModules.length === 0 && <p className="text-sm text-[var(--color-text-dim)]">No modules match your search. Try another subject.</p>}
+            <div className="dw-courses">
+              {shownModules.map((mod) => {
+                const done = mod.lessons.filter((l) => progress.isLessonComplete(l.id)).length;
+                const lessonCount = mod.lessons.length;
+                return (
+                  <Link key={mod.id} to={`/module/${mod.slug}`} className="dw-course" data-done={lessonCount > 0 && done === lessonCount}>
+                    <header><span><ModuleIcon icon={mod.icon} className="h-4 w-4" /></span><small>{lessonCount} lessons</small></header>
+                    <strong>{mod.title}</strong>
+                    <p>{mod.description}</p>
+                    <footer><i><b style={{ width: `${lessonCount ? (100 * done) / lessonCount : 0}%` }} /></i>{done}/{lessonCount}</footer>
+                  </Link>
+                );
+              })}
+            </div>
+            {!moduleSearch.trim() && visibleModules.length > MODULE_PREVIEW && (
+              <button type="button" className="dw-more" onClick={() => setShowAllModules((v) => !v)}>
+                {showAllModules ? 'Show fewer modules' : `Show all ${visibleModules.length} modules`}
+              </button>
+            )}
+          </section>
         </div>
-        <Link to="/roadmap" className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[var(--color-accent)] text-white text-sm font-semibold hover:brightness-110 transition shrink-0">
-          View roadmap <IconArrowRight className="w-4 h-4" />
-        </Link>
+
+        <aside className="dw-dash__side" aria-label="Today and this week">
+          {labsLoaded && <DailyOpCard />}
+          <WeekCard />
+          <section className="dw-card" aria-labelledby="dw-numbers-title">
+            <p id="dw-numbers-title" className="dw-card__label">Your numbers</p>
+            <dl className="dw-numbers">
+              {numbers.map((n) => (
+                <div key={n.label}>
+                  <span>{n.icon}</span>
+                  <dt>{n.label}</dt>
+                  <dd>{n.value}{n.total ? ` / ${n.total}` : ''}</dd>
+                  <i><b style={{ width: `${n.total ? (100 * n.value) / n.total : 0}%` }} /></i>
+                </div>
+              ))}
+            </dl>
+          </section>
+          <Link to="/roadmap" className="dw-roadmap-cta">
+            <small>Full curriculum</small>
+            <strong>Explore the roadmap</strong>
+            <p>All {MODULES.length} modules{labsLoaded ? ` and ${totalLabs} rooms` : ''} — from Linux fundamentals through Active Directory, cloud, malware analysis and binary exploitation.</p>
+            <b>View roadmap <IconArrowRight className="h-4 w-4" /></b>
+          </Link>
+        </aside>
       </div>
     </div>
   );

@@ -1,3 +1,4 @@
+import BeginnerGlossary from '../components/lesson/BeginnerGlossary';
 import PrerequisitePrimer from '../components/lesson/PrerequisitePrimer';
 import { useEffect, useRef, useState } from 'react';
 import { Navigate, useParams, Link } from 'react-router-dom';
@@ -91,6 +92,7 @@ export default function MlLessonPage() {
 
           <details className="reader-mobile-outline"><summary>In this lesson</summary><nav className="reader-toc">{sections.map(section => <button key={section.id} type="button" onClick={() => jumpTo(section.id)}>{section.heading}</button>)}{challenge && <button type="button" onClick={() => jumpTo('ml-python-lab')}>Python lab</button>}</nav></details>
 
+          <BeginnerGlossary targetRef={contentRef} resetKey={lesson.id} domains={['ml']} />
           <article ref={contentRef} className="lesson-body ml-lesson-body">
             <PrerequisitePrimer moduleSlug={lesson.unit === 'python-ml-engineering' ? 'python' : lesson.unit === 'sql-ml-data-work' ? 'database-security' : lesson.unit === 'foundations' ? 'ml-foundations' : lesson.unit === 'model-evaluation' || lesson.unit === 'time-series' ? 'ml-evaluation' : lesson.unit === 'data-handling' || lesson.unit === 'mlops' ? 'ml-data' : 'ml-models'} />
             {sections.map((section) => (

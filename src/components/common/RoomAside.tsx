@@ -17,14 +17,26 @@ export interface RoomAsideProps {
   /** Where "back" returns to. */
   backTo: string;
   backLabel: string;
+  /** 0–100 room completion, drawn as a ring at the top of the rail. */
+  percent?: number;
+  progressLabel?: string;
 }
 
 /** The right-hand details rail on a room overview — mirrors KC7/TryHackMe's room sidebar and fills the
  *  width that a single centred column would leave blank. */
-export default function RoomAside({ difficulty, minutes, xp, facts, outcomes, outcomesTitle = "What you'll cover", guide, backTo, backLabel }: RoomAsideProps) {
+export default function RoomAside({ difficulty, minutes, xp, facts, outcomes, outcomesTitle = "What you'll cover", guide, backTo, backLabel, percent, progressLabel = 'Room progress' }: RoomAsideProps) {
   const character = CHARACTERS[guide];
   return (
     <aside className="dw-room-aside" aria-label="Room details">
+      {percent !== undefined && (
+        <section className="dw-room-aside__card dw-room-aside__ring">
+          <span className="dw-ring" style={{ '--p': Math.max(0, Math.min(100, Math.round(percent))) } as React.CSSProperties} role="img" aria-label={`${progressLabel}: ${Math.round(percent)}%`}><b>{Math.round(percent)}%</b></span>
+          <div>
+            <h2>{progressLabel}</h2>
+            <p>{percent >= 100 ? 'Complete. Every proof verified.' : percent > 0 ? 'Keep going — your progress is saved.' : 'Not started yet. Open the workspace to begin.'}</p>
+          </div>
+        </section>
+      )}
       <section className="dw-room-aside__card">
         <h2>Details</h2>
         <dl className="dw-room-aside__facts">
@@ -35,12 +47,14 @@ export default function RoomAside({ difficulty, minutes, xp, facts, outcomes, ou
         </dl>
       </section>
 
-      <section className="dw-room-aside__card">
-        <h2>{outcomesTitle}</h2>
-        <ol className="dw-room-aside__outcomes">
-          {outcomes.map((o, i) => <li key={i}><span aria-hidden="true">{i + 1}</span>{o}</li>)}
-        </ol>
-      </section>
+      {outcomes.length > 0 && (
+        <section className="dw-room-aside__card">
+          <h2>{outcomesTitle}</h2>
+          <ol className="dw-room-aside__outcomes">
+            {outcomes.map((o, i) => <li key={i}><span aria-hidden="true">{i + 1}</span>{o}</li>)}
+          </ol>
+        </section>
+      )}
 
       <section className="dw-room-aside__card dw-room-aside__guide">
         <CharacterAvatar id={guide} size={44} decorative />

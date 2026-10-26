@@ -6,13 +6,24 @@ import { identityLessons } from '../content/advanced-offensive/identity';
 import { supplyChainLessons } from '../content/advanced-offensive/supply-chain';
 import { postexHostLessons } from '../content/advanced-offensive/postex-host';
 import { postexNetworkLessons } from '../content/advanced-offensive/postex-network';
+import { LESSON_DEPTH } from '../content/depth';
 
 export const ADVANCED_LESSONS = [...methodologyLessons, ...identityLessons, ...supplyChainLessons, ...postexHostLessons, ...postexNetworkLessons];
+
+/** Merge beginner depth (plain-English opening + worked example) into an advanced lesson's sections.
+ *  The depth section type uses `label` for a code caption; this module's renderer uses `codeLabel`. */
+function withAdvancedDepth(lesson: AdvancedLesson): AdvancedLesson {
+  const depth = LESSON_DEPTH[lesson.id];
+  if (!depth) return lesson;
+  const conv = (s: { title: string; paragraphs: string[]; code?: string; label?: string }) =>
+    ({ title: s.title, paragraphs: s.paragraphs, code: s.code, codeLabel: s.label });
+  return { ...lesson, sections: [...(depth.before ?? []).map(conv), ...lesson.sections, ...(depth.after ?? []).map(conv)] };
+}
 
 function makeModule(meta: Omit<ModuleMeta, 'lessons' | 'status'>, lessons: AdvancedLesson[]): ModuleMeta {
   return {
     ...meta, status: 'available',
-    lessons: lessons.map(lesson => ({
+    lessons: lessons.map(withAdvancedDepth).map(lesson => ({
       id: lesson.id, slug: lesson.slug, title: lesson.title, summary: lesson.summary, minutes: 18,
       Content: () => createElement(LessonArticle, { lesson }),
       quiz: lesson.quiz.map((question, index) => ({ ...question, id: `${lesson.id}-q${index + 1}` })),

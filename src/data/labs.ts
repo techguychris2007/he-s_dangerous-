@@ -127,6 +127,8 @@ import type { LabScenario } from '../labs/types';
 import { advancedOffensiveCampaigns } from '../labs/scenarios/advanced-offensive-campaigns';
 import { visualPentestLabs } from '../labs/scenarios/visual-pentest-labs';
 import { preSecurityLabs } from '../labs/scenarios/pre-security-labs';
+import { phpOctober2026Labs } from '../labs/scenarios/php-october-2026-rce';
+import { narrativeFor } from '../labs/narratives';
 
 export interface LabEntry {
   scenario: LabScenario;
@@ -134,7 +136,10 @@ export interface LabEntry {
 }
 
 function toEntries(scenarios: LabScenario[]): LabEntry[] {
-  return scenarios.map((scenario) => ({ scenario, slug: scenario.id }));
+  return scenarios.map((scenario) => ({
+    scenario: scenario.narrative ? scenario : { ...scenario, narrative: narrativeFor(scenario) },
+    slug: scenario.id,
+  }));
 }
 
 const ORIGINAL_LABS: LabEntry[] = [
@@ -268,6 +273,7 @@ export const LABS: LabEntry[] = [
   ...toEntries(preSecurityLabs),
   ...toEntries(advancedOffensiveCampaigns),
   ...toEntries(visualPentestLabs),
+  ...toEntries(phpOctober2026Labs),
 ];
 
 /** Ordered to match the roadmap's actual teaching sequence (see curriculum.ts's MODULES order). */

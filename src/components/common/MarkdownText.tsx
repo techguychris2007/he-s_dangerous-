@@ -148,7 +148,7 @@ export default function MarkdownText({ text }: { text: string }) {
             );
           case 'code':
             return (
-              <pre key={key} className="rounded-lg bg-black/85 text-slate-100 p-2.5 overflow-x-auto text-[0.85em] font-mono">
+              <pre key={key} className="rounded-lg bg-black/85 text-[var(--chrome-ink)] p-2.5 overflow-x-auto text-[0.85em] font-mono">
                 <code>{block.lines.join('\n')}</code>
               </pre>
             );

@@ -100,7 +100,7 @@ export default function PreSecurityWorkbench({
           </div>
           <aside className="min-h-0 border-t border-[var(--color-border)] bg-[var(--color-surface-2)] p-4 lg:border-l lg:border-t-0">
             <h3 className="text-sm font-bold text-[var(--color-heading)]">Tool output</h3>
-            <pre className="mt-3 max-h-52 overflow-auto whitespace-pre-wrap rounded-lg border border-[var(--color-border)] bg-[#070b12] p-3 text-xs leading-relaxed text-slate-100 lg:max-h-none lg:h-[calc(100%-2rem)]">{output}</pre>
+            <pre className="mt-3 max-h-52 overflow-auto whitespace-pre-wrap rounded-lg border border-[var(--color-border)] bg-[#070b12] p-3 text-xs leading-relaxed text-[var(--chrome-ink)] lg:max-h-none lg:h-[calc(100%-2rem)]">{output}</pre>
           </aside>
         </div>
       </div>

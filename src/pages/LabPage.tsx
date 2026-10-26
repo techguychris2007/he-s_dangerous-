@@ -12,6 +12,7 @@ import ShareWriteupModal from '../components/labs/ShareWriteupModal';
 import CyberLabAI from '../components/labs/CyberLabAI';
 import LabRatingWidget from '../components/labs/LabRatingWidget';
 import LabComments from '../components/labs/LabComments';
+import BeginnerGlossary from '../components/lesson/BeginnerGlossary';
 import RoomHero from '../components/common/RoomHero';
 import { estimateMinutes } from '../data/rooms';
 import TaskList from '../components/common/TaskList';
@@ -21,7 +22,12 @@ import { guideForArea } from '../data/characters';
 import { labXpReward } from '../data/levels';
 import LabAccess from '../components/labs/LabAccess';
 import { labReference } from '../labs/labReference';
+import { learningFrameFor } from '../labs/labTeaching';
+import { categoryIconKey } from '../data/labIcon';
+import { IconShield, IconTerminal } from '../components/layout/icons';
 import '../components/labs/lab-mission.css';
+
+const DEFENSIVE_CATEGORIES = new Set(['SOC', 'Forensics', 'Security+', 'Malware', 'Security Engineering']);
 
 export default function LabPage() {
   const { labSlug } = useParams();
@@ -50,8 +56,8 @@ function LabMission({ entry }: { entry: LabEntry }) {
   const captured = progress.flagCount(scenario.id);
   const done = captured >= scenario.totalFlags;
   const percent = Math.min(100, Math.round(captured / Math.max(1, scenario.totalFlags) * 100));
-  const step = scenario.objectives[stage];
-  const objective = typeof step === 'string' ? { text: step } : step;
+  const frame = learningFrameFor(scenario, stage);
+  const narrative = scenario.narrative;
   const reference = labReference[scenario.id] ?? scenario.objectives.flatMap(item => typeof item !== 'string' && item.why ? [{ title: item.text, body: item.why, code: undefined }] : []);
   const hasTarget = Boolean(scenario.webApplication || scenario.directoryMap);
 
@@ -65,6 +71,10 @@ function LabMission({ entry }: { entry: LabEntry }) {
   const openRoom = () => {
     roomRef.current?.showModal();
     setStarted(true);
+  };
+  const selectStage = (next: number) => {
+    setStage(Math.max(0, Math.min(scenario.objectives.length - 1, next)));
+    setHintCount(0);
   };
   const closeRoom = async () => {
     if (document.fullscreenElement) await document.exitFullscreen().catch(() => {});
@@ -98,13 +108,36 @@ function LabMission({ entry }: { entry: LabEntry }) {
         onToggleSave={() => progress.toggleBookmark(scenario.id)}
         primaryLabel={done ? 'Review workspace' : started ? 'Resume workspace' : captured > 0 ? 'Continue lab' : 'Start lab'}
         onPrimary={openRoom}
+        icon={categoryIconKey(scenario.category)}
+        tone={DEFENSIVE_CATEGORIES.has(scenario.category) ? 'defense' : 'offense'}
       />
       <TaskList
         title="Tasks"
-        tasks={scenario.objectives.map((item, index) => ({ text: typeof item === 'string' ? item : item.text, done: done || reviewed.has(index) }))}
-        onOpen={index => { setStage(index); setTab('objectives'); openRoom(); }}
+        tasks={scenario.objectives.map((item, index) => ({ text: typeof item === 'string' ? item : item.text, detail: typeof item === 'string' ? undefined : item.why, done: done || reviewed.has(index) }))}
+        onOpen={index => { selectStage(index); setTab('objectives'); openRoom(); }}
       />
-      <div className="dw-mission-preflight"><h2>Your workspace</h2><p>The guide and tools sit side by side in a focused room. Read the briefing, work through one objective at a time, and inspect the results yourself. Checklist marks are your notes; only captured proofs count toward lab completion.</p><p>This is a local browser simulation with a supported command set, rather than a full Kali virtual machine. Type <code>help</code> to see available commands. Your live terminal session is kept when you return to this overview, until you leave or reload this lab.</p><LabAccess scenario={scenario} /></div>
+      {narrative && <section className="dw-case-file" aria-labelledby="case-file-title">
+        <div className="dw-case-file__heading"><span>Case file</span><h2 id="case-file-title">Your role and mission</h2></div>
+        <div className="dw-case-file__grid">
+          <div><h3>Assignment</h3><p>{narrative.role}</p></div>
+          <div><h3>Situation</h3><p>{narrative.scene}</p></div>
+          <div><h3>Why it matters</h3><p>{narrative.stakes}</p></div>
+          <div><h3>Training basis</h3><p>{narrative.realBasis}</p></div>
+        </div>
+        {narrative.mission && <p className="dw-case-file__mission"><strong>Mission:</strong> {narrative.mission}</p>}
+      </section>}
+      <BeginnerGlossary
+        text={[scenario.briefing, ...scenario.objectives.map(o => typeof o === 'string' ? o : `${o.text} ${o.why ?? ''}`)].join(' ')}
+        resetKey={scenario.id}
+      />
+      <section className="dw-room-brief" aria-labelledby="room-workspace-title">
+        <h2 id="room-workspace-title">Your workspace</h2>
+        <div className="dw-room-brief__grid">
+          <div><span className="dw-room-brief__icon"><IconTerminal className="h-4 w-4" /></span><h3>Guided, side by side</h3><p>The guide and tools sit together in a focused room. Read the briefing, work through one objective at a time and inspect the results yourself. Checklist marks are your notes; only captured proofs count toward completion.</p></div>
+          <div><span className="dw-room-brief__icon"><IconShield className="h-4 w-4" /></span><h3>Safe local simulation</h3><p>A browser simulation with a supported command set, not a full Kali machine. Type <code>help</code> to list commands. Your terminal session is kept when you return to this overview, until you leave or reload the lab.</p></div>
+        </div>
+        <LabAccess scenario={scenario} />
+      </section>
       {done && <LabRatingWidget labId={scenario.id} />}
       <LabComments labId={scenario.id} />
       </div>
@@ -113,11 +146,12 @@ function LabMission({ entry }: { entry: LabEntry }) {
         minutes={estimateMinutes(scenario.difficulty, scenario.objectives.length)}
         xp={labXpReward(scenario.difficulty, scenario.totalFlags)}
         facts={[{ label: 'Category', value: scenario.category }, { label: 'Tasks', value: String(scenario.objectives.length) }, { label: 'Proofs', value: `${captured}/${scenario.totalFlags}` }]}
-        outcomes={scenario.objectives.map(item => typeof item === 'string' ? item : item.text)}
-        outcomesTitle="Tasks in this room"
+        outcomes={[]}
         guide={guideForArea(scenario.category)}
         backTo="/labs"
         backLabel="All rooms"
+        percent={percent}
+        progressLabel={done ? 'Room complete' : 'Room progress'}
       />
       </div>
     </section>
@@ -133,12 +167,12 @@ function LabMission({ entry }: { entry: LabEntry }) {
         <aside className="dw-mission-guide" aria-label="Lab guide">
           <nav aria-label="Guide sections">{(['briefing', 'objectives', 'hints', 'reference'] as const).map(item => <button key={item} aria-pressed={tab === item} onClick={() => setTab(item)}>{item === 'objectives' ? 'Objectives' : item[0].toUpperCase() + item.slice(1)}</button>)}</nav>
           <div className="dw-mission-guide-content" key={tab}>
-            {tab === 'briefing' && <><span className="dw-mission-eyebrow">01 / Situation</span><h3>The brief</h3><p>{scenario.briefing}</p><h4>Environment & scope</h4><p>You begin as <code>{scenario.attacker.user}</code> on <code>{scenario.attacker.hostname}</code>. {scenario.network.length ? 'Only the following simulated hosts belong to this exercise.' : 'This exercise uses files on your local lab workstation.'}</p>{scenario.network.length > 0 && <ul className="dw-mission-hosts">{scenario.network.map(host => <li key={host.ip}><strong>{host.hostname}</strong><code>{host.ip}</code></li>)}</ul>}<LabAccess scenario={scenario} /><button className="dw-mission-primary" onClick={() => setTab('objectives')}>Read the first objective →</button></>}
-            {tab === 'objectives' && <><span className="dw-mission-eyebrow">Objective {stage + 1} of {scenario.objectives.length}</span><h3>{objective?.text ?? 'Explore the evidence'}</h3>{objective?.why && <><h4>Why this matters</h4><p>{objective.why}</p></>}<p className="dw-mission-note">Try the task in the workspace, read its output, then mark it reviewed when you can explain the result. This checklist does not award a proof.</p><label className="dw-mission-review"><input type="checkbox" checked={reviewed.has(stage)} onChange={() => setReviewed(previous => { const next = new Set(previous); if (next.has(stage)) next.delete(stage); else next.add(stage); return next; })} />I have practiced and understood this objective</label><div className="dw-mission-stage-nav"><button disabled={stage === 0} onClick={() => setStage(value => value - 1)}>← Previous</button><button disabled={stage >= scenario.objectives.length - 1} onClick={() => setStage(value => value + 1)}>Next objective →</button></div><details><summary>All objectives · {reviewed.size} reviewed</summary><ol className="dw-mission-objective-list">{scenario.objectives.map((item, index) => <li key={index}><button aria-current={stage === index ? 'step' : undefined} onClick={() => setStage(index)}>{reviewed.has(index) ? '✓ ' : ''}{typeof item === 'string' ? item : item.text}</button></li>)}</ol></details></>}
-            {tab === 'hints' && <><span className="dw-mission-eyebrow">Optional assistance</span><h3>A nudge when you need it</h3><p>Reveal one hint at a time. Compare it with what you have already observed before revealing another.</p>{scenario.hints.slice(0, hintCount).map((hint, index) => <section className="dw-mission-hint" key={index}><h4>Hint {index + 1}</h4><p>{hint}</p></section>)}<button className="dw-mission-primary" disabled={hintCount >= scenario.hints.length} onClick={() => setHintCount(count => count + 1)}>{hintCount >= scenario.hints.length ? 'All hints revealed' : 'Reveal next hint'}</button></>}
+            {tab === 'briefing' && <><span className="dw-mission-eyebrow">01 / Situation</span><h3>{narrative ? 'Case briefing' : 'The brief'}</h3>{narrative ? <div className="dw-mission-case"><span>Role</span><p><strong>{narrative.role}</strong></p><span>Scene</span><p>{narrative.scene}</p><span>Stakes</span><p>{narrative.stakes}</p><span>Based on</span><p>{narrative.realBasis}</p>{narrative.mission && <p className="dw-mission-case__mission"><strong>Mission:</strong> {narrative.mission}</p>}</div> : <p>{scenario.briefing}</p>}<h4>Environment & scope</h4><p>You begin as <code>{scenario.attacker.user}</code> on <code>{scenario.attacker.hostname}</code>. {scenario.network.length ? 'Only the following simulated hosts belong to this exercise.' : 'This exercise uses files on your local lab workstation.'}</p>{scenario.network.length > 0 && <ul className="dw-mission-hosts">{scenario.network.map(host => <li key={host.ip}><strong>{host.hostname}</strong><code>{host.ip}</code></li>)}</ul>}<LabAccess scenario={scenario} /><button className="dw-mission-primary" onClick={() => setTab('objectives')}>Enter stage one →</button></>}
+            {tab === 'objectives' && <><span className="dw-mission-eyebrow">Stage {stage + 1} of {scenario.objectives.length}</span><h3>{frame.title}</h3><div className="dw-learning-scene"><span>Scene update</span><p>{frame.scene}</p></div><h4>Question to answer</h4><p className="dw-learning-question">{frame.question}</p><h4>Why this method fits</h4><p>{frame.why}</p><h4>Read the output like an analyst</h4><p>{frame.observe}</p><details className="dw-command-method"><summary>Show the practical method</summary><p>Use this after you can explain why it answers the question:</p><pre>{frame.method}</pre></details><div className="dw-learning-decision"><strong>Decision gate</strong><p>{frame.decision}</p></div><p className="dw-mission-note">Run the method in the workspace and explain the result in your own words. Reviewing a stage records learning progress; only evidence proofs complete the room.</p><label className="dw-mission-review"><input type="checkbox" checked={reviewed.has(stage)} onChange={() => setReviewed(previous => { const next = new Set(previous); if (next.has(stage)) next.delete(stage); else next.add(stage); return next; })} />I can explain why this method fits and what its result means</label><div className="dw-mission-stage-nav"><button disabled={stage === 0} onClick={() => selectStage(stage - 1)}>← Previous</button><button disabled={stage >= scenario.objectives.length - 1} onClick={() => selectStage(stage + 1)}>Next stage →</button></div><details><summary>Case stages · {reviewed.size} reviewed</summary><ol className="dw-mission-objective-list">{scenario.objectives.map((_, index) => <li key={index}><button aria-current={stage === index ? 'step' : undefined} onClick={() => selectStage(index)}>{reviewed.has(index) ? '✓ ' : ''}Stage {index + 1}: {learningFrameFor(scenario, index).title}</button></li>)}</ol></details></>}
+            {tab === 'hints' && <><span className="dw-mission-eyebrow">Stage {stage + 1} assistance</span><h3>Progressive hints</h3><p>Hints move from reasoning to technique to an exact training command. Stop as soon as you know what to test.</p>{hintCount >= 1 && <section className="dw-mission-hint"><h4>1 · Reframe the question</h4><p>{frame.question}</p></section>}{hintCount >= 2 && <section className="dw-mission-hint"><h4>2 · Choose the evidence</h4><p>{frame.observe}</p></section>}{hintCount >= 3 && <section className="dw-mission-hint dw-mission-hint--exact"><h4>3 · Exact training step</h4><pre>{frame.exactHint ?? frame.method}</pre><p>After running it, return to the decision gate. The command is useful only if you can interpret its result.</p></section>}<button className="dw-mission-primary" disabled={hintCount >= 3} onClick={() => setHintCount(count => Math.min(3, count + 1))}>{hintCount >= 3 ? 'All hints revealed' : hintCount === 0 ? 'Reveal reasoning hint' : hintCount === 1 ? 'Reveal evidence hint' : 'Reveal exact step'}</button></>}
             {tab === 'reference' && <><span className="dw-mission-eyebrow">Field notes</span><h3>Concepts & commands</h3>{reference.length ? reference.map(note => <section key={note.title}><h4>{note.title}</h4><p>{note.body}</p>{note.code && <pre>{note.code}</pre>}</section>) : <p>{scenario.briefing}</p>}<h4>Terminal controls</h4><p>↑ / ↓ recall commands. Tab completes a supported command or path. Ctrl+C interrupts a pending command; selected text can still be copied. Ctrl+L clears the view. Clearing the view does not reset the machine.</p></>}
           </div>
-          <footer className="dw-mission-guide-footer"><span>{reviewed.size}/{scenario.objectives.length} objectives reviewed</span><button onClick={() => setSharing(true)}>Optional notebook ↗</button></footer>
+          <footer className="dw-mission-guide-footer"><span>{reviewed.size}/{scenario.objectives.length} stages understood</span><button onClick={() => setSharing(true)}>Case notebook ↗</button></footer>
         </aside>
         <section className="dw-mission-tools" aria-label="Lab tools">
           <div className="dw-mission-tool-tabs"><button aria-pressed={view === 'terminal'} onClick={() => setView('terminal')}>{scenario.preSecurityTool ? 'Tool bench' : 'Terminal'}</button>{hasTarget && <button aria-pressed={view === 'target'} onClick={() => setView('target')}>Visual target</button>}<span>Local sandbox · {busy ? 'Command running' : 'Ready'}</span></div>

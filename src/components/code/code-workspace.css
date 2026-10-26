@@ -151,3 +151,12 @@
 .dw-codetask__solfiles button { padding: .35rem .7rem; border: 1px solid var(--color-border); border-radius: 7px; font-family: var(--font-mono); font-size: .78rem; color: var(--color-text); background: var(--color-surface-2); cursor: pointer; }
 .dw-codetask__solfiles button:hover { border-color: var(--color-accent); }
 .dw-codetask__solfiles button[aria-pressed='true'] { color: #fff; border-color: var(--color-accent); background: var(--color-accent); }
+
+/* SIEM lab brief header (navy, same chips as the coding task header) */
+.siem-brief-head { position: sticky; top: 0; z-index: 10; padding: .9rem 1.25rem 1rem; color: var(--chrome-ink); border-bottom: 1px solid var(--chrome-line); background: radial-gradient(90% 140% at 100% 0%, color-mix(in srgb, var(--color-accent) 28%, transparent), transparent 65%), var(--chrome-bg); }
+.siem-brief-head__back { font-size: .75rem; font-weight: 600; color: var(--chrome-text); text-decoration: none; }
+.siem-brief-head__back:hover { color: var(--chrome-ink); text-decoration: underline; }
+.siem-brief-head h1 { margin: .45rem 0 .6rem; font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; line-height: 1.25; color: var(--chrome-ink); }
+.siem-brief-head__meta { display: flex; flex-wrap: wrap; gap: .35rem; }
+.siem-brief-head__bar { height: 5px; margin-top: .8rem; border-radius: 99px; background: var(--chrome-line); overflow: hidden; }
+.siem-brief-head__bar span { display: block; height: 100%; background: linear-gradient(90deg, var(--color-accent), var(--color-success)); transition: width .3s ease; }
