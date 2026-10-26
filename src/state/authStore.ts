@@ -118,7 +118,9 @@ export function useAuthState(): AuthApi {
   const signInWithOAuth = useCallback(async (provider: 'google' | 'github'): Promise<AuthResult> => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: `${window.location.origin}/#/auth/callback` },
+      // Supabase returns the provider session in the URL fragment. Use the stable
+      // site origin so this works with the HashRouter and with the Vercel domain.
+      options: { redirectTo: window.location.origin },
     });
     return { error: error ? error.message : null };
   }, []);
