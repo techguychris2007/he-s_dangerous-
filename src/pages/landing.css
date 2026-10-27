@@ -107,6 +107,15 @@
 .ln-crew__card small { font-size: .74rem; font-weight: 600; color: var(--color-accent-dim); }
 .ln-crew__card p { margin: .6rem 0 0; font-size: .82rem; line-height: 1.55; color: var(--color-text-dim); }
 
+.ln-contributors { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.2rem; }
+.ln-contributor { display: flex; flex-direction: column; align-items: flex-start; padding: 1.8rem; border: 1px solid var(--color-border); border-radius: 14px; background: var(--color-surface); }
+.ln-contributor__role { margin: 0; font-size: .75rem; font-weight: 700; color: var(--color-accent-dim); }
+.ln-contributor h3 { margin: .6rem 0 .8rem; font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; color: var(--color-heading); }
+.ln-contributor__story { max-width: 60ch; margin: 0; font-size: .95rem; line-height: 1.8; color: var(--color-text-dim); }
+.ln-contributor__link { display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; margin-top: auto; padding-top: 1rem; font-size: .85rem; font-weight: 700; color: var(--color-accent-dim); }
+.ln-contributor__link:hover { text-decoration: underline; text-underline-offset: .2em; }
+#contributors { scroll-margin-top: 90px; }
+
 .ln-cta { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 2rem; margin-block: 5rem 3rem; padding: 2rem 2.4rem; border-radius: 18px; color: var(--chrome-ink); background: radial-gradient(70% 140% at 0% 50%, color-mix(in srgb, var(--color-success) 22%, transparent), transparent 70%), var(--chrome-bg); border: 1px solid var(--chrome-line); }
 .ln-cta h2 { margin: 0 0 .4rem; font-size: 1.6rem; font-weight: 700; color: var(--chrome-ink); }
 .ln-cta p { margin: 0; color: var(--chrome-text); }
@@ -126,6 +135,7 @@
   .ln-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .ln-steps, .ln-paths, .ln-game { grid-template-columns: minmax(0, 1fr); }
   .ln-crew { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ln-contributors { grid-template-columns: minmax(0, 1fr); }
   .ln-cta { grid-template-columns: minmax(0, 1fr); text-align: center; justify-items: center; }
 }
 @media (prefers-reduced-motion: reduce) { .ln-scene__tile .iso-block, .ln-chip { animation: none; } }

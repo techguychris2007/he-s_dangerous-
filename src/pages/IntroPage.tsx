@@ -3,6 +3,7 @@ import { useAuth } from '../state/authStore';
 import { MODULES, ROADMAP } from '../data/curriculum';
 import { CHARACTERS, type CharacterId } from '../data/characters';
 import { LEAGUES } from '../data/levels';
+import { CONTRIBUTORS } from '../data/contributors';
 import { useLabsData } from '../state/useLabsData';
 import Logo from '../components/layout/Logo';
 import CharacterAvatar from '../components/characters/CharacterAvatar';
@@ -181,6 +182,28 @@ export default function IntroPage() {
         </div>
       </section>
 
+      <section id="contributors" className="ln-section ln-wrap" aria-labelledby="contributors-title">
+        <div className="ln-head">
+          <p className="ln-kicker ln-kicker--ink"><span />The people behind DarkWorld</p>
+          <h2 id="contributors-title">Built together.</h2>
+          <p>DarkWorld grew from friendship, a shared idea and the commitment to make it real. ChrisB and Benedict Adjei built this platform together.</p>
+        </div>
+        <div className="ln-contributors">
+          {CONTRIBUTORS.map((contributor) => (
+            <article key={contributor.name} className="ln-contributor">
+              <p className="ln-contributor__role">{contributor.role}</p>
+              <h3>{contributor.name}</h3>
+              <p className="ln-contributor__story">{contributor.contribution}</p>
+              {contributor.linkedin && (
+                <a href={contributor.linkedin} target="_blank" rel="noopener noreferrer" className="ln-contributor__link" aria-label={`${contributor.name} on LinkedIn (opens in a new tab)`}>
+                  Connect on LinkedIn <IconArrowRight className="h-4 w-4" aria-hidden="true" />
+                </a>
+              )}
+            </article>
+          ))}
+        </div>
+      </section>
+
       <section className="ln-cta ln-wrap" aria-labelledby="cta-title">
         <div className="ln-cta__art" aria-hidden="true"><IsoBlock width={120} depth={26} tone="done" glow crest={<IconFlag />} /></div>
         <div>
@@ -190,7 +213,7 @@ export default function IntroPage() {
         <Link to="/login?mode=signup" className="ln-btn ln-btn--primary ln-btn--lg">Create your account <IconArrowRight className="h-4 w-4" /></Link>
       </section>
 
-      <footer className="ln-footer ln-wrap"><span>© {new Date().getFullYear()} DarkWorld Academy</span><p>Learn deliberately. Practice responsibly.</p><Link to="/login">Enter your workspace →</Link></footer>
+      <footer className="ln-footer ln-wrap"><span>© {new Date().getFullYear()} DarkWorld Academy</span><a href="#contributors" onClick={jump('contributors')}>Contributors</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><p>Learn deliberately. Practice responsibly.</p><Link to="/login">Enter your workspace →</Link></footer>
     </main>
   );
 }

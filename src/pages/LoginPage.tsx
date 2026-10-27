@@ -156,7 +156,7 @@ export default function LoginPage() {
             <p className="dw-auth-note">Try the lessons and labs before creating an account. Add an email from your profile to keep access to your progress.</p>
           </>}
         </div>
-        <p className="dw-auth-footer">DarkWorld Academy · Learn with purpose.</p>
+        <p className="dw-auth-footer">DarkWorld Academy · Learn with purpose.<br /><a href="/privacy.html">Privacy policy</a> · <a href="/terms.html">Terms of service</a></p>
       </section>
     </main>
   );

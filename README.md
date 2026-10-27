@@ -30,3 +30,9 @@ If you are developing a production application, we recommend enabling type-aware
 ```
 
 See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+
+## DarkWorld contributors
+
+DarkWorld was built together by **[ChrisB](https://www.linkedin.com/in/christopher-bondam-53bb973b8/)** and **[Benedict Adjei](https://www.linkedin.com/in/benedictadjei/)**.
+
+Benedict championed the idea behind the platform and has given his dedication, ideas and hands-on contributions to building it alongside ChrisB. DarkWorld is a shared creation, grounded in their friendship and commitment to practical cybersecurity learning.
