@@ -1,6 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
-import AppLayout from './components/layout/AppLayout';
 import InstallPrompt from './components/layout/InstallPrompt';
 import { ProgressContext, useProgressState, useProgress } from './state/progressStore';
 import { AuthContext, useAuthState, useAuth } from './state/authStore';
@@ -8,12 +7,13 @@ import { pullProgress, pushProgressWithRetry } from './lib/progressSync';
 import { isInstructor } from './lib/instructorConfig';
 import { setSyncStatus } from './state/syncStatus';
 
-// ─── Eagerly loaded: auth flow + shell pages needed on first render ──────────
+// Keep sign-in independent of the academy shell and curriculum downloads.
 import LoginPage from './pages/LoginPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
-import IntroPage from './pages/IntroPage';
 
 // ─── Lazily loaded: every app page (only parsed/executed when navigated to) ──
+const AppLayout = lazy(() => import('./components/layout/AppLayout'));
+const IntroPage = lazy(() => import('./pages/IntroPage'));
 const HomePage = lazy(() => import('./pages/HomePage'));
 const ModulePage = lazy(() => import('./pages/ModulePage'));
 const LessonPage = lazy(() => import('./pages/LessonPage'));
@@ -73,10 +73,19 @@ function RequireInstructor({ children }: { children: React.ReactNode }) {
 }
 
 function FullScreenLoader() {
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setSlow(true), 10000);
+    return () => window.clearTimeout(timer);
+  }, []);
   return (
     <div role="status" className="min-h-screen w-full flex flex-col gap-4 items-center justify-center" style={{ background: '#0a1420' }}>
       <div aria-hidden="true" className="w-8 h-8 rounded-full border-2 border-[#c9a15f] border-t-transparent animate-spin motion-reduce:animate-none" />
       <p className="text-sm text-[var(--chrome-text)]">Opening DarkWorld…</p>
+      {slow && <div className="text-center text-sm text-[var(--chrome-text)]">
+        <p>Opening your workspace is taking longer than usual. Check your connection.</p>
+        <button type="button" className="mt-4 underline" onClick={() => window.location.reload()}>Retry opening DarkWorld</button>
+      </div>}
     </div>
   );
 }
@@ -205,7 +214,7 @@ function App() {
         <InstallPrompt />
         <HashRouter>
           <Routes>
-            <Route path="/welcome" element={<IntroPage />} />
+            <Route path="/welcome" element={<Suspense fallback={<FullScreenLoader />}><IntroPage /></Suspense>} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route
@@ -321,7 +330,7 @@ function App() {
             <Route
               element={
                 <RequireLogin>
-                  <AppLayout />
+                  <Suspense fallback={<PageLoader />}><AppLayout /></Suspense>
                 </RequireLogin>
               }
             >

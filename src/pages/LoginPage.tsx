@@ -27,6 +27,32 @@ export default function LoginPage() {
   const [oauthSubmitting, setOauthSubmitting] = useState<'google' | 'github' | null>(null);
 
   useEffect(() => {
+    // Establish DNS/TLS before the click; do not request an OAuth session or
+    // start sign-in until the learner explicitly chooses a provider.
+    const links = [new URL(import.meta.env.VITE_SUPABASE_URL).origin, 'https://accounts.google.com'].map(origin => {
+      const link = document.createElement('link');
+      link.rel = 'preconnect';
+      link.href = origin;
+      document.head.appendChild(link);
+      return link;
+    });
+    const onReturn = () => setOauthSubmitting(null);
+    window.addEventListener('pageshow', onReturn);
+    return () => {
+      links.forEach(link => link.remove());
+      window.removeEventListener('pageshow', onReturn);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!oauthSubmitting) return;
+    const timer = window.setTimeout(() => {
+      setInfo('The sign-in page is taking longer than usual to open. Check your connection. If navigation fails, reload this page and try again.');
+    }, 8000);
+    return () => window.clearTimeout(timer);
+  }, [oauthSubmitting]);
+
+  useEffect(() => {
     if (!auth.loading && auth.user) navigate('/', { replace: true });
   }, [auth.loading, auth.user, navigate]);
 
