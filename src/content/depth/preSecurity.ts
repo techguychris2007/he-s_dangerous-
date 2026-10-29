@@ -89,7 +89,7 @@ export const PRE_SECURITY_DEPTH: Record<string, LessonDepth> = {
           'Professionals always say where their evidence came from. Compare the two notes below. The first sounds dramatic but is misleading — the traffic was never from a real company. The second is shorter, honest and still shows real skill.',
           'Use this three-part pattern in every write-up: name the source ("DarkWorld training capture"), state what you saw ("frame 42 shows a DNS answer"), and state what it means ("portal.lab resolves to 10.10.10.20"). Reviewers trust analysts who are precise about sources.',
         ],
-        code: '✗ "I intercepted a company\'s network traffic and found their server."\n\n✓ "In the DarkWorld training capture (pre-wireshark-first-capture),\n   frame 42 is a DNS response showing portal.lab -> 10.10.10.20.\n   This shows the name mapping inside the lab capture only."',
+        code: '✗ "I intercepted a company\'s network traffic and found their server."\n\n✓ "In the DarkWorld training capture,\n   frame 42 is a DNS response showing portal.lab -> 10.10.10.20.\n   This shows the name mapping inside the lab capture only."',
         label: 'Misleading vs professional evidence wording',
       },
     ],

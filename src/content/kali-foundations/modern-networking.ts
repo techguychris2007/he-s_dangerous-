@@ -18,7 +18,7 @@ export const modernNetworkingLessons: CurriculumLesson[] = [
     exercise: { scenario: 'A 1500-byte path carries IPv4/TCP with minimal headers; a tunnel adds overhead.', task: 'Calculate baseline MSS and explain why the tunneled payload may need to be smaller.', answer: '1500−20−20=1460 bytes before options. Added encapsulation consumes part of the outer path capacity, so the inner packet budget may shrink; determine actual overhead and path behavior rather than guessing a universal value.', evidence: 'The arithmetic, selected route and one controlled comparison.' },
     misconceptions: ['An open port does not prove large transfers work.', 'ICMP is not only ping.', 'Missing trace responses do not locate a failure with certainty.'],
     sources: [{ title: 'tracepath upstream manual', url: 'https://man7.org/linux/man-pages/man8/tracepath.8.html' }, { title: 'IPv6 path MTU discovery', url: 'https://www.rfc-editor.org/rfc/rfc8201.html' }, { title: 'Wireshark TCP analysis', url: 'https://www.wireshark.org/docs/wsug_html_chunked/ChAdvTCPAnalysis.html' }],
-    labs: ['network-recon', 'pre-wireshark-first-capture'],
+    labs: ['network-recon'],
     quiz: [{ question: 'What does a completed TCP handshake establish?', options: ['Every transfer size will work', 'Setup traffic crossed the tested transport path', 'No firewall exists'], answer: 1 }, { question: 'What is the minimal-header IPv4 TCP MSS for MTU 1500?', options: ['1500', '1460', '1440'], answer: 1, explanation: 'Subtract the 20-byte IPv4 and 20-byte TCP headers; options change this budget.' }],
   },
   {
@@ -37,7 +37,7 @@ export const modernNetworkingLessons: CurriculumLesson[] = [
     exercise: { scenario: 'A browser resolves a name, but a UDP-53-only capture contains no matching query.', task: 'Give three legitimate explanations and one evidence check for each.', answer: 'A cached answer needs no new query; application secure DNS uses a different transport; a hosts-file or local name-service result can avoid DNS. Compare application settings, cache state and system resolution on the same client.', evidence: 'Resolver/viewpoint, query time and a precise capture limitation.' },
     misconceptions: ['DNSSEC does not encrypt DNS.', 'A DNSSEC record is not proof you independently validated it.', 'No UDP-53 packet does not mean no name resolution.'],
     sources: [{ title: 'DNSSEC security overview', url: 'https://www.rfc-editor.org/rfc/rfc4033.html' }, { title: 'DNS over HTTPS', url: 'https://www.rfc-editor.org/rfc/rfc8484.html' }, { title: 'DNS over TLS', url: 'https://www.rfc-editor.org/rfc/rfc7858.html' }, { title: 'BIND dig manual', url: 'https://bind9.readthedocs.io/en/latest/manpages.html#dig-dns-lookup-utility' }],
-    labs: ['net-dns-zone-transfer-axfr', 'pre-wireshark-first-capture'],
+    labs: ['net-dns-zone-transfer-axfr'],
     quiz: [{ question: 'Which property does DNSSEC primarily add?', options: ['Answer authenticity/integrity through validation', 'Query encryption', 'Automatic application authorization'], answer: 0 }, { question: 'What does dig +dnssec do?', options: ['Independently validates every answer', 'Requests DNSSEC-related response material', 'Changes the machine DNS server permanently'], answer: 1 }],
   },
   {
@@ -56,7 +56,7 @@ export const modernNetworkingLessons: CurriculumLesson[] = [
     exercise: { scenario: 'A site works in a browser but a TCP-443-only capture seems incomplete.', task: 'Propose a protocol-aware investigation without assuming the site bypassed security.', answer: 'Check browser protocol details, compare UDP traffic and QUIC recognition, and record the actual negotiated version. The browser might use HTTP/3 or another connection path; encryption limits what packet payloads reveal.', evidence: 'Protocol/version observations and a statement of capture visibility.' },
     misconceptions: ['HTTP version is not the same as IP version.', 'QUIC is more than arbitrary UDP datagrams.', 'TLS encryption is not application authorization.'],
     sources: [{ title: 'TLS 1.3', url: 'https://www.rfc-editor.org/rfc/rfc8446.html' }, { title: 'QUIC transport', url: 'https://www.rfc-editor.org/rfc/rfc9000.html' }, { title: 'HTTP/3', url: 'https://www.rfc-editor.org/rfc/rfc9114.html' }, { title: 'curl protocol options', url: 'https://curl.se/docs/manpage.html' }],
-    labs: ['pre-wireshark-first-capture', 'pre-burp-first-request'],
+    labs: [],
     quiz: [{ question: 'Which transport underlies HTTP/3?', options: ['QUIC over UDP', 'Only TCP', 'ICMP'], answer: 0 }, { question: 'Why check curl --version before a forced HTTP/3 test?', options: ['HTTP/3 support depends on the installed build', 'It changes firewall rules', 'It installs a certificate'], answer: 0 }],
   },
   {

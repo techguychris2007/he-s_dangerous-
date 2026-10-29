@@ -57,7 +57,7 @@ export const validationLessons: CurriculumLesson[] = [
     exercise: { scenario: 'A banner lists an old server release, but the package maintainer reports a backported fix.', task: 'Explain why the banner alone is insufficient and choose the evidence needed for a vulnerability claim.', answer: 'Compare the installed package/build and vendor advisory, then use a permitted non-destructive behavior check or controlled reproduction for the specific prerequisite. Separate the advertised version from verified vulnerable behavior.', evidence: 'Record the banner, request, advisory reference and unresolved build information.' },
     misconceptions: ['Version detection is active traffic.', 'A service banner does not prove patch status.', 'TLS success does not prove correct application authorization.'],
     sources: [{ title: 'Nmap version detection', url: 'https://nmap.org/book/man-version-detection.html' }, { title: 'curl command-line manual', url: 'https://curl.se/docs/manpage.html' }, { title: 'Nmap script categories', url: 'https://nmap.org/book/nse-usage.html' }],
-    labs: ['pre-netcat-services', 'pre-burp-first-request'],
+    labs: ['pre-netcat-services'],
     quiz: [{ question: 'Why might an old upstream version banner not prove vulnerability?', options: ['Vendors can backport a fix into that package', 'HTTP has no headers', 'An open port proves patching'], answer: 0, explanation: 'The installed package and relevant behavior matter more than an isolated advertised version.' }],
   },
   {

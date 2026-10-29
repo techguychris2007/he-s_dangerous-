@@ -26,7 +26,7 @@ export const beginnerScriptingLessons: CurriculumLesson[] = [
     exercise: { scenario: 'A learner jumps straight to changing profile IDs before proving their own profile loads.', task: 'Repair the test plan.', answer: 'Send the original alex request first and save the 200 response. Then change only the profile name and compare the status and body.', evidence: 'Save the baseline request/response pair.' },
     misconceptions: ['Burp is useful before exploitation begins.', 'A baseline is evidence, not busywork.', 'Proxy history and Repeater serve different jobs.'],
     sources: [primarySources.burp, primarySources.http],
-    labs: ['pre-burp-first-request'],
+    labs: [],
     quiz: [
       { question: 'Why send a baseline request first?', options: ['To prove normal behavior before testing changes', 'To bypass every login', 'To delete the proxy history', 'To encrypt DNS'], answer: 0 },
       { question: 'Which Burp tool is best for careful repeated edits?', options: ['Repeater', 'Certificate designer', 'File explorer', 'Task manager'], answer: 0 },
@@ -56,7 +56,7 @@ export const beginnerScriptingLessons: CurriculumLesson[] = [
     exercise: { scenario: "The sam request returns 403 with alex's valid cookie.", task: 'Write the conclusion.', answer: "The fixture denied alex access to sam's profile. That supports the presence of an authorization boundary for this tested object.", evidence: 'Save the alex baseline and sam boundary response together.' },
     misconceptions: ['Authentication and authorization are not the same.', '403 is not a failure of the test; it is evidence.', '404 can be a design choice, not only a missing file.'],
     sources: [primarySources.authorization, primarySources.http],
-    labs: ['pre-burp-first-request'],
+    labs: [],
     quiz: [
       { question: 'What does authorization decide?', options: ['What an authenticated identity may access', 'Whether DNS exists', 'How a PDF is styled', 'Whether a packet is TCP'], answer: 0 },
       { question: 'What does a valid-cookie request for another user test?', options: ['Object-level authorization', 'Disk imaging', 'Wireless signal strength', 'Font loading'], answer: 0 },
@@ -86,7 +86,7 @@ export const beginnerScriptingLessons: CurriculumLesson[] = [
     exercise: { scenario: 'A learner changes /alex to /sam and deletes the cookie in one request. The server returns 401.', task: 'Why is the result unclear?', answer: 'Two variables changed. The 401 could be caused by the missing cookie before the server ever evaluates the sam object. Repeat the object change with the valid cookie first.', evidence: 'Save a three-row comparison table of request, status, and meaning.' },
     misconceptions: ['Fast testing is not the same as clear testing.', 'A malformed request can produce a security-looking response.', 'A denied request can be a successful control test.'],
     sources: [primarySources.burp, primarySources.authorization],
-    labs: ['pre-burp-first-request', 'pre-toolkit-capstone'],
+    labs: [],
     quiz: [
       { question: 'Why avoid changing several request fields at once?', options: ['You cannot know which change caused the response', 'Burp refuses all edits', 'HTTP has no headers', 'Cookies only work once'], answer: 0 },
       { question: 'What should you do after an unsupported path returns 404?', options: ['Check routing and request syntax before claiming access behavior', 'Claim full compromise', 'Delete the evidence', 'Scan the public internet'], answer: 0 },

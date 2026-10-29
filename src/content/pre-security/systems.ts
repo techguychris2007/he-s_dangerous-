@@ -25,7 +25,7 @@ export const beginnerSystemLessons: CurriculumLesson[] = [
     exercise: { scenario: 'A capture shows a DNS answer for portal.lab but no readable HTTP rows.', task: 'What can you safely conclude?', answer: 'You can conclude the capture contains a DNS answer for the name. You cannot conclude the web request succeeded unless HTTP or another application-layer result is present.', evidence: 'Save the frame number, filter, and exact field value.' },
     misconceptions: ['A display filter does not delete packets.', 'A DNS answer is not an HTTP response.', 'No rows can mean wrong filter, encryption, or absent traffic.'],
     sources: [primarySources.wireshark],
-    labs: ['pre-wireshark-first-capture'],
+    labs: [],
     quiz: [
       { question: 'What does a Wireshark display filter do?', options: ['Hides or shows rows in the current view', 'Changes packets on the network', 'Decrypts every flow', 'Creates a user account'], answer: 0 },
       { question: 'Which filter shows DNS traffic?', options: ['dns', 'whoami', 'grep dns', 'cookie'], answer: 0 },
@@ -55,7 +55,7 @@ export const beginnerSystemLessons: CurriculumLesson[] = [
     exercise: { scenario: 'You follow stream 0 and see GET /health followed by {"status":"ready"}.', task: 'Write a precise evidence sentence.', answer: 'TCP stream 0 contains a cleartext HTTP GET request to /health and a 200 OK JSON response showing status ready.', evidence: 'Save the stream number and the request/response text.' },
     misconceptions: ['A TCP connection is not automatically a successful web action.', 'A 200 response is not automatically sensitive.', 'Stream reconstruction is evidence, not a story by itself.'],
     sources: [primarySources.wireshark, primarySources.http],
-    labs: ['pre-wireshark-first-capture'],
+    labs: [],
     quiz: [
       { question: 'What does Follow TCP Stream help reconstruct?', options: ['A conversation from packets in one stream', 'A deleted file timeline', 'A password policy', 'A certificate badge'], answer: 0 },
       { question: 'What does GET /health prove in the training capture?', options: ['A health endpoint was requested', 'Root access was gained', 'All traffic is decrypted', 'DNS failed'], answer: 0 },
@@ -85,7 +85,7 @@ export const beginnerSystemLessons: CurriculumLesson[] = [
     exercise: { scenario: 'A learner filters http and sees nothing, then filters tls and sees encrypted application data.', task: 'Repair the conclusion.', answer: 'The capture has TLS traffic but no readable cleartext HTTP rows for that filter. More evidence is needed to identify hidden paths or content.', evidence: 'Save both filters and the limitation sentence.' },
     misconceptions: ['Encryption limits content visibility.', 'An empty filter is not proof of absence.', 'Metadata is useful but narrower than payload evidence.'],
     sources: [primarySources.wireshark],
-    labs: ['pre-wireshark-first-capture', 'pre-toolkit-capstone'],
+    labs: [],
     quiz: [
       { question: 'What should you avoid claiming from encrypted TLS data alone?', options: ['The exact hidden HTTP path', 'The destination IP', 'The existence of traffic', 'The destination port'], answer: 0 },
       { question: 'What is a good first step when a filter returns nothing?', options: ['Check spelling and broaden the filter', 'Declare the host safe', 'Delete the capture', 'Change the certificate'], answer: 0 },

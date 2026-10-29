@@ -80,7 +80,7 @@ export const workstationLessons: CurriculumLesson[] = [
     exercise: { scenario: 'A loopback HTTP request succeeds but the target VM cannot reach the same URL.', task: 'Explain the result and identify which address the second VM would need for a deliberately exposed lab service.', answer: '127.0.0.1 on the second VM refers to itself, and the current listener is only on Kali loopback. Guest-to-guest access requires a listener bound to an appropriate Kali lab address plus a valid route and permitted firewall path. Keep the loopback experiment unchanged unless wider exposure is part of the task.', evidence: 'Compare listener binding, selected route and request outcome. No exploitation or report is required.' },
     misconceptions: ['A route lookup is not a network probe.', 'Successful ping does not prove an HTTP service works.', 'Loopback always refers to the machine using it.'],
     sources: [{ title: 'iproute2 ip manual', url: 'https://man7.org/linux/man-pages/man8/ip.8.html' }, { title: 'Python HTTP server', url: 'https://docs.python.org/3/library/http.server.html' }, { title: 'Wireshark User Guide', url: 'https://www.wireshark.org/docs/wsug_html_chunked/' }],
-    labs: ['pre-netcat-services', 'pre-wireshark-first-capture'],
+    labs: ['pre-netcat-services'],
     quiz: [{ question: 'A server returns HTTP 403. What is directly established?', options: ['No TCP path exists', 'An HTTP endpoint responded and denied this request', 'Every account is blocked'], answer: 1, explanation: 'The response proves a working request path to that endpoint, with a specific application denial.' }],
   },
 ];

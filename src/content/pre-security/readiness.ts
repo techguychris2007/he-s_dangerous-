@@ -15,7 +15,7 @@ export const readinessLessons: CurriculumLesson[] = [
     exercise: { scenario: 'You need to prove portal.lab resolves to an address, then show the HTTP health request.', task: 'Pick the tool sequence.', answer: 'Use Wireshark with dns to prove the name mapping, then http and Follow TCP Stream to show the readable health request and response.', evidence: 'Save frame number, filter, stream number, and response text.' },
     misconceptions: ['The fanciest tool is not always the right tool.', 'One good evidence item can beat many weak screenshots.', 'A tool result still needs interpretation.'],
     sources: [primarySources.testing, primarySources.wireshark, primarySources.burp, primarySources.autopsy],
-    labs: ['pre-toolkit-capstone'],
+    labs: [],
     quiz: [
       { question: 'Which tool best answers what changed in an HTTP request?', options: ['Burp Repeater', 'Autopsy', 'Certificate designer', 'Image viewer'], answer: 0 },
       { question: 'Which tool best answers what file artifact contains a keyword?', options: ['Autopsy', 'Netcat', 'nmap', 'curl'], answer: 0 },
@@ -35,7 +35,7 @@ export const readinessLessons: CurriculumLesson[] = [
     exercise: { scenario: 'You completed DNS, Burp, and Autopsy checkpoints.', task: 'Write a compact report outline.', answer: 'Scope and fixture note; network evidence; HTTP request comparison; forensic artifact register; conclusion; limitations; next practice step.', evidence: 'Save one paragraph and one evidence table.' },
     misconceptions: ['Raw output is not automatically a report.', 'Limitations are part of strong evidence.', 'Captions should explain why the image matters.'],
     sources: [primarySources.testing, primarySources.ir],
-    labs: ['pre-toolkit-capstone'],
+    labs: [],
     quiz: [
       { question: 'What should a screenshot caption include?', options: ['Tool, key result, and meaning', 'Only the date', 'Only the flag', 'Nothing'], answer: 0 },
       { question: 'Why include limitations?', options: ['To keep claims aligned with evidence', 'To hide mistakes', 'To make reports longer', 'To avoid testing'], answer: 0 },
@@ -55,7 +55,7 @@ export const readinessLessons: CurriculumLesson[] = [
     exercise: { scenario: 'You complete all nine capstone flags.', task: 'Write your readiness statement.', answer: 'I can identify scoped targets, inspect service and packet evidence, compare HTTP request changes, and tag forensic artifacts without overclaiming. I am ready to enter guided offensive labs.', evidence: 'Save the capstone transcript and a one-page proof-of-experience note.' },
     misconceptions: ['Offensive readiness includes evidence discipline.', 'Tool familiarity is built by repetition, not memorizing definitions.', 'The pre-security path remains useful after you start advanced labs.'],
     sources: [primarySources.testing, primarySources.wireshark, primarySources.burp, primarySources.autopsy],
-    labs: ['pre-toolkit-capstone'],
+    labs: [],
     quiz: [
       { question: 'What does the capstone prove?', options: ['Beginner tool readiness across packet, web, and file evidence', 'Permission to attack anything online', 'Guaranteed job placement', 'Automatic admin access'], answer: 0 },
       { question: 'What should you repeat if one tool feels weak?', options: ['That specific tool lab', 'Every unrelated roadmap', 'No practice at all', 'Only the certificate page'], answer: 0 },

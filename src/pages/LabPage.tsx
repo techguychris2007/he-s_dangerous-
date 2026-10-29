@@ -7,7 +7,6 @@ import Terminal, { type TerminalHandle } from '../components/terminal/Terminal';
 import type { LabSnapshot } from '../labs/engine';
 import LiveWebsiteLab from '../components/labs/LiveWebsiteLab';
 import DirectoryAttackGraph from '../components/labs/DirectoryAttackGraph';
-import PreSecurityWorkbench from '../components/labs/PreSecurityWorkbench';
 import ShareWriteupModal from '../components/labs/ShareWriteupModal';
 import CyberLabAI from '../components/labs/CyberLabAI';
 import LabRatingWidget from '../components/labs/LabRatingWidget';
@@ -175,8 +174,8 @@ function LabMission({ entry }: { entry: LabEntry }) {
           <footer className="dw-mission-guide-footer"><span>{reviewed.size}/{scenario.objectives.length} stages understood</span><button onClick={() => setSharing(true)}>Case notebook ↗</button></footer>
         </aside>
         <section className="dw-mission-tools" aria-label="Lab tools">
-          <div className="dw-mission-tool-tabs"><button aria-pressed={view === 'terminal'} onClick={() => setView('terminal')}>{scenario.preSecurityTool ? 'Tool bench' : 'Terminal'}</button>{hasTarget && <button aria-pressed={view === 'target'} onClick={() => setView('target')}>Visual target</button>}<span>Local sandbox · {busy ? 'Command running' : 'Ready'}</span></div>
-          <div className="dw-mission-terminal" hidden={view !== 'terminal'}>{scenario.preSecurityTool ? <PreSecurityWorkbench mode={scenario.preSecurityTool} scenarioId={scenario.id} onFlagCaptured={flag => progress.captureFlag(scenario.id, flag, scenario.totalFlags)} onTranscriptChange={value => { transcriptRef.current = value; }} /> : <Terminal ref={terminalRef} scenario={scenario} onFlagCaptured={flag => progress.captureFlag(scenario.id, flag, scenario.totalFlags)} onStateChange={setSnapshot} onBusyChange={setBusy} onTranscriptChange={value => { transcriptRef.current = value; }} />}</div>
+          <div className="dw-mission-tool-tabs"><button aria-pressed={view === 'terminal'} onClick={() => setView('terminal')}>Terminal</button>{hasTarget && <button aria-pressed={view === 'target'} onClick={() => setView('target')}>Visual target</button>}<span>Local sandbox · {busy ? 'Command running' : 'Ready'}</span></div>
+          <div className="dw-mission-terminal" hidden={view !== 'terminal'}><Terminal ref={terminalRef} scenario={scenario} onFlagCaptured={flag => progress.captureFlag(scenario.id, flag, scenario.totalFlags)} onStateChange={setSnapshot} onBusyChange={setBusy} onTranscriptChange={value => { transcriptRef.current = value; }} /></div>
           {hasTarget && <div className="dw-mission-target" hidden={view !== 'target'}>{scenario.webApplication && <LiveWebsiteLab application={scenario.webApplication} snapshot={snapshot?.webApplication} onCommand={command => terminalRef.current?.executeCommand(command)} disabled={busy} />}{scenario.directoryMap && <DirectoryAttackGraph map={scenario.directoryMap} snapshot={snapshot} />}</div>}
         </section>
         <CyberLabAI getContext={() => ({ kind: 'lab', title: scenario.title, subtitle: `${scenario.difficulty} · ${scenario.category}`, bodyText: scenario.briefing + '\n' + scenario.objectives.map(item => typeof item === 'string' ? item : `${item.text}\n${item.why ?? ''}`).join('\n'), terminalTranscript: transcriptRef.current })} />

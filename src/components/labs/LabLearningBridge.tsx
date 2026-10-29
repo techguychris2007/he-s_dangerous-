@@ -30,9 +30,9 @@ const CATEGORY_BRIDGE: Record<Category, BridgeCopy> = {
   'AI Security': { mentalModel: 'AI security labs are about untrusted text, tool authority and data boundaries. The model is not the security boundary.', beginnerMoves: ['List every input the model sees.', 'Define which tools and data the app may access outside the model.', 'Test malicious content as data, not as trusted instruction.'], proves: 'An AI finding is proven when untrusted content causes unauthorized disclosure, action or policy bypass.', realWorldLimit: 'Real AI systems change over time. Record model, retrieval corpus, tool permissions and policy configuration when reporting.' },
 };
 
-export default function LabLearningBridge({ scenario }: { scenario: { category: Category; preSecurityTool?: unknown; webApplication?: unknown; directoryMap?: unknown } }) {
+export default function LabLearningBridge({ scenario }: { scenario: { category: Category; webApplication?: unknown; directoryMap?: unknown } }) {
   const copy = CATEGORY_BRIDGE[scenario.category];
-  const isEnhancedSimulator = Boolean(scenario.preSecurityTool || scenario.webApplication || scenario.directoryMap);
+  const isEnhancedSimulator = Boolean(scenario.webApplication || scenario.directoryMap);
   return (
     <section className="mb-6 rounded-2xl border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/5 p-4">
       <p className="mb-2 text-2xs font-bold uppercase tracking-widest text-[var(--color-accent-dim)]">How to think about this lab</p>

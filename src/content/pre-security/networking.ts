@@ -58,7 +58,7 @@ export const beginnerNetworkLessons: CurriculumLesson[] = [
     exercise: { scenario: 'Netcat reads a banner from 10.10.10.20:31337 but TLS traffic to 10.10.10.30 remains unreadable.', task: 'Explain the difference.', answer: 'The banner service is plain TCP, so the text is visible. The TLS flow carries encrypted application data, so a capture without keys cannot read the request body or path.', evidence: 'Record both the banner output and the TLS limitation in the note.' },
     misconceptions: ['DNS success does not mean web success.', 'Netcat reads plain conversations; it does not automatically understand every protocol.', 'Encrypted payloads should not be treated as readable evidence.'],
     sources: [primarySources.ncat, primarySources.wireshark],
-    labs: ['pre-netcat-services', 'pre-wireshark-first-capture'],
+    labs: ['pre-netcat-services'],
     quiz: [
       { question: 'What does DNS primarily map?', options: ['Names to addresses', 'Passwords to hashes', 'Files to permissions', 'Certificates to reports'], answer: 0 },
       { question: 'What does TLS usually hide from a passive capture?', options: ['Application payload content', 'Source IP address', 'Destination IP address', 'Packet timing'], answer: 0 },
@@ -89,7 +89,7 @@ export const beginnerNetworkLessons: CurriculumLesson[] = [
     exercise: { scenario: 'A baseline request returns 200, changing alex to sam returns 403, and removing the cookie returns 401.', task: 'What did you learn?', answer: 'The app distinguishes normal access, denied cross-user access, and missing authentication. That suggests the tested endpoint has an authorization boundary for sam in this fixture.', evidence: 'Save the three request/response pairs.' },
     misconceptions: ['401 and 403 mean different things.', 'A cookie is not the same as authorization.', 'Changing one variable at a time is slower only until you need to explain your result.'],
     sources: [primarySources.http, primarySources.burp],
-    labs: ['pre-burp-first-request'],
+    labs: [],
     quiz: [
       { question: 'What does 401 most commonly indicate?', options: ['Authentication is missing or invalid', 'The request is always malicious', 'The file is deleted', 'The DNS server failed'], answer: 0 },
       { question: 'Why change one request field at a time?', options: ['To know what caused the response change', 'To make the server slower', 'To avoid using headers', 'To hide evidence'], answer: 0 },

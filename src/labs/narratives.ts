@@ -13,34 +13,6 @@ export const LAB_NARRATIVES: Record<string, LabNarrative> = {
     realBasis: 'The read–try–observe–record loop every professional analyst and tester uses on real engagements.',
     mission: 'Learn the room, then capture the training flag without guessing.',
   },
-  'pre-wireshark-first-capture': {
-    role: 'Junior network analyst learning to read traffic',
-    scene: 'A colleague hands you a saved capture: "Someone says portal.lab is acting up. The file has thousands of packets — most of it is noise. Find the two that actually answer the question, and tell me what you can and cannot see."',
-    stakes: 'On a real network you will never read every packet. Knowing which filter narrows a flood to the one frame that matters is the core skill of packet analysis.',
-    realBasis: 'Everyday Wireshark triage: display filters, DNS answers, and why HTTPS hides what plain HTTP reveals.',
-    mission: 'Filter the noise down to the DNS answer and the readable HTTP stream.',
-  },
-  'pre-burp-first-request': {
-    role: 'Trainee web tester at a software consultancy',
-    scene: 'Your lead sets a ground rule: "Before you attack anything, learn to read one request properly. Send a normal one, change exactly one thing, then take the session away — and tell me the difference between \'you\'re not logged in\' and \'you\'re not allowed\'."',
-    stakes: 'Almost every web vulnerability you will ever find starts as one carefully changed request. Rushing past the baseline is how testers misread results and cry wolf.',
-    realBasis: 'The one-variable-at-a-time method behind access-control testing (IDOR, authentication vs authorization).',
-    mission: 'Separate success, authorization denial and authentication failure with three controlled requests.',
-  },
-  'pre-autopsy-first-case': {
-    role: 'Apprentice digital forensics examiner',
-    scene: 'A small evidence set lands in your queue. "Open a case properly," your supervisor says. "Name it, log where it came from, search it — and only claim what the artifact can actually prove. We have lost cases on sloppier notes than yours."',
-    stakes: 'A finding that cannot be reproduced, or that overclaims, is worthless in a report and dangerous in court. Discipline is the whole job.',
-    realBasis: 'Standard forensic case handling: data sources, keyword search, tagging and careful evidence wording.',
-    mission: 'Build a reviewable case and tag only the claim the evidence supports.',
-  },
-  'pre-toolkit-capstone': {
-    role: 'Pre-security graduate proving you are ready for offensive labs',
-    scene: 'This is your final check before the gloves come off. One short workflow crosses packets, web requests and forensic artifacts — no exploitation, just proof that you know what each tool is telling you before a real target adds time pressure.',
-    stakes: 'The offensive labs ahead assume you can pick the right tool for each question without hesitating. This is where you prove it.',
-    realBasis: 'A combined evidence workflow mirroring how analysts choose Wireshark, Burp or a forensic tool per question.',
-    mission: 'Clear every checkpoint across the three tools.',
-  },
 
   // ── Foundations: Linux, Network ──────────────────────────────────────────────────────────────
   'linux-fundamentals': {

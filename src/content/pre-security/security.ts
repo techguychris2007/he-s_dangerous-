@@ -26,7 +26,7 @@ export const beginnerSecurityLessons: CurriculumLesson[] = [
     exercise: { scenario: 'A fixture contains an allocated note and a deleted receipt.', task: 'What should you avoid claiming?', answer: 'Do not claim deletion proves malicious intent. Record the artifact state, content, and timestamp, then explain what the artifact does and does not support.', evidence: 'Save an evidence register with ID, path, time, state, and interpretation.' },
     misconceptions: ['Deleted does not automatically mean bad.', 'A case name is part of evidence organization.', 'A training fixture should not be described as a seized production disk.'],
     sources: [primarySources.autopsy],
-    labs: ['pre-autopsy-first-case'],
+    labs: [],
     quiz: [
       { question: 'What is an Autopsy case?', options: ['A container for evidence work', 'A web cookie', 'A TCP port', 'A DNS answer'], answer: 0 },
       { question: 'What does a deleted entry prove by itself?', options: ['Only that metadata marks deletion', 'Malicious intent', 'Root access', 'Packet decryption'], answer: 0 },
@@ -56,7 +56,7 @@ export const beginnerSecurityLessons: CurriculumLesson[] = [
     exercise: { scenario: 'Autopsy finds BLUE-LANTERN in notes.txt.', task: 'Write a precise finding.', answer: 'Artifact F-01, /Users/alex/Documents/notes.txt, contains the case reference BLUE-LANTERN. The artifact does not establish who created the note or who accessed the portal.', evidence: 'Save the keyword, artifact ID, path, and limitation.' },
     misconceptions: ['A keyword hit is a lead, not a verdict.', 'Text content does not automatically prove authorship.', 'No hits are limited by what was indexed.'],
     sources: [primarySources.autopsy],
-    labs: ['pre-autopsy-first-case'],
+    labs: [],
     quiz: [
       { question: 'What is a keyword hit best treated as?', options: ['A lead for inspection', 'A complete verdict', 'A decrypted password', 'A network route'], answer: 0 },
       { question: 'What should you avoid claiming from one note?', options: ['Who created it without supporting metadata', 'The visible text exists', 'The path of the artifact', 'The timestamp shown'], answer: 0 },
@@ -87,7 +87,7 @@ export const beginnerSecurityLessons: CurriculumLesson[] = [
     exercise: { scenario: 'You tagged F-01 as reference-only after finding BLUE-LANTERN.', task: 'Write the evidence register row.', answer: 'F-01 | /Users/alex/Documents/notes.txt | 2026-01-15 09:02 UTC | Allocated | Contains BLUE-LANTERN case reference | Does not establish author, password, or portal access.', evidence: 'Save the row in your notebook and include it in the lab report.' },
     misconceptions: ['A tag is an interpretation, not decoration.', 'Reports need limitations as much as findings.', 'Screenshots without context are weak evidence.'],
     sources: [primarySources.autopsy, primarySources.ir],
-    labs: ['pre-autopsy-first-case', 'pre-toolkit-capstone'],
+    labs: [],
     quiz: [
       { question: 'Why tag F-01 as reference-only?', options: ['The text supports a reference but not stronger claims', 'It proves a password exists', 'It decrypts TLS', 'It opens a shell'], answer: 0 },
       { question: 'What belongs in an evidence register?', options: ['Artifact ID, path, time, state, finding, limitation', 'Only the final flag', 'Only screenshots', 'Only the learner name'], answer: 0 },

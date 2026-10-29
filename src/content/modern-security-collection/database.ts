@@ -72,7 +72,7 @@ export const databaseLessons: CurriculumLesson[] = [
     exercise: { scenario: 'Backups are encrypted, but every application account can read the backup key.', task: 'Explain the missing boundary and propose a focused validation question.', answer: 'Encryption is not independent protection when the same broad identities can obtain the key and ciphertext. Assess key access separately using a designated role and synthetic backup; do not collect real data.', evidence: 'A backup/key access matrix and the limited fixture outcome.' },
     misconceptions: ['A backup file is not a restore test.', 'Encrypted does not mean all accounts are excluded.', 'Audit data needs its own access and retention controls.'],
     sources: [{ title: 'PostgreSQL backup approaches', url: 'https://www.postgresql.org/docs/current/backup.html' }, { title: 'OWASP logging guidance', url: 'https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html' }, { title: 'SQLite backup API in Python', url: 'https://docs.python.org/3/library/sqlite3.html#sqlite3.Connection.backup' }],
-    labs: ['net-mongodb-open', 'pre-autopsy-first-case'],
+    labs: ['net-mongodb-open'],
     quiz: [{ question: 'What establishes backup restorability?', options: ['An appropriate isolated restore and content verification', 'Only a filename', 'Only encryption being enabled'], answer: 0 }, { question: 'Why avoid logging all query parameters?', options: ['They can contain sensitive credentials and data', 'Logs cannot contain text', 'It makes all statements faster'], answer: 0 }],
   },
 ];

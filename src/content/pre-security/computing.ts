@@ -67,7 +67,7 @@ export const computingLessons: CurriculumLesson[] = [
     exercise: { scenario: 'A lab provides a simulated Wireshark capture and an in-platform terminal.', task: 'How should you describe the evidence source in a write-up?', answer: 'Call it a DarkWorld training capture or platform terminal result. Do not imply you captured live traffic from a real company network.', evidence: 'Add one sentence naming the evidence source before your technical conclusion.' },
     misconceptions: ['Synthetic evidence can still teach real concepts.', 'A safe lab does not authorize outside testing.', 'Professional notes should identify the source of evidence.'],
     sources: [primarySources.testing, primarySources.wireshark],
-    labs: ['pre-lab-orientation', 'pre-wireshark-first-capture'],
+    labs: ['pre-lab-orientation'],
     quiz: [
       { question: 'Why does DarkWorld use synthetic beginner captures?', options: ['To teach concepts safely and clearly', 'To hide all useful detail', 'To avoid teaching tools', 'To replace all future practice'], answer: 0 },
       { question: 'What should a write-up say about a training fixture?', options: ['That it is a training fixture', 'That it is live production evidence', 'That it proves every risk', 'That it needs no source label'], answer: 0 },

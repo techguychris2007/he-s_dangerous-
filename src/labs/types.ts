@@ -1,5 +1,4 @@
 import type { FsNode } from './vfs';
-import type { TrainingTool } from './preSecurityTools';
 
 export interface HttpRoutes {
   [path: string]: string;
@@ -258,7 +257,6 @@ export interface LabScenario {
   /** Interactive target rendered from the same request state used by terminal curl commands. */
   webApplication?: WebApplicationDef;
   directoryMap?: DirectoryMapDef;
-  preSecurityTool?: TrainingTool | 'capstone';
 }
 
 export interface WebApplicationDef {
