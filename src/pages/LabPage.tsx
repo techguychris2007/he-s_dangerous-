@@ -111,8 +111,8 @@ function LabMission({ entry }: { entry: LabEntry }) {
         tone={DEFENSIVE_CATEGORIES.has(scenario.category) ? 'defense' : 'offense'}
       />
       <TaskList
-        title="Tasks"
-        tasks={scenario.objectives.map((item, index) => ({ text: typeof item === 'string' ? item : item.text, detail: typeof item === 'string' ? undefined : item.why, done: done || reviewed.has(index) }))}
+        title="Mission plan"
+        tasks={scenario.objectives.map((item, index) => ({ text: typeof item === 'string' ? item : item.text, detail: typeof item === 'string' ? undefined : item.why, done: done || reviewed.has(index), status: done ? 'complete' : reviewed.has(index) ? 'reviewed' : undefined }))}
         onOpen={index => { selectStage(index); setTab('objectives'); openRoom(); }}
       />
       {narrative && <section className="dw-case-file" aria-labelledby="case-file-title">
