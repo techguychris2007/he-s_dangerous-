@@ -1,0 +1,18 @@
+{
+  "reviewedOn": "2026-10-29",
+  "files": [
+    {
+      "filename": "dive-into-deep-learning.pdf",
+      "title": "Dive into Deep Learning",
+      "authors": ["Aston Zhang", "Zachary C. Lipton", "Mu Li", "Alexander J. Smola"],
+      "source": "https://d2l.ai/d2l-en.pdf",
+      "officialSite": "https://d2l.ai/",
+      "license": "CC-BY-SA-4.0 (text), MIT-0 (sample code)",
+      "licenseEvidence": "https://github.com/d2l-ai/d2l-en/blob/master/LICENSE",
+      "licenseFiles": ["d2l-LICENSE.txt", "d2l-LICENSE-SAMPLECODE.txt"],
+      "modified": false,
+      "bytes": 44685994,
+      "sha256": "b3129f44c4a26b534176bb0f83d85e1ed26a6cdf93ebebacb20104eab2d6bc00"
+    }
+  ]
+}

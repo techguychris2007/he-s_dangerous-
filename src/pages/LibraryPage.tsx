@@ -17,6 +17,11 @@ const LANGUAGE_LABEL: Record<string, string> = {
 
 const TABS: { value: BookTrack; label: string; blurb: string }[] = [
   {
+    value: 'machine-learning',
+    label: 'Machine Learning',
+    blurb: 'A reading path from mathematics and data preparation to classical models, deep learning and production. Each resource includes a suggested starting point and clear access terms.',
+  },
+  {
     value: 'security',
     label: 'Cybersecurity',
     blurb:
@@ -35,6 +40,10 @@ const TABS: { value: BookTrack; label: string; blurb: string }[] = [
 
 const STAGE_BLURB: Record<string, string> = {
   'Foundations': 'The vocabulary, risk mental model, and cryptography/identity fundamentals every later book assumes.',
+  'Mathematics & Data Foundations': 'Build confidence with vectors, probability, Python arrays and data preparation before training models.',
+  'Classical Machine Learning': 'Learn baselines, regression, classification and reliable validation using books and practical notebooks.',
+  'Deep Learning & Language Models': 'Connect tensors and gradients to neural networks, pretrained models and language applications.',
+  'Evaluation & Production': 'Understand uncertainty, explain results and make experiments reproducible before deploying a model.',
   'Governance & Risk Management':
     'How organizations actually decide what to protect and how much risk is acceptable — assessing risk, ' +
     'running it through a formal framework, and selecting from a master catalog of controls.',
@@ -68,12 +77,15 @@ export default function LibraryPage() {
   const [params, setParams] = useSearchParams();
   const [offlineStates, setOfflineStates] = useState<Record<string, OfflineBookStatus>>({});
   const [online, setOnline] = useState(() => navigator.onLine);
-  const track: BookTrack = params.get('track') === 'programming' ? 'programming' : 'security';
+  const trackParam = params.get('track');
+  const track: BookTrack = trackParam === 'programming' || trackParam === 'machine-learning' ? trackParam : 'security';
+  const resourceKind = params.get('kind') ?? '';
   const search = params.get('q') ?? '';
   const setTrack = (value: BookTrack) => setParams(previous => {
     const next = new URLSearchParams(previous);
     next.set('track', value);
     next.delete('q');
+    next.delete('kind');
     return next;
   });
   const setSearch = (value: string) => setParams(previous => {
@@ -89,13 +101,14 @@ export default function LibraryPage() {
   const visibleBooks = useMemo(
     () =>
       books.filter((book) => {
+        if (resourceKind && (book.kind ?? 'Book') !== resourceKind) return false;
         if (!searchText) return true;
-        const haystack = `${book.title} ${book.subtitle} ${book.author} ${book.stage ?? ''} ${book.language ?? ''} ${book.description}`.toLowerCase();
+        const haystack = `${book.title} ${book.subtitle} ${book.author} ${book.stage ?? ''} ${book.language ?? ''} ${book.description} ${book.kind ?? 'Book'} ${book.level ?? ''} ${book.readingGuide ?? ''}`.toLowerCase();
         return haystack.includes(searchText);
       }),
-    [books, searchText],
+    [books, searchText, resourceKind],
   );
-  const stageGroups = track === 'security' ? groupByStage(visibleBooks) : [{ stage: undefined, books: visibleBooks }];
+  const stageGroups = track !== 'programming' ? groupByStage(visibleBooks) : [{ stage: undefined, books: visibleBooks }];
   const savedOfflineCount = books.filter((book) => offlineStates[book.id] === 'saved').length;
 
   useEffect(() => {
@@ -179,11 +192,10 @@ export default function LibraryPage() {
           </div>
           <h1 className="text-3xl sm:text-5xl font-black tracking-[-0.05em] text-white mb-2 sm:mb-3">Library</h1>
           <p className="text-white/75 text-sm sm:text-base max-w-3xl leading-7">
-            {BOOKS.length} books, curated the same way: every one is either a U.S. government work (public
-            domain) or released under a license that explicitly permits free copying — see the license
-            badge on each. Titles with an in-library PDF open in the reader; choose which PDFs to save on
-            this device for offline reading. Books without a distributable PDF show their license, source,
-            and official reading option before opening the publisher's site.
+            {BOOKS.length} books and learning resources from authors, publishers and official projects.
+            Read licensed PDFs in the platform and save selected titles on this device for offline use.
+            Documentation, repositories and restricted books open at their official source, with access
+            details on each resource.
           </p>
           <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl">
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
@@ -203,6 +215,7 @@ export default function LibraryPage() {
               <div className="text-2xs uppercase tracking-[0.16em] text-white/55">Official sources</div>
             </div>
           </div>
+
         </div>
       </div>
 
@@ -251,11 +264,26 @@ export default function LibraryPage() {
               )}
             </div>
           </div>
+          {track === 'machine-learning' && (
+            <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-[var(--color-border)] pt-4">
+              <label htmlFor="library-resource-kind" className="text-sm font-semibold text-[var(--color-heading)]">Resource type</label>
+              <select id="library-resource-kind" value={resourceKind} onChange={event => setParams(previous => {
+                const next = new URLSearchParams(previous);
+                if (event.target.value) next.set('kind', event.target.value); else next.delete('kind');
+                return next;
+              })} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] p-2 text-sm text-[var(--color-heading)]">
+                <option value="">All resources</option>
+                {['Book', 'Documentation', 'Repository', 'Course'].map(kind => <option key={kind} value={kind}>{kind}</option>)}
+              </select>
+              <span className="text-xs text-[var(--color-text-dim)]" role="status">{visibleBooks.length} resources shown</span>
+              <Link to="/ml-portal" className="ml-auto text-sm font-semibold text-[var(--color-accent)]">Continue ML lessons &rarr;</Link>
+            </div>
+          )}
         </div>
 
         {visibleBooks.length === 0 && (
           <div className="rounded-3xl border border-dashed border-[var(--color-border)] bg-[var(--color-surface)] p-10 text-center text-sm text-[var(--color-text-dim)]">
-            No books match &ldquo;{search}&rdquo;.<button onClick={() => setSearch('')} className="mt-3 block mx-auto font-semibold text-[var(--color-accent-dim)] underline">Clear search</button>
+            No resources match your filters.<button onClick={() => setParams({ track })} className="mt-3 block mx-auto font-semibold text-[var(--color-accent-dim)] underline">Clear filters</button>
           </div>
         )}
         {stageGroups.map((group, groupIndex) => (
@@ -277,9 +305,11 @@ export default function LibraryPage() {
                 const cardContent = (
                   <>
                     <div className="flex items-center gap-1.5 mb-4 flex-wrap">
-                      {track === 'security' && (
+                      {track !== 'programming' && (
                         <span className="pill bg-[var(--color-gold)] text-[#1b1200] font-bold">#{book.order}</span>
                       )}
+                      {book.kind && <span className="pill bg-[var(--color-surface-2)] text-[var(--color-text-dim)]">{book.kind}</span>}
+                      {book.level && <span className="pill bg-[var(--color-surface-2)] text-[var(--color-text-dim)]">{book.level}</span>}
                       {book.language && (
                         <span className="pill bg-[var(--color-accent)]/15 text-[var(--color-accent)] border border-[var(--color-accent)]/30">
                           {LANGUAGE_LABEL[book.language]}
@@ -313,6 +343,7 @@ export default function LibraryPage() {
                       </div>
                     </div>
                     <p className="text-sm text-[var(--color-text-dim)] leading-6 mt-4">{book.description}</p>
+                    {book.readingGuide && <p className="text-sm text-[var(--color-text-dim)] leading-6 mt-3 border-t border-[var(--color-border)] pt-3"><strong className="text-[var(--color-heading)]">Start here: </strong>{book.readingGuide}</p>}
                     <div className="text-xs font-bold text-[var(--color-accent)] mt-4 flex items-center gap-1">
                       {isExternal ? (
                         <>

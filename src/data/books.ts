@@ -1,4 +1,6 @@
-export type BookTrack = 'programming' | 'security';
+import { ML_LIBRARY } from './mlLibrary';
+
+export type BookTrack = 'programming' | 'security' | 'machine-learning';
 
 export interface Book {
   id: string;
@@ -6,6 +8,12 @@ export interface Book {
   subtitle: string;
   author: string;
   track: BookTrack;
+  kind?: 'Book' | 'Documentation' | 'Repository' | 'Course';
+  level?: 'Beginner' | 'Intermediate' | 'Advanced';
+  readingGuide?: string;
+  accessNote?: string;
+  sourcePdfUrl?: string;
+  verifiedOn?: string;
   /** only meaningful for track: 'programming' */
   language?: 'python' | 'cpp' | 'java' | 'javascript' | 'rust';
   /** position in this track's recommended reading sequence, 1-based */
@@ -18,7 +26,11 @@ export interface Book {
     | 'Network & Systems Hardening'
     | 'Offensive Testing & Ethical Hacking'
     | 'Response & Forensics'
-    | 'Advanced & Specialized Security Engineering';
+    | 'Advanced & Specialized Security Engineering'
+    | 'Mathematics & Data Foundations'
+    | 'Classical Machine Learning'
+    | 'Deep Learning & Language Models'
+    | 'Evaluation & Production';
   /** served from public/books/ — the exact, unmodified official PDF, cached locally so reading
    *  and downloading never require leaving the portal. Omit both this and fileSizeMb for a book
    *  that's link-only (no official compiled PDF release exists to cache verbatim) — the library
@@ -33,15 +45,11 @@ export interface Book {
   description: string;
 }
 
-/** Every PDF here is the exact, unmodified file downloaded directly from each book's official
- *  source — verified as a valid, complete PDF (correct %PDF header and %%EOF trailer, matching
- *  Content-Length) before being added. Every one is either a U.S. federal government work (public
- *  domain, no restriction at all) or released under a Creative Commons license that explicitly
- *  permits free copying and redistribution. Nothing here is paraphrased, summarized, or otherwise
- *  altered from the original — well-known commercial/copyrighted security titles (the kind sold
- *  by O'Reilly, No Starch, etc.) are deliberately not included, since those aren't legally free
- *  to redistribute regardless of how easy unauthorized copies are to find online. */
+/** Cached PDFs are unmodified official-source files with redistribution terms recorded per title.
+ * Link-only resources may have more restrictive terms: free online access or an open-source
+ * companion repository is not permission to redistribute a commercial textbook. */
 export const BOOKS: Book[] = [
+  ...ML_LIBRARY,
   // --- Programming track ---
   {
     id: 'think-python',

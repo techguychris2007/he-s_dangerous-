@@ -198,7 +198,7 @@ export default function BookReaderPage() {
                 </div>
                 <div className="text-xs uppercase tracking-[0.16em] text-white/50 mb-2">Availability</div>
                 <p className="text-sm text-white/75 leading-6">
-                  This title is listed in the roadmap, but it is not cached because the catalog does not have a redistributable PDF to serve safely.
+                  {book.accessNote ?? 'This resource opens on its official website. No local PDF is included; an internet connection is required.'}
                 </p>
               </div>
             </div>
@@ -210,10 +210,11 @@ export default function BookReaderPage() {
             <div className="premium-card rounded-3xl p-6 sm:p-8">
               <h2 className="text-xl font-black tracking-[-0.03em] text-[var(--color-heading)] mb-3">Why this opens from the official source</h2>
               <p className="text-sm sm:text-base text-[var(--color-text-dim)] leading-7 mb-5">{book.description}</p>
+              {book.readingGuide && <p className="text-sm text-[var(--color-text-dim)] leading-7 mb-5"><strong className="text-[var(--color-heading)]">Suggested reading: </strong>{book.readingGuide}</p>}
               <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg)] p-5">
                 <div className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--color-text-dim)] mb-2">Caching policy</div>
                 <p className="text-sm text-[var(--color-text-dim)] leading-6">
-                  DarkWorld caches books only when the source is public domain or the license clearly permits redistribution of the exact file. For this title, the safe path is to keep the learner in the Library for context, then send them to the official publisher, author, or project page.
+                  {book.accessNote ?? 'This resource is linked rather than mirrored. Open the official project or author page to read it and check its current usage terms. External pages and downloads are not saved by DarkWorld’s offline control.'}
                 </p>
               </div>
               <div className="mt-6 flex flex-wrap gap-3">
@@ -252,7 +253,7 @@ export default function BookReaderPage() {
               <div className="premium-card rounded-3xl p-5">
                 <div className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--color-text-dim)] mb-3">Roadmap position</div>
                 <p className="text-sm text-[var(--color-text-dim)] leading-6">
-                  {book.stage ? `${book.stage}, book #${book.order}.` : `Programming shelf, book #${book.order}.`} Return here after reading to continue the sequence.
+                  {book.stage ? `${book.stage}, resource #${book.order}.` : `Programming shelf, book #${book.order}.`} Return here after reading to continue the sequence.
                 </p>
               </div>
             </aside>
@@ -453,6 +454,8 @@ export default function BookReaderPage() {
             clearest signal to any visitor (including the rights holder) that this is a licensed
             copy, not a claim of ownership. */}
         <div className="max-w-6xl mx-auto mt-3 pt-3 border-t border-[var(--color-border)]">
+          {book.readingGuide && <p className="text-sm text-[var(--color-text-dim)] leading-6 mb-2"><strong>Suggested reading: </strong>{book.readingGuide}</p>}
+          {book.accessNote && <p className="text-xs text-[var(--color-text-dim)] leading-6 mb-2">{book.accessNote}</p>}
           <p className="text-2xs text-[var(--color-text-dim)] leading-relaxed">
             This book was written by <span dangerouslySetInnerHTML={{ __html: book.author }} />. Copyright remains with
             the original author{book.track === 'security' ? '/publisher' : ''}; this site does not claim ownership of
@@ -632,7 +635,7 @@ export default function BookReaderPage() {
         />
       </div>
 
-      {book.track === 'security' && (prevBook || nextBook) && (
+      {book.track !== 'programming' && (prevBook || nextBook) && (
         <div className="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-3">
           <div className="max-w-6xl mx-auto flex items-center justify-between gap-4 text-sm">
             {prevBook ? (

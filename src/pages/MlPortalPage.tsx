@@ -62,6 +62,7 @@ export default function MlPortalPage() {
             time series, MLOps and production system design. Every lesson pairs a concept with a Python challenge, and
             {' '}{LIVE_DEMO_COUNT} lessons run live algorithms in your browser.
           </p>
+          <Link to="/library?track=machine-learning" className="inline-flex items-center rounded-xl border border-white/25 px-4 py-2 text-sm font-semibold text-white hover:bg-white/10 mb-5">Explore the ML library &rarr;</Link>
           <div className="flex flex-wrap gap-3">
             <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3"><div className="text-lg font-bold text-white font-mono">{ML_LESSONS.length}</div><div className="text-2xs text-white/60 uppercase tracking-wide">Lessons</div></div>
             <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3"><div className="text-lg font-bold text-white font-mono">{tasksDone}/{ML_TASKS.length}</div><div className="text-2xs text-white/60 uppercase tracking-wide">Python labs solved</div></div>
