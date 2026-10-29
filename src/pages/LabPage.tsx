@@ -14,7 +14,7 @@ import LabComments from '../components/labs/LabComments';
 import BeginnerGlossary from '../components/lesson/BeginnerGlossary';
 import RoomHero from '../components/common/RoomHero';
 import { estimateMinutes } from '../data/rooms';
-import TaskList from '../components/common/TaskList';
+import TaskList from '../components/common/MissionPlan';
 import RoomAside from '../components/common/RoomAside';
 import CharacterAvatar from '../components/characters/CharacterAvatar';
 import { guideForArea } from '../data/characters';
