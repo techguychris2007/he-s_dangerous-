@@ -34,7 +34,7 @@ for (const book of ML_LIBRARY) {
 }
 
 // Keep global portal/auth widgets outside this page-level render check.
-for (const component of ['../src/components/layout/PortalNavigation.tsx', '../src/components/characters/CharacterAvatar.tsx']) {
+for (const component of ['../src/components/layout/PortalNavigation.tsx', '../src/components/characters/CharacterAvatar.tsx', '../src/components/books/OfflineLibraryCard.tsx']) {
   const componentPath = require.resolve(component);
   require.cache[componentPath] = { id: componentPath, filename: componentPath, loaded: true, exports: { __esModule: true, default: () => null } };
 }

@@ -1,14 +1,11 @@
 import { useEffect, useMemo, useState, type RefObject } from 'react';
 import type { GlossaryEntry } from '../../data/glossary';
 import { findGlossaryTerms } from '../../data/glossaryMatch';
-import { IconBook } from '../layout/icons';
-import './beginner-glossary.css';
+import ResearchTerms from './ResearchTerms';
 
-/** "New to this?" panel: lists the glossary terms a lesson or lab uses, with plain-English
- *  definitions, so a beginner can read it without stopping to search. Either watches a lazy-rendered
- *  body (`targetRef`) or scans a static string (`text`). Terms the content already defines are
- *  passed in `exclude` and skipped. */
-export default function BeginnerGlossary({ targetRef, text, exclude = [], resetKey, title = 'New to this? Key terms here', domains = [] }: {
+/** Finds relevant terms without displaying definitions. Each term opens a learner-controlled
+ *  Cyber AI draft. Watches lazy content or scans supplied text; no question is sent here. */
+export default function BeginnerGlossary({ targetRef, text, exclude = [], resetKey, domains = [] }: {
   targetRef?: RefObject<HTMLElement | null>;
   text?: string;
   exclude?: string[];
@@ -42,17 +39,5 @@ export default function BeginnerGlossary({ targetRef, text, exclude = [], resetK
 
   const shown = text !== undefined ? staticTerms : terms;
   if (shown.length === 0) return null;
-  return (
-    <details className="dw-glossary" open>
-      <summary>
-        <span className="dw-glossary__icon"><IconBook className="h-4 w-4" /></span>
-        <span><b>{title}</b><small>{shown.length} plain-English definitions · click to hide</small></span>
-      </summary>
-      <dl>
-        {shown.map((t) => (
-          <div key={t.term}><dt>{t.term}</dt><dd>{t.def}</dd></div>
-        ))}
-      </dl>
-    </details>
-  );
+  return <ResearchTerms terms={shown.map(term => term.term)} />;
 }

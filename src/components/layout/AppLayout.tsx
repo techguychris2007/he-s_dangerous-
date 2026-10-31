@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
+import LearningNavigation from './LearningNavigation';
+import { isLearningWorkspace } from './learningWorkspace';
 import Companion from '../companion/Companion';
 import XpToaster from '../common/XpToaster';
 import HandleWelcome from '../characters/HandleWelcome';
@@ -12,6 +14,8 @@ export default function AppLayout() {
   const [desktop, setDesktop] = useState(() => window.matchMedia('(min-width: 1024px)').matches);
   const navRef = useRef<HTMLDivElement>(null);
   const { pathname } = useLocation();
+  const learning = isLearningWorkspace(pathname);
+  useEffect(() => { setMobileOpen(false); }, [pathname]);
   const fixedWorkspace = /^\/(lab|siem-lab)\//.test(pathname);
 
   useEffect(() => {
@@ -65,7 +69,7 @@ export default function AppLayout() {
       <Companion />
       <XpToaster />
       <HandleWelcome />
-      <div
+      {!learning && <div
         id="platform-navigation"
         ref={navRef}
         inert={!desktop && !mobileOpen}
@@ -78,12 +82,12 @@ export default function AppLayout() {
       >
         {mobileOpen && !desktop && <button type="button" aria-label="Close navigation" onClick={() => setMobileOpen(false)} className="dw-navigation-close"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15"/></svg></button>}
         <Sidebar onNavigate={() => setMobileOpen(false)} />
-      </div>
-      {mobileOpen && (
+      </div>}
+      {!learning && mobileOpen && (
         <div aria-hidden className="fixed inset-0 bg-black/40 backdrop-blur-xs z-20 lg:hidden" onClick={() => setMobileOpen(false)} />
       )}
-      <div inert={mobileOpen && !desktop} className="flex-1 flex flex-col min-w-0">
-        <TopBar menuOpen={mobileOpen} onMenuClick={() => setMobileOpen((o) => !o)} />
+      <div inert={!learning && mobileOpen && !desktop} className="flex-1 flex flex-col min-w-0">
+        {learning ? <LearningNavigation /> : <TopBar menuOpen={mobileOpen} onMenuClick={() => setMobileOpen((o) => !o)} />}
         <main id="main-content" tabIndex={-1} className={`flex-1 min-h-0 ${fixedWorkspace ? 'overflow-hidden' : 'overflow-y-auto'}`}>
           {/* h-full passes main's height through to pages like LabPage/CodeTaskPage that render
               their own `h-full flex` workspace layout and need a definite height to fill. */}

@@ -25,13 +25,6 @@ export default function CurriculumArticle({ lesson }: { lesson: CurriculumLesson
           </div>
         </section>
       ) : null}
-      {lesson.keyTerms?.length ? (
-        <section className="lesson-key-terms" aria-labelledby={`${lesson.id}-terms`}>
-          <p className="lesson-panel-kicker">Vocabulary</p>
-          <h2 id={`${lesson.id}-terms`}>Terms you should recognize in labs</h2>
-          <dl>{lesson.keyTerms.map(item => <div key={item.term}><dt>{item.term}</dt><dd>{item.meaning}</dd></div>)}</dl>
-        </section>
-      ) : null}
       {lesson.sections.map((section, index) => (
         <section key={section.title} aria-labelledby={`${lesson.id}-section-${index}`}>
           <h2 id={`${lesson.id}-section-${index}`}>{section.title}</h2>

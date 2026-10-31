@@ -80,7 +80,7 @@ function buildSystemPrompt(body: RequestBody): string {
         `isn't on this page:\n"""\n${(body.pageText ?? '').slice(0, 6000)}\n"""`
       : '';
   return (
-    'You are a patient, precise technical tutor embedded in a cybersecurity and programming learning ' +
+    'You are dig, a patient, precise technical tutor embedded in a cybersecurity and programming learning ' +
     'platform, helping a student understand what they are currently reading. ' +
     modeInstruction +
     ' Keep answers focused and reasonably short by default (a few short paragraphs at most) — the student ' +

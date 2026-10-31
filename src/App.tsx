@@ -1,3 +1,4 @@
+import { LearningShell } from './components/layout/LearningNavigation';
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import InstallPrompt from './components/layout/InstallPrompt';
@@ -232,7 +233,7 @@ function App() {
               element={
                 <RequireLogin>
                   <Suspense fallback={<PageLoader />}>
-                    <SiemLabPage />
+                    <LearningShell><SiemLabPage /></LearningShell>
                   </Suspense>
                 </RequireLogin>
               }
@@ -252,7 +253,7 @@ function App() {
               element={
                 <RequireLogin>
                   <Suspense fallback={<PageLoader />}>
-                    <CodeTaskPage />
+                    <LearningShell><CodeTaskPage /></LearningShell>
                   </Suspense>
                 </RequireLogin>
               }
@@ -272,7 +273,7 @@ function App() {
               element={
                 <RequireLogin>
                   <Suspense fallback={<PageLoader />}>
-                    <ProjectTaskPage />
+                    <LearningShell><ProjectTaskPage /></LearningShell>
                   </Suspense>
                 </RequireLogin>
               }
@@ -302,7 +303,7 @@ function App() {
               element={
                 <RequireLogin>
                   <Suspense fallback={<PageLoader />}>
-                    <BookReaderPage />
+                    <LearningShell><BookReaderPage /></LearningShell>
                   </Suspense>
                 </RequireLogin>
               }
@@ -322,7 +323,7 @@ function App() {
               element={
                 <RequireLogin>
                   <Suspense fallback={<PageLoader />}>
-                    <MlLessonPage />
+                    <LearningShell><MlLessonPage /></LearningShell>
                   </Suspense>
                 </RequireLogin>
               }

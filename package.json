@@ -16,6 +16,8 @@
     "test:platform": "node scripts/check-platform.cjs && node scripts/check-account-progress.cjs && node scripts/check-visual-labs.cjs && node scripts/check-code-results.cjs && node scripts/check-kerberos-lab.cjs && node scripts/check-guided-labs.cjs && node scripts/check-defensive-investigations.cjs && node scripts/check-ml-content.cjs --structure-only && node scripts/check-netcat-lab.cjs && node scripts/check-device-access.cjs && node scripts/check-siem-execution.cjs && node scripts/check-pwa.cjs && node scripts/check-investigation-workbook.cjs && node scripts/check-casebooks.cjs && node scripts/check-se-tasks.cjs && node scripts/check-lesson-questions.cjs",
     "test:ml-content": "node scripts/check-ml-content.cjs",
     "test:ml-library": "node scripts/check-ml-library.cjs",
+    "test:offline-library": "node scripts/check-offline-library.cjs && node scripts/check-ai-assistance-routing.cjs",
+    "test:dig-shell": "node scripts/check-dig-learning-shell.cjs",
     "test:documents": "node scripts/check-documents.cjs",
     "audit:labs": "node scripts/audit-lab-depth.cjs",
     "preview": "vite preview",

@@ -1,3 +1,4 @@
+import OfflineLibraryCard from '../components/books/OfflineLibraryCard';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { BOOKS, booksInTrack, type Book, type BookTrack } from '../data/books';
@@ -141,6 +142,19 @@ export default function LibraryPage() {
     };
   }, []);
 
+  useEffect(() => {
+    let active = true;
+    const refresh = () => {
+      if (!('caches' in window)) return;
+      void caches.open('dw-books-offline-v1').then(async cache => {
+        const entries = await Promise.all(BOOKS.filter(book => book.filename).map(async book => [book.id, (await cache.match(new URL('/books/' + book.filename, window.location.href)))?.status === 200 ? 'saved' : 'ready'] as const));
+        if (active) setOfflineStates(Object.fromEntries(entries));
+      }).catch(() => { /* Existing save/remove controls still report their own errors. */ });
+    };
+    window.addEventListener('darkworld:offline-library-changed', refresh);
+    return () => { active = false; window.removeEventListener('darkworld:offline-library-changed', refresh); };
+  }, []);
+
   const saveBookOffline = async (book: Book) => {
     if (!book.filename) return;
     if (!('caches' in window)) {
@@ -154,12 +168,17 @@ export default function LibraryPage() {
     setOfflineStates((current) => ({ ...current, [book.id]: 'saving' }));
     try {
       const url = '/books/' + book.filename;
+      const cache = await caches.open('dw-books-offline-v1');
+      if ((await cache.match(new URL(url, window.location.href)))?.status === 200) {
+        setOfflineStates((current) => ({ ...current, [book.id]: 'saved' }));
+        return;
+      }
       const response = await fetch(url, { credentials: 'same-origin' });
       if (!response.ok || response.status !== 200 || !response.headers.get('content-type')?.toLowerCase().includes('pdf')) {
         throw new Error('The PDF could not be stored.');
       }
-      const cache = await caches.open('dw-books-offline-v1');
       await cache.put(new URL(url, window.location.href), response.clone());
+      window.dispatchEvent(new Event('darkworld:offline-library-changed'));
       setOfflineStates((current) => ({ ...current, [book.id]: 'saved' }));
     } catch {
       setOfflineStates((current) => ({ ...current, [book.id]: 'error' }));
@@ -172,6 +191,7 @@ export default function LibraryPage() {
     try {
       const cache = await caches.open('dw-books-offline-v1');
       await cache.delete(new URL('/books/' + book.filename, window.location.href));
+      window.dispatchEvent(new Event('darkworld:offline-library-changed'));
       setOfflineStates((current) => ({ ...current, [book.id]: 'ready' }));
     } catch {
       setOfflineStates((current) => ({ ...current, [book.id]: 'error' }));
@@ -281,6 +301,7 @@ export default function LibraryPage() {
           )}
         </div>
 
+        <OfflineLibraryCard />
         {visibleBooks.length === 0 && (
           <div className="rounded-3xl border border-dashed border-[var(--color-border)] bg-[var(--color-surface)] p-10 text-center text-sm text-[var(--color-text-dim)]">
             No resources match your filters.<button onClick={() => setParams({ track })} className="mt-3 block mx-auto font-semibold text-[var(--color-accent-dim)] underline">Clear filters</button>

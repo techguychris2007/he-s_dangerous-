@@ -1,0 +1,5 @@
+.dig-avatar { display: block; flex-shrink: 0; overflow: visible; filter: drop-shadow(0 4px 4px color-mix(in srgb, var(--chrome-bg) 25%, transparent)); }
+.dig-avatar__scout { transform-origin: 64px 70px; }
+.dig-avatar--thinking .dig-avatar__scout { animation: dig-search 1.8s ease-in-out infinite; }
+@keyframes dig-search { 0%,100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-4px) rotate(2deg); } }
+@media (prefers-reduced-motion: reduce) { .dig-avatar--thinking .dig-avatar__scout { animation: none; } }

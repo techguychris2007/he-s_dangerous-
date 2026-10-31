@@ -1,3 +1,4 @@
+import LearningActions from '../components/lesson/LearningActions';
 import { useEffect, useRef, useState } from 'react';
 import { Navigate, useParams, Link } from 'react-router-dom';
 import JSZip from 'jszip';
@@ -120,7 +121,7 @@ export default function ProjectTaskPage() {
   };
 
   return (
-    <div className="dw-codetask">
+    <div className="dw-codetask dw-codetask--learning">
       <header className="dw-codetask__head">
         <ol className="dw-codetask__crumbs">
           <li><Link to="/build-portal">Build Portal</Link></li>
@@ -140,8 +141,9 @@ export default function ProjectTaskPage() {
         </div>
       </header>
 
+      <LearningActions workspace back={{ href: '/build-portal', label: 'Build Portal' }} beforeNavigate={() => !task.files.some(file => currentFilesRef.current[file.path] !== undefined && currentFilesRef.current[file.path] !== file.content) || window.confirm('Leave this project? Download your edited files first if you want to keep them.')} />
       <div className="dw-codetask__body">
-        <aside className="dw-codetask__brief">
+        <aside tabIndex={-1} className="dw-codetask__brief">
           <div className="dw-codetask__tabs" role="tablist" aria-label="Project information">
             {([['brief', 'Brief'], ['hints', 'Hints'], ['solution', 'Solution'], ['discuss', 'Discussion']] as const).map(([id, label]) => (
               <button key={id} type="button" role="tab" aria-selected={tab === id} onClick={() => setTab(id)}>
@@ -212,7 +214,7 @@ export default function ProjectTaskPage() {
           </div>
         </aside>
 
-        <main className="dw-codetask__ide">
+        <main tabIndex={-1} className="dw-codetask__ide">
           <ProjectConsole
             key={task.id}
             task={task}

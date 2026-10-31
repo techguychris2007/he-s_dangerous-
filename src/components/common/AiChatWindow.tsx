@@ -1,7 +1,9 @@
+import DigAvatar from '../characters/DigAvatar';
 import { useEffect, useRef, useState } from 'react';
 import MarkdownText from './MarkdownText';
-import { IconLightning, IconExternal, IconCopy, IconCheck, IconRefresh } from '../layout/icons';
+import { IconExternal, IconCopy, IconCheck, IconRefresh } from '../layout/icons';
 import type { Citation } from '../../lib/aiTutor';
+import OfflineLibraryCard from '../books/OfflineLibraryCard';
 
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'error';
@@ -13,7 +15,7 @@ export interface ChatMessage {
 export interface QuickAction {
   key: string;
   label: string;
-  onClick: () => void;
+  onClick: (source?: 'library') => void;
   /** an extra condition beyond the shared `loading` flag (e.g. "hint ladder exhausted") */
   disabled?: boolean;
 }
@@ -27,7 +29,7 @@ interface AiChatWindowProps {
   quickActions: QuickAction[];
   input: string;
   onInputChange: (value: string) => void;
-  onSubmit: (question: string) => void;
+  onSubmit: (question: string, source?: 'library') => void;
   /** re-sends whatever the last user question was — the caller tracks that, since it already
    *  knows the mode/hint-level that question needs, which this shared shell doesn't. */
   onRetry: () => void;
@@ -60,6 +62,13 @@ export default function AiChatWindow({
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [online, setOnline] = useState(() => navigator.onLine);
+  const [libraryOnly, setLibraryOnly] = useState(false);
+  useEffect(() => {
+    const update = () => setOnline(navigator.onLine);
+    window.addEventListener('online', update); window.addEventListener('offline', update);
+    return () => { window.removeEventListener('online', update); window.removeEventListener('offline', update); };
+  }, []);
 
   useEffect(() => {
     textareaRef.current?.focus();
@@ -73,7 +82,7 @@ export default function AiChatWindow({
 
   const submitCurrent = () => {
     if (!input.trim() || loading) return;
-    onSubmit(input);
+    onSubmit(input, libraryOnly ? 'library' : undefined);
   };
 
   const copy = (text: string, index: number) => {
@@ -98,7 +107,7 @@ export default function AiChatWindow({
       <div className="flex items-center justify-between gap-3 border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 shadow-sm shrink-0">
         <div className="flex min-w-0 items-center gap-3">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 text-[var(--color-accent)]">
-            <IconLightning className="h-5 w-5" />
+            <DigAvatar size={44} thinking={loading} />
           </span>
           <div className="min-w-0">
             <div className="text-sm font-extrabold tracking-tight text-[var(--color-heading)]">{title}</div>
@@ -114,15 +123,21 @@ export default function AiChatWindow({
         </button>
       </div>
 
+      <div className="shrink-0 border-b border-[var(--color-border)] px-4 py-2 text-xs text-[var(--color-text-dim)]">
+        <p role="status">{!online ? 'Offline · searching prepared library books' : libraryOnly ? 'Library search · saved sources only' : 'Online AI · hosted models'}</p>
+        <label className="mt-1 flex items-center gap-2"><input type="checkbox" checked={libraryOnly} onChange={event => setLibraryOnly(event.target.checked)} />Search saved library</label>
+      </div>
+      <OfflineLibraryCard compact />
+
       <div ref={scrollRef} className="min-h-0 flex-1 space-y-4 overflow-y-auto bg-[var(--color-bg)]/35 px-3 py-4">
         {messages.length === 0 && (
           <div className="mx-auto flex max-w-sm flex-col items-center gap-3 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-6 text-center shadow-sm">
             <span
               className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
             >
-              <IconLightning className="h-5 w-5" />
+              <DigAvatar size={64} />
             </span>
-            <p className="max-w-[26rem] text-sm leading-6 text-[var(--color-text-dim)]">{emptyState}</p>
+            <p className="max-w-[26rem] text-sm leading-6 text-[var(--color-text-dim)]">{!online || libraryOnly ? 'Ask a specific question to find passages in your prepared books. Sources appear here with PDF page numbers. This mode does not generate explanations.' : emptyState}</p>
           </div>
         )}
         {messages.map((m, i) => (
@@ -131,7 +146,7 @@ export default function AiChatWindow({
               <span
                 className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-2xs font-bold ${m.role === 'error' ? 'bg-[var(--color-danger)] text-white' : 'border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 text-[var(--color-accent)]'}`}
               >
-                {m.role === 'error' ? '!' : 'AI'}
+                {m.role === 'error' ? '!' : <DigAvatar size={32} />}
               </span>
             )}
             <div className="max-w-[85%] min-w-0">
@@ -147,7 +162,13 @@ export default function AiChatWindow({
                 {m.role === 'assistant' ? <MarkdownText text={m.text} /> : m.text}
                 {m.citations && m.citations.length > 0 && (
                   <div className="mt-2 pt-2 border-t border-[var(--color-border)]/50 flex flex-wrap gap-1.5">
-                    {m.citations.map((c, ci) => (
+                    {m.citations.map((c, ci) => c.library ? (
+                      <details key={ci} open={ci === 0} className="w-full rounded-lg border border-[var(--color-border)] p-2">
+                        <summary className="cursor-pointer text-xs font-semibold text-[var(--color-accent)]">{c.title}</summary>
+                        <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-[var(--color-text)]">{c.library.text}</p>
+                        <small className="block mt-2 text-[var(--color-text-dim)]">Source excerpt · original wording, with PDF line breaks</small>
+                      </details>
+                    ) : (
                       <a
                         key={ci}
                         href={c.uri}
@@ -213,13 +234,13 @@ export default function AiChatWindow({
         )}
       </div>
 
-      {quickActions.length > 0 && (
+      {quickActions.length > 0 && online && !libraryOnly && (
         <div className="flex shrink-0 flex-wrap gap-2 border-t border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-3">
           {quickActions.map((qa) => (
             <button
               key={qa.key}
               disabled={loading || qa.disabled}
-              onClick={qa.onClick}
+              onClick={() => qa.onClick(libraryOnly ? 'library' : undefined)}
               className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-1.5 text-xs font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/50 hover:bg-[var(--color-accent)]/10 hover:text-[var(--color-heading)] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {qa.label}

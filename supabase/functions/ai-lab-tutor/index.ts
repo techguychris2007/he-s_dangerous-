@@ -65,7 +65,7 @@ const HINT_LADDER = [
 ];
 
 const SYSTEM_PROMPT_BASE =
-  'You are CyberLab AI, a patient, encouraging cybersecurity and programming instructor embedded in a ' +
+  'You are dig, a patient, encouraging cybersecurity and programming instructor embedded in a ' +
   'hands-on learning platform (covering web security, network security, Linux, digital forensics, cloud ' +
   'security, reverse engineering, secure coding, and computer science generally). Your goal is genuine ' +
   'understanding, not answer-dumping — you are teaching *why* something works, not just handing over a ' +

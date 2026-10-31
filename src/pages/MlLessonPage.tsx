@@ -1,3 +1,5 @@
+import LearningActions from '../components/lesson/LearningActions';
+import CyberLabAI from '../components/labs/CyberLabAI';
 import BeginnerGlossary from '../components/lesson/BeginnerGlossary';
 import PrerequisitePrimer from '../components/lesson/PrerequisitePrimer';
 import { useEffect, useRef, useState } from 'react';
@@ -56,7 +58,8 @@ export default function MlLessonPage() {
   const modulePosition = moduleLessons.findIndex(item => item.id === lesson.id) + 1;
 
   return (
-    <div ref={scrollRef} className="lesson-reader ml-reader h-full overflow-y-auto">
+    <div className="h-full flex flex-col lg:flex-row min-w-0"><div ref={scrollRef} className="lesson-reader ml-reader flex-1 min-w-0 h-full overflow-y-auto">
+      <LearningActions back={{ href: '/ml-portal', label: 'ML learning' }} previous={prev ? `/ml-lesson/${prev.id}` : undefined} next={next ? `/ml-lesson/${next.id}` : undefined} />
       <div className="reader-progress" role="progressbar" aria-label="Reading progress" aria-valuenow={readingProgress} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${readingProgress}%` }} /></div>
       <div className="reader-layout">
         <main className="min-w-0">
@@ -144,6 +147,8 @@ export default function MlLessonPage() {
           </div>
         </aside>
       </div>
+    </div>
+      <CyberLabAI key={lesson.id} getContext={() => ({ kind: 'lesson', title: lesson.title.replace(/<[^>]*>/g, ''), subtitle: 'Machine learning', bodyText: contentRef.current?.innerText ?? '' })} />
     </div>
   );
 }

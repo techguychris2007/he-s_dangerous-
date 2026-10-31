@@ -3,9 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useProgress } from '../../state/progressStore';
 import { useLabsData } from '../../state/useLabsData';
 import type { LabEntry } from '../../data/labs';
-import { computeSpeedTier, buildCongratsMessage, pickEncouragement, type SpeedTier } from '../../data/companionMessages';
-import { pickHackerLegend } from '../../data/hackerLegends';
-import { IconFlag, IconLightning } from '../layout/icons';
+import CompletionNotice from './CompletionNotice';
 
 function isDone(progress: ReturnType<typeof useProgress>, lab: LabEntry): boolean {
   return progress.flagCount(lab.scenario.id) >= lab.scenario.totalFlags;
@@ -19,24 +17,16 @@ function findNextLab(progress: ReturnType<typeof useProgress>, roadmapOrder: Lab
 
 interface Toast {
   lab: LabEntry;
-  headline: string;
-  isMilestone: boolean;
-  tier: SpeedTier;
-  legendLine: string | null;
-  encouragement: string;
   nextLab: LabEntry | null;
 }
 
-/** ECHO — the platform's mentor persona. Mounted once globally; watches progress for any lab that just
- *  flipped from incomplete to complete (regardless of which page triggered it) and surfaces a congratulations
- *  toast with pacing-based flavor and a "next lab on your roadmap" nudge. */
+/** Announces newly completed labs without rewarding speed or interrupting the learner's workspace. */
 export default function Companion() {
   const progress = useProgress();
   const navigate = useNavigate();
   const labsData = useLabsData();
   const prevCompletedIds = useRef<Set<string> | null>(null);
   const [toast, setToast] = useState<Toast | null>(null);
-  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!labsData) return; // wait for the async labs chunk — see useLabsData
@@ -62,102 +52,25 @@ export default function Companion() {
     const lab = labsData.LABS.find((l) => l.scenario.id === newlyDone[0]);
     if (!lab) return;
 
-    const now = Date.now();
-    const otherTimestamps = Object.entries(progress.labCompletedAt)
-      .filter(([id]) => id !== lab.scenario.id)
-      .map(([, t]) => t);
-    const prevCompletedAt = otherTimestamps.length ? Math.max(...otherTimestamps) : null;
-    const tier = computeSpeedTier(prevCompletedAt, now);
-
-    const totalCompleted = currentCompleted.size;
-    const seed = totalCompleted + lab.scenario.id.length;
-    const { headline, isMilestone } = buildCongratsMessage(tier, totalCompleted, seed);
-    const legendLine = tier === 'lightning' || (tier === 'swift' && totalCompleted % 3 === 0) ? (() => {
-      const legend = pickHackerLegend(totalCompleted);
-      return `You're moving at the pace of ${legend.name} — who ${legend.blurb}.`;
-    })() : null;
-
     setToast({
       lab,
-      headline,
-      isMilestone,
-      tier,
-      legendLine,
-      encouragement: pickEncouragement(seed + 1),
       nextLab: findNextLab(progress, labsData.LABS_IN_ROADMAP_ORDER, lab.scenario.id),
     });
 
-    if (hideTimer.current) clearTimeout(hideTimer.current);
-    hideTimer.current = setTimeout(() => setToast(null), 12000);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [progress.labFlags, labsData]);
 
-  useEffect(() => () => {
-    if (hideTimer.current) clearTimeout(hideTimer.current);
-  }, []);
-
   if (!toast) return null;
 
-  return (
-    <div className="fixed top-4 inset-x-4 sm:inset-x-auto sm:right-4 sm:left-auto sm:w-[26rem] z-50">
-      <div
-        className="rounded-xl border shadow-lg p-4 flex items-start gap-3 bg-[var(--color-surface)]"
-        style={{ borderColor: 'var(--color-accent)' }}
-      >
-        <span
-          className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-white font-bold text-sm"
-          style={{ background: 'linear-gradient(135deg, var(--color-accent), var(--color-accent-2))' }}
-        >
-          E
-        </span>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5 mb-0.5">
-            <span className="font-bold text-[var(--color-heading)] text-sm">ECHO</span>
-            <span className="text-2xs font-mono uppercase tracking-wide text-[var(--color-text-dim)]">mentor</span>
-            {toast.isMilestone && (
-              <span className="pill bg-[var(--color-accent)]/15 text-[var(--color-accent-dim)] text-2xs">Milestone</span>
-            )}
-          </div>
-          <div className="flex items-center gap-1.5 text-xs text-[var(--color-text-dim)] mb-1.5">
-            <IconFlag className="w-3 h-3 text-[var(--color-success)]" />
-            <span className="truncate">{toast.lab.scenario.title} — complete</span>
-          </div>
-          <p className="text-sm text-[var(--color-heading)] leading-relaxed mb-2">{toast.headline}</p>
-          {toast.legendLine && (
-            <p className="flex items-start gap-1.5 text-xs text-[var(--color-accent-dim)] leading-relaxed mb-2">
-              <IconLightning className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-              <span>{toast.legendLine}</span>
-            </p>
-          )}
-          <p className="text-xs text-[var(--color-text-dim)] leading-relaxed mb-3">{toast.encouragement}</p>
-          <div className="flex items-center gap-2">
-            {toast.nextLab && (
-              <button
-                onClick={() => {
-                  setToast(null);
-                  navigate(`/lab/${toast.nextLab!.slug}`);
-                }}
-                className="px-3.5 py-1.5 rounded-lg bg-[var(--color-accent)] text-white text-xs font-semibold hover:brightness-110 transition"
-              >
-                Next lab &rarr;
-              </button>
-            )}
-            <button
-              onClick={() => setToast(null)}
-              className="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-heading)] transition-colors"
-            >
-              Keep going
-            </button>
-          </div>
-        </div>
-        <button
-          onClick={() => setToast(null)}
-          aria-label="Dismiss"
-          className="text-[var(--color-text-dim)] hover:text-[var(--color-heading)] text-lg leading-none shrink-0"
-        >
-          &times;
-        </button>
-      </div>
-    </div>
-  );
+  return <CompletionNotice
+    title={toast.lab.scenario.title}
+    completedCount={prevCompletedIds.current?.size ?? 0}
+    nextTitle={toast.nextLab?.scenario.title}
+    onNext={() => {
+      if (!toast.nextLab) return;
+      setToast(null);
+      navigate(`/lab/${toast.nextLab.slug}`);
+    }}
+    onDismiss={() => setToast(null)}
+  />;
 }

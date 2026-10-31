@@ -1,0 +1,11 @@
+.reader-research { margin: 20px 0 32px; padding: 20px 22px; border: 1px solid var(--color-border); border-radius: 10px; background: var(--color-surface); font-family: var(--font-sans); }
+.reader-research strong { font-size: .9rem; color: var(--color-heading); }
+.reader-research p { margin: 7px 0 14px; max-width: 68ch; font-size: .82rem; line-height: 1.75; color: var(--color-text-dim); }
+.reader-research__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.reader-research__actions button { display: inline-flex; align-items: center; gap: 14px; padding: 8px 11px; border: 1px solid var(--color-border); border-radius: 6px; font-size: .76rem; color: var(--color-text); background: var(--color-surface-2); cursor: pointer; }
+.reader-research__actions button:hover { border-color: var(--color-accent); color: var(--color-heading); }
+.reader-research__actions .reader-research__open { color: var(--chrome-ink); background: var(--chrome-bg); border-color: var(--chrome-line-strong); }
+.reader-research button:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }
+.reader-research small { display: block; margin-top: 12px; color: var(--color-text-dim); font-size: .69rem; line-height: 1.6; }
+
+.book-research-wrap { width: min(100%, 1120px); margin-inline: auto; padding: 0 24px; }

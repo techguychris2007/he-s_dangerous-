@@ -1,3 +1,4 @@
+import LearningActions from '../components/lesson/LearningActions';
 import { useEffect, useRef, useState } from 'react';
 import { Navigate, useParams, Link } from 'react-router-dom';
 import { PYTHON_TASKS } from '../labs/pythonTasks';
@@ -92,7 +93,7 @@ export default function CodeTaskPage() {
   });
 
   return (
-    <div className="dw-codetask">
+    <div className="dw-codetask dw-codetask--learning">
       <header className="dw-codetask__head">
         <ol className="dw-codetask__crumbs">
           <li><Link to={backHref}>{backLabel}</Link></li>
@@ -113,8 +114,9 @@ export default function CodeTaskPage() {
         </div>
       </header>
 
+      <LearningActions workspace back={{ href: backHref, label: backLabel }} beforeNavigate={() => !currentCodeRef.current || currentCodeRef.current === task.starterCode || window.confirm('Leave this task? Download your edited code first if you want to keep it.')} />
       <div className="dw-codetask__body">
-        <aside className="dw-codetask__brief">
+        <aside tabIndex={-1} className="dw-codetask__brief">
           <div className="dw-codetask__tabs" role="tablist" aria-label="Task information">
             {([['brief', 'Brief'], ['hints', 'Hints'], ['solution', 'Solution'], ['discuss', 'Discussion']] as const).map(([id, label]) => (
               <button key={id} type="button" role="tab" aria-selected={tab === id} onClick={() => setTab(id)}>
@@ -162,7 +164,7 @@ export default function CodeTaskPage() {
           </div>
         </aside>
 
-        <main className="dw-codetask__ide">
+        <main tabIndex={-1} className="dw-codetask__ide">
           <CodeConsole
             key={task.id}
             language={task.language}

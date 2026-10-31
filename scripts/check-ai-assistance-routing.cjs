@@ -1,0 +1,35 @@
+const assert = require('node:assert/strict');
+require('./register-typescript.cjs');
+let requests = 0, localRequests = 0;
+let reply = { data: { answer: 'Hosted answer', model: 'Hosted test model' }, error: null };
+const cacheModule = (modulePath, exports) => { const filename = require.resolve(modulePath); require.cache[filename] = { id: filename, filename, loaded: true, exports }; };
+cacheModule('../src/lib/supabaseClient.ts', { supabase: { functions: { invoke: async (endpoint, options) => {
+  requests++; assert.ok(!('source' in options.body), 'Client routing preference must not change hosted API payload');
+  if (reply instanceof Error) throw reply;
+  return reply;
+} } } });
+cacheModule('../src/lib/offlineLibrary.ts', { searchSavedLibrary: async () => { localRequests++; return { answer: 'Saved source passage', model: 'Offline library search', sourceMode: 'library' }; } });
+const { askAiTutor, askCyberLabAi } = require('../src/lib/aiTutor.ts');
+Object.defineProperty(navigator, 'onLine', { configurable: true, writable: true, value: true });
+(async () => {
+  assert.equal((await askAiTutor({ question: 'Explain recursion' })).sourceMode, 'online');
+  assert.equal(requests, 1);
+  navigator.onLine = false;
+  assert.equal((await askAiTutor({ question: 'Explain recursion' })).sourceMode, 'library');
+  assert.equal(requests, 1, 'Offline requests must not contact hosted models');
+  navigator.onLine = true;
+  assert.equal((await askAiTutor({ question: 'Explain recursion' })).sourceMode, 'online', 'Reconnection restores hosted mode');
+  await askCyberLabAi({ question: 'Reference material', mode: 'ask', source: 'library', context: { kind: 'lab', title: 'A lab' } });
+  assert.equal(requests, 2, 'Explicit saved-library searches stay local');
+  const beforeAuth = localRequests;
+  reply = { data: null, error: { message: 'Unauthorized', context: new Response('', { status: 401 }) } };
+  await assert.rejects(askAiTutor({ question: 'Explain recursion' }), /Sign in again/);
+  assert.equal(localRequests, beforeAuth, 'Authentication errors must remain visible');
+  reply = { data: null, error: { message: 'Unavailable', context: new Response('', { status: 503 }) } };
+  assert.equal((await askAiTutor({ question: 'Explain recursion' })).sourceMode, 'library');
+  reply = new TypeError('Failed to fetch');
+  assert.equal((await askAiTutor({ question: 'Explain recursion' })).sourceMode, 'library');
+  reply = { data: null, error: { message: 'Invalid request', context: new Response('', { status: 400 }) } };
+  await assert.rejects(askAiTutor({ question: 'Explain recursion' }), /Invalid request/);
+  console.log('AI routing passed: online/offline/reconnection, explicit library mode, service/network fallback, unchanged API payloads and visible authentication errors.');
+})().catch(error => { console.error(error); process.exitCode = 1; });

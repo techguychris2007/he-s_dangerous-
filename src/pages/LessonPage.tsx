@@ -1,3 +1,4 @@
+import LearningActions from '../components/lesson/LearningActions';
 import { Suspense, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { findModule, ROADMAP } from '../data/curriculum';
@@ -106,6 +107,7 @@ function LessonReader({ mod, lesson }: { mod: ModuleMeta; lesson: LessonMeta }) 
   return (
     <div className="h-full flex flex-col lg:flex-row min-w-0">
       <div ref={scrollRef} className="lesson-reader flex-1 min-w-0 overflow-y-auto" style={{ '--reader-size': `${fontSize}px` } as CSSProperties}>
+        <LearningActions back={{ href: `/module/${mod.slug}`, label: 'Back to module' }} previous={prev ? `/module/${mod.slug}/lesson/${prev.slug}` : undefined} next={next ? `/module/${mod.slug}/lesson/${next.slug}` : undefined} />
         <div className="reader-progress" role="progressbar" aria-label="Reading progress" aria-valuenow={readingProgress} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${readingProgress}%` }} /></div>
         <div className={`reader-layout ${wide ? 'reader-layout-wide' : ''}`}>
           <div className="min-w-0">
@@ -141,7 +143,7 @@ function LessonReader({ mod, lesson }: { mod: ModuleMeta; lesson: LessonMeta }) 
             </header>
             {lesson.objectives?.length ? <section className="reader-objectives" aria-label="Learning objectives"><h2>What you will be able to do</h2><ul>{lesson.objectives.map(item => <li key={item}>{item}</li>)}</ul></section> : null}
             <details className="reader-mobile-outline"><summary>In this lesson</summary>{tableOfContents}</details>
-            <BeginnerGlossary targetRef={contentRef} exclude={(lesson.keyTerms ?? []).map(k => k.term)} resetKey={lesson.id} />
+            <BeginnerGlossary targetRef={contentRef} resetKey={lesson.id} />
             <div ref={contentRef} className="lesson-body">
               <PrerequisitePrimer moduleSlug={mod.slug} prerequisite={lesson.prerequisite} />
               <Suspense fallback={<p role="status">Loading lesson content…</p>}><Content /></Suspense>

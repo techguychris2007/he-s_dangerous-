@@ -1,3 +1,4 @@
+import ResearchTerms from '../components/lesson/ResearchTerms';
 import { useEffect, useRef, useState } from 'react';
 import { Navigate, useParams, Link } from 'react-router-dom';
 import { findBook, booksInTrack } from '../data/books';
@@ -144,13 +145,15 @@ export default function BookReaderPage() {
       return () => { cancelled = true; };
     }
     setOfflineBookState('checking');
-    void caches.open('dw-books-offline-v1')
+    const checkSavedBook = () => { void caches.open('dw-books-offline-v1')
       .then(cache => cache.match(new URL(localPdfUrl, window.location.href)))
       .then(response => {
         if (!cancelled) setOfflineBookState(response?.status === 200 ? 'saved' : 'ready');
       })
-      .catch(() => { if (!cancelled) setOfflineBookState('ready'); });
-    return () => { cancelled = true; };
+      .catch(() => { if (!cancelled) setOfflineBookState('ready'); }); };
+    checkSavedBook();
+    window.addEventListener('darkworld:offline-library-changed', checkSavedBook);
+    return () => { cancelled = true; window.removeEventListener('darkworld:offline-library-changed', checkSavedBook); };
   }, [localPdfUrl]);
 
   if (!book) return <Navigate to="/library" replace />;
@@ -278,6 +281,7 @@ export default function BookReaderPage() {
             </div>
           )}
         </div>
+        <AiReadingCompanion key={book.id} bookTitle={book.title} currentPage={0} viewerRef={viewerRef} />
       </div>
     );
   }
@@ -301,12 +305,18 @@ export default function BookReaderPage() {
     setOfflineBookState('saving');
     setOfflineBookMessage('');
     try {
+      const cache = await caches.open('dw-books-offline-v1');
+      if ((await cache.match(new URL(localPdfUrl, window.location.href)))?.status === 200) {
+        setOfflineBookState('saved');
+        setOfflineBookMessage('This book is already saved for offline reading.');
+        return;
+      }
       const response = await fetch(localPdfUrl, { credentials: 'same-origin' });
       if (response.status !== 200 || !response.ok || !response.headers.get('content-type')?.includes('pdf')) {
         throw new Error('The PDF could not be downloaded completely.');
       }
-      const cache = await caches.open('dw-books-offline-v1');
       await cache.put(new URL(localPdfUrl, window.location.href), response.clone());
+      window.dispatchEvent(new Event('darkworld:offline-library-changed'));
       setOfflineBookState('saved');
       setOfflineBookMessage('Saved in this browser. You can read this book offline on this device.');
     } catch {
@@ -624,6 +634,7 @@ export default function BookReaderPage() {
         </div>
       )}
 
+      <div className="book-research-wrap"><ResearchTerms /></div>
       <div className="flex-1 min-h-0" style={{ minHeight: '80vh' }}>
         <PdfViewer
           ref={viewerRef}
