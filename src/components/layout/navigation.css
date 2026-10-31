@@ -14,20 +14,20 @@
   box-shadow: none;
   font-size: 13px;
 }
-.dw-sidebar-header { padding: 22px 18px 14px; }
+.dw-sidebar-header { padding: 24px 20px 18px; }
 .dw-navigation-close { position: absolute; right: 12px; top: 20px; z-index: 40; display: grid; place-items: center; width: 28px; height: 28px; color: var(--chrome-text); background: var(--chrome-raise); border: 1px solid var(--chrome-line-strong); border-radius: 6px; cursor: pointer; }
 .dw-navigation-close svg { width: 16px; height: 16px; }
-.dw-sidebar-brand { display: flex; align-items: center; gap: 11px; margin-bottom: 22px; color: var(--chrome-ink); text-decoration: none; }
-.dw-sidebar-brand strong { display: block; font-size: 22px; font-weight: 700; letter-spacing: -.6px; line-height: 1.15; }
+.dw-sidebar-brand { display: flex; align-items: center; gap: 11px; margin-bottom: 24px; color: var(--chrome-ink); text-decoration: none; }
+.dw-sidebar-brand strong { display: block; font-size: 21px; font-weight: 700; letter-spacing: -.45px; line-height: 1.15; }
 .dw-sidebar-brand small { display: block; margin-top: 5px; color: var(--chrome-muted); font-size: 9px; font-weight: 500; letter-spacing: 2.4px; }
-.dw-sidebar-scroll { min-height: 0; flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 0 12px 18px; scrollbar-width: thin; scrollbar-color: var(--chrome-line-strong) transparent; }
-.dw-nav-section { margin-bottom: 14px; }
+.dw-sidebar-scroll { min-height: 0; flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 4px 14px 20px; scrollbar-gutter: stable; scrollbar-width: thin; scrollbar-color: var(--chrome-line-strong) transparent; }
+.dw-nav-section { margin-bottom: 19px; }
 .dw-nav-workspace { padding-bottom: 13px; border-bottom: 1px solid var(--chrome-line); }
-.dw-nav-label { margin: 0 12px 6px; color: var(--chrome-muted); font-size: 10px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; }
+.dw-nav-label { margin: 0 12px 8px; color: var(--chrome-muted); font-size: 9px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; }
 .dw-nav-link,
-.dw-nav-disclosure > summary { display: flex; align-items: center; gap: 11px; min-height: 38px; padding: 9px 12px; border-radius: 6px; color: var(--chrome-text); font-weight: 500; text-decoration: none; cursor: pointer; transition: background-color .15s, color .15s; }
+.dw-nav-disclosure > summary { display: flex; align-items: center; gap: 11px; min-height: 40px; padding: 10px 12px; border-radius: 7px; line-height: 1.4; color: var(--chrome-text); font-weight: 500; text-decoration: none; cursor: pointer; transition: background-color .15s, color .15s; }
 .dw-nav-link:hover, .dw-nav-disclosure > summary:hover { background: var(--chrome-hover); color: var(--chrome-ink); }
-.dw-nav-link.is-active { color: var(--chrome-ink); background: var(--chrome-active); box-shadow: inset 3px 0 var(--chrome-highlight); font-weight: 600; }
+.dw-nav-link.is-active { color: var(--chrome-ink); background: var(--chrome-active); box-shadow: inset 2px 0 var(--chrome-highlight); font-weight: 600; }
 .dw-nav-icon { width: 17px; height: 17px; flex-shrink: 0; }
 .dw-nav-link .dw-nav-icon { opacity: .85; }
 .dw-nav-link.is-active .dw-nav-icon { opacity: 1; color: var(--chrome-highlight); }
@@ -58,14 +58,15 @@
 .dw-nav-lesson:hover, .dw-nav-lesson.is-active { color: var(--chrome-ink); background: var(--chrome-raise); }
 .dw-nav-reset { width: 100%; text-align: left; padding: 10px 6px; font-size: 11px; color: var(--chrome-muted); cursor: pointer; }
 .dw-nav-reset:hover { color: var(--chrome-danger); }
-.dw-sidebar-footer { padding: 13px 18px; background: var(--chrome-bg); border-top: 1px solid var(--chrome-line); }
+.dw-sidebar-footer { padding: 14px 16px; background: var(--chrome-bg); border-top: 1px solid var(--chrome-line); }
 .dw-account-menu { position: relative; }
-.dw-account-menu > summary { display: flex; align-items: center; gap: 10px; color: var(--chrome-text); list-style: none; cursor: pointer; border-radius: 6px; }
+.dw-account-menu > summary { display: flex; align-items: center; gap: 10px; color: var(--chrome-text); list-style: none; cursor: pointer; border-radius: 7px; padding: 8px; transition: background-color .15s; }
 .dw-account-menu > summary::-webkit-details-marker { display: none; }
 .dw-account-avatar { display: grid; place-items: center; width: 34px; height: 34px; background: var(--chrome-active); border: 1px solid var(--chrome-line-strong); color: var(--chrome-ink); border-radius: 50%; font-size: 13px; font-weight: 600; flex-shrink: 0; }
 .dw-account-name { min-width: 0; flex: 1; }
 .dw-account-name strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--chrome-ink); font-weight: 600; font-size: 12.5px; }
 .dw-account-name small { display: block; color: var(--chrome-muted); margin-top: 2px; font-size: 10.5px; }
+.dw-account-menu > summary:hover, .dw-account-menu[open] > summary { background: var(--chrome-hover); }
 .dw-account-popover { position: absolute; bottom: calc(100% + 16px); left: -6px; right: -6px; padding: 8px; background: var(--chrome-raise); border: 1px solid var(--chrome-line-strong); border-radius: 10px; box-shadow: 0 12px 40px #0006; z-index: 10; }
 .dw-account-popover > p { padding: 7px 12px; color: var(--chrome-muted); font-size: 10px; letter-spacing: 1.5px; }
 .dw-sign-out { width: 100%; border-top: 1px solid var(--chrome-line-strong); border-radius: 0 0 5px 5px; margin-top: 7px; justify-content: space-between; font-size: 12px; }

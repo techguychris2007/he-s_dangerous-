@@ -1,6 +1,7 @@
 import { BOOKS, type Book } from '../data/books';
 import type { AskAiTutorResult } from './aiTutor';
 import type { LibraryPassage } from './librarySearch';
+import { resolveLibraryQuestion, sourceAnswer, type LibraryQuestionContext } from './libraryQuestion';
 
 const DB = 'darkworld-library-assistance';
 const CACHE = 'dw-books-offline-v1';
@@ -89,7 +90,7 @@ export async function prepareLibrary(bookIds: string[], repair = false): Promise
     const pending = books.filter(book => repair || readiness[book.id] !== 'ready');
     const estimate = await navigator.storage?.estimate?.();
     const needed = pending.reduce((sum, book) => sum + Number(book.fileSizeMb ?? 5) * 1024 * 1024 * 1.3, 0);
-    if (estimate?.quota && estimate.quota - (estimate.usage ?? 0) < needed) throw new Error('There is not enough device storage for this selection. Choose fewer books or free storage first.');
+    if (estimate?.quota && estimate.quota - (estimate.usage ?? 0) < needed) throw new Error('There is not enough device storage for this selection. Free device storage and retry.');
     try { await navigator.storage?.persist?.(); } catch { /* The browser may decline persistent storage. */ }
     const cache = await caches.open(CACHE);
     const failures: string[] = [];
@@ -129,7 +130,7 @@ export async function prepareLibrary(bookIds: string[], repair = false): Promise
       }
       publish({ finished: index + 1 });
     }
-    publish({ message: failures.length ? 'Some books need attention. Completed books remain available.' : 'Your selected books are ready for offline library search.', error: failures.join('\n') });
+    publish({ message: failures.length ? 'Some books need attention. Completed books remain available.' : 'Your books are ready for offline dig.', error: failures.join('\n') });
   } catch (error) {
     publish({ message: current.signal.aborted ? 'Preparation cancelled. Completed books remain available.' : '', error: current.signal.aborted ? '' : error instanceof Error ? error.message : 'Preparation failed.' });
   } finally { controller = null; publish({ running: false }); }
@@ -145,14 +146,12 @@ export async function removeLibraryIndex(id: string): Promise<void> {
   });
   window.dispatchEvent(new Event('darkworld:offline-library-changed'));
 }
-export async function searchSavedLibrary(question: string, contextTitle?: string): Promise<AskAiTutorResult> {
-  const result = (answer: string): AskAiTutorResult => ({ answer, model: 'Offline library search', sourceMode: 'library' });
+export async function searchSavedLibrary(question: string, contextTitle?: string, context: LibraryQuestionContext = {}): Promise<AskAiTutorResult> {
+  const result = (answer: string): AskAiTutorResult => ({ answer, model: 'dig · book sources', sourceMode: 'library' });
   const readiness = await libraryReadiness();
   const books = (await records()).filter(book => readiness[book.id] === 'ready');
-  if (!books.length) return result('No searchable books are prepared on this device. Open “Prepare offline workspace” while connected and choose “Prepare coding + full library”. All in-library books are prepared automatically. Reading PDFs saved without a search index must be prepared once.');
-  // Context is used only when a quick action contains no subject, never to override a specific question.
-  const { queryTerms } = await import('./librarySearch');
-  const effectiveQuestion = queryTerms(question).length ? question : queryTerms(contextTitle ?? '').slice(0, 3).join(' ');
+  if (!books.length) return result('Prepare your offline workspace once while connected so I can answer from your books.');
+  const effectiveQuestion = resolveLibraryQuestion(question, { ...context, title: context.title ?? contextTitle });
   const worker = new Worker(new URL('./librarySearch.worker.ts', import.meta.url), { type: 'module' });
   const passages = books.flatMap(book => book.passages);
   const found = await new Promise<LibraryPassage[]>((resolve, reject) => {
@@ -164,9 +163,30 @@ export async function searchSavedLibrary(question: string, contextTitle?: string
     worker.onerror = () => { clearTimeout(timeout); worker.terminate(); reject(new Error('Offline search could not start. Reload the app and retry.')); };
     worker.postMessage({ question: effectiveQuestion, passages });
   });
-  if (!found.length) return result('I could not find a sufficiently relevant passage in your prepared books. Try a specific term or a shorter question. If preparation is incomplete, connect to finish the full library; online AI can also help when connected. This mode searches saved sources; it does not generate an explanation.');
+  // The current reader page is an actual source too, not a guessed page from the book title.
+  const currentBook = books.find(book => eligibleLibraryBooks().some(item => item.id === book.id && item.title === contextTitle));
+  if (currentBook && context.text?.trim() && context.page && /\b(this page|summarize|takeaways)\b/i.test(question)) {
+    found.unshift({ bookId: currentBook.id, title: contextTitle!, page: context.page, text: context.text.slice(0, 7000) });
+  }
+  if (!found.length) return result('I couldn’t find an answer in your prepared books. Which topic or book do you mean?');
+  let direct = sourceAnswer(effectiveQuestion, found);
+  let model = 'dig · book sources';
+  if (!/\b(summarize|summary|takeaways|compare|difference|versus)\b/i.test(question)) {
+    try {
+      const { readLibraryAnswer } = await import('./offlineReader');
+      const interpreted = await readLibraryAnswer(effectiveQuestion, found);
+      if (interpreted?.answer && interpreted.passageIndex !== undefined && found[interpreted.passageIndex]) {
+        const source = found[interpreted.passageIndex];
+        const normalized = source.text.replace(/\s+/g, ' ');
+        // Include the complete sentence around the predicted span, for a readable answer.
+        const sentence = normalized.match(/[^.!?]+(?:[.!?](?=\s|$)|$)/g)?.find(item => item.includes(interpreted.answer!));
+        direct = { answer: sentence?.trim() || interpreted.answer, sources: [source] };
+        model = 'dig · offline question answering';
+      }
+    } catch { /* A compact sourced answer remains available if the reader cannot run. */ }
+  }
   return {
-    ...result('These passages from your prepared library may help. They are source excerpts, not a generated explanation. Open a source below to read it here; no page change is needed.'),
-    citations: found.map(passage => ({ title: `${passage.title} · PDF page ${passage.page}`, uri: `/#/library/${passage.bookId}`, library: passage })),
+    ...result(direct.answer), model,
+    citations: direct.sources.map(passage => ({ title: `${passage.title} · PDF page ${passage.page}`, uri: `/#/library/${passage.bookId}`, library: passage })),
   };
 }

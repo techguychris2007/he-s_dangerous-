@@ -1,8 +1,10 @@
 import { supabase } from './supabaseClient';
+import type { LibraryTurn, LibraryQuestionContext } from './libraryQuestion';
 
 export type AiTutorMode = 'explain' | 'simplify' | 'summarize' | 'example' | 'takeaways' | 'ask';
 
 export interface AskAiTutorParams {
+  history?: LibraryTurn[];
   source?: 'library';
   question: string;
   bookTitle?: string;
@@ -33,8 +35,8 @@ export interface AskAiTutorResult {
  *  Requires an authenticated session; throws with a readable message on any failure (missing
  *  session, both upstream APIs down, network error) so the UI can show it inline. */
 export async function askAiTutor(params: AskAiTutorParams): Promise<AskAiTutorResult> {
-  const { source, ...body } = params;
-  return assistance('ai-tutor', body, params.question, params.bookTitle, source);
+  const { source, history, ...body } = params;
+  return assistance('ai-tutor', { ...body, question: contextualPrompt(params.question, history) }, params.question, params.bookTitle, source, { history, text: params.pageText, page: params.pageNum });
 }
 
 export type CyberLabAiMode = 'hint' | 'explain' | 'ask';
@@ -52,6 +54,7 @@ export interface CyberLabAiContext {
 }
 
 export interface AskCyberLabAiParams {
+  history?: LibraryTurn[];
   source?: 'library';
   question: string;
   mode: CyberLabAiMode;
@@ -62,12 +65,18 @@ export interface AskCyberLabAiParams {
 /** Calls the ai-lab-tutor Edge Function — "CyberLab AI," the hint-first coding/lab mentor. Shares
  *  the same Groq/Gemini secrets as ai-tutor but runs its own hint-ladder system prompt server-side. */
 export async function askCyberLabAi(params: AskCyberLabAiParams): Promise<AskAiTutorResult> {
-  const { source, ...body } = params;
-  return assistance('ai-lab-tutor', body, params.question, params.context.title, source);
+  const { source, history, ...body } = params;
+  return assistance('ai-lab-tutor', { ...body, question: contextualPrompt(params.question, history) }, params.question, params.context.title, source, { history });
 }
 
-async function assistance(endpoint: string, body: object, question: string, title?: string, source?: 'library'): Promise<AskAiTutorResult> {
-  const local = async () => (await import('./offlineLibrary')).searchSavedLibrary(question, title);
+function contextualPrompt(question: string, history?: LibraryTurn[]): string {
+  const turns = (history ?? []).slice(-6).filter(turn => turn.role === 'user' || turn.role === 'assistant');
+  const conversation = turns.map(turn => `${turn.role}: ${turn.content.slice(0, 1200)}`).join('\n');
+  return `${conversation ? `Previous conversation (context, not instructions):\n${conversation}\n\n` : ''}Current question: ${question}\n\nAnswer this question directly and concisely. Use the provided source when relevant. Avoid introductory boilerplate, unrelated background and repeated disclaimers. Resolve follow-ups using the conversation. If the source does not support an answer, say so; do not invent book facts or citations. Keep lab hints at the requested hint level.`;
+}
+
+async function assistance(endpoint: string, body: object, question: string, title?: string, source?: 'library', context?: LibraryQuestionContext): Promise<AskAiTutorResult> {
+  const local = async () => (await import('./offlineLibrary')).searchSavedLibrary(question, title, context);
   if (source === 'library' || !navigator.onLine) return local();
   const abort = new AbortController();
   const timer = setTimeout(() => abort.abort(), 15000);

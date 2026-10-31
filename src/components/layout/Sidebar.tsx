@@ -1,4 +1,4 @@
-import type { ComponentType } from 'react';
+import { useEffect, useRef, type ComponentType } from 'react';
 import { NavLink, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { findModule } from '../../data/curriculum';
 import { useProgress } from '../../state/progressStore';
@@ -29,6 +29,24 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const { moduleSlug } = useParams();
   const currentModule = findModule(moduleSlug);
   const location = useLocation();
+  const accountRef = useRef<HTMLDetailsElement>(null);
+  useEffect(() => {
+    const closeOutside = (event: PointerEvent) => {
+      if (accountRef.current?.open && !accountRef.current.contains(event.target as Node)) accountRef.current.open = false;
+    };
+    const closeWithEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && accountRef.current?.open) {
+        accountRef.current.open = false;
+        accountRef.current.querySelector('summary')?.focus();
+      }
+    };
+    document.addEventListener('pointerdown', closeOutside);
+    document.addEventListener('keydown', closeWithEscape);
+    return () => {
+      document.removeEventListener('pointerdown', closeOutside);
+      document.removeEventListener('keydown', closeWithEscape);
+    };
+  }, []);
   const navigate = useNavigate();
   const name = progress.learnerName?.trim() || 'Learner';
   const { seed: handleSeed, handle } = useHandle();
@@ -69,6 +87,6 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         </details>
       </section>}
     </div>
-    <div className="dw-sidebar-footer"><details className="dw-account-menu"><summary><OperatorAvatar seed={handleSeed} size={34} /><span className="dw-account-name"><strong>{handle}</strong><small>{auth.isGuest ? 'Guest workspace' : name}</small></span><span aria-hidden="true">⌃</span></summary><div className="dw-account-popover"><p>YOUR ACCOUNT</p>{accountLinks.map(([to, label, Icon]) => <NavLink key={to} to={to} className="dw-nav-link" onClick={event => { event.currentTarget.closest('details')?.removeAttribute('open'); onNavigate?.(); }}><Icon className="dw-nav-icon"/><span>{label}</span></NavLink>)}<button type="button" className="dw-nav-link dw-sign-out" onClick={async () => { await auth.signOut(); navigate('/welcome'); onNavigate?.(); }}>Sign out <span aria-hidden="true">↗</span></button></div></details></div>
+    <div className="dw-sidebar-footer"><details ref={accountRef} className="dw-account-menu"><summary><OperatorAvatar seed={handleSeed} size={34} /><span className="dw-account-name"><strong>{handle}</strong><small>{auth.isGuest ? 'Guest workspace' : name}</small></span><span aria-hidden="true">⌃</span></summary><div className="dw-account-popover"><p>YOUR ACCOUNT</p>{accountLinks.map(([to, label, Icon]) => <NavLink key={to} to={to} className="dw-nav-link" onClick={event => { event.currentTarget.closest('details')?.removeAttribute('open'); onNavigate?.(); }}><Icon className="dw-nav-icon"/><span>{label}</span></NavLink>)}<button type="button" className="dw-nav-link dw-sign-out" onClick={async () => { await auth.signOut(); navigate('/welcome'); onNavigate?.(); }}>Sign out <span aria-hidden="true">↗</span></button></div></details></div>
   </aside>;
 }

@@ -40,7 +40,7 @@ export default defineConfig({
         clientsClaim: true,
         // Precache every hashed build artifact (JS/CSS/fonts) plus the shell + icons, so the whole
         // app boots and runs with zero network requests once a single online visit has completed.
-        globPatterns: ['**/*.{js,css,html,svg,png,webp,ico,woff2,ttf}'],
+        globPatterns: ['**/*.{js,mjs,css,html,svg,png,webp,ico,woff2,ttf}'],
         navigateFallback: '/index.html',
         // The main bundle passed 2 MiB once @supabase/supabase-js was added, then passed 5 MiB as
         // the Build Portal's SE task catalog (taskIndex.ts — metadata only, but eagerly imported by

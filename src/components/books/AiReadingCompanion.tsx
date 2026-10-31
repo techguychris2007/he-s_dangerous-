@@ -54,7 +54,7 @@ export default function AiReadingCompanion({ bookTitle, currentPage, viewerRef }
     setLoading(true);
     try {
       const pageText = (await viewerRef.current?.getPageText(currentPage)) ?? '';
-      const result = await askAiTutor({ question, bookTitle, pageNum: currentPage, pageText, mode, source });
+      const result = await askAiTutor({ question, bookTitle, pageNum: currentPage, pageText, mode, source, history: messages.filter(m => m.role !== 'error').slice(-6).map(m => ({ role: m.role as 'user' | 'assistant', content: m.text })) });
       setMessages((m) => [...m, { role: 'assistant', text: result.answer, model: result.model, citations: result.citations }]);
     } catch (err) {
       setMessages((m) => [
@@ -88,7 +88,7 @@ export default function AiReadingCompanion({ bookTitle, currentPage, viewerRef }
       <AiChatWindow
         title="dig"
         subtitle={currentPage > 0 ? `${bookTitle} — page ${currentPage}` : `Library research — ${bookTitle}`}
-        emptyState={currentPage > 0 ? 'Ask about this page. Online AI receives its text; saved-library search uses your prepared books and shows cited passages.' : 'Ask about this topic. The external resource’s full text is not available to dig. Saved-library search uses books you have prepared on this device.'}
+        emptyState={currentPage > 0 ? 'Ask about this page or follow up on an answer. Book answers include a page reference.' : 'Ask about this topic. dig can use your prepared books; this external resource’s full text is not available here.'}
         messages={messages}
         loading={loading}
         quickActions={(currentPage > 0 ? QUICK_ACTIONS : []).map((qa) => ({

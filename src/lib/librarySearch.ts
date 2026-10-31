@@ -5,13 +5,19 @@ export interface LibraryPassage {
   page: number;
   text: string;
 }
-const STOP = new Set('a an the is are was were be been being to of for in on at and or with from by as it its this that these those i me my you your we our what why how when where which who please explain understand help about can could would should does do did give show tell lesson concept lab testing level hint example simpler terms practical question check understanding context idea research plain real analogy page book summarize summary takeaways key'.split(' '));
+const STOP = new Set('a an the is are was were be been being to of for in on at and or with from by as it its this that these those i me my you your we our what why how when where which who please explain understand help about can could would should does do did give show tell lesson concept lab testing level hint example simpler terms practical question check understanding context idea research plain real analogy page book works working need want know need useful used use using someone anyone something mean means make makes affect happens happen difference between compare versus vs summarize summary takeaways key'.split(' '));
 const SYNONYMS: Record<string, string[]> = {
   ssh: ['secure', 'shell'], dns: ['domain', 'name'], tcp: ['transmission', 'control'],
   acl: ['access', 'control'], ml: ['machine', 'learning'], ai: ['artificial', 'intelligence'],
   overfitting: ['overfit', 'generalization'], permissions: ['permission'], debugging: ['debug', 'bug'],
   encryption: ['encrypt', 'cipher'], authentication: ['authenticate', 'identity'],
   recursion: ['recursive'],
+  stops: ['stop', 'base', 'case'], stopped: ['stop', 'base', 'case'],
+  remembering: ['overfitting', 'training'], memorizes: ['overfitting', 'training'],
+  website: ['dns', 'domain', 'name'], websites: ['dns', 'domain', 'name'],
+  identity: ['authentication', 'authenticate'], locked: ['permission', 'permissions'],
+  password: ['authentication', 'credentials'], errors: ['error', 'debug', 'debugging'],
+  insecure: ['security', 'vulnerability'], secure: ['security', 'secure'],
 };
 export function queryTerms(text: string): string[] {
   return [...new Set((text.toLowerCase().match(/[a-z][a-z0-9+#.-]*/g) ?? []).filter(t => t.length > 1 && !STOP.has(t)))].slice(0, 24);
@@ -35,7 +41,9 @@ export function pagePassages(bookId: string, title: string, page: number, text: 
   return chunks;
 }
 export function rankPassages(question: string, passages: LibraryPassage[]): LibraryPassage[] {
-  const terms = queryTerms(question);
+  const terms = queryTerms(question.split('\nTopic:')[0]);
+  const contextualTerms = queryTerms(question.split('\nTopic:')[1] ?? '');
+  for (const term of contextualTerms) if (!terms.includes(term)) terms.push(term);
   if (!terms.length) return [];
   const expanded = new Set(terms.flatMap(term => SYNONYMS[term] ?? []));
   const documents = passages.filter(p => {
@@ -57,8 +65,8 @@ export function rankPassages(question: string, passages: LibraryPassage[]): Libr
     const synonymHits = [...expanded].filter(t => doc.frequencies.has(t));
     // Several unrelated high-frequency words are not evidence of a useful passage.
     const coverage = matched.length / terms.length;
-    const expandedOnly = terms.length === 1 && synonymHits.length >= 2;
-    if ((!matched.length && !expandedOnly) || (terms.length > 2 && coverage < .45)) return { p: doc.p, score: 0 };
+    const expandedOnly = synonymHits.length >= 2;
+    if ((!matched.length && !expandedOnly) || (terms.length > 2 && coverage < .3 && !expandedOnly)) return { p: doc.p, score: 0 };
     let score = 0;
     for (const term of [...matched, ...synonymHits]) {
       const tf = doc.frequencies.get(term) ?? 0;
@@ -67,7 +75,7 @@ export function rankPassages(question: string, passages: LibraryPassage[]): Libr
       score += idf * (tf * 2.2 / (tf + 1.2 * (.25 + .75 * doc.length / Math.max(1, average)))) * (terms.includes(term) ? 1 : .25);
     }
     const headingMatch = terms.some(term => doc.p.text.slice(0, 100).toLowerCase().includes(term));
-    return { p: doc.p, score: score * (expandedOnly ? .5 : coverage) * (headingMatch ? 1.2 : 1) };
+    return { p: doc.p, score: score * (coverage || .35) * (headingMatch ? 1.2 : 1) };
   }).filter(result => result.score > 0).sort((a, b) => b.score - a.score);
   const seen = new Set<string>();
   return results.filter(result => {

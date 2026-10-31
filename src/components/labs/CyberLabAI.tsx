@@ -50,7 +50,7 @@ export default function CyberLabAI({ getContext, presentation = 'dock' }: CyberL
     setInput('');
     setLoading(true);
     try {
-      const result = await askCyberLabAi({ question, mode, hintLevel: hintLevelForRequest, source, context: getContext() });
+      const result = await askCyberLabAi({ question, mode, hintLevel: hintLevelForRequest, source, history: messages.filter(m => m.role !== 'error').slice(-6).map(m => ({ role: m.role as 'user' | 'assistant', content: m.text })), context: getContext() });
       setMessages((m) => [...m, { role: 'assistant', text: result.answer, model: result.model, citations: result.citations }]);
     } catch (err) {
       setMessages((m) => [
@@ -109,7 +109,7 @@ export default function CyberLabAI({ getContext, presentation = 'dock' }: CyberL
           emptyState={
             isLab
               ? "Stuck? Ask for a hint — I'll never just hand you the answer. I climb a hint ladder, one small step at a time, so you actually learn the fix."
-              : "Ask me anything about this lesson — I'll explain it plainly, then technically, with a real example."
+              : "Ask about this lesson. I’ll answer directly; you can ask for more detail when you need it."
           }
           messages={messages}
           loading={loading}

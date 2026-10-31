@@ -28,6 +28,7 @@
   "dependencies": {
     "@fontsource/ubuntu": "^5.2.5",
     "@fontsource/ubuntu-mono": "^5.2.5",
+    "@huggingface/transformers": "^3.8.1",
     "@monaco-editor/react": "^4.7.0",
     "@supabase/supabase-js": "^2.110.2",
     "JSCPP": "^2.0.9",

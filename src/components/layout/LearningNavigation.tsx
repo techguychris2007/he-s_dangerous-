@@ -32,7 +32,7 @@ const MORE = [
   { title: 'Account & support', links: [['/profile', 'Profile'], ['/security', 'Account security'], ['/help', 'Help & FAQ'], ['/feedback', 'Send feedback']] },
 ];
 const TITLES: Record<string, string> = { '': 'Overview', 'my-learning': 'My learning', roadmap: 'Learning paths', labs: 'Practice rooms', 'soc-portal': 'SOC casebooks', 'code-portal': 'Coding practice', 'code-task': 'Coding task', 'build-portal': 'Build projects', 'build-task': 'Build task', 'ml-portal': 'Machine learning', 'ml-lesson': 'Machine learning lesson', library: 'Library', leaderboard: 'Rankings', progress: 'Progress', tasks: 'My tasks', schedule: 'Schedule', announcements: 'Announcements', profile: 'Profile', security: 'Account security', help: 'Help & FAQ', feedback: 'Feedback', instructor: 'Instructor dashboard', resources: 'Resources', lab: 'Practice room', 'siem-lab': 'Investigation' };
-export default function LearningNavigation() {
+export default function LearningNavigation({ onMenuClick, menuOpen = false }: { onMenuClick?: () => void; menuOpen?: boolean } = {}) {
   const { pathname } = useLocation();
   const { theme, toggle } = useTheme();
   const auth = useAuth();
@@ -47,8 +47,8 @@ export default function LearningNavigation() {
     document.addEventListener('pointerdown', outside); document.addEventListener('keydown', escape);
     return () => { document.removeEventListener('pointerdown', outside); document.removeEventListener('keydown', escape); };
   }, []);
-  return <header className="learning-navigation">
-    <Link to="/" className="learning-navigation__brand" aria-label="DarkWorld overview"><Logo className="h-11 w-11"/><span>DarkWorld<small>CYBERSECURITY ACADEMY</small></span></Link>
+  return <header className={`learning-navigation${onMenuClick ? ' learning-navigation--with-sidebar' : ''}`}>
+    <>{onMenuClick && <button type="button" className="learning-navigation__control learning-navigation__sidebar-toggle" aria-label="Open sidebar" aria-controls="platform-navigation" aria-expanded={menuOpen} onClick={onMenuClick}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>}</><Link to="/" className="learning-navigation__brand" aria-label="DarkWorld overview"><Logo className="h-11 w-11"/><span>DarkWorld<small>CYBERSECURITY ACADEMY</small></span></Link>
     <nav aria-label="Platform navigation">{DESTINATIONS.map(({ href, title, icon: Icon, matches }) => <Link key={href} to={href} className={`learning-navigation__link${matches(pathname) ? ' is-current' : ''}`} aria-current={matches(pathname) ? 'page' : undefined}><span className="learning-navigation__symbol" aria-hidden="true"><Icon /></span><span>{title}</span></Link>)}</nav>
     <div className="learning-navigation__tools">
       <AcademySearch compact />

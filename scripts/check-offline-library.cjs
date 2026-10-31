@@ -23,3 +23,18 @@ assert.ok(chunks.every(p => p.page === 5 && p.bookId === 'python' && p.text.leng
 assert.equal(pagePassages('scanned', 'Scanned PDF', 1, '').length, 0);
 assert.ok(!queryTerms('Help me understand SSH in the context of this lesson. Explain the idea and show a practical example.').includes('lesson'));
 console.log('Offline retrieval passed: relevant ranking, acronym expansion, abstention, real source text/pages, chunking and source deduplication.');
+
+const { resolveLibraryQuestion, sourceAnswer, supportedSpan } = require('../src/lib/libraryQuestion.ts');
+const history = [{role:'user',content:'What is recursion?'},{role:'assistant',content:'A recursive function calls itself.'}];
+assert.ok(resolveLibraryQuestion('Why does it need a base case?',{history}).includes('Topic: What is recursion?'));
+assert.equal(resolveLibraryQuestion('What is DNS?',{history}), 'What is DNS?', 'A new subject replaces the earlier subject');
+assert.ok(resolveLibraryQuestion('Explain this page.',{title:'SSH host keys'}).includes('SSH host keys'));
+const direct = sourceAnswer('What is recursion?',docs.slice(0,1));
+assert.ok(direct.answer.includes('recursive') || direct.answer.includes('Recursion'));
+assert.ok(direct.answer.length < 500 && !direct.answer.includes('These passages'));
+for(const sentence of direct.answer.split('\n\n')) assert.ok(docs[0].text.includes(sentence), 'Answers must retain actual source wording');
+assert.equal(supportedSpan('a base case',.9,docs[0]),true);
+assert.equal(supportedSpan('a magic timer',.9,docs[0]),false,'Reject fabricated model spans');
+assert.equal(supportedSpan('base case',.01,docs[0]),false,'Reject low-confidence spans');
+assert.equal(rankPassages('Could you tell me how SSH works and why I should verify identity?',docs)[0].bookId,'security');
+console.log('Book answers passed: conversational follow-ups, topic changes, compact direct answers and supported model spans.');

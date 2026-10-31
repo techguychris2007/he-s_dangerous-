@@ -124,8 +124,8 @@ export default function AiChatWindow({
       </div>
 
       <div className="shrink-0 border-b border-[var(--color-border)] px-4 py-2 text-xs text-[var(--color-text-dim)]">
-        <p role="status">{!online ? 'Offline · searching prepared library books' : libraryOnly ? 'Library search · saved sources only' : 'Online AI · hosted models'}</p>
-        <label className="mt-1 flex items-center gap-2"><input type="checkbox" checked={libraryOnly} onChange={event => setLibraryOnly(event.target.checked)} />Search saved library</label>
+        <p role="status">{!online ? 'Offline · answers from prepared books' : libraryOnly ? 'Book answers · saved sources' : 'Online AI · hosted models'}</p>
+        <label className="mt-1 flex items-center gap-2"><input type="checkbox" checked={libraryOnly} onChange={event => setLibraryOnly(event.target.checked)} />Answer from my books</label>
       </div>
       <OfflineLibraryCard compact />
 
@@ -137,7 +137,7 @@ export default function AiChatWindow({
             >
               <DigAvatar size={64} />
             </span>
-            <p className="max-w-[26rem] text-sm leading-6 text-[var(--color-text-dim)]">{!online || libraryOnly ? 'Ask a specific question to find passages in your prepared books. Sources appear here with PDF page numbers. This mode does not generate explanations.' : emptyState}</p>
+            <p className="max-w-[26rem] text-sm leading-6 text-[var(--color-text-dim)]">{!online || libraryOnly ? 'Ask a question naturally, or follow up on your last answer. Book and page references appear beneath the answer.' : emptyState}</p>
           </div>
         )}
         {messages.map((m, i) => (
@@ -163,10 +163,10 @@ export default function AiChatWindow({
                 {m.citations && m.citations.length > 0 && (
                   <div className="mt-2 pt-2 border-t border-[var(--color-border)]/50 flex flex-wrap gap-1.5">
                     {m.citations.map((c, ci) => c.library ? (
-                      <details key={ci} open={ci === 0} className="w-full rounded-lg border border-[var(--color-border)] p-2">
+                      <details key={ci} className="w-full rounded-lg border border-[var(--color-border)] p-2">
                         <summary className="cursor-pointer text-xs font-semibold text-[var(--color-accent)]">{c.title}</summary>
                         <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-[var(--color-text)]">{c.library.text}</p>
-                        <small className="block mt-2 text-[var(--color-text-dim)]">Source excerpt · original wording, with PDF line breaks</small>
+                        <small className="block mt-2 text-[var(--color-text-dim)]">Book source · PDF page reference</small>
                       </details>
                     ) : (
                       <a
