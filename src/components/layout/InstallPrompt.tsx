@@ -4,6 +4,7 @@ import { applyAppUpdate, installApp, usePwa } from '../../state/pwa';
 import OfflineRuntimeCard from './OfflineRuntimeCard';
 import InstallAppButton from './InstallAppButton';
 import Logo from './Logo';
+import AppUpdateSymbol from './AppUpdateSymbol';
 import './app-install.css';
 
 export default function InstallPrompt() {
@@ -37,10 +38,10 @@ export default function InstallPrompt() {
         </section>
         <section className="dw-app-offline-section"><div className="dw-app-status"><h3>Offline learning</h3><span>{!online ? 'Offline' : pwa.offlineReady ? 'App saved on this device' : import.meta.env.DEV ? 'Development preview' : 'Preparing app files…'}</span></div>
           <p>{import.meta.env.DEV ? 'Installation and offline caching are tested in the built app or deployed site, not this development preview.' : pwa.offlineReady ? 'Lessons, browser-based security labs and JavaScript/C++ exercises are saved for offline use. Stay signed in before disconnecting.' : 'Keep this page open and connected while DarkWorld saves its app files. Once ready, you can reopen it without internet.'}</p>
-          <p>Save books individually in the Library. Prepare Python below before disconnecting. Sign-in, cloud sync, AI help, live rankings and external websites need internet. This browser’s local labs do not run a remote Kali machine.</p>
+          <p>Use the preparation below for Python coding and dig’s entire in-library book collection. Prepared dig searches show cited passages offline. Sign-in, cloud sync, hosted AI explanations, live rankings and external websites need internet. This browser’s local labs do not run a remote Kali machine.</p>
           <OfflineRuntimeCard/>
         </section>
-        {pwa.updateAvailable && <section className="dw-app-update"><h3>A new version is ready</h3><p>Finish your current task before updating. This reloads DarkWorld.</p><button type="button" className="dw-app-primary" onClick={() => { void applyAppUpdate(); }}>Update and reload</button></section>}
+        {pwa.updateAvailable && <section className="dw-app-update"><div className="dw-app-update__heading"><AppUpdateSymbol/><div><h3>A new version is ready</h3><p>Finish your current task before updating. This reloads DarkWorld.</p></div></div><button type="button" className="dw-app-primary" onClick={() => { void applyAppUpdate(); }}>Update and reload</button></section>}
         {pwa.error && <p role="alert" className="dw-app-error">{pwa.error}</p>}
       </div>
     </dialog>

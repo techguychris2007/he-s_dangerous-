@@ -17,6 +17,7 @@
     "test:ml-content": "node scripts/check-ml-content.cjs",
     "test:ml-library": "node scripts/check-ml-library.cjs",
     "test:offline-library": "node scripts/check-offline-library.cjs && node scripts/check-ai-assistance-routing.cjs",
+    "test:offline-workspace": "node scripts/check-offline-workspace.cjs",
     "test:dig-shell": "node scripts/check-dig-learning-shell.cjs",
     "test:documents": "node scripts/check-documents.cjs",
     "audit:labs": "node scripts/audit-lab-depth.cjs",

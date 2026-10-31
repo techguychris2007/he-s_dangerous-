@@ -149,7 +149,7 @@ export async function searchSavedLibrary(question: string, contextTitle?: string
   const result = (answer: string): AskAiTutorResult => ({ answer, model: 'Offline library search', sourceMode: 'library' });
   const readiness = await libraryReadiness();
   const books = (await records()).filter(book => readiness[book.id] === 'ready');
-  if (!books.length) return result('No searchable books are prepared on this device. Open “Prepare library assistance” while connected, choose a subject pack or books, and finish preparation. Reading PDFs saved without a search index must be prepared once.');
+  if (!books.length) return result('No searchable books are prepared on this device. Open “Prepare offline workspace” while connected and choose “Prepare coding + full library”. All in-library books are prepared automatically. Reading PDFs saved without a search index must be prepared once.');
   // Context is used only when a quick action contains no subject, never to override a specific question.
   const { queryTerms } = await import('./librarySearch');
   const effectiveQuestion = queryTerms(question).length ? question : queryTerms(contextTitle ?? '').slice(0, 3).join(' ');
@@ -164,7 +164,7 @@ export async function searchSavedLibrary(question: string, contextTitle?: string
     worker.onerror = () => { clearTimeout(timeout); worker.terminate(); reject(new Error('Offline search could not start. Reload the app and retry.')); };
     worker.postMessage({ question: effectiveQuestion, passages });
   });
-  if (!found.length) return result('I could not find a sufficiently relevant passage in your prepared books. Try a specific term, a shorter question, or prepare another subject pack while online. This mode searches saved sources; it does not generate an explanation.');
+  if (!found.length) return result('I could not find a sufficiently relevant passage in your prepared books. Try a specific term or a shorter question. If preparation is incomplete, connect to finish the full library; online AI can also help when connected. This mode searches saved sources; it does not generate an explanation.');
   return {
     ...result('These passages from your prepared library may help. They are source excerpts, not a generated explanation. Open a source below to read it here; no page change is needed.'),
     citations: found.map(passage => ({ title: `${passage.title} · PDF page ${passage.page}`, uri: `/#/library/${passage.bookId}`, library: passage })),
