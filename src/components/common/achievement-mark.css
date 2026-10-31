@@ -1,34 +1,13 @@
-.achievement-mark {
-  display: inline-flex;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--color-border);
-  border-radius: 0.7rem;
-  background: linear-gradient(145deg, #fff, #f3f6fc);
-  color: var(--color-text-dim);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 90%);
-}
-
-.achievement-mark--sm { width: 2rem; height: 2rem; }
-.achievement-mark--md { width: 2.5rem; height: 2.5rem; }
-.achievement-mark--lg { width: 3rem; height: 3rem; }
-
-.achievement-mark__disc,
-.achievement-mark__disc-inner {
-  display: contents;
-}
-
-.achievement-mark__icon {
-  width: 52%;
-  height: 52%;
-  stroke-width: 1.8;
-}
-
-.achievement-mark--earned {
-  border-color: rgb(37 99 235 / 22%);
-  background: linear-gradient(145deg, #f3f7ff, #e8efff);
-  color: var(--color-accent);
-}
-
-.achievement-mark--locked { background: var(--color-surface-2); color: var(--color-text-dim); }
+.achievement-mark { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; background: none; border: 0; }
+.achievement-mark--sm { width: 44px; height: 54px; }
+.achievement-mark--md { width: 72px; height: 86px; }
+.achievement-mark--lg { width: 112px; height: 134px; }
+.achievement-mark__art { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 3px 3px #0f14242b); transition: transform .18s; }
+.achievement-mark__icon { width: 24px; height: 24px; overflow: visible; stroke-width: 1.6; }
+.achievement-mark--locked .achievement-mark__art { filter: saturate(.2) opacity(.7); }
+.achievement-award:hover .achievement-mark--earned .achievement-mark__art { transform: translateY(-2px); }
+.achievement-award { background: linear-gradient(125deg, var(--color-surface), var(--color-bg)); }
+.achievement-award--earned { border-color: color-mix(in srgb, var(--color-gold) 30%, var(--color-border)); }
+.achievement-award__status { color: var(--color-gold-dim); }
+.achievement-award__label { display: block; font-size: 10px; line-height: 1.6; letter-spacing: .02em; color: var(--color-text-dim); margin-top: 5px; }
+@media (prefers-reduced-motion: reduce) { .achievement-mark__art { transition: none; } .achievement-award:hover .achievement-mark__art { transform: none; } }

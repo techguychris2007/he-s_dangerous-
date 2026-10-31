@@ -1,0 +1,18 @@
+const assert = require('node:assert/strict');
+require('./register-typescript.cjs');
+require.extensions['.css']=()=>{};
+const React = require('react');
+const {renderToStaticMarkup}=require('react-dom/server');
+const {ACHIEVEMENTS}=require('../src/data/achievements.ts');
+const {ACHIEVEMENT_AWARDS}=require('../src/data/achievementAwards.ts');
+const Mark=require('../src/components/common/AchievementMark.tsx').default;
+for(const achievement of ACHIEVEMENTS) assert.ok(ACHIEVEMENT_AWARDS[achievement.id],achievement.title+' needs an original award');
+assert.equal(Object.keys(ACHIEVEMENT_AWARDS).length,ACHIEVEMENTS.length);
+const art=renderToStaticMarkup(React.createElement(React.Fragment,null,...ACHIEVEMENTS.map(a=>React.createElement(Mark,{key:a.id,achievementId:a.id,icon:a.icon,unlocked:true})),React.createElement(Mark,{achievementId:'first-blood',icon:'flag',unlocked:false})));
+const ids=[...art.matchAll(/id="([^"]+)"/g)].map(m=>m[1]);
+assert.equal(new Set(ids).size,ids.length,'Award gradients must never collide in a shelf');
+for(const url of art.matchAll(/url\(#([^)]*)\)/g)) assert.ok(ids.includes(url[1]),'Every metallic finish must resolve');
+assert.ok(art.includes('achievement-mark--locked'));
+for(const form of ['medal','crest','star','trophy']) assert.ok(art.includes('data-form="'+form+'"'));
+for(const finish of ['bronze','silver','gold','platinum']) assert.ok(art.includes('data-finish="'+finish+'"'));
+console.log('Awards passed: every achievement has a design, all medal/trophy forms render, earned/locked states and unique gradient references.');

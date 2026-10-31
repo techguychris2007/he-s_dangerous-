@@ -7,6 +7,7 @@ import { ACHIEVEMENTS, computeStreak } from '../data/achievements';
 import { IconUser, IconFlag, IconCheck, IconBookmark, IconCode, IconLightning, IconLock } from '../components/layout/icons';
 import StatCard from '../components/common/StatCard';
 import DarkWorldBadge from '../components/common/DarkWorldBadge';
+import { achievementAward } from '../data/achievementAwards';
 import AchievementMark from '../components/common/AchievementMark';
 import RankCard from '../components/common/RankCard';
 import { ProfileHeader } from '../components/dashboard/DashboardWidgets';
@@ -222,17 +223,17 @@ export default function ProfilePage() {
             return (
               <div
                 key={a.id}
-                className={`min-h-[104px] rounded-lg border p-3.5 flex items-start gap-3 transition-colors ${
+                className={`achievement-award ${unlocked ? 'achievement-award--earned' : ''} min-h-[128px] rounded-lg border p-3.5 flex items-start gap-3 transition-colors ${
                   unlocked
                     ? 'border-[var(--color-accent)]/25 bg-[var(--color-surface)]'
                     : 'border-[var(--color-border)] bg-[var(--color-bg)]'
                 }`}
               >
-                <AchievementMark icon={a.icon} unlocked={unlocked} size="md" />
+                <AchievementMark achievementId={a.id} icon={a.icon} unlocked={unlocked} size="md" />
                 <div className="min-w-0">
                   <div className="text-sm font-bold text-[var(--color-heading)] leading-tight">{a.title}</div>
                   <div className="text-xs text-[var(--color-text-dim)] leading-snug mt-0.5">{a.description}</div>
-                  <div className={`mt-2 text-2xs font-black uppercase tracking-[.14em] ${unlocked ? 'text-[var(--color-accent)]' : 'text-[var(--color-text-dim)]'}`}>
+                  <span className="achievement-award__label">{achievementAward(a.id).label}</span><div className={`mt-2 text-2xs font-black uppercase tracking-[.14em] ${unlocked ? 'achievement-award__status' : 'text-[var(--color-text-dim)]'}`}>
                     {unlocked ? 'Awarded' : 'Locked'}
                   </div>
                 </div>

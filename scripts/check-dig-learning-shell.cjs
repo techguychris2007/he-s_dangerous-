@@ -40,3 +40,9 @@ assert.ok(fs.readFileSync('src/components/layout/PortalNavigation.tsx', 'utf8').
 for (const destination of ['/progress', '/tasks', '/security', '/help', '/profile']) assert.ok(header.includes('href="' + destination + '"'));
 for (const file of ['supabase/functions/ai-tutor/index.ts', 'supabase/functions/ai-lab-tutor/index.ts']) assert.ok(fs.readFileSync(file, 'utf8').includes('You are dig,'), 'Hosted prompt identity must match the interface');
 console.log('dig passed: original avatar IDs/accessibility, focused route boundaries, sidebar exclusion, current navigation state and standalone workspace shells.');
+
+const overview = renderToStaticMarkup(React.createElement(MemoryRouter, {initialEntries:['/']}, React.createElement(Navigation,{onMenuClick:()=>{}})));
+assert.ok(overview.includes('learning-navigation--overview'));
+assert.ok(!overview.includes('class="learning-navigation__dig"'), 'Overview keeps dig out of the top bar');
+assert.ok(header.includes('class="learning-navigation__dig"'), 'Learning workspaces retain their dig shortcut');
+console.log('Overview passed: focused navigation and route-specific dig placement.');

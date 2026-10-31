@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import type { Achievement } from '../../data/achievements';
+import { achievementAward } from '../../data/achievementAwards';
 import AchievementMark from './AchievementMark';
-import { IconArrowRight, IconCheck, IconLock } from '../layout/icons';
+import { IconArrowRight, IconCheck } from '../layout/icons';
 
 interface AchievementShelfProps {
   achievements: Achievement[];
@@ -35,31 +36,29 @@ export default function AchievementShelf({ achievements, total }: AchievementShe
       {achievements.length === 0 ? (
         <div className="flex flex-wrap items-center gap-4 px-4 py-4 sm:px-5">
           <div className="flex gap-2" aria-hidden="true">
-            {[0, 1, 2, 3].map((i) => (
-              <span key={i} className="grid h-11 w-11 place-items-center rounded-xl border border-dashed border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text-dim)]">
-                <IconLock className="h-4 w-4" />
-              </span>
+            {([['first-blood', 'flag'], ['first-lesson', 'book'], ['ten-labs', 'target'], ['fifty-labs', 'trophy']] as const).map(([id, icon]) => (
+              <AchievementMark key={id} achievementId={id} icon={icon} unlocked={false} size="sm"/>
             ))}
           </div>
           <p className="min-w-0 flex-1 text-sm leading-6 text-[var(--color-text-dim)]">
-            <b className="font-semibold text-[var(--color-heading)]">No badges yet.</b> Complete a lesson or capture a lab flag to earn your first achievement.
+            <b className="font-semibold text-[var(--color-heading)]">No awards yet.</b> Complete a lesson or capture a lab flag to earn your first achievement.
           </p>
           <Link to="/labs" className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3.5 text-xs font-bold text-white hover:brightness-110">
             Find a room <IconArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
       ) : (
-        <div className="grid grid-flow-col auto-cols-[minmax(230px,1fr)] gap-3 overflow-x-auto px-4 py-4 sm:px-5">
+        <div className="grid grid-flow-col auto-cols-[minmax(280px,1fr)] gap-3 overflow-x-auto px-4 py-4 sm:px-5">
           {achievements.map((achievement) => (
-            <article key={achievement.id} title={achievement.description} className="flex min-h-[88px] items-start gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] p-3.5 transition-colors hover:border-[var(--color-accent)]/35">
-              <AchievementMark icon={achievement.icon} unlocked size="md" />
+            <article key={achievement.id} title={achievement.description} className="achievement-award achievement-award--earned flex min-h-[118px] items-start gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] p-3.5 transition-colors hover:border-[var(--color-accent)]/35">
+              <AchievementMark achievementId={achievement.id} icon={achievement.icon} unlocked size="md" />
               <div className="min-w-0 flex-1">
                 <div className="flex items-start justify-between gap-2">
                   <h3 className="text-sm font-bold leading-5 text-[var(--color-heading)]">{achievement.title}</h3>
                   <IconCheck className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-success)]" />
                 </div>
                 <p className="mt-1 line-clamp-2 text-xs leading-5 text-[var(--color-text-dim)]">{achievement.description}</p>
-                <p className="mt-2 text-2xs font-black uppercase tracking-[.14em] text-[var(--color-accent)]">Awarded</p>
+                <span className="achievement-award__label">{achievementAward(achievement.id).label}</span><p className="achievement-award__status mt-2 text-2xs font-bold uppercase tracking-[.14em]">Awarded</p>
               </div>
             </article>
           ))}

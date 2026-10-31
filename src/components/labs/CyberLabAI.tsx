@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { askCyberLabAi, type CyberLabAiContext, type CyberLabAiMode } from '../../lib/aiTutor';
 import AiChatWindow, { type ChatMessage } from '../common/AiChatWindow';
+import './cyberlab-ai.css';
 import DigAvatar from '../characters/DigAvatar';
 
 interface CyberLabAIProps {
   presentation?: 'dock' | 'floating';
+  floatingLauncher?: boolean;
   /** called fresh every time a message is sent, so hint/currentCode context is always up to date
    *  (currentCode in particular changes on every keystroke and shouldn't trigger re-renders here) */
   getContext: () => CyberLabAiContext;
@@ -24,7 +26,8 @@ interface PendingRequest {
  *  any hand-rolled positioning math. Shares its context shape with the reading companion but with
  *  lab-specific behavior: a 5-level hint ladder instead of free explanation on demand, since handing
  *  over a working solution defeats the point of a graded lab. */
-export default function CyberLabAI({ getContext, presentation = 'dock' }: CyberLabAIProps) {
+export default function CyberLabAI({ getContext, presentation = 'dock', floatingLauncher = false }: CyberLabAIProps) {
+  const floatingButton = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
@@ -81,7 +84,7 @@ export default function CyberLabAI({ getContext, presentation = 'dock' }: CyberL
   const isLab = context.kind === 'lab';
 
   if (!open) {
-    if (presentation === 'floating') return null;
+    if (presentation === 'floating') return floatingLauncher ? <button ref={floatingButton} type="button" className="dig-floating-launcher" onClick={() => setOpen(true)} aria-label="Ask dig, your learning assistant"><DigAvatar size={54}/><span><strong>dig</strong><small>Ask a question</small></span></button> : null;
     // In-flow docked launcher, not a `fixed` overlay — a floating pill sitting on top of the
     // terminal/editor beside it would cover whatever the learner just typed on the line it lands
     // on. Sizing itself into the same flex row/column the open panel already docks into (see
@@ -105,16 +108,16 @@ export default function CyberLabAI({ getContext, presentation = 'dock' }: CyberL
       <div className={presentation === 'floating' ? 'fixed bottom-5 right-5 z-50 w-[400px] max-w-[calc(100vw-2.5rem)] h-[650px] max-h-[calc(100dvh-110px)] rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] flex flex-col overflow-hidden shadow-2xl' : 'fixed inset-x-0 bottom-0 z-50 h-[82vh] rounded-t-2xl border-t lg:border-t-0 lg:border-l border-[var(--color-border)] bg-[var(--color-surface)] flex flex-col overflow-hidden shadow-2xl lg:relative lg:inset-auto lg:z-auto lg:h-full lg:w-[380px] lg:rounded-none lg:shadow-none shrink-0'}>
         <AiChatWindow
           title="dig"
-          subtitle={`${isLab ? 'Hint-first lab mentor' : 'Concept explainer'} — ${context.title}`}
+          subtitle={floatingLauncher ? 'Your learning and library assistant' : `${isLab ? 'Hint-first lab mentor' : 'Concept explainer'} — ${context.title}`}
           emptyState={
-            isLab
+            floatingLauncher ? 'Ask a question about cybersecurity, coding or your prepared books.' : isLab
               ? "Stuck? Ask for a hint — I'll never just hand you the answer. I climb a hint ladder, one small step at a time, so you actually learn the fix."
               : "Ask about this lesson. I’ll answer directly; you can ask for more detail when you need it."
           }
           messages={messages}
           loading={loading}
           quickActions={
-            isLab
+            floatingLauncher ? [] : isLab
               ? [
                   {
                     key: 'hint',
@@ -138,8 +141,8 @@ export default function CyberLabAI({ getContext, presentation = 'dock' }: CyberL
           onInputChange={setInput}
           onSubmit={(question, source) => send(question, 'ask', undefined, source)}
           onRetry={retry}
-          onClose={() => setOpen(false)}
-          placeholder={isLab ? 'Ask about this lab…' : 'Ask about this lesson…'}
+          onClose={() => { setOpen(false); if (floatingLauncher) requestAnimationFrame(() => floatingButton.current?.focus()); }}
+          placeholder={floatingLauncher ? 'Ask dig a question…' : isLab ? 'Ask about this lab…' : 'Ask about this lesson…'}
         />
       </div>
     </>

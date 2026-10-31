@@ -1,0 +1,16 @@
+.lesson-lab-card { border: 1px solid var(--chrome-line-strong); }
+.lesson-lab-card__header { background: linear-gradient(115deg, var(--chrome-bg), var(--chrome-raise)); color: var(--chrome-ink); border-bottom: 1px solid var(--chrome-line-strong); box-shadow: inset 3px 0 0 var(--color-gold); }
+.lesson-lab-card__icon { color: var(--chrome-highlight); background: var(--chrome-active); border: 1px solid var(--chrome-line-strong); box-shadow: inset 0 1px 0 color-mix(in srgb, var(--chrome-highlight) 15%, transparent); }
+.lesson-lab-card__title { color: var(--chrome-ink); line-height: 1.5; }
+.lesson-lab-card__description { color: var(--chrome-text); line-height: 1.7; margin-top: 2px; }
+.lesson-lab-card__solved { color: #a4e8bf; background: #4cb87b1a; border: 1px solid #4cb87b40; }
+.lesson-lab-card__header .pill { font-size: 10px; letter-spacing: .04em; }
+.lesson-lab-card__secondary { color: var(--chrome-text); border: 1px solid transparent; }
+.lesson-lab-card__secondary:hover { color: var(--chrome-ink); background: var(--chrome-hover); border-color: var(--chrome-line-strong); }
+.lesson-lab-card__toggle { color: var(--chrome-ink); background: var(--chrome-active); border: 1px solid var(--chrome-highlight); box-shadow: inset 0 1px 0 color-mix(in srgb, var(--chrome-highlight) 18%, transparent); }
+.lesson-lab-card__toggle:hover { background: color-mix(in srgb, var(--chrome-active) 78%, var(--chrome-highlight)); }
+.lesson-lab-card__toggle-symbol { color: var(--chrome-highlight); background: color-mix(in srgb, var(--chrome-bg) 45%, transparent); }
+.lesson-lab-card__header :is(a, button):focus-visible { outline: 2px solid var(--chrome-highlight); outline-offset: 3px; }
+.lesson-lab-card__difficulty--easy { color: #a4e8bf; background: #4cb87b1a; }
+.lesson-lab-card__difficulty--medium { color: #e9c98a; background: #c9a15f22; }
+.lesson-lab-card__difficulty--hard { color: #ffb3ba; background: #e3637622; }
