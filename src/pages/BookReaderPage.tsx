@@ -1,4 +1,5 @@
 import ResearchTerms from '../components/lesson/ResearchTerms';
+import '../components/lesson/lesson-reader.css';
 import { useEffect, useRef, useState } from 'react';
 import { Navigate, useParams, Link } from 'react-router-dom';
 import { findBook, booksInTrack } from '../data/books';
@@ -400,7 +401,7 @@ export default function BookReaderPage() {
   const voiceChoices = englishVoices.length > 0 ? englishVoices : voices;
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: 'var(--color-bg)' }}>
+    <div className="book-reading min-h-screen flex flex-col" style={{ background: 'var(--color-bg)' }}>
       <div className="border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 sm:px-6 py-3 sm:py-4">
         <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
           <div>

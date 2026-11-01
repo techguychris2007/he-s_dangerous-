@@ -178,7 +178,7 @@ function LabMission({ entry }: { entry: LabEntry }) {
           <div className="dw-mission-terminal" hidden={view !== 'terminal'}><Terminal ref={terminalRef} scenario={scenario} onFlagCaptured={flag => progress.captureFlag(scenario.id, flag, scenario.totalFlags)} onStateChange={setSnapshot} onBusyChange={setBusy} onTranscriptChange={value => { transcriptRef.current = value; }} /></div>
           {hasTarget && <div className="dw-mission-target" hidden={view !== 'target'}>{scenario.webApplication && <LiveWebsiteLab application={scenario.webApplication} snapshot={snapshot?.webApplication} onCommand={command => terminalRef.current?.executeCommand(command)} disabled={busy} />}{scenario.directoryMap && <DirectoryAttackGraph map={scenario.directoryMap} snapshot={snapshot} />}</div>}
         </section>
-        <CyberLabAI getContext={() => ({ kind: 'lab', title: scenario.title, subtitle: `${scenario.difficulty} · ${scenario.category}`, bodyText: scenario.briefing + '\n' + scenario.objectives.map(item => typeof item === 'string' ? item : `${item.text}\n${item.why ?? ''}`).join('\n'), terminalTranscript: transcriptRef.current })} />
+        <CyberLabAI presentation="floating" compactLauncher getContext={() => ({ kind: 'lab', title: scenario.title, subtitle: `${scenario.difficulty} · ${scenario.category}`, bodyText: scenario.briefing + '\n' + scenario.objectives.map(item => typeof item === 'string' ? item : `${item.text}\n${item.why ?? ''}`).join('\n'), terminalTranscript: transcriptRef.current })} />
       </div>
       {sharing && <ShareWriteupModal entry={entry} onClose={() => setSharing(false)} />}
     </dialog>, document.body)}

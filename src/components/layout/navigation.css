@@ -83,7 +83,7 @@
 .dw-search-dialog::backdrop { background: color-mix(in srgb, var(--chrome-bg) 70%, transparent); backdrop-filter: blur(4px); }
 .dw-search-box { padding: 22px; }
 .dw-search-box header { display: flex; align-items: flex-start; justify-content: space-between; gap: 15px; margin-bottom: 18px; }
-.dw-search-box header p { color: var(--color-text-dim); font-size: 10px; font-weight: 700; letter-spacing: 1.6px; margin-bottom: 6px; }
+.dw-search-box header p { color: var(--color-text-dim); font-size: 9px; font-weight: 600; letter-spacing: 1.5px; margin-bottom: 6px; }
 .dw-search-box h2 { color: var(--color-heading); font-weight: 700; font-size: 20px; letter-spacing: -.3px; line-height: 1.3; }
 .dw-search-close { border: 1px solid var(--color-border); border-radius: 5px; padding: 4px 7px; font-size: 11px; cursor: pointer; }
 .dw-search-box input { width: 100%; border: 1px solid var(--color-border); background: var(--color-surface-2); color: var(--color-heading); border-radius: 8px; font-size: 14px; padding: 13px; }
@@ -101,6 +101,29 @@
 .dw-search-empty { padding: 30px 10px; text-align: center; font-size: 13px; line-height: 1.7; }
 .dw-search-empty strong { color: var(--color-heading); }
 
+/* Quiet workspace header: retain theme colours while removing repeated card borders. */
+.dw-topbar { min-height: 72px; flex-shrink: 0; display: flex; align-items: center; gap: 16px; padding: 12px 26px; position: relative; border-bottom: 1px solid var(--color-border); box-shadow: none; }
+.dw-topbar-context { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; color: var(--color-text-dim); font-size: 10px; line-height: 1.4; }
+.dw-topbar-context a { color: inherit; text-decoration: none; }
+.dw-topbar-context a:hover { color: var(--color-accent); }
+.dw-topbar-context > span[aria-hidden] { opacity: .5; }
+.dw-topbar-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--color-heading); font-size: 16px; font-weight: 600; letter-spacing: -.2px; line-height: 1.5; }
+.dw-topbar-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-shrink: 0; }
+.dw-topbar-control { position: relative; width: 36px; height: 36px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--color-text-dim); cursor: pointer; transition: background-color .15s, color .15s; touch-action: manipulation; }
+.dw-topbar-control:hover, .dw-topbar-control[aria-expanded="true"] { color: var(--color-heading); background: var(--color-surface-2); border-color: var(--color-border); }
+.dw-topbar .dw-level-hud { border-radius: 7px; box-shadow: none; background: transparent; border-color: transparent; }
+.dw-topbar .dw-level-hud:hover { border-color: var(--color-border); background: var(--color-surface-2); }
+.dw-topbar-sync { display: inline-flex; align-items: center; gap: 6px; color: var(--color-text-dim); font-size: 10px; white-space: nowrap; padding-inline: 8px; }
+.dw-topbar-sync::before { content: ''; width: 4px; height: 4px; background: currentColor; border-radius: 50%; }
+.dw-topbar-sync.is-local { color: var(--color-warn); }
+.dw-topbar-theme { margin-left: 4px; }
+.dw-topbar-activity { border-radius: 10px; box-shadow: 0 12px 36px color-mix(in srgb, var(--color-heading) 12%, transparent); }
+.dw-topbar :is(a, button):focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }
+@media (min-width: 1024px) { .dw-topbar-control.lg\:hidden { display: none; } }
+@media (max-width: 1100px) { .dw-topbar { gap: 10px; padding-inline: 18px; } .dw-topbar-actions { gap: 4px; } }
+@media (max-width: 767px) { .dw-topbar-sync { display: none; } }
+@media (max-width: 640px) { .dw-topbar { padding: 10px 12px; min-height: 64px; gap: 8px; } .dw-topbar-context { display: none; } .dw-topbar-title { font-size: 14px; } .dw-topbar-actions { gap: 2px; } }
+
 /* Public portal bar (welcome, legal pages). */
 .dw-portal-navigation { display: flex; align-items: center; justify-content: space-between; gap: 28px; min-height: 68px; padding: 12px max(24px, calc((100vw - 1280px) / 2)); background: var(--chrome-bg); border-bottom: 1px solid var(--chrome-line); color: var(--chrome-ink); }
 .dw-portal-brand { display: inline-flex; align-items: center; gap: 9px; color: var(--chrome-ink); text-decoration: none; font-size: 19px; font-weight: 700; letter-spacing: -.4px; flex-shrink: 0; }
@@ -108,6 +131,9 @@
 .dw-portal-navigation nav a { padding: 9px 12px; border-radius: 6px; font-size: 13px; font-weight: 500; color: var(--chrome-text); text-decoration: none; white-space: nowrap; }
 .dw-portal-navigation nav a:hover { color: var(--chrome-ink); background: var(--chrome-hover); }
 .dw-portal-navigation nav a.is-active { background: var(--chrome-active); color: var(--chrome-ink); }
+.dw-portal-tools { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.dw-portal-navigation nav a { border: 1px solid transparent; }
+.dw-portal-navigation nav a.is-active { border-color: var(--chrome-line-strong); }
 .dw-portal-navigation :is(a, button):focus-visible { outline: 2px solid var(--chrome-highlight); outline-offset: 3px; }
 @media (max-width: 1100px) {
   .dw-portal-navigation { gap: 12px; padding-inline: 20px; }
@@ -115,7 +141,7 @@
 }
 @media (max-width: 800px) {
   .dw-portal-navigation { flex-wrap: wrap; gap: 10px; padding: 12px 18px; }
-  .dw-portal-navigation > .dw-search-trigger { margin-left: auto; }
+  .dw-portal-tools { margin-left: auto; }
   .dw-portal-navigation nav { order: 3; width: 100%; overflow-x: auto; }
   .dw-portal-navigation nav a { flex: 1; text-align: center; }
   .dw-search-box { padding: 18px; }

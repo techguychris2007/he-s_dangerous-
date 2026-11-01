@@ -47,9 +47,7 @@ let worker: Worker | undefined;
 let sequence = 0;
 type Reply = { id: number; answer?: string; passageIndex?: number; error?: string };
 const pending = new Map<number, { resolve: (reply: Reply) => void; reject: (error: Error) => void; timer: ReturnType<typeof setTimeout> }>();
-export async function readLibraryAnswer(question: string, passages: LibraryPassage[]): Promise<Reply | null> {
-  // No implicit model downloads from a chat request, even when connected.
-  if (!await isReaderPrepared()) return null;
+function readerWorker(): Worker {
   if (!worker) {
     worker = new Worker(new URL('./offlineReader.worker.ts', import.meta.url), { type: 'module' });
     worker.onmessage = (event: MessageEvent<Reply>) => {
@@ -60,7 +58,16 @@ export async function readLibraryAnswer(question: string, passages: LibraryPassa
     };
     worker.onerror = () => resetReader();
   }
-  const current = worker;
+  return worker;
+}
+/** Starts loading the model in the background; a later question then skips the load. */
+export async function warmReader(): Promise<void> {
+  if (await isReaderPrepared()) readerWorker().postMessage({ warm: true });
+}
+export async function readLibraryAnswer(question: string, passages: LibraryPassage[]): Promise<Reply | null> {
+  // No implicit model downloads from a chat request, even when connected.
+  if (!await isReaderPrepared()) return null;
+  const current = readerWorker();
   const id = ++sequence;
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => resetReader(), 45000);

@@ -1,12 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { askCyberLabAi, type CyberLabAiContext, type CyberLabAiMode } from '../../lib/aiTutor';
 import AiChatWindow, { type ChatMessage } from '../common/AiChatWindow';
+import { withoutStreaming } from '../common/chatStreaming';
 import './cyberlab-ai.css';
 import DigAvatar from '../characters/DigAvatar';
 
 interface CyberLabAIProps {
   presentation?: 'dock' | 'floating';
+  /** the site-wide general assistant: large launcher, no lab/lesson quick actions */
   floatingLauncher?: boolean;
+  /** a small corner launcher that keeps the page's own lab/lesson behaviour — for editor and terminal
+   *  workspaces, where a docked rail would take width away from the code */
+  compactLauncher?: boolean;
   /** called fresh every time a message is sent, so hint/currentCode context is always up to date
    *  (currentCode in particular changes on every keystroke and shouldn't trigger re-renders here) */
   getContext: () => CyberLabAiContext;
@@ -26,7 +31,7 @@ interface PendingRequest {
  *  any hand-rolled positioning math. Shares its context shape with the reading companion but with
  *  lab-specific behavior: a 5-level hint ladder instead of free explanation on demand, since handing
  *  over a working solution defeats the point of a graded lab. */
-export default function CyberLabAI({ getContext, presentation = 'dock', floatingLauncher = false }: CyberLabAIProps) {
+export default function CyberLabAI({ getContext, presentation = 'dock', floatingLauncher = false, compactLauncher = false }: CyberLabAIProps) {
   const floatingButton = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -34,6 +39,11 @@ export default function CyberLabAI({ getContext, presentation = 'dock', floating
   const [loading, setLoading] = useState(false);
   const [hintLevel, setHintLevel] = useState(0);
   const lastRequest = useRef<PendingRequest | null>(null);
+
+  useEffect(() => {
+    // Offline answers need the local reading model; start loading it while the learner types.
+    if (open && !navigator.onLine) void import('../../lib/offlineLibrary').then(m => m.warmLibraryReader());
+  }, [open]);
 
   useEffect(() => {
     const research = (event: Event) => {
@@ -52,12 +62,13 @@ export default function CyberLabAI({ getContext, presentation = 'dock', floating
     setMessages((m) => [...m, { role: 'user', text: question }]);
     setInput('');
     setLoading(true);
+    const showProgress = (text: string) => setMessages((m) => [...withoutStreaming(m), { role: 'assistant', text, streaming: true }]);
     try {
-      const result = await askCyberLabAi({ question, mode, hintLevel: hintLevelForRequest, source, history: messages.filter(m => m.role !== 'error').slice(-6).map(m => ({ role: m.role as 'user' | 'assistant', content: m.text })), context: getContext() });
-      setMessages((m) => [...m, { role: 'assistant', text: result.answer, model: result.model, citations: result.citations }]);
+      const result = await askCyberLabAi({ question, mode, hintLevel: hintLevelForRequest, source, history: messages.filter(m => m.role !== 'error').slice(-6).map(m => ({ role: m.role as 'user' | 'assistant', content: m.text })), context: getContext() }, showProgress);
+      setMessages((m) => [...withoutStreaming(m), { role: 'assistant', text: result.answer, model: result.model, citations: result.citations }]);
     } catch (err) {
       setMessages((m) => [
-        ...m,
+        ...withoutStreaming(m),
         { role: 'error', text: err instanceof Error ? err.message : 'Something went wrong — try again.' },
       ]);
     } finally {
@@ -84,7 +95,11 @@ export default function CyberLabAI({ getContext, presentation = 'dock', floating
   const isLab = context.kind === 'lab';
 
   if (!open) {
-    if (presentation === 'floating') return floatingLauncher ? <button ref={floatingButton} type="button" className="dig-floating-launcher" onClick={() => setOpen(true)} aria-label="Ask dig, your learning assistant"><DigAvatar size={54}/><span><strong>dig</strong><small>Ask a question</small></span></button> : null;
+    if (presentation === 'floating') {
+      if (floatingLauncher) return <button ref={floatingButton} type="button" className="dig-floating-launcher" onClick={() => setOpen(true)} aria-label="Ask dig, your learning assistant"><DigAvatar size={54}/><span><strong>dig</strong><small>Ask a question</small></span></button>;
+      if (compactLauncher) return <button ref={floatingButton} type="button" className="dig-floating-launcher is-compact" onClick={() => setOpen(true)} aria-label="Ask dig about this lab" title="Ask dig"><DigAvatar size={44}/></button>;
+      return null;
+    }
     // In-flow docked launcher, not a `fixed` overlay — a floating pill sitting on top of the
     // terminal/editor beside it would cover whatever the learner just typed on the line it lands
     // on. Sizing itself into the same flex row/column the open panel already docks into (see
@@ -141,7 +156,7 @@ export default function CyberLabAI({ getContext, presentation = 'dock', floating
           onInputChange={setInput}
           onSubmit={(question, source) => send(question, 'ask', undefined, source)}
           onRetry={retry}
-          onClose={() => { setOpen(false); if (floatingLauncher) requestAnimationFrame(() => floatingButton.current?.focus()); }}
+          onClose={() => { setOpen(false); if (floatingLauncher || compactLauncher) requestAnimationFrame(() => floatingButton.current?.focus()); }}
           placeholder={floatingLauncher ? 'Ask dig a question…' : isLab ? 'Ask about this lab…' : 'Ask about this lesson…'}
         />
       </div>

@@ -146,23 +146,67 @@ export async function removeLibraryIndex(id: string): Promise<void> {
   });
   window.dispatchEvent(new Event('darkworld:offline-library-changed'));
 }
+// Readiness checks hash-verify every cached book and the passages are megabytes of text, so neither is
+// repeated per question: both are reused until preparation or removal announces a library change.
+let readyCache: Promise<BookMetadata[]> | undefined;
+let searchWorker: Worker | undefined;
+let searchSequence = 0;
+const searches = new Map<number, { key: string; question: string; resolve: (found: LibraryPassage[]) => void; reject: (error: Error) => void; timer: ReturnType<typeof setTimeout> }>();
+globalThis.addEventListener?.('darkworld:offline-library-changed', () => { readyCache = undefined; });
+
+function readyBooks(): Promise<BookMetadata[]> {
+  readyCache ??= (async () => {
+    const readiness = await libraryReadiness();
+    return (await metadata()).filter(book => readiness[book.id] === 'ready');
+  })().catch(error => { readyCache = undefined; throw error; });
+  return readyCache;
+}
+function resetSearchWorker(error: Error) {
+  searchWorker?.terminate(); searchWorker = undefined;
+  for (const search of searches.values()) { clearTimeout(search.timer); search.reject(error); }
+  searches.clear();
+}
+function searchIndex(question: string, key: string): Promise<LibraryPassage[]> {
+  if (!searchWorker) {
+    const worker = new Worker(new URL('./librarySearch.worker.ts', import.meta.url), { type: 'module' });
+    worker.onmessage = async (event: MessageEvent<{ id: number; results?: LibraryPassage[]; needsPassages?: boolean; error?: string }>) => {
+      const search = searches.get(event.data.id);
+      if (!search) return;
+      if (event.data.needsPassages) {
+        // First question after start-up or a library change: hand the worker the pages once to index.
+        try {
+          const ids = new Set(search.key.split('|').map(item => item.split(':')[0]));
+          const passages = (await records()).filter(book => ids.has(book.id)).flatMap(book => book.passages);
+          worker.postMessage({ id: event.data.id, key: search.key, question: search.question, passages });
+        } catch (error) { clearTimeout(search.timer); searches.delete(event.data.id); search.reject(error instanceof Error ? error : new Error('The saved library index could not be read.')); }
+        return;
+      }
+      clearTimeout(search.timer); searches.delete(event.data.id);
+      if (event.data.error) search.reject(new Error(event.data.error)); else search.resolve(event.data.results ?? []);
+    };
+    worker.onerror = () => resetSearchWorker(new Error('Offline search could not start. Reload the app and retry.'));
+    searchWorker = worker;
+  }
+  const id = ++searchSequence;
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => resetSearchWorker(new Error('The library search took too long. Try a more specific question.')), 20000);
+    searches.set(id, { key, question, resolve, reject, timer });
+    searchWorker!.postMessage({ id, key, question });
+  });
+}
+/** Loads the offline question-answering model ahead of the first question, so the wait for it overlaps
+ *  with the learner typing rather than being added to their first answer. */
+export async function warmLibraryReader(): Promise<void> {
+  try { await (await import('./offlineReader')).warmReader(); } catch { /* Search-only answers still work. */ }
+}
+
 export async function searchSavedLibrary(question: string, contextTitle?: string, context: LibraryQuestionContext = {}): Promise<AskAiTutorResult> {
   const result = (answer: string): AskAiTutorResult => ({ answer, model: 'dig · book sources', sourceMode: 'library' });
-  const readiness = await libraryReadiness();
-  const books = (await records()).filter(book => readiness[book.id] === 'ready');
+  const books = await readyBooks();
   if (!books.length) return result('Prepare your offline workspace once while connected so I can answer from your books.');
   const effectiveQuestion = resolveLibraryQuestion(question, { ...context, title: context.title ?? contextTitle });
-  const worker = new Worker(new URL('./librarySearch.worker.ts', import.meta.url), { type: 'module' });
-  const passages = books.flatMap(book => book.passages);
-  const found = await new Promise<LibraryPassage[]>((resolve, reject) => {
-    const timeout = setTimeout(() => { worker.terminate(); reject(new Error('The library search took too long. Try a more specific question.')); }, 20000);
-    worker.onmessage = (event: MessageEvent<{ results?: LibraryPassage[]; error?: string }>) => {
-      clearTimeout(timeout); worker.terminate();
-      if (event.data.error) reject(new Error(event.data.error)); else resolve(event.data.results ?? []);
-    };
-    worker.onerror = () => { clearTimeout(timeout); worker.terminate(); reject(new Error('Offline search could not start. Reload the app and retry.')); };
-    worker.postMessage({ question: effectiveQuestion, passages });
-  });
+  void warmLibraryReader();
+  const found = await searchIndex(effectiveQuestion, books.map(book => `${book.id}:${book.hash}`).join('|'));
   // The current reader page is an actual source too, not a guessed page from the book title.
   const currentBook = books.find(book => eligibleLibraryBooks().some(item => item.id === book.id && item.title === contextTitle));
   if (currentBook && context.text?.trim() && context.page && /\b(this page|summarize|takeaways)\b/i.test(question)) {

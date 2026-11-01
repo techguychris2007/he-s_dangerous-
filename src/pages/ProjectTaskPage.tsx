@@ -139,9 +139,8 @@ export default function ProjectTaskPage() {
             {done && <span className="dw-codetask__chip dw-codetask__chip--solved"><IconCheck className="h-3 w-3" />Shipped</span>}
           </div>
         </div>
+        <LearningActions workspace back={{ href: '/build-portal', label: 'Build Portal' }} beforeNavigate={() => !task.files.some(file => currentFilesRef.current[file.path] !== undefined && currentFilesRef.current[file.path] !== file.content) || window.confirm('Leave this project? Download your edited files first if you want to keep them.')} />
       </header>
-
-      <LearningActions workspace back={{ href: '/build-portal', label: 'Build Portal' }} beforeNavigate={() => !task.files.some(file => currentFilesRef.current[file.path] !== undefined && currentFilesRef.current[file.path] !== file.content) || window.confirm('Leave this project? Download your edited files first if you want to keep them.')} />
       <div className="dw-codetask__body">
         <aside tabIndex={-1} className="dw-codetask__brief">
           <div className="dw-codetask__tabs" role="tablist" aria-label="Project information">
@@ -226,7 +225,7 @@ export default function ProjectTaskPage() {
           />
         </main>
 
-        <CyberLabAI
+        <CyberLabAI presentation="floating" compactLauncher
           key={task.id}
           getContext={() => ({
             kind: 'lab',

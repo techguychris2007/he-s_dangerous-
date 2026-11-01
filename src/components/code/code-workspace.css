@@ -160,3 +160,25 @@
 .siem-brief-head__meta { display: flex; flex-wrap: wrap; gap: .35rem; }
 .siem-brief-head__bar { height: 5px; margin-top: .8rem; border-radius: 99px; background: var(--chrome-line); overflow: hidden; }
 .siem-brief-head__bar span { display: block; height: 100%; background: linear-gradient(90deg, var(--color-accent), var(--color-success)); transition: width .3s ease; }
+
+/* Editor workspaces: title, chips, progress and quick actions share one slim row, so the IDE gets the
+   height. The back link in the actions replaces the breadcrumb; the progress text names the category. */
+.dw-codetask--learning .dw-codetask__head { display: flex; align-items: center; gap: .5rem 1rem; padding: .4rem clamp(.75rem, 1.5vw, 1.25rem); }
+.dw-codetask--learning .dw-codetask__crumbs { display: none; }
+.dw-codetask--learning .dw-codetask__title { flex: 1 1 auto; min-width: 0; flex-wrap: nowrap; gap: .75rem; }
+.dw-codetask--learning .dw-codetask__title h1 { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 1.05rem; }
+.dw-codetask--learning .dw-codetask__meta { flex-wrap: nowrap; flex-shrink: 0; }
+.dw-codetask--learning .dw-codetask__chip { padding: .1rem .5rem; font-size: .68rem; }
+.dw-codetask--learning .dw-codetask__progress { flex-shrink: 0; white-space: nowrap; font-size: .7rem; }
+.dw-codetask--learning .dw-codetask__progress span { width: 70px; height: 4px; }
+.dw-codetask--learning .dw-codetask__head .learning-quick-nav { flex-shrink: 0; flex-wrap: nowrap; gap: 6px; padding: 0; background: none; border: 0; }
+.dw-codetask--learning .dw-codetask__head .learning-quick-nav :is(a, button) { padding: 4px 10px; font-size: 12px; line-height: 1.5; white-space: nowrap; color: var(--chrome-text); background: var(--chrome-raise); border-color: var(--chrome-line-strong); }
+.dw-codetask--learning .dw-codetask__head .learning-quick-nav :is(a, button):hover { color: var(--chrome-ink); border-color: var(--chrome-highlight); }
+.dw-codetask--learning .dw-codetask__head .learning-quick-nav button:last-child { color: var(--chrome-highlight); }
+.dw-codetask--learning .dw-codetask__ide { padding: .6rem; }
+@media (max-width: 1280px) { .dw-codetask--learning .dw-codetask__progress { display: none; } }
+@media (max-width: 1023px) {
+  .dw-codetask--learning .dw-codetask__head { flex-wrap: wrap; }
+  .dw-codetask--learning .dw-codetask__title { flex-basis: 100%; }
+  .dw-codetask--learning .dw-codetask__head .learning-quick-nav { overflow-x: auto; max-width: 100%; }
+}

@@ -1,4 +1,5 @@
 .lesson-reader { background: var(--color-bg); position: relative; }
+.lesson-reader { --reader-size: 18px; font-family: 'Ubuntu', var(--font-sans), sans-serif; }
 .reader-progress { position: sticky; top: 0; height: 3px; z-index: 10; background: var(--color-border); }
 .reader-progress span { display: block; height: 100%; background: var(--color-accent); transition: width .15s; }
 .reader-layout { max-width: 1240px; margin: 0 auto; padding: 36px clamp(20px, 3vw, 48px) 64px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 48px; }
@@ -295,3 +296,55 @@
 .ml-lesson-body .prose-hh em { color: var(--color-accent-dim); }
 @media (max-width: 760px) { .ml-lesson-section h2 { padding: .85rem 1rem !important; } .ml-lesson-section > .prose-hh { padding: 1rem; } }
 .ml-lesson-body .prose-hh ul:last-child, .ml-lesson-body .prose-hh ol:last-child { margin-bottom: 0; }
+
+/* Editorial reading surface, shared by security and ML lessons. */
+.lesson-reader .reader-layout { max-width: 1220px; gap: 32px; padding: 30px clamp(20px, 3vw, 40px) 64px; }
+.lesson-reader .reader-layout > .min-w-0 { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 16px; padding: clamp(22px, 3vw, 40px); }
+.lesson-reader .reader-room { margin: 0 0 30px; padding: 28px 28px 0; border-radius: 12px; overflow: hidden; border: 1px solid var(--chrome-line-strong); background: var(--chrome-bg); }
+.lesson-reader .reader-room__head { gap: 18px; }
+.lesson-reader .reader-room__head h1 { font-family: 'Ubuntu', sans-serif; font-size: clamp(1.7rem, 2.5vw, 2.25rem); line-height: 1.25; text-wrap: pretty; }
+.lesson-reader .reader-room__crumbs { font-size: .75rem; line-height: 1.8; margin-bottom: 20px; }
+.lesson-reader .reader-room__summary { font-size: .95rem; line-height: 1.75; }
+.lesson-reader .reader-room__meta { font-size: .73rem; gap: 8px 16px; margin-top: 18px; }
+.lesson-reader .reader-room__actions { font-size: .75rem; margin: 22px 0; }
+.lesson-reader .reader-room__actions label { display: inline-flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.lesson-reader .reader-room__progress { margin: 0 -28px; height: 25px; }
+.lesson-reader .reader-room__progress b { font-size: .64rem; font-weight: 500; letter-spacing: .03em; }
+.lesson-reader .reader-objectives { background: transparent; border: 0; border-bottom: 1px solid var(--color-border); border-radius: 0; padding: 0 0 24px; box-shadow: none; margin: 0 0 24px; }
+.lesson-reader .reader-objectives h2 { font: 650 1rem/1.5 'Ubuntu', sans-serif; margin-bottom: 12px; }
+.lesson-reader .reader-objectives li { font-size: .92rem; line-height: 1.8; }
+.lesson-reader .lesson-body { color: var(--color-text); font-family: 'Ubuntu', sans-serif; }
+.lesson-reader .lesson-body .prose-hh :is(p, li), .lesson-reader .prerequisite-primer p { font-size: var(--reader-size); line-height: 1.9; }
+.lesson-reader .lesson-body .prose-hh p { margin-bottom: 1.3em; }
+.lesson-reader .lesson-body .prose-hh :is(h2, h3), .lesson-reader .prerequisite-primer h3 { font-family: 'Ubuntu', sans-serif; color: var(--color-heading); text-wrap: pretty; }
+.lesson-reader .lesson-body .prose-hh h2 { font-size: 1.5rem; margin: 2.4rem 0 1rem; padding: 0; border: 0; line-height: 1.4; }
+.lesson-reader .lesson-body .prose-hh h3 { font-size: 1.15rem; margin: 1.8rem 0 .8rem; line-height: 1.5; }
+.lesson-reader .prerequisite-primer { border: 0; border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); padding: 24px 0; border-radius: 0; background: transparent; box-shadow: none; }
+.lesson-reader .prerequisite-primer > h2 { font-size: .68rem; color: var(--color-text-dim); letter-spacing: .1em; margin-bottom: 20px; }
+.lesson-reader .prerequisite-primer section { border: 0; padding: 0; margin-top: 24px; }
+.lesson-reader .prerequisite-primer section:first-of-type { margin-top: 0; }
+.lesson-reader .reader-outline-inner { top: 24px; padding: 20px 0; }
+.lesson-reader .reader-outline .reader-eyebrow { font-size: .67rem; color: var(--color-text-dim); letter-spacing: .1em; }
+.lesson-reader .reader-toc button { font-family: 'Ubuntu', sans-serif; font-size: .78rem; padding: 10px 14px; line-height: 1.65; }
+.lesson-reader .reader-toc .reader-toc-subsection { font-size: .73rem; padding-left: 24px; }
+.lesson-reader .reader-toc button[aria-current] { border-left-color: var(--color-accent); background: var(--color-surface); color: var(--color-heading); font-weight: 600; }
+.lesson-reader .ml-lesson-section { padding-bottom: 26px; margin-bottom: 26px; }
+.lesson-reader .ml-lesson-section h2::before { display: none; }
+.lesson-reader .reader-pagination { gap: 24px; padding-top: 28px; }
+.lesson-reader .reader-pagination a { font-size: .9rem; line-height: 1.65; }
+@media (min-width: 1180px) {
+ .lesson-reader .reader-layout:not(.reader-layout-wide) { grid-template-columns: minmax(0, 1fr) 220px; }
+ .lesson-reader .reader-outline { display: block; }
+ .lesson-reader .reader-layout:not(.reader-layout-wide) .reader-mobile-outline { display: none; }
+}
+.lesson-reader .reader-layout-wide { max-width: 940px; }
+@media (max-width: 1179px) { .lesson-reader .reader-outline { display: none; }.lesson-reader .reader-mobile-outline { display: block; } }
+@media (max-width: 760px) { .lesson-reader .reader-layout { padding: 16px 12px 40px; }.lesson-reader .reader-layout > .min-w-0 { padding: 20px; }.lesson-reader .reader-room { padding: 22px 20px 0; }.lesson-reader .reader-room__progress { margin-inline: -20px; }.lesson-reader .reader-room__head { flex-wrap: wrap; } }
+/* Books retain their original PDF typography; only the surrounding controls change. */
+.book-reading { font-family: 'Ubuntu', var(--font-sans), sans-serif; }
+.book-reading > div:first-child { padding: 22px 30px; border-bottom-color: var(--color-border); }
+.book-reading > div:first-child h1 { font-size: clamp(1.15rem, 2vw, 1.6rem); line-height: 1.45; margin: 8px 0; }
+.book-reading > div:first-child p { font-size: .83rem; line-height: 1.7; }
+.book-reading > div:first-child button, .book-reading > div:first-child a.pill { border: 1px solid var(--color-border); border-radius: 7px; padding: 8px 11px; }
+.book-reading .book-research-wrap { width: min(100%, 1120px); margin-inline: auto; padding: 0 24px; }
+.book-reading .reader-research { margin: 18px 0; }

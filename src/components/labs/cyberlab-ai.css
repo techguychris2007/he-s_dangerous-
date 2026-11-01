@@ -4,3 +4,5 @@
 .dig-floating-launcher:hover { border-color: var(--chrome-highlight); transform: translateY(-2px); }
 .dig-floating-launcher:focus-visible { outline: 2px solid var(--chrome-highlight); outline-offset: 4px; }
 @media (prefers-reduced-motion: reduce) { .dig-floating-launcher { transition: none; } .dig-floating-launcher:hover { transform: none; } }
+/* Clears the IDE's bottom status bar so the launcher never hides status text. */
+.dig-floating-launcher.is-compact { bottom: 52px; right: 22px; padding: 5px; border-radius: 50%; }

@@ -40,12 +40,9 @@ export function pagePassages(bookId: string, title: string, page: number, text: 
   flush();
   return chunks;
 }
-export function rankPassages(question: string, passages: LibraryPassage[]): LibraryPassage[] {
-  const terms = queryTerms(question.split('\nTopic:')[0]);
-  const contextualTerms = queryTerms(question.split('\nTopic:')[1] ?? '');
-  for (const term of contextualTerms) if (!terms.includes(term)) terms.push(term);
-  if (!terms.length) return [];
-  const expanded = new Set(terms.flatMap(term => SYNONYMS[term] ?? []));
+export interface LibraryIndex { documents: { p: LibraryPassage; frequencies: Map<string, number>; length: number }[]; average: number }
+/** Tokenizing every page is the expensive part of a search, so it is done once per library, not per question. */
+export function indexPassages(passages: LibraryPassage[]): LibraryIndex {
   const documents = passages.filter(p => {
     const lines = p.text.split('\n').filter(line => line.trim());
     // Dot leaders and dense page-number listings are navigation, not explanations.
@@ -57,7 +54,17 @@ export function rankPassages(question: string, passages: LibraryPassage[]): Libr
     for (const word of tokens) frequencies.set(word, (frequencies.get(word) ?? 0) + 1);
     return { p, frequencies, length: tokens.length };
   });
-  const average = documents.reduce((sum, doc) => sum + doc.length, 0) / Math.max(1, documents.length);
+  return { documents, average: documents.reduce((sum, doc) => sum + doc.length, 0) / Math.max(1, documents.length) };
+}
+export function rankPassages(question: string, passages: LibraryPassage[]): LibraryPassage[] {
+  return rankIndexed(question, indexPassages(passages));
+}
+export function rankIndexed(question: string, { documents, average }: LibraryIndex): LibraryPassage[] {
+  const terms = queryTerms(question.split('\nTopic:')[0]);
+  const contextualTerms = queryTerms(question.split('\nTopic:')[1] ?? '');
+  for (const term of contextualTerms) if (!terms.includes(term)) terms.push(term);
+  if (!terms.length) return [];
+  const expanded = new Set(terms.flatMap(term => SYNONYMS[term] ?? []));
   const allTerms = [...new Set([...terms, ...expanded])];
   const df = new Map(allTerms.map(term => [term, documents.filter(doc => doc.frequencies.has(term)).length]));
   const results = documents.map(doc => {

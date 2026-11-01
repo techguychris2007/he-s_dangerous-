@@ -39,8 +39,8 @@ function LessonReader({ mod, lesson }: { mod: ModuleMeta; lesson: LessonMeta }) 
   const [readingProgress, setReadingProgress] = useState(0);
   const [wide, setWide] = useState(false);
   const [fontSize, setFontSize] = useState(() => {
-    try { const size = Number(localStorage.getItem('darkworld.reader.fontSize')); return [17, 19, 21].includes(size) ? size : 17; }
-    catch { return 17; }
+    try { const size = Number(localStorage.getItem('darkworld.reader.fontSize')); return [18, 20, 22].includes(size) ? size : (size === 19 ? 20 : size === 21 ? 22 : 18); }
+    catch { return 18; }
   });
   const idx = mod.lessons.indexOf(lesson);
   const prev = mod.lessons[idx - 1];
@@ -134,11 +134,11 @@ function LessonReader({ mod, lesson }: { mod: ModuleMeta; lesson: LessonMeta }) 
               <div className="reader-room__actions">
                 <button type="button" onClick={() => jumpTo('lesson-checkpoint')}>{complete ? 'Review checkpoint' : 'Jump to questions'}</button>
                 <button type="button" aria-pressed={wide} onClick={() => setWide(current => !current)}>{wide ? 'Show outline' : 'Focus reading'}</button>
-                <label>Text size <select aria-label="Lesson text size" value={fontSize} onChange={event => { const size = Number(event.target.value); setFontSize(size); try { localStorage.setItem('darkworld.reader.fontSize', String(size)); } catch { /* Reading remains available without storage. */ } }}><option value={17}>Standard</option><option value={19}>Large</option><option value={21}>Extra large</option></select></label>
+                <label>Text size <select aria-label="Lesson text size" value={fontSize} onChange={event => { const size = Number(event.target.value); setFontSize(size); try { localStorage.setItem('darkworld.reader.fontSize', String(size)); } catch { /* Reading remains available without storage. */ } }}><option value={18}>Standard</option><option value={20}>Large</option><option value={22}>Extra large</option></select></label>
               </div>
-              <div className="reader-room__progress" role="progressbar" aria-label="Room progress" aria-valuenow={complete ? 100 : readingProgress} aria-valuemin={0} aria-valuemax={100}>
+              <div className="reader-room__progress" role="progressbar" aria-label="Reading position" aria-valuenow={complete ? 100 : readingProgress} aria-valuemin={0} aria-valuemax={100}>
                 <span style={{ width: `${complete ? 100 : readingProgress}%` }} />
-                <b>Room progress: {complete ? 100 : readingProgress}%</b>
+                <b>{complete ? 'Lesson completed' : `Reading position: ${readingProgress}%`}</b>
               </div>
             </header>
             {lesson.objectives?.length ? <section className="reader-objectives" aria-label="Learning objectives"><h2>What you will be able to do</h2><ul>{lesson.objectives.map(item => <li key={item}>{item}</li>)}</ul></section> : null}

@@ -24,10 +24,12 @@ async function loadReader(): Promise<Reader> {
 }
 // Serial inference avoids parallel model sessions and unnecessary memory use.
 let queue = Promise.resolve();
-self.onmessage = (event: MessageEvent<{ id: number; question: string; passages: LibraryPassage[] }>) => {
+const ensureReader = () => (reader ??= loadReader().catch(error => { reader = undefined; throw error; }));
+self.onmessage = (event: MessageEvent<{ id: number; question: string; passages: LibraryPassage[]; warm?: boolean }>) => {
+  if (event.data.warm) { ensureReader().catch(() => { /* reported on the first real question */ }); return; }
   queue = queue.then(async () => {
     try {
-      const qa = await (reader ??= loadReader().catch(error => { reader = undefined; throw error; }));
+      const qa = await ensureReader();
       let best: { answer: string; score: number; passageIndex: number } | undefined;
       const relevant = rankPassages(event.data.question, event.data.passages);
       for (const passage of relevant.slice(0, 3)) {
@@ -35,6 +37,8 @@ self.onmessage = (event: MessageEvent<{ id: number; question: string; passages: 
         const result = await qa(readerQuestion(event.data.question).slice(0, 800), passage.text.replace(/\s+/g, ' ').slice(0, 2400));
         const item = Array.isArray(result) ? result[0] : result;
         if (item && supportedSpan(item.answer, item.score, passage) && (!best || item.score > best.score)) best = { answer: item.answer, score: item.score, passageIndex };
+        // Passages arrive best-first; a highly confident span in one is not beaten by reading the rest.
+        if (best && best.score >= 0.85) break;
       }
       self.postMessage({ id: event.data.id, ...(best ?? {}) });
     } catch { self.postMessage({ id: event.data.id, error: 'The offline reader is unavailable. Your saved books remain searchable.' }); }

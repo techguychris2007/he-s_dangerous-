@@ -67,3 +67,23 @@
   .learning-navigation--overview.learning-navigation--with-sidebar nav { gap: 1px; }
   .learning-navigation--overview.learning-navigation--with-sidebar .learning-navigation__tools { gap: 4px; padding-left: 10px; }
 }
+/* Editor and terminal workspaces: one slim row (about 46px instead of 86px) for maximum code area. */
+.learning-navigation--compact { min-height: 46px; gap: 16px; padding: 4px 16px; }
+.learning-navigation--compact .learning-navigation__brand { font-size: 15px; gap: 8px; }
+.learning-navigation--compact .learning-navigation__brand img { width: 28px; height: 28px; }
+.learning-navigation--compact .learning-navigation__brand small { display: none; }
+.learning-navigation--compact nav { gap: 2px; }
+.learning-navigation--compact .learning-navigation__link { flex-direction: row; gap: 6px; min-width: 0; padding: 5px 9px; font-size: 12px; }
+.learning-navigation--compact .learning-navigation__link:hover { background: var(--chrome-hover); }
+.learning-navigation--compact .learning-navigation__symbol { width: auto; height: auto; background: none; border: 0; box-shadow: none; transform: none; }
+.learning-navigation--compact .learning-navigation__link:hover .learning-navigation__symbol { transform: none; }
+.learning-navigation--compact .learning-navigation__symbol svg { width: 16px; height: 16px; }
+.learning-navigation--compact .learning-navigation__link.is-current { background: var(--chrome-active); }
+.learning-navigation--compact .learning-navigation__link.is-current::after { bottom: -5px; }
+.learning-navigation--compact .learning-navigation__tools { gap: 4px; }
+.learning-navigation--compact .learning-navigation__app { min-width: 0; font-size: 0; gap: 0; }
+.learning-navigation--compact .learning-navigation__app .learning-navigation__symbol svg { width: 18px; height: 18px; }
+.learning-navigation--compact .learning-navigation__dig { font-size: 13px; border-radius: 9px; padding-right: 7px; }
+.learning-navigation--compact .learning-navigation__control { height: 30px; }
+.learning-navigation--compact .learning-navigation__menu { top: calc(100% + 8px); }
+@media (max-width: 1100px) { .learning-navigation--compact { flex-wrap: nowrap; } .learning-navigation--compact nav { order: 0; width: auto; overflow-x: auto; } .learning-navigation--compact .learning-navigation__link span:last-child { display: none; } .learning-navigation--compact .learning-navigation__link { flex: 0 0 auto; } }

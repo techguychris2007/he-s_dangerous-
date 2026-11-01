@@ -1,0 +1,24 @@
+/* 3D DarkWorld coin. The face is the shaded SVG; the stacked edge layers behind it give it thickness
+   that shows as the coin turns. Brand colours are fixed (they match the SVG), not theme tokens. */
+.dw-badge3d { position: relative; perspective: 700px; display: grid; place-items: center; touch-action: pan-y; }
+.dw-badge3d::after { content: ''; position: absolute; left: 18%; right: 18%; bottom: -6%; height: 9%; border-radius: 50%; background: radial-gradient(closest-side, #000a, transparent); filter: blur(4px); pointer-events: none; animation: dw-badge3d-shadow 7s ease-in-out infinite; }
+.dw-badge3d__coin { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transform: rotateX(var(--dw-badge-rx, 0deg)) rotateY(var(--dw-badge-ry, 0deg)); transition: transform .45s cubic-bezier(.2, .8, .2, 1); animation: dw-badge3d-float 7s ease-in-out infinite; }
+.dw-badge3d:hover .dw-badge3d__coin { transition-duration: .12s; animation-play-state: paused; }
+.dw-badge3d__face, .dw-badge3d__edge, .dw-badge3d__back, .dw-badge3d__glare { position: absolute; inset: 2.5%; border-radius: 50%; }
+.dw-badge3d__face { inset: 0; width: 100%; height: 100%; object-fit: contain; transform: translateZ(1px); }
+.dw-badge3d__edge { background: linear-gradient(135deg, #8fa6ff, #3048b8 45%, #1a2654 70%, #5f7cf2); }
+.dw-badge3d__back { transform: translateZ(-11px) rotateY(180deg); background: radial-gradient(circle at 60% 35%, #2a3a72, #0b1222 70%); box-shadow: inset 0 0 0 4px #4560d8; }
+.dw-badge3d__glare { transform: translateZ(2px); pointer-events: none; opacity: 0; mix-blend-mode: screen; background: radial-gradient(circle at var(--dw-badge-gx, 30%) var(--dw-badge-gy, 25%), #ffffff59, #ffffff14 30%, transparent 55%); transition: opacity .3s; }
+.dw-badge3d:hover .dw-badge3d__glare { opacity: 1; }
+@keyframes dw-badge3d-float {
+  0%, 100% { rotate: y -14deg; translate: 0 0; }
+  50% { rotate: y 14deg; translate: 0 -4px; }
+}
+@keyframes dw-badge3d-shadow {
+  0%, 100% { transform: scaleX(1); opacity: 1; }
+  50% { transform: scaleX(.88); opacity: .75; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dw-badge3d__coin, .dw-badge3d::after { animation: none; }
+  .dw-badge3d__coin { rotate: y -10deg; transition: none; }
+}

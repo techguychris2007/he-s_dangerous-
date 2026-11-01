@@ -112,9 +112,8 @@ export default function CodeTaskPage() {
             {siblingsDone}/{siblings.length} in {task.category}<span><i style={{ width: `${siblings.length ? (100 * siblingsDone) / siblings.length : 0}%` }} /></span>
           </div>
         </div>
+        <LearningActions workspace back={{ href: backHref, label: backLabel }} beforeNavigate={() => !currentCodeRef.current || currentCodeRef.current === task.starterCode || window.confirm('Leave this task? Download your edited code first if you want to keep it.')} />
       </header>
-
-      <LearningActions workspace back={{ href: backHref, label: backLabel }} beforeNavigate={() => !currentCodeRef.current || currentCodeRef.current === task.starterCode || window.confirm('Leave this task? Download your edited code first if you want to keep it.')} />
       <div className="dw-codetask__body">
         <aside tabIndex={-1} className="dw-codetask__brief">
           <div className="dw-codetask__tabs" role="tablist" aria-label="Task information">
@@ -177,7 +176,7 @@ export default function CodeTaskPage() {
             }}
           />
         </main>
-        <CyberLabAI
+        <CyberLabAI presentation="floating" compactLauncher
           key={task.id}
           getContext={() => ({
             kind: 'lab',

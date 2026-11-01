@@ -8,32 +8,7 @@
 // Socratic questions, and only gives a full explanation at the top of that ladder or when
 // explicitly asked to just explain a concept (not "solve my lab").
 
-const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY');
-const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
-const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
-const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY');
-
-const GROQ_MODEL = 'openai/gpt-oss-20b';
-const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const GEMINI_MODEL = 'gemini-2.0-flash';
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
-
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
-
-interface Citation {
-  title: string;
-  uri: string;
-}
-
-interface AiResult {
-  answer: string;
-  model: string;
-  citations?: Citation[];
-}
+import { answer, cleanHistory, CORS_HEADERS, isSignedInUser, json, type Turn } from '../_shared/llm.ts';
 
 interface RequestBody {
   question: string;
@@ -53,6 +28,10 @@ interface RequestBody {
     /** the static hints (if any) already revealed via the lab's own "Show a hint" button */
     revealedHints?: string[];
   };
+  /** recent real chat turns, so follow-ups like "why?" resolve against the previous answer */
+  history?: Turn[];
+  /** stream plain-text tokens instead of one JSON body */
+  stream?: boolean;
 }
 
 const HINT_LADDER = [
@@ -72,10 +51,11 @@ const SYSTEM_PROMPT_BASE =
   'working solution. Never shame a beginner for not knowing something. Keep answers focused; do not pad ' +
   'with filler. Format with Markdown where it genuinely improves readability (short headings, **bold** for ' +
   'key terms, bullet lists for enumerated points, `inline code` for identifiers, fenced code blocks for ' +
-  'actual code) — never format for its own sake. If you have real-time search results available and the ' +
-  'question genuinely depends on current information (a recent CVE, a tool\'s current version/behavior, a ' +
-  'changed standard), use them and ground your answer in them; otherwise answer from what you already know ' +
-  'without searching.\n\n' +
+  'actual code) — never format for its own sake. Accuracy comes first: state only what you are confident ' +
+  'is correct, use exact commands, flags and identifiers, base feedback on the learner\'s actual code or ' +
+  'terminal output shown below rather than on assumptions, and if you are unsure, say so plainly rather ' +
+  'than guessing. Never invent CVE ids, tool options, file contents or citations. If you have real-time ' +
+  'search results, ground time-sensitive facts (a recent CVE, a tool\'s current version) in them.\n\n' +
   'Hard scope limits: only ever discuss the concepts and code relevant to the CURRENT lab or lesson ' +
   'described below, which runs entirely inside this platform\'s own sandboxed browser environment ' +
   '(Pyodide/WASM) against fake, self-contained data. Never give operational guidance for attacking a ' +
@@ -126,116 +106,24 @@ function buildSystemPrompt(body: RequestBody): string {
   return `${SYSTEM_PROMPT_BASE}\n\n${contextLines.join('\n\n')}\n\n${behaviorInstruction}`;
 }
 
-async function callGroq(systemPrompt: string, question: string): Promise<AiResult> {
-  const res = await fetch(GROQ_URL, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: GROQ_MODEL,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: question },
-      ],
-      temperature: 0.4,
-      max_tokens: 700,
-    }),
-  });
-  if (!res.ok) throw new Error(`Groq ${res.status}: ${await res.text()}`);
-  const data = await res.json();
-  const answer = data.choices?.[0]?.message?.content;
-  if (!answer) throw new Error('Groq returned no answer content');
-  return { answer, model: GROQ_MODEL };
-}
-
-/** Calls Gemini with its real Google Search grounding tool enabled — Gemini itself decides,
- *  per-request, whether the question actually needs a live search or can be answered from its own
- *  knowledge. When it does search, groundingMetadata comes back with the real source chunks it
- *  used, which we surface as citations — never fabricated, always what Google actually returned. */
-async function callGemini(systemPrompt: string, question: string): Promise<AiResult> {
-  const res = await fetch(`${GEMINI_URL}?key=${GEMINI_API_KEY}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: systemPrompt }] },
-      contents: [{ role: 'user', parts: [{ text: question }] }],
-      tools: [{ google_search: {} }],
-      generationConfig: { temperature: 0.4, maxOutputTokens: 800 },
-    }),
-  });
-  if (!res.ok) throw new Error(`Gemini ${res.status}: ${await res.text()}`);
-  const data = await res.json();
-  const candidate = data.candidates?.[0];
-  const answer = candidate?.content?.parts?.map((p: { text?: string }) => p.text ?? '').join('') ?? '';
-  if (!answer) throw new Error('Gemini returned no answer content');
-
-  const chunks = candidate?.groundingMetadata?.groundingChunks as { web?: { uri: string; title: string } }[] | undefined;
-  const citations: Citation[] | undefined = chunks
-    ?.map((c) => (c.web ? { title: c.web.title, uri: c.web.uri } : null))
-    .filter((c): c is Citation => c !== null);
-
-  return { answer, model: GEMINI_MODEL, citations: citations && citations.length > 0 ? citations : undefined };
-}
-
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS_HEADERS });
 
   try {
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader || !SUPABASE_URL || !SUPABASE_ANON_KEY) {
-      return new Response(JSON.stringify({ error: 'Missing authentication.' }), {
-        status: 401,
-        headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
-      });
-    }
-    const userRes = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
-      headers: { Authorization: authHeader, apikey: SUPABASE_ANON_KEY },
-    });
-    if (!userRes.ok) {
-      return new Response(JSON.stringify({ error: 'Invalid session.' }), {
-        status: 401,
-        headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
-      });
-    }
+    if (!isSignedInUser(req)) return json({ error: 'Sign in to use dig online.' }, 401);
 
     const body = (await req.json()) as RequestBody;
-    if (!body.question || !body.question.trim() || !body.context) {
-      return new Response(JSON.stringify({ error: 'question and context are required.' }), {
-        status: 400,
-        headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
-      });
-    }
+    if (!body.question || !body.question.trim() || !body.context) return json({ error: 'question and context are required.' }, 400);
 
-    const systemPrompt = buildSystemPrompt(body);
-    // Hint requests: speed matters more than search (they're about the learner's own sandboxed
-    // lab, never time-sensitive), so try fast Groq first. Explain/ask: accuracy and freshness
-    // matter more, so try Gemini-with-search first, falling back to Groq only if Gemini errors.
-    const preferGemini = body.mode === 'explain' || body.mode === 'ask';
-    let result: AiResult;
-    try {
-      if (preferGemini) {
-        if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY not configured');
-        result = await callGemini(systemPrompt, body.question);
-      } else {
-        if (!GROQ_API_KEY) throw new Error('GROQ_API_KEY not configured');
-        result = await callGroq(systemPrompt, body.question);
-      }
-    } catch (firstErr) {
-      if (preferGemini) {
-        if (!GROQ_API_KEY) throw firstErr;
-        result = await callGroq(systemPrompt, body.question);
-      } else {
-        if (!GEMINI_API_KEY) throw firstErr;
-        result = await callGemini(systemPrompt, body.question);
-      }
-    }
-
-    return new Response(JSON.stringify(result), {
-      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+    return await answer({
+      system: buildSystemPrompt(body),
+      question: body.question.slice(0, 4000),
+      history: cleanHistory(body.history),
+      // hints follow a strict ladder, so keep them deterministic
+      temperature: body.mode === 'hint' ? 0.2 : 0.3,
+      stream: body.stream === true,
     });
   } catch (err) {
-    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : String(err) }), {
-      status: 502,
-      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
-    });
+    return json({ error: err instanceof Error ? err.message : String(err) }, 502);
   }
 });

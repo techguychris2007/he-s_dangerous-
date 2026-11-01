@@ -270,7 +270,7 @@ export default function SiemLabPage() {
       </section>
 
       {sharing && <ShareWriteupModal entry={{ slug: scenario.id, scenario: { id: scenario.id, title: scenario.title, category: isOsint ? 'Network' : 'SOC', difficulty: scenario.difficulty, totalFlags: scenario.totalFlags, briefing: scenario.briefing, objectives: scenario.objectives } }} onClose={() => setSharing(false)} />}
-      <CyberLabAI
+      <CyberLabAI presentation="floating" compactLauncher
         key={scenario.id}
         getContext={() => ({
           kind: 'lab',

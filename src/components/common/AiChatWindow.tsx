@@ -10,6 +10,8 @@ export interface ChatMessage {
   text: string;
   model?: string;
   citations?: Citation[];
+  /** still receiving tokens — the answer is shown as it arrives */
+  streaming?: boolean;
 }
 
 export interface QuickAction {
@@ -74,11 +76,14 @@ export default function AiChatWindow({
     textareaRef.current?.focus();
   }, []);
 
+  const lastMessage = messages[messages.length - 1];
+  const lastLength = lastMessage?.text.length ?? 0;
+  const streaming = lastMessage?.streaming === true;
   useEffect(() => {
     requestAnimationFrame(() => {
       scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
     });
-  }, [messages.length, loading]);
+  }, [messages.length, lastLength, loading]);
 
   const submitCurrent = () => {
     if (!input.trim() || loading) return;
@@ -215,7 +220,7 @@ export default function AiChatWindow({
             </div>
           </div>
         ))}
-        {loading && (
+        {loading && !streaming && (
           <div className="flex items-end gap-2">
             <span
               className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 text-2xs font-bold text-[var(--color-accent)]"

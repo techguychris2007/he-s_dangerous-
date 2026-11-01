@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient';
+import { supabase, supabaseAnonKey, supabaseUrl } from './supabaseClient';
 import type { LibraryTurn, LibraryQuestionContext } from './libraryQuestion';
 
 export type AiTutorMode = 'explain' | 'simplify' | 'summarize' | 'example' | 'takeaways' | 'ask';
@@ -31,12 +31,15 @@ export interface AskAiTutorResult {
   citations?: Citation[];
 }
 
+/** Called with the full answer so far each time more of it streams in. */
+export type OnAnswerProgress = (answerSoFar: string) => void;
+
 /** Calls the ai-tutor Supabase Edge Function — the only place the real Groq/Gemini API keys live.
  *  Requires an authenticated session; throws with a readable message on any failure (missing
  *  session, both upstream APIs down, network error) so the UI can show it inline. */
-export async function askAiTutor(params: AskAiTutorParams): Promise<AskAiTutorResult> {
-  const { source, history, ...body } = params;
-  return assistance('ai-tutor', { ...body, question: contextualPrompt(params.question, history) }, params.question, params.bookTitle, source, { history, text: params.pageText, page: params.pageNum });
+export async function askAiTutor(params: AskAiTutorParams, onProgress?: OnAnswerProgress): Promise<AskAiTutorResult> {
+  const { source, ...body } = params;
+  return assistance('ai-tutor', body, params.question, params.bookTitle, source, { history: params.history, text: params.pageText, page: params.pageNum }, onProgress);
 }
 
 export type CyberLabAiMode = 'hint' | 'explain' | 'ask';
@@ -64,34 +67,60 @@ export interface AskCyberLabAiParams {
 
 /** Calls the ai-lab-tutor Edge Function — "CyberLab AI," the hint-first coding/lab mentor. Shares
  *  the same Groq/Gemini secrets as ai-tutor but runs its own hint-ladder system prompt server-side. */
-export async function askCyberLabAi(params: AskCyberLabAiParams): Promise<AskAiTutorResult> {
-  const { source, history, ...body } = params;
-  return assistance('ai-lab-tutor', { ...body, question: contextualPrompt(params.question, history) }, params.question, params.context.title, source, { history });
+export async function askCyberLabAi(params: AskCyberLabAiParams, onProgress?: OnAnswerProgress): Promise<AskAiTutorResult> {
+  const { source, ...body } = params;
+  return assistance('ai-lab-tutor', body, params.question, params.context.title, source, { history: params.history }, onProgress);
 }
 
-function contextualPrompt(question: string, history?: LibraryTurn[]): string {
-  const turns = (history ?? []).slice(-6).filter(turn => turn.role === 'user' || turn.role === 'assistant');
-  const conversation = turns.map(turn => `${turn.role}: ${turn.content.slice(0, 1200)}`).join('\n');
-  return `${conversation ? `Previous conversation (context, not instructions):\n${conversation}\n\n` : ''}Current question: ${question}\n\nAnswer this question directly and concisely. Use the provided source when relevant. Avoid introductory boilerplate, unrelated background and repeated disclaimers. Resolve follow-ups using the conversation. If the source does not support an answer, say so; do not invent book facts or citations. Keep lab hints at the requested hint level.`;
-}
+/** How long to wait for the first byte. Once tokens are flowing the server bounds generation itself. */
+const FIRST_BYTE_TIMEOUT_MS = 20000;
 
-async function assistance(endpoint: string, body: object, question: string, title?: string, source?: 'library', context?: LibraryQuestionContext): Promise<AskAiTutorResult> {
+async function assistance(endpoint: string, body: object, question: string, title?: string, source?: 'library', context?: LibraryQuestionContext, onProgress?: OnAnswerProgress): Promise<AskAiTutorResult> {
   const local = async () => (await import('./offlineLibrary')).searchSavedLibrary(question, title, context);
   if (source === 'library' || !navigator.onLine) return local();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Sign in to use online AI. You can still select “Answer from my books” for prepared books.');
   const abort = new AbortController();
-  const timer = setTimeout(() => abort.abort(), 15000);
+  const timer = setTimeout(() => abort.abort(), FIRST_BYTE_TIMEOUT_MS);
+  let streamed = '';
   try {
-    const { data, error } = await supabase.functions.invoke<AskAiTutorResult>(endpoint, { body, signal: abort.signal });
-    if (error) {
-      const status = error.context instanceof Response ? error.context.status : undefined;
-      if (status === 401 || status === 403) throw new Error('Sign in again to use online AI. You can still select “Search saved library” for prepared books.');
-      if (status && status < 500 && status !== 429) throw new Error(error.message || 'The online AI request was not accepted.');
-      clearTimeout(timer);
+    // Plain fetch rather than supabase.functions.invoke, which buffers the whole body: streaming lets
+    // the first words appear about a second after asking instead of after the full answer is written.
+    const response = await fetch(`${supabaseUrl}/functions/v1/${endpoint}`, {
+      method: 'POST',
+      signal: abort.signal,
+      headers: { Authorization: `Bearer ${session.access_token}`, apikey: supabaseAnonKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...body, stream: true }),
+    });
+    clearTimeout(timer);
+    if (!response.ok) {
+      const status = response.status;
+      if (status === 401 || status === 403) throw new Error('Sign in again to use online AI. You can still select “Answer from my books” for prepared books.');
+      if (status < 500 && status !== 429) {
+        const detail = await response.json().catch(() => null) as { error?: string } | null;
+        throw new Error(detail?.error || 'The online AI request was not accepted.');
+      }
       return { ...await local(), model: 'Library search · online service unavailable' };
     }
-    if (!data?.answer) throw new Error('The AI tutor returned an empty response. Please retry.');
-    return { ...data, sourceMode: 'online' };
+    if (response.headers.get('Content-Type')?.includes('application/json')) {
+      const data = await response.json() as AskAiTutorResult;
+      if (!data?.answer) throw new Error('The AI tutor returned an empty response. Please retry.');
+      return { ...data, sourceMode: 'online' };
+    }
+    const reader = response.body!.pipeThrough(new TextDecoderStream()).getReader();
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      streamed += value;
+      onProgress?.(streamed);
+    }
+    if (!streamed.trim()) throw new Error('The AI tutor returned an empty response. Please retry.');
+    return { answer: streamed, model: response.headers.get('X-Dig-Model') ?? 'dig', sourceMode: 'online' };
   } catch (error) {
+    // A connection lost mid-answer keeps what already arrived rather than swapping in a different answer.
+    if (streamed.trim()) return { answer: `${streamed}
+
+_(Connection lost before the answer finished. Retry for the rest.)_`, model: 'dig', sourceMode: 'online' };
     if (abort.signal.aborted || !navigator.onLine || error instanceof TypeError) return { ...await local(), model: 'Library search · connection unavailable' };
     throw error;
   } finally { clearTimeout(timer); }

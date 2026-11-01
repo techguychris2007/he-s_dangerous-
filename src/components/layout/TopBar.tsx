@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { MODULES, findModule, findLesson } from '../../data/curriculum';
 import { useLabsData } from '../../state/useLabsData';
 import { useProgress } from '../../state/progressStore';
@@ -109,10 +109,10 @@ export default function TopBar({ onMenuClick, menuOpen = false }: { onMenuClick:
   }, [notifOpen]);
 
   return (
-    <header className="surface-glass h-16 shrink-0 border-b border-[var(--color-border)] flex items-center gap-2 sm:gap-3 px-3.5 sm:px-5 relative shadow-[0_14px_40px_-34px_var(--color-heading)]">
+    <header className="dw-topbar surface-glass">
       <button
         onClick={onMenuClick}
-        className="lg:hidden w-9 h-9 rounded-lg flex items-center justify-center text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] shrink-0 touch-manipulation"
+        className="dw-topbar-control lg:hidden"
         aria-label="Toggle navigation"
         aria-expanded={menuOpen}
         aria-controls="platform-navigation"
@@ -120,19 +120,19 @@ export default function TopBar({ onMenuClick, menuOpen = false }: { onMenuClick:
         <IconMenu className="w-5 h-5" />
       </button>
       <div className="min-w-0 flex-1">
-        <div className="hidden sm:block text-2xs font-bold uppercase tracking-[0.18em] text-[var(--color-accent-dim)]">DarkWorld Platform</div>
-        <div className="text-base sm:text-lg font-bold tracking-[-0.02em] text-[var(--color-heading)] truncate">{title}</div>
+        <div className="dw-topbar-context"><Link to="/">Workspace</Link><span aria-hidden="true">/</span><span>DarkWorld Academy</span></div>
+        <div className="dw-topbar-title">{title}</div>
       </div>
 
-      <div className="ml-auto flex items-center gap-1 sm:gap-1.5 shrink-0">
+      <div className="dw-topbar-actions">
         <InstallAppButton />
         <LevelHud />
-        {sync !== 'idle' && <span role="status" title={sync === 'local' ? 'Progress is saved on this device. Cloud sync will retry.' : 'Account progress sync'} className={`hidden md:inline-flex items-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1 mr-2 text-2xs font-bold ${sync === 'local' ? 'text-[var(--color-warn)]' : 'text-[var(--color-text-dim)]'}`}>{sync === 'local' ? 'Saved locally' : sync === 'loading' ? 'Loading…' : sync === 'saving' ? 'Saving…' : 'Synced'}</span>}
+        {sync !== 'idle' && <span role="status" title={sync === 'local' ? 'Progress is saved on this device. Cloud sync will retry.' : 'Account progress sync'} className={`dw-topbar-sync ${sync === 'local' ? 'is-local' : ''}`}>{sync === 'local' ? 'Saved locally' : sync === 'loading' ? 'Loading…' : sync === 'saving' ? 'Saving…' : 'Synced'}</span>}
         <button
           onClick={toggle}
           title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
           aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-          className="w-10 h-10 rounded-2xl premium-card flex items-center justify-center text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-heading)] transition-colors touch-manipulation"
+          className="dw-topbar-control dw-topbar-theme"
         >
           {theme === 'dark' ? <IconSun className="w-4 h-4" /> : <IconMoon className="w-4 h-4" />}
         </button>
@@ -145,7 +145,7 @@ export default function TopBar({ onMenuClick, menuOpen = false }: { onMenuClick:
             aria-label="Notifications"
             aria-controls="recent-activity-panel"
             aria-expanded={notifOpen}
-            className="w-10 h-10 rounded-2xl premium-card flex items-center justify-center text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-heading)] transition-colors relative touch-manipulation"
+            className="dw-topbar-control"
           >
             <IconBell className="w-4 h-4" />
             {activity.length > 0 && (
@@ -155,7 +155,7 @@ export default function TopBar({ onMenuClick, menuOpen = false }: { onMenuClick:
           {notifOpen && (
             <>
               <div className="fixed inset-0 z-30" onClick={() => setNotifOpen(false)} />
-              <div id="recent-activity-panel" role="region" aria-label="Recent activity" className="premium-card absolute right-0 top-12 w-80 max-w-[calc(100vw-1.5rem)] rounded-2xl z-40 overflow-hidden">
+              <div id="recent-activity-panel" role="region" aria-label="Recent activity" className="dw-topbar-activity premium-card absolute right-0 top-12 w-80 max-w-[calc(100vw-1.5rem)] z-40 overflow-hidden">
                 <div className="px-3.5 py-2.5 border-b border-[var(--color-border)] text-xs font-bold uppercase tracking-wide text-[var(--color-text-dim)]">
                   Recent activity
                 </div>
@@ -172,7 +172,7 @@ export default function TopBar({ onMenuClick, menuOpen = false }: { onMenuClick:
                         ) : (
                           <IconCheck className="w-3.5 h-3.5 text-[var(--color-success)] shrink-0" />
                         )}
-                        <span className="truncate">{a.text}</span>
+                        <span className="leading-relaxed">{a.text}</span>
                       </div>
                     ))}
                   </div>

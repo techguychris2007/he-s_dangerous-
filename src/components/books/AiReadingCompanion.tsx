@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { askAiTutor, type AiTutorMode } from '../../lib/aiTutor';
 import AiChatWindow, { type ChatMessage } from '../common/AiChatWindow';
+import { withoutStreaming } from '../common/chatStreaming';
 import type { PdfViewerHandle } from './PdfViewer';
 import DigAvatar from '../characters/DigAvatar';
 
@@ -36,6 +37,11 @@ export default function AiReadingCompanion({ bookTitle, currentPage, viewerRef }
   const lastRequest = useRef<PendingRequest | null>(null);
 
   useEffect(() => {
+    // Offline answers need the local reading model; start loading it while the learner types.
+    if (open && !navigator.onLine) void import('../../lib/offlineLibrary').then(m => m.warmLibraryReader());
+  }, [open]);
+
+  useEffect(() => {
     const research = (event: Event) => {
       const question = (event as CustomEvent<unknown>).detail;
       if (typeof question !== 'string') return;
@@ -52,13 +58,14 @@ export default function AiReadingCompanion({ bookTitle, currentPage, viewerRef }
     setMessages((m) => [...m, { role: 'user', text: question }]);
     setInput('');
     setLoading(true);
+    const showProgress = (text: string) => setMessages((m) => [...withoutStreaming(m), { role: 'assistant', text, streaming: true }]);
     try {
       const pageText = (await viewerRef.current?.getPageText(currentPage)) ?? '';
-      const result = await askAiTutor({ question, bookTitle, pageNum: currentPage, pageText, mode, source, history: messages.filter(m => m.role !== 'error').slice(-6).map(m => ({ role: m.role as 'user' | 'assistant', content: m.text })) });
-      setMessages((m) => [...m, { role: 'assistant', text: result.answer, model: result.model, citations: result.citations }]);
+      const result = await askAiTutor({ question, bookTitle, pageNum: currentPage, pageText, mode, source, history: messages.filter(m => m.role !== 'error').slice(-6).map(m => ({ role: m.role as 'user' | 'assistant', content: m.text })) }, showProgress);
+      setMessages((m) => [...withoutStreaming(m), { role: 'assistant', text: result.answer, model: result.model, citations: result.citations }]);
     } catch (err) {
       setMessages((m) => [
-        ...m,
+        ...withoutStreaming(m),
         { role: 'error', text: err instanceof Error ? err.message : 'Something went wrong — try again.' },
       ]);
     } finally {

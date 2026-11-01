@@ -35,7 +35,14 @@ export function startPwa() {
   display.addEventListener('change', () => patch({ installed: display.matches }));
   window.addEventListener('beforeinstallprompt', event => { event.preventDefault(); deferred = event as InstallEvent; patch({ installable: true }); });
   window.addEventListener('appinstalled', () => { deferred = null; patch({ installed: true, installable: false }); });
-  if (import.meta.env.DEV) return;
+  if (import.meta.env.DEV) {
+    // A worker left by an earlier `vite preview` on this port would keep serving that old build over
+    // the dev server. Only the registration goes; offline library caches stay.
+    void navigator.serviceWorker?.getRegistrations().then(registrations => {
+      if (registrations.length) void Promise.all(registrations.map(r => r.unregister())).then(() => location.reload());
+    });
+    return;
+  }
   update = registerSW({
     immediate: true,
     onNeedRefresh: () => patch({ updateAvailable: true }),

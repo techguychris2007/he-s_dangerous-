@@ -2,7 +2,7 @@ import LearningActions from '../components/lesson/LearningActions';
 import CyberLabAI from '../components/labs/CyberLabAI';
 import BeginnerGlossary from '../components/lesson/BeginnerGlossary';
 import PrerequisitePrimer from '../components/lesson/PrerequisitePrimer';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Navigate, useParams, Link } from 'react-router-dom';
 import { ML_LESSONS, findMlLesson } from '../data/mlLessons';
 import { ML_TASKS } from '../labs/mlTasks';
@@ -22,6 +22,8 @@ export default function MlLessonPage() {
   const contentRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [activeSection, setActiveSection] = useState('');
+  const [focusReading, setFocusReading] = useState(false);
+  const [textSize, setTextSize] = useState(18);
   const [readingProgress, setReadingProgress] = useState(0);
 
   useEffect(() => {
@@ -58,10 +60,10 @@ export default function MlLessonPage() {
   const modulePosition = moduleLessons.findIndex(item => item.id === lesson.id) + 1;
 
   return (
-    <div className="h-full flex flex-col lg:flex-row min-w-0"><div ref={scrollRef} className="lesson-reader ml-reader flex-1 min-w-0 h-full overflow-y-auto">
+    <div className="h-full flex flex-col lg:flex-row min-w-0"><div ref={scrollRef} className="lesson-reader ml-reader flex-1 min-w-0 h-full overflow-y-auto" style={{ '--reader-size': `${textSize}px` } as CSSProperties}>
       <LearningActions back={{ href: '/ml-portal', label: 'ML learning' }} previous={prev ? `/ml-lesson/${prev.id}` : undefined} next={next ? `/ml-lesson/${next.id}` : undefined} />
       <div className="reader-progress" role="progressbar" aria-label="Reading progress" aria-valuenow={readingProgress} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${readingProgress}%` }} /></div>
-      <div className="reader-layout">
+      <div className={`reader-layout ${focusReading ? 'reader-layout-wide' : ''}`}>
         <main className="min-w-0">
           <header className="reader-room">
             <nav aria-label="Breadcrumb" className="reader-room__crumbs">
@@ -85,11 +87,13 @@ export default function MlLessonPage() {
             </div>
             <div className="reader-room__actions">
               {challenge && <button type="button" onClick={() => jumpTo('ml-python-lab')}>{challengeDone ? 'Review the lab' : 'Jump to the lab'}</button>}
+              <button type="button" aria-pressed={focusReading} onClick={() => setFocusReading(value => !value)}>{focusReading ? 'Show outline' : 'Focus reading'}</button>
+              <label>Text size <select aria-label="Lesson text size" value={textSize} onChange={event => setTextSize(Number(event.target.value))}><option value={18}>Standard</option><option value={20}>Large</option><option value={22}>Extra large</option></select></label>
               <Link to="/ml-portal" className="reader-room__link">Back to the roadmap</Link>
             </div>
             <div className="reader-room__progress" role="progressbar" aria-label="Reading progress" aria-valuenow={readingProgress} aria-valuemin={0} aria-valuemax={100}>
               <span style={{ width: `${readingProgress}%` }} />
-              <b>Room progress: {readingProgress}%</b>
+              <b>Reading position: {readingProgress}%</b>
             </div>
           </header>
 
@@ -140,12 +144,12 @@ export default function MlLessonPage() {
           </nav>
         </main>
 
-        <aside className="reader-outline">
+        {!focusReading && <aside className="reader-outline">
           <div className="reader-outline-inner">
             <p className="reader-eyebrow">In this lesson</p>
             <nav className="reader-toc">{sections.map(section => <button key={section.id} type="button" onClick={() => jumpTo(section.id)} aria-current={activeSection === section.id ? 'location' : undefined}>{section.heading}</button>)}{challenge && <button type="button" onClick={() => jumpTo('ml-python-lab')}>Python lab</button>}</nav>
           </div>
-        </aside>
+        </aside>}
       </div>
     </div>
       <CyberLabAI key={lesson.id} getContext={() => ({ kind: 'lesson', title: lesson.title.replace(/<[^>]*>/g, ''), subtitle: 'Machine learning', bodyText: contentRef.current?.innerText ?? '' })} />
