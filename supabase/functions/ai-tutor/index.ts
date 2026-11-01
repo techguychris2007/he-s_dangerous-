@@ -9,7 +9,7 @@
 // upstream API is touched, so a leaked function URL alone can't be used to burn through the
 // account's API quota.
 
-import { answer, cleanHistory, CORS_HEADERS, isSignedInUser, json, type Turn } from '../_shared/llm.ts';
+import { answer, cleanHistory, CONCEPT_FORMAT, CORS_HEADERS, isSignedInUser, json, type Turn } from '../_shared/llm.ts';
 
 type Mode = 'explain' | 'simplify' | 'summarize' | 'example' | 'takeaways' | 'ask';
 
@@ -37,6 +37,9 @@ const MODE_INSTRUCTION: Record<Mode, string> = {
   ask: 'Answer the user\'s specific question.',
 };
 
+// Page summaries and takeaways keep their own short shapes; these modes can be concept questions.
+const CONCEPT_MODES = new Set<Mode>(['explain', 'ask']);
+
 function buildSystemPrompt(body: RequestBody): string {
   const modeInstruction = MODE_INSTRUCTION[body.mode ?? 'ask'];
   const contextBlock =
@@ -57,6 +60,9 @@ function buildSystemPrompt(body: RequestBody): string {
     'technical terms, commands and flags, and if you are unsure or the page does not support a claim, say ' +
     'so plainly rather than guessing. Never invent book content, page numbers, CVE ids, tool options or ' +
     'citations. If you have real-time search results, ground time-sensitive facts in them.' +
+    (CONCEPT_MODES.has(body.mode ?? 'ask') ? `
+
+${CONCEPT_FORMAT}` : '') +
     contextBlock
   );
 }

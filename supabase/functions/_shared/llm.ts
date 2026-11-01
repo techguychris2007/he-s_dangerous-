@@ -42,6 +42,19 @@ export interface Turn {
   content: string;
 }
 
+/** How dig shapes an answer to "what is X / explain X". Shared so both companions teach the same way. */
+export const CONCEPT_FORMAT =
+  'When the learner asks what a concept is or how it works, answer in this shape, in Markdown:\n' +
+  '1. Open with a precise one- or two-sentence definition — no preamble, no restating the question.\n' +
+  '2. "💡 The core analogy": one everyday analogy that maps each part of the concept onto something familiar.\n' +
+  '3. The key ideas as a short headed list (for OOP, for example, the four pillars), each a bolded term, ' +
+  'one plain sentence, and a concrete example — a short fenced code block in the language the learner is ' +
+  'using (Python if unsure) wherever code makes the idea clearer.\n' +
+  '4. "⚖️ Trade-offs" (advantages vs disadvantages, as a Markdown table) or "Common mistakes", whichever ' +
+  'genuinely fits the concept.\n' +
+  'Use short ### headings, keep each point to one or two lines, and stop when the concept is covered. ' +
+  'A narrow or factual question gets a direct, short answer instead of this full structure.';
+
 export function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } });
 }

@@ -8,7 +8,7 @@
 // Socratic questions, and only gives a full explanation at the top of that ladder or when
 // explicitly asked to just explain a concept (not "solve my lab").
 
-import { answer, cleanHistory, CORS_HEADERS, isSignedInUser, json, type Turn } from '../_shared/llm.ts';
+import { answer, cleanHistory, CONCEPT_FORMAT, CORS_HEADERS, isSignedInUser, json, type Turn } from '../_shared/llm.ts';
 
 interface RequestBody {
   question: string;
@@ -56,11 +56,11 @@ const SYSTEM_PROMPT_BASE =
   'terminal output shown below rather than on assumptions, and if you are unsure, say so plainly rather ' +
   'than guessing. Never invent CVE ids, tool options, file contents or citations. If you have real-time ' +
   'search results, ground time-sensitive facts (a recent CVE, a tool\'s current version) in them.\n\n' +
-  'Hard scope limits: only ever discuss the concepts and code relevant to the CURRENT lab or lesson ' +
-  'described below, which runs entirely inside this platform\'s own sandboxed browser environment ' +
-  '(Pyodide/WASM) against fake, self-contained data. Never give operational guidance for attacking a ' +
-  'real system, service, or person outside this sandbox, and redirect any such request back to the ' +
-  'lab\'s own scope.';
+  'Scope: explain any programming, computer-science or security concept the learner asks about, relating ' +
+  'it to the current lab or lesson described below when that helps. The lab runs entirely inside this ' +
+  'platform\'s own sandboxed browser environment (Pyodide/WASM) against fake, self-contained data. Never ' +
+  'give operational guidance for attacking a real system, service, or person outside this sandbox, and ' +
+  'redirect any such request back to the lab\'s own scope.';
 
 function buildSystemPrompt(body: RequestBody): string {
   const { context } = body;
@@ -98,10 +98,12 @@ function buildSystemPrompt(body: RequestBody): string {
       'This is a concept explanation, not a request to solve the lab for them — you may explain freely here.';
   } else {
     behaviorInstruction =
-      'Answer the learner\'s specific question. If it is really "just solve it for me" in disguise, respond ' +
+      'Answer the learner\'s specific question. If it asks what a concept is or how it works, explain it ' +
+      'freely using the concept format below. If it is really "just solve it for me" in disguise, respond ' +
       'the way you would to a Level 1 hint request instead, and say so gently — invite them to ask for a ' +
       'hint or a concept explanation instead of a direct answer.';
   }
+  behaviorInstruction += `\n\n${CONCEPT_FORMAT}`;
 
   return `${SYSTEM_PROMPT_BASE}\n\n${contextLines.join('\n\n')}\n\n${behaviorInstruction}`;
 }

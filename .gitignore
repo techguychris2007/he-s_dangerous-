@@ -40,3 +40,5 @@ src/assets/banners/generated/
 /.agents/
 /tmp/
 *.bak
+.vercel
+.env*
