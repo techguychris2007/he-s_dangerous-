@@ -1,7 +1,6 @@
 import LearningActions from '../components/lesson/LearningActions';
 import CyberLabAI from '../components/labs/CyberLabAI';
 import BeginnerGlossary from '../components/lesson/BeginnerGlossary';
-import PrerequisitePrimer from '../components/lesson/PrerequisitePrimer';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Navigate, useParams, Link } from 'react-router-dom';
 import { ML_LESSONS, findMlLesson } from '../data/mlLessons';
@@ -21,8 +20,6 @@ export default function MlLessonPage() {
   const lesson = lessonId ? findMlLesson(lessonId) : undefined;
   const contentRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [activeSection, setActiveSection] = useState('');
-  const [focusReading, setFocusReading] = useState(false);
   const [textSize, setTextSize] = useState(18);
   const [readingProgress, setReadingProgress] = useState(0);
 
@@ -31,14 +28,9 @@ export default function MlLessonPage() {
     const scroller = scrollRef.current;
     if (!scroller) return;
     scroller.scrollTop = 0;
-    setActiveSection('');
     const update = () => {
       const max = scroller.scrollHeight - scroller.clientHeight;
       setReadingProgress(max > 0 ? Math.min(100, Math.round((scroller.scrollTop / max) * 100)) : 100);
-      const top = scroller.getBoundingClientRect().top;
-      const nodes = Array.from(contentRef.current?.querySelectorAll<HTMLElement>('h2') ?? []);
-      const current = nodes.filter(node => node.getBoundingClientRect().top <= top + 150).at(-1);
-      setActiveSection(current?.id ?? '');
     };
     update();
     scroller.addEventListener('scroll', update, { passive: true });
@@ -63,7 +55,7 @@ export default function MlLessonPage() {
     <div className="h-full flex flex-col lg:flex-row min-w-0"><div ref={scrollRef} className="lesson-reader ml-reader flex-1 min-w-0 h-full overflow-y-auto" style={{ '--reader-size': `${textSize}px` } as CSSProperties}>
       <LearningActions back={{ href: '/ml-portal', label: 'ML learning' }} previous={prev ? `/ml-lesson/${prev.id}` : undefined} next={next ? `/ml-lesson/${next.id}` : undefined} />
       <div className="reader-progress" role="progressbar" aria-label="Reading progress" aria-valuenow={readingProgress} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${readingProgress}%` }} /></div>
-      <div className={`reader-layout ${focusReading ? 'reader-layout-wide' : ''}`}>
+      <div className="reader-layout reader-layout-wide">
         <main className="min-w-0">
           <header className="reader-room">
             <nav aria-label="Breadcrumb" className="reader-room__crumbs">
@@ -87,7 +79,6 @@ export default function MlLessonPage() {
             </div>
             <div className="reader-room__actions">
               {challenge && <button type="button" onClick={() => jumpTo('ml-python-lab')}>{challengeDone ? 'Review the lab' : 'Jump to the lab'}</button>}
-              <button type="button" aria-pressed={focusReading} onClick={() => setFocusReading(value => !value)}>{focusReading ? 'Show outline' : 'Focus reading'}</button>
               <label>Text size <select aria-label="Lesson text size" value={textSize} onChange={event => setTextSize(Number(event.target.value))}><option value={18}>Standard</option><option value={20}>Large</option><option value={22}>Extra large</option></select></label>
               <Link to="/ml-portal" className="reader-room__link">Back to the roadmap</Link>
             </div>
@@ -97,11 +88,8 @@ export default function MlLessonPage() {
             </div>
           </header>
 
-          <details className="reader-mobile-outline"><summary>In this lesson</summary><nav className="reader-toc">{sections.map(section => <button key={section.id} type="button" onClick={() => jumpTo(section.id)}>{section.heading}</button>)}{challenge && <button type="button" onClick={() => jumpTo('ml-python-lab')}>Python lab</button>}</nav></details>
-
           <BeginnerGlossary targetRef={contentRef} resetKey={lesson.id} domains={['ml']} />
           <article ref={contentRef} className="lesson-body ml-lesson-body">
-            <PrerequisitePrimer moduleSlug={lesson.unit === 'python-ml-engineering' ? 'python' : lesson.unit === 'sql-ml-data-work' ? 'database-security' : lesson.unit === 'foundations' ? 'ml-foundations' : lesson.unit === 'model-evaluation' || lesson.unit === 'time-series' ? 'ml-evaluation' : lesson.unit === 'data-handling' || lesson.unit === 'mlops' ? 'ml-data' : 'ml-models'} />
             {sections.map((section) => (
               <section key={section.id} className="ml-lesson-section">
                 <h2 id={section.id} dangerouslySetInnerHTML={{ __html: section.heading }} />
@@ -143,13 +131,6 @@ export default function MlLessonPage() {
             {next ? <Link to={`/ml-lesson/${next.id}`}><span>Next lesson →</span><span dangerouslySetInnerHTML={{ __html: next.title }} /></Link> : <Link to="/ml-portal"><span>Continue your path →</span>Review the full ML roadmap</Link>}
           </nav>
         </main>
-
-        {!focusReading && <aside className="reader-outline">
-          <div className="reader-outline-inner">
-            <p className="reader-eyebrow">In this lesson</p>
-            <nav className="reader-toc">{sections.map(section => <button key={section.id} type="button" onClick={() => jumpTo(section.id)} aria-current={activeSection === section.id ? 'location' : undefined}>{section.heading}</button>)}{challenge && <button type="button" onClick={() => jumpTo('ml-python-lab')}>Python lab</button>}</nav>
-          </div>
-        </aside>}
       </div>
     </div>
       <CyberLabAI key={lesson.id} getContext={() => ({ kind: 'lesson', title: lesson.title.replace(/<[^>]*>/g, ''), subtitle: 'Machine learning', bodyText: contentRef.current?.innerText ?? '' })} />

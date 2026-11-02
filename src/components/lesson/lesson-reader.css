@@ -365,3 +365,5 @@
 .lesson-reader-large .lesson-code pre { font-size: 16.5px; line-height: 1.7; }
 .lesson-reader-large .lesson-code-label { font-size: 15px; }
 @media (max-width: 760px) { .lesson-reader-large .lesson-code pre { font-size: 15px; } }
+
+.reader-prerequisite { margin: 0 0 24px; padding: 14px 18px; border-left: 3px solid var(--color-border); color: var(--color-text-dim); font-size: .9em; line-height: 1.75; }

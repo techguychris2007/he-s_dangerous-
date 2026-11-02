@@ -7,7 +7,6 @@ import { useProgress } from '../state/progressStore';
 import type { ModuleMeta, LessonMeta } from '../types';
 import BeginnerGlossary from '../components/lesson/BeginnerGlossary';
 import LessonTasks from '../components/lesson/LessonTasks';
-import PrerequisitePrimer from '../components/lesson/PrerequisitePrimer';
 import LessonLabCard from '../components/lesson/LessonLabCard';
 import CodeTaskCard from '../components/code/CodeTaskCard';
 import SiemLabCard from '../components/siem/SiemLabCard';
@@ -19,8 +18,6 @@ import CharacterAvatar from '../components/characters/CharacterAvatar';
 import { guideForArea } from '../data/characters';
 import { LESSON_XP, QUIZ_MAX_XP } from '../data/levels';
 import '../components/lesson/lesson-reader.css';
-
-type Heading = { id: string; title: string; level: number };
 
 export default function LessonPage() {
   const { moduleSlug, lessonSlug } = useParams();
@@ -34,10 +31,7 @@ function LessonReader({ mod, lesson }: { mod: ModuleMeta; lesson: LessonMeta }) 
   const progress = useProgress();
   const contentRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [headings, setHeadings] = useState<Heading[]>([]);
-  const [activeHeading, setActiveHeading] = useState('');
   const [readingProgress, setReadingProgress] = useState(0);
-  const [wide, setWide] = useState(false);
   const [fontSize, setFontSize] = useState(() => {
     try { const size = Number(localStorage.getItem('darkworld.reader.fontSize')); return [18, 20, 22].includes(size) ? size : (size === 19 ? 20 : size === 21 ? 22 : 18); }
     catch { return 18; }
@@ -46,7 +40,6 @@ function LessonReader({ mod, lesson }: { mod: ModuleMeta; lesson: LessonMeta }) 
   const prev = mod.lessons[idx - 1];
   const next = mod.lessons[idx + 1];
   const complete = progress.isLessonComplete(lesson.id);
-  const completedInModule = mod.lessons.filter(item => progress.isLessonComplete(item.id)).length;
   const track = ROADMAP.find(stage => stage.moduleSlug === mod.slug)?.track ?? 'security';
   const labSlugs = labsForLesson(lesson.id);
   const practiceBreakdown = useMemo(() => {
@@ -63,31 +56,17 @@ function LessonReader({ mod, lesson }: { mod: ModuleMeta; lesson: LessonMeta }) 
   const { Content } = lesson;
 
   useEffect(() => {
-    let nodes: HTMLElement[] = [];
-    const collectHeadings = () => {
-      nodes = Array.from(contentRef.current?.querySelectorAll<HTMLElement>('h2, h3') ?? []);
-      const sections = nodes.map((node, index) => {
-        if (!node.id) node.id = `${lesson.id}-toc-${index + 1}`;
-        node.tabIndex = -1;
-        return { id: node.id, title: node.textContent ?? '', level: Number(node.tagName.slice(1)) };
-      });
-      setHeadings(previous => JSON.stringify(previous) === JSON.stringify(sections) ? previous : sections);
-      setActiveHeading(previous => sections.some(section => section.id === previous) ? previous : sections[0]?.id ?? '');
-    };
-    collectHeadings();
     const scroller = scrollRef.current;
     if (!scroller) return;
     const update = () => {
       const max = scroller.scrollHeight - scroller.clientHeight;
       setReadingProgress(max > 0 ? Math.min(100, Math.round(scroller.scrollTop / max * 100)) : 100);
-      const top = scroller.getBoundingClientRect().top;
-      const current = nodes.filter(node => node.getBoundingClientRect().top <= top + 160).at(-1);
-      if (current) setActiveHeading(current.id);
     };
+    update();
     scroller.addEventListener('scroll', update, { passive: true });
     const resize = new ResizeObserver(update);
     if (contentRef.current) resize.observe(contentRef.current);
-    const mutations = new MutationObserver(() => { collectHeadings(); update(); });
+    const mutations = new MutationObserver(update);
     if (contentRef.current) mutations.observe(contentRef.current, { childList: true, subtree: true, characterData: true });
     return () => { scroller.removeEventListener('scroll', update); resize.disconnect(); mutations.disconnect(); };
   }, [lesson.id]);
@@ -98,18 +77,12 @@ function LessonReader({ mod, lesson }: { mod: ModuleMeta; lesson: LessonMeta }) 
     heading?.focus({ preventScroll: true });
   }
 
-  const tableOfContents = <nav aria-label="Lesson sections" className="reader-toc">
-    {headings.map(heading => <button key={heading.id} type="button" onClick={() => jumpTo(heading.id)} aria-current={activeHeading === heading.id ? 'location' : undefined} className={heading.level === 3 ? 'reader-toc-subsection' : ''}>{heading.title}</button>)}
-    {labSlugs.length > 0 && <button onClick={() => jumpTo('lesson-practice')}>Practice labs · {labSlugs.length}</button>}
-    <button onClick={() => jumpTo('lesson-checkpoint')}>Knowledge checkpoint</button>
-  </nav>;
-
   return (
     <div className="h-full flex flex-col lg:flex-row min-w-0">
       <div ref={scrollRef} className={`lesson-reader flex-1 min-w-0 overflow-y-auto ${track === 'software' || track === 'dotnet' ? 'lesson-reader-large' : ''}`} style={{ '--reader-size': `${fontSize + (track === 'software' || track === 'dotnet' ? 2 : 0)}px` } as CSSProperties}>
         <LearningActions back={{ href: `/module/${mod.slug}`, label: 'Back to module' }} previous={prev ? `/module/${mod.slug}/lesson/${prev.slug}` : undefined} next={next ? `/module/${mod.slug}/lesson/${next.slug}` : undefined} />
         <div className="reader-progress" role="progressbar" aria-label="Reading progress" aria-valuenow={readingProgress} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${readingProgress}%` }} /></div>
-        <div className={`reader-layout ${wide ? 'reader-layout-wide' : ''}`}>
+        <div className="reader-layout reader-layout-wide">
           <div className="min-w-0">
             <header className="reader-room">
               <nav aria-label="Breadcrumb" className="reader-room__crumbs">
@@ -133,7 +106,6 @@ function LessonReader({ mod, lesson }: { mod: ModuleMeta; lesson: LessonMeta }) 
               </div>
               <div className="reader-room__actions">
                 <button type="button" onClick={() => jumpTo('lesson-checkpoint')}>{complete ? 'Review checkpoint' : 'Jump to questions'}</button>
-                <button type="button" aria-pressed={wide} onClick={() => setWide(current => !current)}>{wide ? 'Show outline' : 'Focus reading'}</button>
                 <label>Text size <select aria-label="Lesson text size" value={fontSize} onChange={event => { const size = Number(event.target.value); setFontSize(size); try { localStorage.setItem('darkworld.reader.fontSize', String(size)); } catch { /* Reading remains available without storage. */ } }}><option value={18}>Standard</option><option value={20}>Large</option><option value={22}>Extra large</option></select></label>
               </div>
               <div className="reader-room__progress" role="progressbar" aria-label="Reading position" aria-valuenow={complete ? 100 : readingProgress} aria-valuemin={0} aria-valuemax={100}>
@@ -142,10 +114,9 @@ function LessonReader({ mod, lesson }: { mod: ModuleMeta; lesson: LessonMeta }) 
               </div>
             </header>
             {lesson.objectives?.length ? <section className="reader-objectives" aria-label="Learning objectives"><h2>What you will be able to do</h2><ul>{lesson.objectives.map(item => <li key={item}>{item}</li>)}</ul></section> : null}
-            <details className="reader-mobile-outline"><summary>In this lesson</summary>{tableOfContents}</details>
             <BeginnerGlossary targetRef={contentRef} resetKey={lesson.id} />
             <div ref={contentRef} className="lesson-body">
-              <PrerequisitePrimer moduleSlug={mod.slug} prerequisite={lesson.prerequisite} />
+              {lesson.prerequisite && !/^none\b/i.test(lesson.prerequisite.trim()) && <p className="reader-prerequisite"><strong>Before you begin:</strong> {lesson.prerequisite}</p>}
               <Suspense fallback={<p role="status">Loading lesson content…</p>}><Content /></Suspense>
             </div>
             {labSlugs.length > 0 && <section id="lesson-practice" tabIndex={-1} className="reader-practice">
@@ -173,7 +144,6 @@ function LessonReader({ mod, lesson }: { mod: ModuleMeta; lesson: LessonMeta }) 
               {next ? <Link to={`/module/${mod.slug}/lesson/${next.slug}`}><span>Next lesson →</span>{next.title}</Link> : <Link to={`/roadmap?track=${track}`}><span>Continue your path →</span>Explore the roadmap</Link>}
             </nav>
           </div>
-          {!wide && <aside className="reader-outline"><div className="reader-outline-inner"><p className="reader-eyebrow">In this lesson</p>{tableOfContents}<div className="reader-module-progress"><span>{completedInModule} of {mod.lessons.length} lessons complete</span><progress value={completedInModule} max={mod.lessons.length} /><Link to={`/module/${mod.slug}`}>View module →</Link></div></div></aside>}
         </div>
       </div>
       <CyberLabAI key={lesson.id} getContext={() => ({ kind: 'lesson', title: lesson.title, subtitle: mod.title, bodyText: contentRef.current?.innerText ?? '' })} />
