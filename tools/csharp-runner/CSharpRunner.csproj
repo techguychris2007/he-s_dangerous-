@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk.WebAssembly">
+
+  <!-- In-browser C# for DarkWorld's coding tasks: Roslyn compiles the learner's files in memory and
+       the .NET WebAssembly runtime executes them inside a Web Worker. Build with build.ps1, which
+       publishes into public/csharp-runtime/. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- Trim away framework assemblies nothing uses, but keep every assembly learner code compiles
+         against whole (see the TrimmerRootAssembly list): learner code may call any of their APIs. -->
+    <PublishTrimmed>true</PublishTrimmed>
+    <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <WasmEnableThreads>false</WasmEnableThreads>
+    <!-- Stable file names: the worker loads dotnet.js by a fixed URL. -->
+    <WasmFingerprintAssets>false</WasmFingerprintAssets>
+    <CompressionEnabled>false</CompressionEnabled>
+    <NoWarn>$(NoWarn);CA1416</NoWarn>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <!-- Keep real exception messages ("Value cannot be null") instead of resource keys. -->
+    <UseSystemResourceKeys>false</UseSystemResourceKeys>
+    <!-- Learner programs serialize their own types with System.Text.Json. -->
+    <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
+  </ItemGroup>
+
+  <!-- Keep in sync with Runner.ReferenceAssemblies in Program.cs. -->
+  <ItemGroup>
+    <TrimmerRootAssembly Include="System.Private.CoreLib;System.Runtime;netstandard;System.Console" />
+    <TrimmerRootAssembly Include="System.Collections;System.Collections.Concurrent;System.Collections.Immutable" />
+    <TrimmerRootAssembly Include="System.Linq;System.Linq.Expressions;System.Text.RegularExpressions" />
+    <TrimmerRootAssembly Include="System.Text.Json;System.Text.Encodings.Web;System.Memory;System.Runtime.Numerics" />
+    <TrimmerRootAssembly Include="System.ComponentModel.Primitives;System.ComponentModel.Annotations" />
+    <TrimmerRootAssembly Include="System.Threading;System.Threading.Tasks;System.Threading.Channels;System.IO" />
+    <TrimmerRootAssembly Include="System.Diagnostics.Debug;System.ObjectModel;System.Runtime.InteropServices" />
+    <TrimmerRootAssembly Include="System.Security.Cryptography;System.Private.Uri;System.Net.Primitives" />
+    <TrimmerRootAssembly Include="System.Security.Claims;System.Web.HttpUtility;System.Collections.Specialized" />
+    <TrimmerRootAssembly Include="Microsoft.CodeAnalysis;Microsoft.CodeAnalysis.CSharp" />
+    <TrimmerRootAssembly Include="CSharpRunner" />
+  </ItemGroup>
+
+</Project>

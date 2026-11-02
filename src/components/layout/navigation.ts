@@ -14,6 +14,7 @@ export const LEARNING_PATHS = [
   { title: 'Defensive security', to: '/roadmap?track=defensive', track: 'defensive' },
   { title: 'Programming', to: '/roadmap?track=programming', track: 'programming' },
   { title: 'Software engineering', to: '/roadmap?track=software', track: 'software' },
+  { title: 'C# & .NET engineering', to: '/roadmap?track=dotnet', track: 'dotnet' },
 ] as const;
 export const ACADEMY_DESTINATIONS: AcademyDestination[] = [
   { title: 'Overview', to: '/', group: 'Your workspace', description: 'Your academy dashboard', keywords: 'home dashboard' },
@@ -29,6 +30,7 @@ export const ACADEMY_DESTINATIONS: AcademyDestination[] = [
   { title: 'Resources', to: '/resources', group: 'Reference', description: 'Curated references and communities' },
   { title: 'My tasks', to: '/tasks', group: 'Activity', description: 'Practice checklist and saved work' },
   { title: 'Progress', to: '/progress', group: 'Activity', description: 'Learning progress and achievements' },
+  { title: 'Certificates', to: '/certificates', group: 'Activity', description: 'Earn and download learning-path completion certificates', keywords: 'certificate credential diploma pdf completion path' },
   { title: 'Leaderboard', to: '/leaderboard', group: 'Community', description: 'Community learning rankings' },
   { title: 'Schedule', to: '/schedule', group: 'Activity', description: 'Plan your study sessions' },
   { title: 'Announcements', to: '/announcements', group: 'Community', description: 'Academy updates' },

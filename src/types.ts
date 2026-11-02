@@ -2,7 +2,7 @@ import type { ComponentType } from 'react';
 
 export type ModuleStatus = 'available' | 'coming-soon';
 
-export type RoadmapTrack = 'presecurity' | 'security' | 'defensive' | 'programming' | 'software' | 'ml';
+export type RoadmapTrack = 'presecurity' | 'security' | 'defensive' | 'programming' | 'software' | 'dotnet' | 'ml';
 
 export interface QuizQuestion {
   id: string;

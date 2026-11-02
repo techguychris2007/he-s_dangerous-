@@ -58,6 +58,8 @@ const BANNERS: Record<string, BannerConfig> = {
   // Same no-photo-asset-yet situation as the Code Portal modules above — a distinct gradient per
   // module rather than falling through to Linux's banner.
   // Software Engineering track: one crest-indigo family, varied pattern per module.
+  'se-programming-basics': { from: '#0d1d24', to: '#2f8fa8', pattern: 'dots' },
+  'se-programs-oop': { from: '#12122c', to: '#6a55d5', pattern: 'scan' },
   'se-foundations': { from: '#10142c', to: '#4c5fd5', pattern: 'circuit' },
   'se-construction': { from: '#10142c', to: '#5b4bd5', pattern: 'grid' },
   'se-testing': { from: '#0d1d24', to: '#1f8a6b', pattern: 'dots' },

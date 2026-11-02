@@ -12,7 +12,7 @@ import LessonLabCard from '../components/lesson/LessonLabCard';
 import CodeTaskCard from '../components/code/CodeTaskCard';
 import SiemLabCard from '../components/siem/SiemLabCard';
 import { SIEM_LABS } from '../labs/siemScenarios';
-import { PYTHON_TASKS } from '../labs/pythonTasks';
+import { LESSON_CODE_TASKS } from '../labs/lessonCodeTasks';
 import CyberLabAI from '../components/labs/CyberLabAI';
 import { IconCheck } from '../components/layout/icons';
 import CharacterAvatar from '../components/characters/CharacterAvatar';
@@ -55,7 +55,7 @@ function LessonReader({ mod, lesson }: { mod: ModuleMeta; lesson: LessonMeta }) 
     let terminal = 0;
     for (const slug of labSlugs) {
       if (SIEM_LABS.some(lab => lab.id === slug)) siem++;
-      else if (PYTHON_TASKS.some(task => task.id === slug)) code++;
+      else if (LESSON_CODE_TASKS.some(task => task.id === slug)) code++;
       else terminal++;
     }
     return { siem, code, terminal };
@@ -106,7 +106,7 @@ function LessonReader({ mod, lesson }: { mod: ModuleMeta; lesson: LessonMeta }) 
 
   return (
     <div className="h-full flex flex-col lg:flex-row min-w-0">
-      <div ref={scrollRef} className="lesson-reader flex-1 min-w-0 overflow-y-auto" style={{ '--reader-size': `${fontSize}px` } as CSSProperties}>
+      <div ref={scrollRef} className={`lesson-reader flex-1 min-w-0 overflow-y-auto ${track === 'software' || track === 'dotnet' ? 'lesson-reader-large' : ''}`} style={{ '--reader-size': `${fontSize + (track === 'software' || track === 'dotnet' ? 2 : 0)}px` } as CSSProperties}>
         <LearningActions back={{ href: `/module/${mod.slug}`, label: 'Back to module' }} previous={prev ? `/module/${mod.slug}/lesson/${prev.slug}` : undefined} next={next ? `/module/${mod.slug}/lesson/${next.slug}` : undefined} />
         <div className="reader-progress" role="progressbar" aria-label="Reading progress" aria-valuenow={readingProgress} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${readingProgress}%` }} /></div>
         <div className={`reader-layout ${wide ? 'reader-layout-wide' : ''}`}>
@@ -150,7 +150,7 @@ function LessonReader({ mod, lesson }: { mod: ModuleMeta; lesson: LessonMeta }) 
             </div>
             {labSlugs.length > 0 && <section id="lesson-practice" tabIndex={-1} className="reader-practice">
               <p className="reader-eyebrow">Learn by doing</p><h2>Put the lesson into practice</h2>
-              <p className="reader-summary">Work through the scenario, collect evidence, and explain what your observations prove.</p>
+              <p className="reader-summary">{practiceBreakdown.code === labSlugs.length ? 'Write the code, run the automated tests, and keep going until every check passes.' : 'Work through the scenario, collect evidence, and explain what your observations prove.'}</p>
               <div className="mb-4 flex flex-wrap gap-2" aria-label="Practice formats in this lesson">
                 {practiceBreakdown.terminal > 0 && <span className="pill bg-[var(--color-accent)]/10 text-[var(--color-accent-dim)]">{practiceBreakdown.terminal} terminal {practiceBreakdown.terminal === 1 ? 'lab' : 'labs'}</span>}
                 {practiceBreakdown.siem > 0 && <span className="pill bg-[var(--color-surface-2)] text-[var(--color-text-dim)]">{practiceBreakdown.siem} SIEM {practiceBreakdown.siem === 1 ? 'case' : 'cases'}</span>}
@@ -159,7 +159,7 @@ function LessonReader({ mod, lesson }: { mod: ModuleMeta; lesson: LessonMeta }) 
               {labSlugs.map(slug => {
                 const siem = SIEM_LABS.find(lab => lab.id === slug);
                 if (siem) return <div className="my-4" key={slug}><SiemLabCard lab={siem} /></div>;
-                const codeTask = PYTHON_TASKS.find(task => task.id === slug);
+                const codeTask = LESSON_CODE_TASKS.find(task => task.id === slug);
                 if (codeTask) return <div className="my-4" key={slug}><CodeTaskCard task={codeTask} /></div>;
                 return <LessonLabCard key={slug} labSlug={slug} />;
               })}

@@ -70,7 +70,7 @@ export default function MonacoProjectEditor({ initialFiles, activePath, onFileCh
         fontSize: 14,
         lineHeight: 22,
         readOnly: disabled,
-        tabSize: initialFiles.find((f) => f.path === activePath)?.language === 'python' ? 4 : 2,
+        tabSize: ['python', 'csharp'].includes(initialFiles.find((f) => f.path === activePath)?.language ?? '') ? 4 : 2,
       }}
       onMount={(editor, monaco) => {
         editorRef.current = editor;

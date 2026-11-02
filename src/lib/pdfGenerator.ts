@@ -164,6 +164,118 @@ export async function downloadCertificatePdf(entry: LabEntry, learnerName: strin
   doc.save(`darkworld-certificate-${safeFileName(entry)}.pdf`);
 }
 
+export interface PathCertificateData {
+  credential: string;
+  skills: string[];
+  moduleCount: number;
+  lessonCount: number;
+  recordId: string;
+  issued: string;
+}
+
+/** Learning-path completion certificate — the print form of PathCertificate.tsx, sharing the lab
+ *  certificate's navy/gold frame, seal and honest "simulated coursework" wording. */
+export async function createPathCertificatePdf(data: PathCertificateData, learnerName: string, embeddedFont?: string): Promise<jsPDF> {
+  const doc = await documentWithFont('landscape', embeddedFont);
+  checkGlyphs(doc, [learnerName, data.credential, data.skills.join(' ')].join(' '));
+  const width = doc.internal.pageSize.getWidth();
+  const height = doc.internal.pageSize.getHeight();
+  const center = width / 2 + 34;
+  const textWidth = width - 220;
+  doc.setProperties({ title: `${data.credential} - Learning path completion`, author: 'DarkWorld', subject: 'Simulated training completion record' });
+  doc.setFillColor(...PAPER);
+  doc.rect(0, 0, width, height, 'F');
+  doc.setFillColor(...NAVY);
+  doc.rect(0, 0, 78, height, 'F');
+  doc.setDrawColor(...GOLD);
+  doc.setLineWidth(1);
+  doc.rect(94, 24, width - 118, height - 48);
+  doc.setLineWidth(0.3);
+  doc.rect(100, 30, width - 130, height - 60);
+  seal(doc, 39, 57, 25);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(217, 190, 145);
+  doc.text('LEARN  /  PRACTISE  /  PROVE', 43, height - 78, { angle: 90 });
+  doc.setFontSize(11);
+  doc.setTextColor(...GOLD);
+  doc.text('D A R K W O R L D', center, 72, { align: 'center' });
+  doc.setFont('times', 'normal');
+  doc.setFontSize(34);
+  doc.setTextColor(...NAVY);
+  doc.text('Certificate of Completion', center, 122, { align: 'center' });
+  doc.setDrawColor(...GOLD);
+  doc.line(center - 110, 144, center + 110, 144);
+  doc.setFont('DarkWorldSans', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(...DIM);
+  doc.text('PRESENTED TO', center, 178, { align: 'center' });
+  const nameLines = fittedLines(doc, learnerName.trim() || 'Learner', textWidth, 2, 29, 16);
+  doc.setTextColor(...NAVY);
+  doc.text(nameLines, center, 214, { align: 'center', lineHeightFactor: 1.16 });
+  doc.setFontSize(10);
+  doc.setTextColor(...DIM);
+  doc.text('for completing the learning path', center, 275, { align: 'center' });
+  const credentialLines = fittedLines(doc, data.credential, textWidth, 2, 21, 13);
+  doc.setTextColor(...NAVY);
+  doc.text(credentialLines, center, 305, { align: 'center', lineHeightFactor: 1.2 });
+  doc.setFont('DarkWorldSans', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(...DIM);
+  const skillLines: string[] = doc.splitTextToSize(data.skills.join('    •    '), textWidth);
+  doc.text(skillLines.slice(0, 2), center, 340, { align: 'center', lineHeightFactor: 1.3 });
+  const metaX = center - 250;
+  const metaY = 378;
+  const metaW = 500;
+  const metaH = 42;
+  const colW = metaW / 3;
+  doc.setFillColor(244, 246, 250);
+  doc.setDrawColor(220, 225, 234);
+  doc.setLineWidth(0.6);
+  doc.roundedRect(metaX, metaY, metaW, metaH, 5, 5, 'FD');
+  const meta: [string, string][] = [
+    ['MODULES', `${data.moduleCount} completed`],
+    ['LESSONS', `${data.lessonCount} completed`],
+    ['RECORD', data.recordId],
+  ];
+  meta.forEach(([label, value], index) => {
+    const x = metaX + colW * index;
+    if (index > 0) {
+      doc.setDrawColor(220, 225, 234);
+      doc.line(x, metaY + 8, x, metaY + metaH - 8);
+    }
+    doc.setFont('DarkWorldSans', 'normal');
+    doc.setFontSize(6.5);
+    doc.setTextColor(...DIM);
+    doc.text(label, x + colW / 2, metaY + 15, { align: 'center' });
+    doc.setFontSize(9);
+    doc.setTextColor(...NAVY);
+    doc.text(doc.splitTextToSize(value, colW - 18).slice(0, 2), x + colW / 2, metaY + 30, { align: 'center', lineHeightFactor: 1.05 });
+  });
+  doc.setDrawColor(...GOLD);
+  doc.line(131, 431, width - 60, 431);
+  doc.setFontSize(8);
+  doc.setTextColor(...DIM);
+  doc.text('ISSUED (UTC)', 135, 450);
+  doc.text('ISSUED BY', width - 194, 450);
+  doc.setFontSize(11);
+  doc.setTextColor(...NAVY);
+  doc.text(data.issued, 135, 470);
+  doc.text('DarkWorld Learning', width - 194, 470);
+  seal(doc, center, 461, 28);
+  doc.setFont('DarkWorldSans', 'normal');
+  doc.setFontSize(7.4);
+  doc.setTextColor(...DIM);
+  doc.text('A record of completed coursework in a browser-based training platform. Not a professional certification or independent skills assessment.', center, 523, { align: 'center' });
+  doc.text(`Self-issued learning record ${data.recordId}  |  Based on learner-managed progress`, center, 540, { align: 'center' });
+  return doc;
+}
+
+export async function downloadPathCertificatePdf(data: PathCertificateData, learnerName: string) {
+  const doc = await createPathCertificatePdf(data, learnerName);
+  doc.save(`darkworld-path-certificate-${data.credential.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.pdf`);
+}
+
 export async function createWriteupPdf(entry: LabEntry, opts: LabWriteupOptions = {}, embeddedFont?: string): Promise<jsPDF> {
   const doc = await documentWithFont('portrait', embeddedFont);
   const report = opts.evidence ?? EMPTY_REPORT;

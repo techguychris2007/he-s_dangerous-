@@ -4,6 +4,7 @@ import { Navigate, useParams, Link } from 'react-router-dom';
 import { PYTHON_TASKS } from '../labs/pythonTasks';
 import { CPP_TASKS } from '../labs/cppTasks';
 import { JS_TASKS } from '../labs/jsTasks';
+import { CSHARP_TASKS } from '../labs/csharpTasks';
 import { ML_TASKS } from '../labs/mlTasks';
 import { SECURITY_TASKS } from '../labs/securityTasks';
 import { useProgress } from '../state/progressStore';
@@ -16,11 +17,11 @@ import { codeTaskXp } from '../data/xp';
 import '../components/code/code-workspace.css';
 import type { CodeLanguage, CodeTask } from '../labs/codeTypes';
 
-const ALL_CODE_TASKS = [...PYTHON_TASKS, ...CPP_TASKS, ...JS_TASKS, ...ML_TASKS, ...SECURITY_TASKS];
+const ALL_CODE_TASKS = [...PYTHON_TASKS, ...CPP_TASKS, ...JS_TASKS, ...CSHARP_TASKS, ...ML_TASKS, ...SECURITY_TASKS];
 const ALL_CODE_TASKS_MAP = new Map<string, CodeTask>(ALL_CODE_TASKS.map((t) => [t.id, t]));
 
-const EXTENSION_BY_LANGUAGE: Record<CodeLanguage, string> = { python: 'py', cpp: 'cpp', javascript: 'js' };
-const COMMENT_PREFIX_BY_LANGUAGE: Record<CodeLanguage, string> = { python: '#', cpp: '//', javascript: '//' };
+const EXTENSION_BY_LANGUAGE: Record<CodeLanguage, string> = { python: 'py', cpp: 'cpp', javascript: 'js', csharp: 'cs' };
+const COMMENT_PREFIX_BY_LANGUAGE: Record<CodeLanguage, string> = { python: '#', cpp: '//', javascript: '//', csharp: '//' };
 
 function slugify(title: string): string {
   return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'solution';
@@ -73,7 +74,7 @@ export default function CodeTaskPage() {
   const backHref = isMlTask ? '/ml-portal' : isSecurityTask ? '/library' : '/code-portal';
   const backLabel = isMlTask ? 'ML Portal' : isSecurityTask ? 'Library' : 'Code Portal';
 
-  const languageLabel = task.language === 'cpp' ? 'C++' : task.language === 'javascript' ? 'JavaScript' : 'Python';
+  const languageLabel = { python: 'Python', cpp: 'C++', javascript: 'JavaScript', csharp: 'C#' }[task.language];
   const hintsUsed = Math.max(hintIndex, progress.codeTaskHintsUsed[task.id] ?? 0);
   const revealed = showSolution || !!progress.codeTaskSolutionRevealed[task.id];
   const xp = codeTaskXp(hintsUsed, revealed);

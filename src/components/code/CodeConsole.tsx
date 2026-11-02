@@ -3,6 +3,7 @@ import CodeEditor from './CodeEditor';
 import { runPython, runPythonTraced, isPyodideBooted, type TraceStep } from '../../lib/pyodideRunner';
 import { runCpp } from '../../lib/cppRunner';
 import { runJs } from '../../lib/jsRunner';
+import { runCSharp, isCSharpBooted } from '../../lib/csharpRunner';
 import type { CodeLanguage } from '../../labs/codeTypes';
 import { parseChecks, parseTestResult, type CheckLine } from '../../lib/testResult';
 import { IconCheck, IconCode, IconLightning, IconRefresh, IconX } from '../layout/icons';
@@ -29,12 +30,14 @@ const RUNNERS: Record<CodeLanguage, (code: string) => Promise<{ stdout: string; 
   python: runPython,
   cpp: runCpp,
   javascript: runJs,
+  csharp: runCSharp,
 };
 
 const FILE: Record<CodeLanguage, { name: string; runtime: string }> = {
   python: { name: 'solution.py', runtime: 'Python 3 · Pyodide' },
   cpp: { name: 'solution.cpp', runtime: 'C++ · in-browser' },
   javascript: { name: 'solution.js', runtime: 'JavaScript · sandboxed' },
+  csharp: { name: 'Solution.cs', runtime: 'C# 14 · .NET 10 in-browser' },
 };
 
 /** The coding workspace: a dark IDE frame with a file tab, run/debug/submit toolbar, the Monaco
@@ -68,7 +71,7 @@ export default function CodeConsole({ language, starterCode, testCode, onAllTest
 
   const run = async (withTests: boolean) => {
     if (withTests) onTestsAttempted?.();
-    setStatus(language === 'python' && !isPyodideBooted() ? 'booting' : 'running');
+    setStatus((language === 'python' && !isPyodideBooted()) || (language === 'csharp' && !isCSharpBooted()) ? 'booting' : 'running');
     setOutput('');
     clearResults();
     setPanel(withTests ? 'tests' : 'output');
@@ -126,7 +129,7 @@ export default function CodeConsole({ language, starterCode, testCode, onAllTest
   const busy = status === 'booting' || status === 'running';
   const modified = code !== starterCode;
   const allPassed = !!testSummary && testSummary.total > 0 && testSummary.passed === testSummary.total;
-  const statusText = status === 'booting' ? 'Downloading the Python runtime (first run only)…' : status === 'running' ? 'Running…' : status === 'error' ? 'Finished with errors' : status === 'done' ? 'Finished' : 'Ready';
+  const statusText = status === 'booting' ? `Downloading the ${language === 'csharp' ? 'C# compiler and .NET' : 'Python'} runtime (first run only)…` : status === 'running' ? 'Running…' : status === 'error' ? 'Finished with errors' : status === 'done' ? 'Finished' : 'Ready';
 
   return (
     <div className="dw-ide">

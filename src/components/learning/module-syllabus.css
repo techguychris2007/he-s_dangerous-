@@ -1,0 +1,26 @@
+.syllabus { margin-top: 2rem; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); overflow: hidden; }
+.syllabus__head { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--color-border); }
+.syllabus__kicker { margin: 0 0 .25rem; font-size: .72rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--color-text-dim); }
+.syllabus__head h2 { margin: 0; font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; color: var(--color-heading); }
+.syllabus__totals { margin: 0; font-size: .82rem; color: var(--color-text-dim); white-space: nowrap; }
+.syllabus__list { margin: 0; padding: 0; list-style: none; }
+.syllabus__item + .syllabus__item { border-top: 1px solid var(--color-border); }
+.syllabus__link { display: grid; grid-template-columns: 2.25rem minmax(0, 1fr) auto 1rem; align-items: center; gap: 1rem; padding: 1.1rem 1.5rem; color: inherit; text-decoration: none; transition: background .15s; }
+.syllabus__link:hover, .syllabus__link:focus-visible { background: var(--color-surface-2); }
+.syllabus__num { display: grid; place-items: center; width: 2.25rem; height: 2.25rem; border: 1px solid var(--color-border); border-radius: 50%; font-family: var(--font-mono); font-size: .8rem; font-weight: 600; color: var(--color-text-dim); }
+.syllabus__item.is-current .syllabus__num { border-color: var(--color-accent); color: var(--color-accent); }
+.syllabus__item.is-done .syllabus__num { border-color: var(--color-success); background: color-mix(in srgb, var(--color-success) 14%, transparent); color: var(--color-success); }
+.syllabus__body { display: grid; gap: .3rem; min-width: 0; }
+.syllabus__body strong { font-size: .98rem; font-weight: 600; line-height: 1.4; color: var(--color-heading); }
+.syllabus__summary { font-size: .86rem; line-height: 1.55; color: var(--color-text-dim); }
+.syllabus__meta { display: flex; flex-wrap: wrap; gap: .35rem 1rem; font-size: .76rem; color: var(--color-text-dim); }
+.syllabus__meta span + span::before { content: '·'; margin-right: 1rem; margin-left: -.6rem; }
+.syllabus__state { font-size: .74rem; font-weight: 600; color: var(--color-text-dim); white-space: nowrap; }
+.syllabus__item.is-current .syllabus__state { color: var(--color-accent); }
+.syllabus__item.is-done .syllabus__state { color: var(--color-success); }
+.syllabus__go { color: var(--color-text-dim); }
+@media (max-width: 640px) {
+  .syllabus__head { flex-direction: column; align-items: flex-start; padding: 1rem; }
+  .syllabus__link { grid-template-columns: 2.25rem minmax(0, 1fr); padding: 1rem; }
+  .syllabus__state, .syllabus__go { display: none; }
+}

@@ -12,6 +12,7 @@ import { ADVANCED_OFFENSIVE_MODULES, ADVANCED_OFFENSIVE_ROADMAP } from './advanc
 import { PRE_SECURITY_MODULES, PRE_SECURITY_ROADMAP } from './preSecurityCurriculum';
 import { DEFENSIVE_MODULES, DEFENSIVE_ROADMAP } from './defensiveCurriculum';
 import { SE_MODULES, SE_ROADMAP } from './softwareEngineeringCurriculum';
+import { DN_MODULES, DN_ROADMAP } from './dotnetCurriculum';
 
 const OsiTcpIp = lazy(() => import('../content/networking/01-osi-tcpip'));
 const IpSubnetting = lazy(() => import('../content/networking/02-ip-subnetting'));
@@ -915,6 +916,7 @@ MODULES.push(...KALI_OFFENSIVE_MODULES);
 MODULES.unshift(...PRE_SECURITY_MODULES);
 MODULES.push(...DEFENSIVE_MODULES);
 MODULES.push(...SE_MODULES);
+MODULES.push(...DN_MODULES);
 
 // Extend the established modules without changing existing routes or progress IDs.
 for (const addition of [
@@ -988,6 +990,7 @@ export const ROADMAP: RoadmapStage[] = [
   { title: 'Data Structures & Algorithms', status: 'available', moduleSlug: 'programming-algorithms', sourceBooks: ['OSSU Computer Science', 'TheAlgorithms/Python'], track: 'programming' },
   { title: 'Software & Systems Engineering', status: 'available', moduleSlug: 'programming-engineering', sourceBooks: ['System Design Primer', 'OWASP Cheat Sheet Series'], track: 'programming' },
   ...SE_ROADMAP,
+  ...DN_ROADMAP,
   { title: 'Code Portal: C++ & JavaScript Practice', status: 'available', href: '/code-portal', sourceBooks: ['Code Portal practice tasks'], track: 'programming' },
 
   { title: 'Foundations: Python, NumPy, Pandas & Math', status: 'available', href: '/ml-lesson/python-basics', sourceBooks: ['GCI World Pre-Lecture & Sessions 2-4'], track: 'ml' },

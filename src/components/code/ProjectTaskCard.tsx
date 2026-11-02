@@ -6,7 +6,7 @@ import { IconCheck, IconLayers, ModuleIcon } from '../layout/icons';
 import { codeTaskXp } from '../../data/xp';
 import './practice-card.css';
 
-const LANGUAGE_LABEL: Record<string, string> = { python: 'Python', cpp: 'C++', javascript: 'JavaScript' };
+const LANGUAGE_LABEL: Record<string, string> = { python: 'Python', cpp: 'C++', javascript: 'JavaScript', csharp: 'C#' };
 const TRACK_LABEL: Record<string, string> = { foundations: 'Foundations', backend: 'Backend', fullstack: 'Full-Stack', systems: 'Systems' };
 const TRACK_ICON: Record<string, string> = { foundations: 'code', backend: 'database', fullstack: 'web', systems: 'chip' };
 

@@ -10,8 +10,8 @@ import '../components/labs/catalog.css';
 import { preloadMonaco } from '../lib/monacoLoader';
 import OfflineRuntimeCard from '../components/layout/OfflineRuntimeCard';
 
-const LANGUAGES: SeLanguage[] = ['python', 'javascript', 'cpp'];
-const LANGUAGE_LABEL: Record<SeLanguage, string> = { python: 'Python', javascript: 'JavaScript', cpp: 'C++' };
+const LANGUAGES: SeLanguage[] = ['python', 'javascript', 'cpp', 'csharp'];
+const LANGUAGE_LABEL: Record<SeLanguage, string> = { python: 'Python', javascript: 'JavaScript', cpp: 'C++', csharp: 'C#' };
 const TRACK_LABEL: Record<SeTrack, string> = { foundations: 'Foundations', backend: 'Backend', fullstack: 'Full-Stack', systems: 'Systems' };
 const TRACK_ICON: Record<SeTrack, string> = { foundations: 'code', backend: 'database', fullstack: 'web', systems: 'chip' };
 const PAGE_SIZE = 30;

@@ -3,7 +3,7 @@ import type { CodeDifficulty } from './codeTypes';
 /** The Build Portal's three languages — deliberately narrower than a general-purpose IDE would
  *  support, matching exactly what the three project runners (Pyodide, the CommonJS bundler + Worker,
  *  JSCPP) can actually execute. */
-export type SeLanguage = 'python' | 'javascript' | 'cpp';
+export type SeLanguage = 'python' | 'javascript' | 'cpp' | 'csharp';
 
 /** Python/JS get all three; C++ has no realistic frontend/full-stack story (see cppProjectRunner.ts's
  *  header comment for why), so it uses 'systems' instead of 'fullstack'. */
@@ -14,7 +14,7 @@ export type SeTrack = 'foundations' | 'backend' | 'fullstack' | 'systems';
  *  per-model language mode and (for html/css/js) the DOM runner's file-type routing. */
 export type FileLanguage =
   | 'python' | 'javascript' | 'typescript' | 'html' | 'css'
-  | 'json' | 'cpp' | 'markdown' | 'sql' | 'plaintext';
+  | 'json' | 'cpp' | 'csharp' | 'xml' | 'markdown' | 'sql' | 'plaintext';
 
 export interface ProjectFile {
   /** POSIX-style, no leading slash — e.g. 'backend/models.py', 'index.html'. Must be unique within
@@ -31,7 +31,7 @@ export interface ProjectFile {
  *  needs two targets of two different kinds (its backend half runs as 'python'/'node-js', its frontend
  *  half runs as 'dom') — the task's language is really "what the learner is principally writing," not
  *  "what single engine grades it." */
-export type RunTargetKind = 'python' | 'node-js' | 'dom' | 'cpp';
+export type RunTargetKind = 'python' | 'node-js' | 'dom' | 'cpp' | 'csharp' | 'sql';
 
 export interface RunTarget {
   /** stable within the task, e.g. 'backend' | 'frontend' | 'main' — shown as the Run-tests button label
@@ -83,6 +83,7 @@ const EXTENSION_LANGUAGE: Record<string, FileLanguage> = {
   css: 'css',
   json: 'json',
   cpp: 'cpp', cc: 'cpp', cxx: 'cpp', h: 'cpp', hpp: 'cpp',
+  cs: 'csharp', csproj: 'xml', sln: 'plaintext', props: 'xml',
   md: 'markdown',
   sql: 'sql',
 };

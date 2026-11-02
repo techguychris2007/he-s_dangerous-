@@ -1,7 +1,7 @@
 import type { CurriculumLesson } from '../curriculumDefinition';
 import { SE_SOURCES as S } from './sources';
 
-/** Module 3 — testing and quality (SWEBOK V4: Testing, Quality; Google SWE book chapters 11–14). */
+/** Module 5 — testing and quality (SWEBOK V4: Testing, Quality; Google SWE book chapters 11–14). */
 export const SE_MODULE_3: CurriculumLesson[] = [
   {
     id: 'swe-9',
@@ -9,7 +9,7 @@ export const SE_MODULE_3: CurriculumLesson[] = [
     title: 'Designing Tests: Partitions, Boundaries & Coverage',
     summary: 'Choose a small set of tests that finds most bugs: input partitioning, boundary values, oracles, and what coverage does and does not tell you.',
     minutes: 24,
-    prerequisite: 'Lesson 5 (specifications).',
+    prerequisite: 'Specifications & Contracts (Module 4).',
     outcomes: [
       'Partition a function\'s input space from its specification and pick one test per partition.',
       'Add boundary-value tests where bugs cluster.',
@@ -129,7 +129,7 @@ print(leap_year(2000), leap_mutant(2000))                   # True False -> 2000
     title: 'Unit Testing With pytest: Fixtures, Fakes & Mocks',
     summary: 'Arrange–act–assert, parametrised tests, fixtures, and choosing between stubs, fakes, spies and mocks — plus designing code so it is testable.',
     minutes: 25,
-    prerequisite: 'Lesson 9.',
+    prerequisite: 'Designing Tests: Partitions, Boundaries & Coverage.',
     outcomes: [
       'Write clear pytest tests using arrange–act–assert, parametrize and fixtures.',
       'Choose the right test double (stub, fake, spy, mock) and avoid over-mocking.',
@@ -289,7 +289,7 @@ def test_weather_summary_uses_api():
     title: 'Beyond Unit Tests: Property-Based, Integration & End-to-End',
     summary: 'Let the computer find inputs you missed, test real collaborators together, balance the test pyramid, and eliminate flaky tests.',
     minutes: 24,
-    prerequisite: 'Lessons 9–10.',
+    prerequisite: 'Designing Tests, and Unit Testing With pytest.',
     outcomes: [
       'Write property-based tests with invariants, round trips and reference oracles.',
       'Write integration tests against real dependencies such as SQLite, and contract tests between services.',
@@ -424,7 +424,7 @@ def test_pick_winner_is_reproducible():
     title: 'Test-Driven Development, Code Review & Quality Culture',
     summary: 'Red–green–refactor in practice, reviewing code like a senior engineer, automated quality gates, and a definition of done.',
     minutes: 23,
-    prerequisite: 'Lessons 8–11.',
+    prerequisite: 'Readable Code & Refactoring, and the three earlier lessons in this module.',
     outcomes: [
       'Practise the red–green–refactor cycle and explain when TDD helps most.',
       'Review a change for design, correctness, tests and security, and write actionable comments.',

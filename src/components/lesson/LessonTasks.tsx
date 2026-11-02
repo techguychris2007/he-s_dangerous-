@@ -4,7 +4,7 @@ import type { LessonMeta } from '../../types';
 import { useProgress } from '../../state/progressStore';
 import { useLabsData } from '../../state/useLabsData';
 import { SIEM_LABS } from '../../labs/siemScenarios';
-import { PYTHON_TASKS } from '../../labs/pythonTasks';
+import { LESSON_CODE_TASKS } from '../../labs/lessonCodeTasks';
 import { answerMask, isCapturedFlag, isCorrectAnswer, lessonQuestions } from '../../data/lessonQuestions';
 import { IconCheck, IconFlag, IconCode, IconTrophy, IconSearch } from '../layout/icons';
 import IsoBlock from '../labs/IsoBlock';
@@ -48,13 +48,13 @@ export default function LessonTasks({ lesson, labSlugs }: { lesson: LessonMeta; 
   const labTasks = useMemo<LabTask[]>(() => labSlugs.slice(0, REQUIRED_LABS).flatMap((slug): LabTask[] => {
     const siem = SIEM_LABS.find((l) => l.id === slug);
     if (siem) return [{ kind: 'siem', slug, id: siem.id, title: siem.title, total: siem.totalFlags }];
-    const code = PYTHON_TASKS.find((t) => t.id === slug);
+    const code = LESSON_CODE_TASKS.find((t) => t.id === slug);
     if (code) return [{ kind: 'code', slug, id: code.id, title: code.title }];
     const lab = labsData?.findLab(slug);
     if (lab) return [{ kind: 'terminal', slug, id: lab.scenario.id, title: lab.scenario.title, total: lab.scenario.totalFlags }];
     return [];
   }), [labSlugs, labsData]);
-  const loadingLabs = !labsData && labSlugs.slice(0, REQUIRED_LABS).some((s) => !SIEM_LABS.some((l) => l.id === s) && !PYTHON_TASKS.some((t) => t.id === s));
+  const loadingLabs = !labsData && labSlugs.slice(0, REQUIRED_LABS).some((s) => !SIEM_LABS.some((l) => l.id === s) && !LESSON_CODE_TASKS.some((t) => t.id === s));
 
   const questionDone = (i: number) => alreadyComplete || saved.answered.includes(i);
   const labDone = (t: LabTask) => {

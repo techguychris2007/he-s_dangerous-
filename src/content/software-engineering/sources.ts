@@ -1,6 +1,16 @@
 /** Primary sources for the Software Engineering track: standards bodies, official documentation,
  *  university courses and freely readable books, so every lesson points learners at the original. */
 export const SE_SOURCES = {
+  pyTutorial: { title: 'Python tutorial — An Informal Introduction to Python', url: 'https://docs.python.org/3/tutorial/introduction.html' },
+  pyControlFlow: { title: 'Python tutorial — More Control Flow Tools', url: 'https://docs.python.org/3/tutorial/controlflow.html' },
+  pyDataStructures: { title: 'Python tutorial — Data Structures', url: 'https://docs.python.org/3/tutorial/datastructures.html' },
+  pyStrings: { title: 'Python documentation — Text sequence type (str)', url: 'https://docs.python.org/3/library/stdtypes.html#text-sequence-type-str' },
+  pyModules: { title: 'Python tutorial — Modules', url: 'https://docs.python.org/3/tutorial/modules.html' },
+  pyInputOutput: { title: 'Python tutorial — Input and Output', url: 'https://docs.python.org/3/tutorial/inputoutput.html' },
+  pyClasses: { title: 'Python tutorial — Classes', url: 'https://docs.python.org/3/tutorial/classes.html' },
+  pyProperty: { title: 'Python documentation — property()', url: 'https://docs.python.org/3/library/functions.html#property' },
+  thinkPython: { title: 'Allen B. Downey — Think Python, 3rd edition (free online)', url: 'https://allendowney.github.io/ThinkPython/' },
+  pep8: { title: 'PEP 8 — Style Guide for Python Code', url: 'https://peps.python.org/pep-0008/' },
   swebok: { title: 'IEEE Computer Society — SWEBOK Guide V4.0', url: 'https://www.computer.org/education/bodies-of-knowledge/software-engineering' },
   sweGoogle: { title: 'Software Engineering at Google (free online edition)', url: 'https://abseil.io/resources/swe-book' },
   semver: { title: 'Semantic Versioning 2.0.0', url: 'https://semver.org/' },

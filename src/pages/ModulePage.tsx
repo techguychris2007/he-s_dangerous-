@@ -3,7 +3,7 @@ import { findModule, ROADMAP } from '../data/curriculum';
 import { labsForLesson } from '../data/lessonLabs';
 import { useProgress } from '../state/progressStore';
 import AcademyHero from '../components/common/AcademyHero';
-import LessonPath from '../components/learning/LessonPath';
+import ModuleSyllabus from '../components/learning/ModuleSyllabus';
 import { guideForArea } from '../data/characters';
 import './learning-pages.css';
 
@@ -47,22 +47,23 @@ export default function ModulePage() {
         &larr; Back to your learning path
       </Link>
 
-      <AcademyHero guide={guideForArea(mod.icon)} eyebrow={'Module / ' + mod.subtitle} title={mod.title} description={mod.description}
+      <AcademyHero guide={guideForArea(mod.icon)} eyebrow={`Module ${moduleNumber} · ${pct}% complete`} title={mod.title} description={mod.description}
         stats={[{label:'Lessons complete',value:doneCount + ' / ' + mod.lessons.length},{label:'Unique practice labs',value:totalLabs},{label:'Estimated study time',value:studyMinutes + ' min'}]}
         action={{title:nextLesson?.title ?? 'Make the knowledge stick',detail:nextLesson?.summary ?? 'Review your completed lessons or continue practicing in the lab catalog.',to:nextLesson ? '/module/' + mod.slug + '/lesson/' + nextLesson.slug : '/labs',label:nextLesson ? (doneCount ? 'Resume lesson' : 'Start first lesson') : 'Explore practice labs'}} />
-      <LessonPath
-        eyebrow={`Module ${moduleNumber} · ${doneCount}/${mod.lessons.length} lessons · ${pct}% complete`}
-        title={mod.title}
-        guide={guideForArea(mod.icon)}
-        nodes={mod.lessons.map((lesson, i) => {
-          const badge = lessonLabBadges.get(lesson.id);
+      <ModuleSyllabus
+        title={mod.subtitle}
+        totalMinutes={studyMinutes}
+        lessons={mod.lessons.map(lesson => {
           const complete = progress.isLessonComplete(lesson.id);
           return {
             id: lesson.id,
             title: lesson.title,
+            summary: lesson.summary,
             to: `/module/${mod.slug}/lesson/${lesson.slug}`,
+            minutes: lesson.minutes,
+            objectives: lesson.objectives?.length ?? 0,
+            labs: lessonLabBadges.get(lesson.id)?.totalCount ?? 0,
             state: complete ? 'done' : lesson.id === nextLesson?.id ? 'current' : 'open',
-            meta: `Task ${i + 1} · ${lesson.minutes} min${badge?.newCount ? ` · ${badge.newCount} new lab${badge.newCount === 1 ? '' : 's'}` : ''}`,
           };
         })}
       />

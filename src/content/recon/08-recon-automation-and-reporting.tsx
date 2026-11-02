@@ -38,12 +38,21 @@ export default function ReconAutomationAndReporting() {
       </Callout>
 
       <h2>Automating the pipeline: orchestration over ad-hoc commands</h2>
-      <CodeBlock label="why real recon workflows are scripted, not run interactively command-by-command">{`#!/bin/bash
+      <CodeBlock label="why real recon workflows are scripted, not run interactively command-by-command">{`#!/usr/bin/env bash
 # a simplified real-world recon orchestration script
-subfinder -d "$1" -silent | anew subdomains.txt
-crtsh-query "$1" | anew subdomains.txt
-httpx -l subdomains.txt -silent | anew live-hosts.txt
-nuclei -l live-hosts.txt -t cves/ -o nuclei-findings.txt
+set -euo pipefail                      # stop on the first failing step
+domain="$1"
+
+# passive sources: subfinder plus certificate transparency logs (crt.sh)
+subfinder -d "$domain" -silent | anew subdomains.txt
+curl -s "https://crt.sh/?q=%25.$domain&output=json" \\
+  | jq -r '.[].name_value' | sed 's/^\\*\\.//' | sort -u | anew subdomains.txt
+
+# keep only names the engagement actually authorises
+grep -Fxf scope.txt subdomains.txt > in-scope.txt || true
+
+httpx -l in-scope.txt -silent -rate-limit 20 | anew live-hosts.txt
+nuclei -l live-hosts.txt -tags cve -rate-limit 20 -o nuclei-findings.txt
 
 -- 'anew' specifically appends only NEW lines not already in the file --
    critical for recurring/scheduled recon runs, where re-discovering the
@@ -51,6 +60,20 @@ nuclei -l live-hosts.txt -t cves/ -o nuclei-findings.txt
    DELTA -- newly appeared subdomains, newly exposed services -- exactly
    the same "alert on the change, not the steady state" principle from the
    SOC Detection Engineering module's UEBA lesson`}</CodeBlock>
+      <p>
+        Three lines in that script matter more than they look. <code>set -euo pipefail</code> makes the
+        pipeline stop when a step fails instead of silently feeding an empty file to the next tool. The
+        <code> grep -Fxf scope.txt</code> step enforces the engagement's scope inside the automation itself:
+        passive sources happily return third-party hosts that merely share a naming pattern, and an unattended
+        script that scans them is scanning systems nobody authorised. The <code>-rate-limit</code> flags keep
+        an automated run from looking — or acting — like a denial-of-service attack.
+      </p>
+      <p>
+        Real scope files are rarely a simple list of names; they include wildcards and exclusions such as
+        "*.example.com except payments.example.com". Encode the exclusions as well, and keep the scope file under
+        version control next to the script so you can show exactly what the automation was allowed to touch on
+        any given night.
+      </p>
       <p>
         This directly previews the Python module's own recon-automation lesson — the shell-scripted pipeline
         here and the Python-scripted directory brute-forcer there are the same underlying idea (chain simple
@@ -78,6 +101,67 @@ nuclei -l live-hosts.txt -t cves/ -o nuclei-findings.txt
           domains, or simply reputational damage.
         </p>
       </Callout>
+
+      <h2>Confirming a takeover candidate without causing harm</h2>
+      <p>
+        A dangling CNAME is a candidate, not a finding. Confirm it in steps that each prove a little more
+        while changing nothing:
+      </p>
+      <ol>
+        <li><strong>Resolve it.</strong> <code>dig CNAME shop.example.com +short</code> shows where the name points, for example <code>example-shop.herokuapp.com</code>.</li>
+        <li><strong>Fingerprint the response.</strong> Requesting the name returns the provider's "no such app" or "bucket does not exist" page. The community project <em>can-i-take-over-xyz</em> lists which providers' error pages genuinely indicate a claimable resource and which do not.</li>
+        <li><strong>Stop and check the rules.</strong> Many programmes forbid claiming the resource at all; others allow a harmless proof such as a page containing only your handle. Never serve content beyond what the rules allow, and release the resource afterwards.</li>
+      </ol>
+      <CodeBlock label="evidence that supports the finding">{`$ dig CNAME shop.example.com +short
+example-shop.herokuapp.com.
+$ curl -s https://shop.example.com | grep -o "No such app"
+No such app`}</CodeBlock>
+
+      <h2>Structuring the recon deliverable</h2>
+      <p>
+        A recon report is read by people who decide what to fix first, so lead with what is exploitable today,
+        not with the size of the asset list. A dependable structure:
+      </p>
+      <ol>
+        <li><strong>Scope and method:</strong> the authorised domains, dates, tools and rate limits, so the results can be reproduced.</li>
+        <li><strong>Priority findings:</strong> takeover candidates, exposed storage, services with known exploited vulnerabilities — each with evidence and a fix.</li>
+        <li><strong>Attack-surface inventory:</strong> the counts and full lists, attached as data files rather than pasted into prose.</li>
+        <li><strong>Change since last run:</strong> new hosts and newly exposed services, because the delta is what continuous recon is for.</li>
+      </ol>
+
+      <h2>Practice exercise</h2>
+      <p>
+        Your nightly pipeline reports 12 new subdomains. Nine follow the pattern <code>build-NNN.ci.example.com</code>
+        and resolve to internal addresses; two point at an unrelated company's domain; one,
+        <code> status.example.com</code>, is a CNAME to a hosted status-page provider that answers "page not found".
+      </p>
+      <p><strong>Your task:</strong> decide what to do with each group.</p>
+      <details>
+        <summary>Worked explanation</summary>
+        <p>
+          The CI hosts resolving to internal addresses are an information leak worth a low-severity note (public
+          DNS reveals internal naming and build infrastructure) but are not reachable targets. The two names under
+          another company's domain are out of scope — remove them and fix the scope filter that let them through.
+          <code> status.example.com</code> is the priority: fingerprint the provider's response against
+          can-i-take-over-xyz, check the programme rules, and report it with the DNS and HTTP evidence.
+        </p>
+      </details>
+
+      <h2>Common misconceptions</h2>
+      <ul>
+        <li>"More subdomains means a better report." Readers need the few exploitable findings, not the biggest list.</li>
+        <li>"Passive sources only return the target's assets." Certificate logs and search engines return look-alikes; scope-filter everything.</li>
+        <li>"Automation is safe because it is standard tooling." Unthrottled, unscoped automation can scan third parties and disrupt production.</li>
+        <li>"A 404 on a CNAME is always a takeover." Many providers' error pages are not claimable; verify against the provider's behaviour.</li>
+      </ul>
+
+      <h2>References and further practice</h2>
+      <ul>
+        <li><a href="https://owasp.org/www-project-web-security-testing-guide/" target="_blank" rel="noreferrer">OWASP Web Security Testing Guide — information gathering</a></li>
+        <li><a href="https://github.com/EdOverflow/can-i-take-over-xyz" target="_blank" rel="noreferrer">can-i-take-over-xyz — which services allow subdomain takeover</a></li>
+        <li><a href="https://docs.projectdiscovery.io/" target="_blank" rel="noreferrer">ProjectDiscovery documentation (subfinder, httpx, nuclei)</a></li>
+        <li><a href="https://crt.sh/" target="_blank" rel="noreferrer">crt.sh — certificate transparency search</a></li>
+      </ul>
 
       <h2>Module synthesis: the complete recon methodology</h2>
       <CodeBlock label="the arc across all eight lessons">{`L1 Passive recon       -> gathering everything discoverable with zero

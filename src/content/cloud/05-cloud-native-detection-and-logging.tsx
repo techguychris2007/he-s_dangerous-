@@ -66,8 +66,10 @@ by event history alone. Coverage, region and retention must be checked.
       <h2>The retention and enablement gap: why detection often fails before it starts</h2>
       <Callout variant="warn">
         <p>
-          CloudTrail, in many AWS accounts, is NOT enabled by default for every region, and default log
-          retention windows are often shorter than a realistic investigation timeline requires — meaning by the
+          CloudTrail's built-in event history is on by default, but it keeps only the last 90 days of
+          management events, per region, and records no data events such as S3 object reads. Anything longer or
+          broader needs a <em>trail</em> (or an event data store) that someone deliberately created, covering all
+          regions and delivering to durable storage. Many accounts never create one — meaning by the
           time a breach is discovered (frequently weeks to months after initial access, consistent with
           industry breach-report averages), the actual logs needed to reconstruct the attacker's full timeline
           may have already expired. This mirrors the SOC IR module's own investigation-methodology lesson
@@ -87,6 +89,86 @@ by event history alone. Coverage, region and retention must be checked.
 - Retention long enough to cover realistic dwell-time investigation windows
 - At minimum the detection patterns above wired into active alerting, not
   just passively collected and never reviewed`}</CodeBlock>
+
+      <h2>Proving the logs were not altered</h2>
+      <p>
+        An attacker with enough privilege will try to stop the trail or delete its files. Two controls answer
+        that. First, enable <strong>log file integrity validation</strong>: CloudTrail then writes signed digest
+        files, and <code>aws cloudtrail validate-logs</code> reports any log file that was changed or removed
+        after delivery. Second, deliver to a bucket in a separate logging account protected by S3 Object Lock,
+        so even an administrator of the production account cannot delete the evidence. Alert on
+        <code> StopLogging</code>, <code>DeleteTrail</code> and <code>PutEventSelectors</code> — an attacker
+        reducing logging is itself one of the most reliable signals you will get.
+      </p>
+
+      <h2>Turning a pattern into a query</h2>
+      <p>
+        The "access key created for someone else" pattern above becomes a concrete query once the trail is
+        stored. With CloudTrail logs in S3 and an Athena table over them:
+      </p>
+      <CodeBlock label="Athena SQL: keys created for a different user than the caller">{`SELECT eventtime,
+       useridentity.arn                         AS caller,
+       json_extract_scalar(requestparameters, '$.userName') AS target_user,
+       sourceipaddress
+FROM   cloudtrail_logs
+WHERE  eventname = 'CreateAccessKey'
+  AND  json_extract_scalar(requestparameters, '$.userName') IS NOT NULL
+  AND  useridentity.arn NOT LIKE
+       ('%/' || json_extract_scalar(requestparameters, '$.userName'))
+ORDER  BY eventtime DESC;`}</CodeBlock>
+      <p>
+        Each row is a lead: an identity minting long-lived credentials for another identity. Some will be
+        legitimate administration — record which roles are expected to do this and exclude them explicitly, so
+        the rule stays quiet until something unusual happens.
+      </p>
+
+      <h2>The same ideas in Azure and Google Cloud</h2>
+      <div className="lesson-table-wrap">
+        <table className="lesson-table">
+          <thead><tr><th scope="col">Need</th><th scope="col">Azure</th><th scope="col">Google Cloud</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Control-plane audit log</th><td>Activity Log (subscription operations); Entra ID sign-in and audit logs for identities</td><td>Cloud Audit Logs — Admin Activity (always on)</td></tr>
+            <tr><th scope="row">Data access log</th><td>Resource diagnostic settings per service</td><td>Data Access audit logs (mostly off by default)</td></tr>
+            <tr><th scope="row">Long retention</th><td>Diagnostic setting to a Log Analytics workspace or storage account</td><td>Log sink to Cloud Storage or BigQuery</td></tr>
+            <tr><th scope="row">Managed detection</th><td>Microsoft Defender for Cloud</td><td>Security Command Center</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Practice exercise</h2>
+      <p>
+        A developer's access key leaked in a public repository 70 days ago and was revoked today. The account
+        has no trail; only the default event history exists. Leadership asks whether any data in S3 was read.
+      </p>
+      <p><strong>Your task:</strong> say what you can and cannot answer, and what to change.</p>
+      <details>
+        <summary>Worked explanation</summary>
+        <p>
+          Event history still covers the last 90 days, so you can list the management calls the key made —
+          for example <code>ListBuckets</code>, <code>CreateAccessKey</code> or <code>AssumeRole</code> — in each
+          region you search. You cannot answer whether objects were read: <code>GetObject</code> is a data event
+          and nothing recorded it. Say so plainly in the report rather than implying "no evidence of access".
+          Then create a multi-region trail with data events for sensitive buckets, integrity validation, and
+          delivery to a separate logging account.
+        </p>
+      </details>
+
+      <h2>Common misconceptions</h2>
+      <ul>
+        <li>"CloudTrail is on, so we log everything." Default event history covers 90 days of management events only.</li>
+        <li>"No alert means no attacker." Detection only covers regions, services and event types that are actually collected.</li>
+        <li>"Logs in the same account are safe." Credentials that can administer the account can often delete its logs; separate the storage.</li>
+        <li>"Managed detection replaces custom rules." GuardDuty-style services cover common patterns; your own architecture still needs rules only you can write.</li>
+      </ul>
+
+      <h2>References and further practice</h2>
+      <ul>
+        <li><a href="https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-user-guide.html" target="_blank" rel="noreferrer">AWS CloudTrail User Guide</a></li>
+        <li><a href="https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-log-file-validation-intro.html" target="_blank" rel="noreferrer">AWS — Validating CloudTrail log file integrity</a></li>
+        <li><a href="https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_finding-types-active.html" target="_blank" rel="noreferrer">AWS — GuardDuty finding types</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/activity-log" target="_blank" rel="noreferrer">Microsoft — Azure Activity Log</a></li>
+        <li><a href="https://cloud.google.com/logging/docs/audit" target="_blank" rel="noreferrer">Google Cloud — Cloud Audit Logs</a></li>
+      </ul>
 
       <p>
         With detection covered, the final lesson in this module ties every prior lesson's technique together

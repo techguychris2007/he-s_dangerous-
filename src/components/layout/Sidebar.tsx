@@ -9,12 +9,13 @@ import { OperatorAvatar } from '../characters/CharacterAvatar';
 import { useHandle } from '../../state/useHandle';
 import AcademySearch from './AcademySearch';
 import { LEARNING_PATHS } from './navigation';
-import { IconDashboard, IconFlask, IconChart, IconMap, IconCheck, IconCalendar, IconTrophy, IconBook, IconMegaphone, IconUser, IconShieldCheck, IconHelp, IconMail, IconCode, IconCrown, IconRoute, IconLayers } from './icons';
+import { IconDashboard, IconFlask, IconChart, IconMap, IconCheck, IconCalendar, IconTrophy, IconBook, IconMegaphone, IconUser, IconShieldCheck, IconHelp, IconMail, IconCode, IconCrown, IconRoute, IconLayers, IconCertificate } from './icons';
 import './navigation.css';
 
 type NavIcon = ComponentType<{ className?: string }>;
 const activityLinks: [string, string, NavIcon][] = [
-  ['/progress', 'Progress', IconChart], ['/tasks', 'My tasks', IconCheck],
+  ['/progress', 'Progress', IconChart], ['/certificates', 'Certificates', IconCertificate],
+  ['/tasks', 'My tasks', IconCheck],
   ['/schedule', 'Schedule', IconCalendar], ['/leaderboard', 'Leaderboard', IconTrophy],
   ['/announcements', 'Announcements', IconMegaphone],
 ];

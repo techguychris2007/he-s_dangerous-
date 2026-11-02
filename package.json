@@ -13,7 +13,9 @@
     "test:siem": "node scripts/check-siem-execution.cjs",
     "test:workbook": "node scripts/check-investigation-workbook.cjs",
     "test:pwa": "node scripts/check-pwa.cjs",
-    "test:platform": "node scripts/check-platform.cjs && node scripts/check-account-progress.cjs && node scripts/check-visual-labs.cjs && node scripts/check-code-results.cjs && node scripts/check-kerberos-lab.cjs && node scripts/check-guided-labs.cjs && node scripts/check-defensive-investigations.cjs && node scripts/check-ml-content.cjs --structure-only && node scripts/check-netcat-lab.cjs && node scripts/check-device-access.cjs && node scripts/check-siem-execution.cjs && node scripts/check-pwa.cjs && node scripts/check-investigation-workbook.cjs && node scripts/check-casebooks.cjs && node scripts/check-se-tasks.cjs && node scripts/check-lesson-questions.cjs",
+    "test:csharp": "node scripts/check-csharp-tasks.cjs",
+    "build:csharp-runtime": "powershell -NoProfile -ExecutionPolicy Bypass -File tools/csharp-runner/build.ps1",
+    "test:platform": "node scripts/check-platform.cjs && node scripts/check-account-progress.cjs && node scripts/check-visual-labs.cjs && node scripts/check-code-results.cjs && node scripts/check-kerberos-lab.cjs && node scripts/check-guided-labs.cjs && node scripts/check-defensive-investigations.cjs && node scripts/check-ml-content.cjs --structure-only && node scripts/check-netcat-lab.cjs && node scripts/check-php-october-2026-lab.cjs && node scripts/check-device-access.cjs && node scripts/check-siem-execution.cjs && node scripts/check-pwa.cjs && node scripts/check-investigation-workbook.cjs && node scripts/check-casebooks.cjs && node scripts/check-se-tasks.cjs && node scripts/check-lesson-questions.cjs && node scripts/check-certificates.cjs && node scripts/check-csharp-tasks.cjs",
     "test:ml-content": "node scripts/check-ml-content.cjs",
     "test:ml-library": "node scripts/check-ml-library.cjs",
     "test:offline-library": "node scripts/check-offline-library.cjs && node scripts/check-ai-assistance-routing.cjs",
@@ -38,7 +40,8 @@
     "pdfjs-dist": "^6.2.108",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "react-router-dom": "^7.18.1"
+    "react-router-dom": "^7.18.1",
+    "sql.js": "1.14.2"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.2",

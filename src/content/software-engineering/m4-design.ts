@@ -1,7 +1,7 @@
 import type { CurriculumLesson } from '../curriculumDefinition';
 import { SE_SOURCES as S } from './sources';
 
-/** Module 4 — design and architecture (SWEBOK V4: Design, Architecture; ADRs, C4, HTTP API design). */
+/** Module 6 — design and architecture (SWEBOK V4: Design, Architecture; ADRs, C4, HTTP API design). */
 export const SE_MODULE_4: CurriculumLesson[] = [
   {
     id: 'swe-13',
@@ -9,7 +9,7 @@ export const SE_MODULE_4: CurriculumLesson[] = [
     title: 'Design Principles: Coupling, Cohesion, SOLID & Information Hiding',
     summary: 'The handful of principles behind every good design decision, and how to apply them without over-engineering.',
     minutes: 25,
-    prerequisite: 'Module 2 (construction) and comfort with Python classes.',
+    prerequisite: 'Module 4 (Software Construction) and the Object-Oriented Programming lessons in Module 2.',
     outcomes: [
       'Judge a design by its coupling and cohesion, and explain how each affects the cost of change.',
       'Apply the SOLID principles as heuristics with clear trade-offs, not as laws.',
@@ -130,7 +130,7 @@ class FakeNotifier:                       # used in tests
     title: 'Design Patterns That Actually Matter',
     summary: 'Strategy, Observer, Adapter, Factory, Decorator and Repository — what problem each solves, Pythonic forms, and when not to use them.',
     minutes: 24,
-    prerequisite: 'Lesson 13.',
+    prerequisite: 'Design Principles: Coupling, Cohesion, SOLID & Information Hiding.',
     outcomes: [
       'Recognise the problem each common pattern solves and the forces that justify it.',
       'Implement Strategy, Observer, Adapter and Factory idiomatically in Python, often with functions instead of classes.',
@@ -184,7 +184,7 @@ def export(fmt: str, rows: list[dict]) -> str:
       {
         title: 'Observer: decouple the event from its reactions',
         paragraphs: [
-          'When "an order was paid" should trigger an email, an analytics event and a stock update, the order code should not import all three. It publishes an event; subscribers react. Two production lessons: isolate subscriber failures (one broken handler must not stop the others or the publisher), and return an unsubscribe function to avoid memory leaks from forgotten handlers. At system scale, the same idea becomes a message queue (Module 5).',
+          'When "an order was paid" should trigger an email, an analytics event and a stock update, the order code should not import all three. It publishes an event; subscribers react. Two production lessons: isolate subscriber failures (one broken handler must not stop the others or the publisher), and return an unsubscribe function to avoid memory leaks from forgotten handlers. At system scale, the same idea becomes a message queue (Module 7).',
         ],
       },
       {
@@ -271,7 +271,7 @@ class FirstAvailable:                          # Composite with failover
     title: 'Software Architecture: Styles, Boundaries & Decision Records',
     summary: 'Layered, hexagonal, modular monolith, microservices and event-driven styles; quality attributes; ADRs; C4 diagrams and fitness functions.',
     minutes: 26,
-    prerequisite: 'Lessons 13–14.',
+    prerequisite: 'Design Principles, and Design Patterns That Actually Matter.',
     outcomes: [
       'Explain architecture as the set of decisions that are expensive to change, driven by quality attributes.',
       'Compare layered, hexagonal, modular-monolith, microservice and event-driven styles and their trade-offs.',
@@ -317,7 +317,7 @@ Rule: domain → (nothing); application → domain; adapters → application, do
         title: 'Monolith, modular monolith or microservices?',
         paragraphs: [
           'Microservices split a system into independently deployable services that own their data. They enable team autonomy and independent scaling, but they add network failures, distributed transactions, versioned APIs, observability needs and operational cost. Many organisations now start with a modular monolith: one deployable with internal modules whose boundaries are enforced in code. If a module later needs independent scaling or release cadence, its clean boundary makes extraction straightforward. "Don\'t start with microservices" is a common conclusion of experienced teams; the deciding factors are team structure (Conway\'s law) and genuinely different scaling needs.',
-          'Event-driven architecture connects components through published events (via a broker). It decouples producers from consumers and absorbs load spikes, at the cost of eventual consistency and harder end-to-end tracing (Module 5 and 6).',
+          'Event-driven architecture connects components through published events (via a broker). It decouples producers from consumers and absorbs load spikes, at the cost of eventual consistency and harder end-to-end tracing (Module 7 and 8).',
         ],
       },
       {
@@ -387,7 +387,7 @@ through their public application services. Import rules enforced in CI.
     title: 'Designing HTTP APIs: Resources, Errors, Pagination & Idempotency',
     summary: 'Model resources, use HTTP semantics correctly, return RFC 9457 problem details, paginate with cursors, version safely and make writes idempotent.',
     minutes: 25,
-    prerequisite: 'Lessons 13–15 and basic HTTP.',
+    prerequisite: 'The three earlier lessons in this module. Basic HTTP (requests, responses, status codes) is recapped in the lesson.',
     outcomes: [
       'Model an API around resources and use methods and status codes according to HTTP semantics (RFC 9110).',
       'Return machine-readable errors using RFC 9457 Problem Details without leaking internals.',
@@ -426,7 +426,7 @@ Content-Type: application/json
       {
         title: 'Errors: RFC 9457 Problem Details',
         paragraphs: [
-          'Clients need errors they can handle programmatically. RFC 9457 standardises a JSON body (media type application/problem+json) with type (a URI identifying the problem kind), title, status, detail and instance, plus extension fields such as a list of invalid parameters. Never include stack traces, SQL or internal hostnames; include a correlation ID instead so support can find the logs (Module 2, Lesson 7).',
+          'Clients need errors they can handle programmatically. RFC 9457 standardises a JSON body (media type application/problem+json) with type (a URI identifying the problem kind), title, status, detail and instance, plus extension fields such as a list of invalid parameters. Never include stack traces, SQL or internal hostnames; include a correlation ID instead so support can find the logs (Module 4, Lesson 7).',
         ],
         code: `HTTP/1.1 422 Unprocessable Content
 Content-Type: application/problem+json

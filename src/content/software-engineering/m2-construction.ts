@@ -1,7 +1,7 @@
 import type { CurriculumLesson } from '../curriculumDefinition';
 import { SE_SOURCES as S } from './sources';
 
-/** Module 2 — software construction (SWEBOK V4: Construction, Design; MIT 6.102 core ideas). */
+/** Module 4 — software construction (SWEBOK V4: Construction, Design; MIT 6.102 core ideas). */
 export const SE_MODULE_2: CurriculumLesson[] = [
   {
     id: 'swe-5',
@@ -9,7 +9,7 @@ export const SE_MODULE_2: CurriculumLesson[] = [
     title: 'Specifications & Contracts: Saying Exactly What Code Does',
     summary: 'Preconditions, postconditions, stronger and weaker specs, type hints as partial specifications, and checking contracts at runtime.',
     minutes: 24,
-    prerequisite: 'Python functions, type hints and exceptions (Code Portal: Python Fundamentals).',
+    prerequisite: 'Functions and When Things Go Wrong (exceptions) from Modules 1 and 2. Type hints are introduced in this lesson.',
     outcomes: [
       'Write a function specification with a precondition, a postcondition and its behaviour on invalid input.',
       'Compare two specifications and decide which is stronger, and why that matters for callers and implementers.',
@@ -106,7 +106,7 @@ def send_welcome(to: EmailAddress) -> None:   # cannot be called with an uncheck
       {
         title: 'Specs make testing and review possible',
         paragraphs: [
-          'You cannot test code without a spec — you can only test that it does what it does. The spec tells you which inputs are valid (so you know what to test), which outputs are acceptable, and where the boundaries are. Module 3 builds test suites directly from specs by partitioning the input space. In code review, the first question is "is the spec right?", the second "does the code meet it?".',
+          'You cannot test code without a spec — you can only test that it does what it does. The spec tells you which inputs are valid (so you know what to test), which outputs are acceptable, and where the boundaries are. Module 5 builds test suites directly from specs by partitioning the input space. In code review, the first question is "is the spec right?", the second "does the code meet it?".',
         ],
       },
     ],
@@ -148,7 +148,7 @@ def send_welcome(to: EmailAddress) -> None:   # cannot be called with an uncheck
     title: 'Abstract Data Types: Invariants, Immutability & Representation',
     summary: 'Design types whose users cannot break them: representation invariants, abstraction functions, rep exposure and immutable values.',
     minutes: 26,
-    prerequisite: 'Lesson 5 and Python classes (Code Portal: Python OOP).',
+    prerequisite: 'Specifications & Contracts, and the three Object-Oriented Programming lessons in Module 2.',
     outcomes: [
       'Separate what a type means (its operations) from how it is stored (its representation).',
       'Write a representation invariant and an abstraction function, and enforce the invariant with checkRep.',
@@ -244,7 +244,7 @@ leaked = r.names()
       {
         title: 'Why immutability prevents whole classes of bugs',
         paragraphs: [
-          'Immutable values can be shared freely between functions and threads, used as dictionary keys and set members, cached, and reasoned about locally: if you hold a reference, it will not change under you. Mutable shared state, by contrast, is behind aliasing bugs ("I changed my copy and yours changed too") and most concurrency bugs (Module 5). In Python, prefer @dataclass(frozen=True), tuples and frozensets for values; reserve mutation for objects that genuinely model changing state, such as a bank account or a connection.',
+          'Immutable values can be shared freely between functions and threads, used as dictionary keys and set members, cached, and reasoned about locally: if you hold a reference, it will not change under you. Mutable shared state, by contrast, is behind aliasing bugs ("I changed my copy and yours changed too") and most concurrency bugs (Module 7). In Python, prefer @dataclass(frozen=True), tuples and frozensets for values; reserve mutation for objects that genuinely model changing state, such as a bank account or a connection.',
           'Python\'s default-argument trap is a classic aliasing bug: def add(item, bucket=[]) shares one list across every call. Use None and create the list inside.',
         ],
         code: `from dataclasses import dataclass, replace
@@ -310,7 +310,7 @@ print(price, total)     # price is unchanged; total is a new value`,
     title: 'Error Handling: Failing Fast, Failing Safely',
     summary: 'Exceptions vs. return values, designing an error hierarchy, chaining causes, cleaning up, and failing closed (OWASP A10:2025).',
     minutes: 23,
-    prerequisite: 'Lesson 5 and Python try/except.',
+    prerequisite: 'Specifications & Contracts, and When Things Go Wrong (try/except and raise).',
     outcomes: [
       'Decide when to raise an exception, return a result value, or retry.',
       'Design a small exception hierarchy and chain low-level causes with raise … from.',
@@ -330,7 +330,7 @@ print(price, total)     # price is unchanged; total is a new value`,
       {
         title: 'Raise, return or retry?',
         paragraphs: [
-          'Raise an exception when the function cannot fulfil its postcondition and the immediate caller is unlikely to handle it at that point (a missing configuration file at start-up). Return a value that encodes absence or failure when it is a normal, expected outcome the caller must consider (dict.get returning None, a parse that may legitimately find nothing). Retry only transient failures (timeouts, 503s), only idempotent operations, with a limit and backoff (Module 5).',
+          'Raise an exception when the function cannot fulfil its postcondition and the immediate caller is unlikely to handle it at that point (a missing configuration file at start-up). Return a value that encodes absence or failure when it is a normal, expected outcome the caller must consider (dict.get returning None, a parse that may legitimately find nothing). Retry only transient failures (timeouts, 503s), only idempotent operations, with a limit and backoff (Module 7).',
           'Never return special sentinel values that look like valid data (-1 for "not found" in an API where -1 is a valid balance). That is how errors silently become wrong answers.',
         ],
       },
@@ -417,7 +417,7 @@ print(conn.execute("select count(*) from t").fetchone())  # (0,) - rolled back`,
         title: 'Failing safely: security and error messages',
         paragraphs: [
           'Security decisions must fail closed. If the permission service times out, the answer is "deny", not "allow". A surprising number of real vulnerabilities are an except branch that returns True, or a default of "allowed" when a policy file fails to load — OWASP A10:2025 calls this failing open.',
-          'Error messages are for two audiences. Users get a short, safe message and a correlation ID. Logs get the details: stack trace, inputs (minus secrets and personal data) and context. Never return stack traces, SQL errors or file paths to clients; they hand attackers a map of your system. RFC 9457 "Problem Details" (Module 4) is a standard JSON shape for safe API errors.',
+          'Error messages are for two audiences. Users get a short, safe message and a correlation ID. Logs get the details: stack trace, inputs (minus secrets and personal data) and context. Never return stack traces, SQL errors or file paths to clients; they hand attackers a map of your system. RFC 9457 "Problem Details" (Module 6) is a standard JSON shape for safe API errors.',
         ],
         code: `def can_access(user_id: str, document_id: str, policy_client) -> bool:
     try:
@@ -466,7 +466,7 @@ print(conn.execute("select count(*) from t").fetchone())  # (0,) - rolled back`,
     title: 'Readable Code & Refactoring Without Fear',
     summary: 'Naming, functions that do one thing, code smells, Fowler\'s core refactorings, characterization tests and linters.',
     minutes: 25,
-    prerequisite: 'Lessons 5–7.',
+    prerequisite: 'Specifications & Contracts, Abstract Data Types, and Error Handling.',
     outcomes: [
       'Recognise common code smells and the refactoring that removes each.',
       'Refactor safely in small steps protected by characterization tests.',

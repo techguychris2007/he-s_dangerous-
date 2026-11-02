@@ -28,7 +28,7 @@ export default function CodeEditor({ value, onChange, disabled, language }: Code
         options={{
           ...EDITOR_OPTIONS,
           readOnly: disabled,
-          tabSize: language === 'python' ? 4 : 2,
+          tabSize: language === 'python' || language === 'csharp' ? 4 : 2,
         }}
         beforeMount={defineEditorTheme}
         onMount={(_editor, monaco) => {

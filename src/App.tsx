@@ -29,6 +29,7 @@ const LeaderboardPage = lazy(() => import('./pages/LeaderboardPage'));
 const ResourcesPage = lazy(() => import('./pages/ResourcesPage'));
 const AnnouncementsPage = lazy(() => import('./pages/AnnouncementsPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const CertificatesPage = lazy(() => import('./pages/CertificatesPage'));
 const SecurityPage = lazy(() => import('./pages/SecurityPage'));
 const HelpFaqPage = lazy(() => import('./pages/HelpFaqPage'));
 const FeedbackPage = lazy(() => import('./pages/FeedbackPage'));
@@ -341,6 +342,7 @@ function App() {
               <Route path="/my-learning" element={<Suspense fallback={<PageLoader />}><MyLearningPage /></Suspense>} />
               <Route path="/roadmap" element={<Suspense fallback={<PageLoader />}><RoadmapPage /></Suspense>} />
               <Route path="/progress" element={<Suspense fallback={<PageLoader />}><ProgressPage /></Suspense>} />
+              <Route path="/certificates" element={<Suspense fallback={<PageLoader />}><CertificatesPage /></Suspense>} />
               <Route path="/module/:moduleSlug" element={<Suspense fallback={<PageLoader />}><ModulePage /></Suspense>} />
               <Route path="/module/:moduleSlug/lesson/:lessonSlug" element={<Suspense fallback={<PageLoader />}><LessonPage /></Suspense>} />
               <Route path="/labs" element={<Suspense fallback={<PageLoader />}><LabsIndexPage /></Suspense>} />

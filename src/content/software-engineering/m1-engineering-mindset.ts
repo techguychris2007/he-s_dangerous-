@@ -1,7 +1,7 @@
 import type { CurriculumLesson } from '../curriculumDefinition';
 import { SE_SOURCES as S } from './sources';
 
-/** Module 1 — the engineering mindset and the professional toolchain (SWEBOK V4: Professional
+/** Module 3 — the engineering mindset and the professional toolchain (SWEBOK V4: Professional
  *  Practice, Configuration Management, Requirements, Construction tools). */
 export const SE_MODULE_1: CurriculumLesson[] = [
   {
@@ -10,7 +10,7 @@ export const SE_MODULE_1: CurriculumLesson[] = [
     title: 'Programming vs. Software Engineering: Code That Survives Time',
     summary: 'Why engineering is programming integrated over time, people and change — and the trade-offs that follow.',
     minutes: 22,
-    prerequisite: 'You can write and run small Python programs with functions, lists and dictionaries.',
+    prerequisite: 'Modules 1 and 2 (Programming Basics and Building Programs & OOP). You should be able to write small Python programs with functions, lists, dictionaries and classes.',
     outcomes: [
       'Explain the difference between writing a program and engineering software that many people change for years.',
       'Use the SWEBOK V4 knowledge areas as a map of what a professional engineer is responsible for.',
@@ -40,7 +40,7 @@ export const SE_MODULE_1: CurriculumLesson[] = [
         title: 'A map of the profession: SWEBOK V4',
         paragraphs: [
           'The IEEE Computer Society\'s SWEBOK Guide V4.0 organises the field into 18 knowledge areas: requirements, architecture, design, construction, testing, operations, maintenance, configuration management, engineering management, process, models and methods, quality, security, professional practice, economics, and computing, mathematical and engineering foundations. Version 4 added architecture, operations and security as first-class areas — a recognition that modern engineers design systems, run them in production and defend them.',
-          'This track follows that map. Module 1 covers professional practice, configuration management (Git) and requirements. Module 2 is construction (specifications, abstract data types, errors, refactoring). Module 3 is testing and quality. Module 4 is design and architecture. Module 5 covers data, concurrency and distributed computing foundations. Module 6 covers operations, delivery and security — the newest SWEBOK areas.',
+          'This track follows that map, after two modules that teach programming itself. Modules 1 and 2 build the foundations: variables, strings, decisions, loops, collections and functions, then errors, files, modules and object-oriented programming. Module 3 (this one) covers professional practice, configuration management (Git) and requirements. Module 4 is construction (specifications, abstract data types, errors, refactoring). Module 5 is testing and quality. Module 6 is design and architecture. Module 7 covers data, concurrency and distributed computing foundations. Operations, delivery and security — the newest SWEBOK areas — appear inside these modules wherever they apply.',
         ],
       },
       {
@@ -139,7 +139,7 @@ print(satisfies_caret("0.3.1", "0.4.0"))  # False - 0.x minors may break`,
     title: 'Version Control Like a Professional: Git Workflows',
     summary: 'Git\'s data model, small atomic commits, branching strategies, rebasing vs. merging, and pull requests that reviewers love.',
     minutes: 25,
-    prerequisite: 'You can open a terminal, change directories and run commands.',
+    prerequisite: 'Programming vs. Software Engineering. You should be able to open a terminal, change directories and run commands; the lesson explains each Git command as it goes.',
     outcomes: [
       'Explain Git\'s model of commits, trees, blobs and references, and predict what a command will do to it.',
       'Write small, atomic commits with messages that explain why, using the Conventional Commits format.',
@@ -194,7 +194,7 @@ Refs: SEC-412`,
       {
         title: 'Branching strategies: trunk-based development',
         paragraphs: [
-          'Long-lived feature branches drift away from the main line; merging them becomes painful and risky. DORA\'s research associates high-performing teams with trunk-based development: everyone integrates small changes into the main branch at least daily, using short-lived branches (hours to a couple of days) and pull requests. Unfinished features are hidden behind feature flags (Module 6) instead of living on a branch for weeks.',
+          'Long-lived feature branches drift away from the main line; merging them becomes painful and risky. DORA\'s research associates high-performing teams with trunk-based development: everyone integrates small changes into the main branch at least daily, using short-lived branches (hours to a couple of days) and pull requests. Unfinished features are hidden behind feature flags instead of living on a branch for weeks.',
           'GitFlow, with separate develop, release and hotfix branches, still appears in organisations that ship versioned products on a slow cadence, but for continuously deployed services its overhead usually outweighs its benefits. Whatever you choose, protect the main branch: require passing CI and at least one review before merging.',
         ],
       },
@@ -277,7 +277,7 @@ dist/
     title: 'Debugging Scientifically: Reproduce, Isolate, Fix, Prevent',
     summary: 'Turn debugging from guesswork into a method: minimal reproductions, hypotheses, binary search with bisect, logging and debuggers.',
     minutes: 24,
-    prerequisite: 'Lesson 2 (Git) and comfort reading Python tracebacks.',
+    prerequisite: 'Version Control Like a Professional (Git), and When Things Go Wrong (reading tracebacks).',
     outcomes: [
       'Follow a repeatable debugging loop: reproduce, observe, hypothesise, test, fix, and prevent recurrence.',
       'Shrink a failing input to a minimal reproduction and locate a regression with git bisect.',
@@ -343,8 +343,8 @@ $ git bisect reset`,
       {
         title: 'Tools: print, logging, debugger, profiler',
         paragraphs: [
-          'print() is fine for a quick look, but remove it afterwards. For anything that will run in production, use the logging module with levels (DEBUG, INFO, WARNING, ERROR) and structured context, so you can turn detail up without redeploying (Module 6 covers observability). A debugger lets you pause and inspect state: in Python, call breakpoint() to drop into pdb, then use n (next), s (step in), p expr (print), l (list) and c (continue). Since Python 3.14, pdb can even attach to an already-running process.',
-          'If the bug is "it is too slow", do not guess — measure. cProfile shows where time is spent per function; the hot spot is rarely where you expect. Module 5 returns to performance work.',
+          'print() is fine for a quick look, but remove it afterwards. For anything that will run in production, use the logging module with levels (DEBUG, INFO, WARNING, ERROR) and structured context, so you can turn detail up without redeploying. A debugger lets you pause and inspect state: in Python, call breakpoint() to drop into pdb, then use n (next), s (step in), p expr (print), l (list) and c (continue). Since Python 3.14, pdb can even attach to an already-running process.',
+          'If the bug is "it is too slow", do not guess — measure. cProfile shows where time is spent per function; the hot spot is rarely where you expect. Module 7 returns to performance work.',
         ],
         code: `import logging
 log = logging.getLogger("billing")
@@ -364,7 +364,7 @@ def apply_discount(total, code):
         title: 'Fix the cause and prevent the class of bug',
         paragraphs: [
           'Before changing code, write a test that fails because of the bug. Then fix it and watch the test pass. The test documents the bug and guarantees it never silently returns. Finally, ask the prevention question: why was this possible? Could a type hint, a validation function, a linter rule or a clearer API have made the mistake impossible? Fixing a class of bugs is worth far more than fixing one instance.',
-          'Write a short postmortem for any bug that reached users: timeline, impact, root cause, and actions. Keep it blameless — the goal is to improve the system, not to find someone to punish (Module 6).',
+          'Write a short postmortem for any bug that reached users: timeline, impact, root cause, and actions. Keep it blameless — the goal is to improve the system, not to find someone to punish.',
         ],
       },
     ],
@@ -407,7 +407,7 @@ def apply_discount(total, code):
     title: 'From Requirements to Acceptance Criteria',
     summary: 'Discover what to build: stakeholders, functional and non-functional requirements, user stories, and testable Given/When/Then criteria.',
     minutes: 22,
-    prerequisite: 'Lesson 1.',
+    prerequisite: 'Programming vs. Software Engineering.',
     outcomes: [
       'Distinguish functional requirements, non-functional (quality) requirements and constraints.',
       'Write user stories that follow INVEST and acceptance criteria in Given/When/Then form.',
@@ -434,7 +434,7 @@ def apply_discount(total, code):
       {
         title: 'Functional vs. non-functional requirements',
         paragraphs: [
-          'Functional requirements describe behaviour. Non-functional requirements — often called quality attributes — describe properties such as latency, availability, security, scalability, accessibility and maintainability. They shape architecture far more than features do: "99.99% availability" and "p95 latency under 200 ms" drive design decisions in Module 4 and 5.',
+          'Functional requirements describe behaviour. Non-functional requirements — often called quality attributes — describe properties such as latency, availability, security, scalability, accessibility and maintainability. They shape architecture far more than features do: "99.99% availability" and "p95 latency under 200 ms" drive design decisions in Module 6 and 7.',
           'A non-functional requirement that cannot be measured cannot be met. "The site must be fast" is a wish. "The search page returns results in under 300 ms at the 95th percentile with 500 concurrent users" is a requirement you can test.',
         ],
       },

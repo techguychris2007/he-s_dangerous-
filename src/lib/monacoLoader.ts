@@ -1,5 +1,9 @@
 import { loader } from '@monaco-editor/react';
 import * as monaco from '../../node_modules/monaco-editor/esm/vs/editor/editor.api.js';
+// The editor contributions (suggest, code actions, code lens, inlay hints…) and the services they
+// depend on. The language workers import this module too, but only after the first editor exists —
+// by then the service collection is sealed and every contribution throws "UNKNOWN service".
+import '../../node_modules/monaco-editor/esm/vs/internal/common/workers.js';
 import EditorWorker from '../../node_modules/monaco-editor/esm/vs/editor/editor.worker.js?worker';
 import TypeScriptWorker from '../../node_modules/monaco-editor/esm/vs/language/typescript/ts.worker.js?worker';
 // Register only the languages DarkWorld uses. Their syntax grammars load on demand instead of
@@ -7,6 +11,9 @@ import TypeScriptWorker from '../../node_modules/monaco-editor/esm/vs/language/t
 import '../../node_modules/monaco-editor/esm/vs/languages/definitions/python/register.js';
 import '../../node_modules/monaco-editor/esm/vs/languages/definitions/cpp/register.js';
 import '../../node_modules/monaco-editor/esm/vs/languages/definitions/javascript/register.js';
+import '../../node_modules/monaco-editor/esm/vs/languages/definitions/csharp/register.js';
+import '../../node_modules/monaco-editor/esm/vs/languages/definitions/xml/register.js';
+import '../../node_modules/monaco-editor/esm/vs/languages/definitions/sql/register.js';
 // @ts-expect-error This runtime contribution does not ship a declaration file.
 import { javascriptDefaults } from '../../node_modules/monaco-editor/esm/vs/language/typescript/monaco.contribution.js';
 self.MonacoEnvironment = {

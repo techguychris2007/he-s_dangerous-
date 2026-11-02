@@ -10,6 +10,7 @@ const LANGUAGE_LABEL: Record<string, string> = {
   python: 'Python',
   cpp: 'C++',
   javascript: 'JavaScript',
+  csharp: 'C#',
 };
 
 function iconFor(task: CodeTask): string {

@@ -1,7 +1,7 @@
 import type { CurriculumLesson } from '../curriculumDefinition';
 import { SE_SOURCES as S } from './sources';
 
-/** Module 5 — data, concurrency, distributed systems and performance (SWEBOK V4: Computing
+/** Module 7 — data, concurrency, distributed systems and performance (SWEBOK V4: Computing
  *  Foundations, Construction; DDIA; Amazon Builders' Library; Python concurrency docs). */
 export const SE_MODULE_5: CurriculumLesson[] = [
   {
@@ -10,7 +10,7 @@ export const SE_MODULE_5: CurriculumLesson[] = [
     title: 'Data Modeling, Indexes & Transactions',
     summary: 'Normalise schemas, index for real queries, read query plans, and choose isolation levels and optimistic locking to stop lost updates.',
     minutes: 26,
-    prerequisite: 'Basic SQL (SELECT, JOIN, INSERT) and Module 2.',
+    prerequisite: 'Module 4 (Software Construction). Basic SQL (SELECT, JOIN, INSERT) helps; the lesson recaps it in plain English.',
     outcomes: [
       'Normalise a schema to third normal form and justify deliberate denormalisation.',
       'Design indexes from query patterns and confirm them with EXPLAIN QUERY PLAN.',
@@ -118,7 +118,7 @@ print(conn.execute("explain query plan " + q, (7,)).fetchall())
     title: 'Concurrency: Threads, Processes, asyncio & Race Conditions',
     summary: 'Pick the right concurrency model, understand the GIL and free-threaded Python, and prevent races and deadlocks with locks, ordering and compare-and-set.',
     minutes: 26,
-    prerequisite: 'Lesson 17 and Python functions and classes.',
+    prerequisite: 'Data Modeling, Indexes & Transactions, plus functions and classes from Modules 1 and 2.',
     outcomes: [
       'Choose between threads, processes and asyncio for I/O-bound and CPU-bound work.',
       'Explain the GIL and what free-threaded Python 3.13/3.14 changes.',
@@ -236,7 +236,7 @@ def transfer(a: "Account", b: "Account", amount: int, a_id: int, b_id: int):
     title: 'Distributed Systems: Timeouts, Retries, Breakers & Queues',
     summary: 'The fallacies of distributed computing, retries with exponential backoff and jitter, circuit breakers, CAP trade-offs, queues and the transactional outbox.',
     minutes: 25,
-    prerequisite: 'Lessons 17–18 and Module 4 Lesson 16 (idempotency).',
+    prerequisite: 'Data Modeling and Concurrency in this module, and Designing HTTP APIs (idempotency) in Module 6.',
     outcomes: [
       'Name the fallacies of distributed computing and design for partial failure.',
       'Implement timeouts, bounded retries with exponential backoff and full jitter, and circuit breakers.',
@@ -256,7 +256,7 @@ def transfer(a: "Account", b: "Account", amount: int, a_id: int, b_id: int):
       {
         title: 'Design for partial failure',
         paragraphs: [
-          'A remote call has three outcomes, not two: success, failure, and "unknown" — the request may have been processed even though you got a timeout. Every remote call needs a timeout (no timeout means a slow dependency can exhaust your threads or connections), and every caller must decide what to do when the outcome is unknown. This is why idempotency keys (Module 4) matter: they make "just retry" safe.',
+          'A remote call has three outcomes, not two: success, failure, and "unknown" — the request may have been processed even though you got a timeout. Every remote call needs a timeout (no timeout means a slow dependency can exhaust your threads or connections), and every caller must decide what to do when the outcome is unknown. This is why idempotency keys (Module 6) matter: they make "just retry" safe.',
         ],
       },
       {
@@ -336,7 +336,7 @@ def call_with_retries(op, *, attempts=4, base=0.1, cap=2.0,
     title: 'Performance Engineering: Measure, Cache, Batch & Percentiles',
     summary: 'Profile before optimising, reason with complexity, cache with correct invalidation, batch round trips, and judge latency with percentiles and SLOs.',
     minutes: 24,
-    prerequisite: 'Lessons 17–19 and Big-O (Programming: Data Structures & Algorithms).',
+    prerequisite: 'The three earlier lessons in this module. Big-O notation is explained in plain English at the start of the lesson.',
     outcomes: [
       'Follow a measure–hypothesise–change–measure loop with profilers and benchmarks.',
       'Use latency percentiles (p50, p95, p99) and SLOs instead of averages.',
@@ -377,7 +377,7 @@ print(s.getvalue())
       {
         title: 'Percentiles, not averages',
         paragraphs: [
-          'An average of 120 ms can hide that 1 in 20 users waits 3 seconds. Report p50 (typical experience), p95 and p99 (the tail that angry users feel). With many backend calls per page, tail latency compounds: if a page makes 10 calls and each has a 1% chance of being slow, about 10% of page loads hit at least one slow call. Set SLOs on percentiles over a time window, and alert on burning through the error budget (Module 6).',
+          'An average of 120 ms can hide that 1 in 20 users waits 3 seconds. Report p50 (typical experience), p95 and p99 (the tail that angry users feel). With many backend calls per page, tail latency compounds: if a page makes 10 calls and each has a 1% chance of being slow, about 10% of page loads hit at least one slow call. Set SLOs on percentiles over a time window, and alert on burning through the error budget.',
         ],
       },
       {
