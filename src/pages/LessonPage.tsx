@@ -146,7 +146,7 @@ function LessonReader({ mod, lesson }: { mod: ModuleMeta; lesson: LessonMeta }) 
           </div>
         </div>
       </div>
-      <CyberLabAI key={lesson.id} getContext={() => ({ kind: 'lesson', title: lesson.title, subtitle: mod.title, bodyText: contentRef.current?.innerText ?? '' })} />
+      <CyberLabAI presentation="floating" movable key={lesson.id} getContext={() => ({ kind: 'lesson', title: lesson.title, subtitle: mod.title, bodyText: contentRef.current?.innerText ?? '' })} />
     </div>
   );
 }

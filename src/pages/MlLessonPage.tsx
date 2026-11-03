@@ -133,7 +133,7 @@ export default function MlLessonPage() {
         </main>
       </div>
     </div>
-      <CyberLabAI key={lesson.id} getContext={() => ({ kind: 'lesson', title: lesson.title.replace(/<[^>]*>/g, ''), subtitle: 'Machine learning', bodyText: contentRef.current?.innerText ?? '' })} />
+      <CyberLabAI presentation="floating" movable key={lesson.id} getContext={() => ({ kind: 'lesson', title: lesson.title.replace(/<[^>]*>/g, ''), subtitle: 'Machine learning', bodyText: contentRef.current?.innerText ?? '' })} />
     </div>
   );
 }

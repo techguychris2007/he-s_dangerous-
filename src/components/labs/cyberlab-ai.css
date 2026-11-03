@@ -6,3 +6,9 @@
 @media (prefers-reduced-motion: reduce) { .dig-floating-launcher { transition: none; } .dig-floating-launcher:hover { transform: none; } }
 /* Clears the IDE's bottom status bar so the launcher never hides status text. */
 .dig-floating-launcher.is-compact { bottom: 52px; right: 22px; padding: 5px; border-radius: 50%; }
+
+.dig-floating-launcher.is-movable { touch-action: none; cursor: grab; transition: border-color .15s; }
+.dig-floating-launcher.is-movable:hover { transform: none; }
+.dig-floating-launcher.is-movable:active { cursor: grabbing; }
+.dig-placement-controls { display: none; }
+@media (min-width: 1024px) { .dig-placement-controls { display: flex; justify-content: flex-end; padding: 8px 12px; border-bottom: 1px solid var(--color-border); } .dig-placement-controls button { font-size: 12px; font-weight: 600; color: var(--color-accent-dim); padding: 5px 8px; border-radius: 6px; } .dig-placement-controls button:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; } }

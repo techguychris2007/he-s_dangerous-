@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type PointerEvent, type KeyboardEvent } from 'react';
 import { askCyberLabAi, type CyberLabAiContext, type CyberLabAiMode } from '../../lib/aiTutor';
 import AiChatWindow, { type ChatMessage } from '../common/AiChatWindow';
 import { withoutStreaming } from '../common/chatStreaming';
@@ -12,6 +12,8 @@ interface CyberLabAIProps {
   /** a small corner launcher that keeps the page's own lab/lesson behaviour — for editor and terminal
    *  workspaces, where a docked rail would take width away from the code */
   compactLauncher?: boolean;
+  /** Lesson-only movable launcher with an optional right-hand reading dock. */
+  movable?: boolean;
   /** called fresh every time a message is sent, so hint/currentCode context is always up to date
    *  (currentCode in particular changes on every keystroke and shouldn't trigger re-renders here) */
   getContext: () => CyberLabAiContext;
@@ -31,9 +33,55 @@ interface PendingRequest {
  *  any hand-rolled positioning math. Shares its context shape with the reading companion but with
  *  lab-specific behavior: a 5-level hint ladder instead of free explanation on demand, since handing
  *  over a working solution defeats the point of a graded lab. */
-export default function CyberLabAI({ getContext, presentation = 'dock', floatingLauncher = false, compactLauncher = false }: CyberLabAIProps) {
+export default function CyberLabAI({ getContext, presentation = 'dock', floatingLauncher = false, compactLauncher = false, movable = false }: CyberLabAIProps) {
   const floatingButton = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
+  const [docked, setDocked] = useState(false);
+  const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
+  const drag = useRef<{ x: number; y: number; left: number; top: number; moved: boolean } | null>(null);
+  const dragged = useRef(false);
+  const panelIsFloating = presentation === 'floating' && !docked;
+  const clampPosition = (x: number, y: number) => ({
+    x: Math.max(8, Math.min(x, window.innerWidth - 76)),
+    y: Math.max(88, Math.min(y, window.innerHeight - 76)),
+  });
+  useEffect(() => {
+    if (!movable) return;
+    const resize = () => setPosition(p => p ? clampPosition(p.x, p.y) : p);
+    window.addEventListener('resize', resize);
+    return () => window.removeEventListener('resize', resize);
+  }, [movable]);
+  const startDrag = (event: PointerEvent<HTMLButtonElement>) => {
+    if (event.button !== 0) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    dragged.current = false;
+    drag.current = { x: event.clientX, y: event.clientY, left: rect.left, top: rect.top, moved: false };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+  const moveDrag = (event: PointerEvent<HTMLButtonElement>) => {
+    const start = drag.current;
+    if (!start) return;
+    const dx = event.clientX - start.x, dy = event.clientY - start.y;
+    if (!start.moved && Math.hypot(dx, dy) < 5) return;
+    start.moved = true;
+    dragged.current = true;
+    setPosition(clampPosition(start.left + dx, start.top + dy));
+  };
+  const moveWithKeyboard = (event: KeyboardEvent<HTMLButtonElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') dragged.current = false;
+    if (event.key === 'Home') { event.preventDefault(); setPosition(null); return; }
+    const delta: Record<string, [number, number]> = { ArrowLeft: [-24, 0], ArrowRight: [24, 0], ArrowUp: [0, -24], ArrowDown: [0, 24] };
+    const step = delta[event.key];
+    if (!step) return;
+    event.preventDefault();
+    const rect = event.currentTarget.getBoundingClientRect();
+    setPosition(clampPosition(rect.left + step[0], rect.top + step[1]));
+  };
+  const close = () => {
+    setOpen(false);
+    setDocked(false);
+    if (floatingLauncher || compactLauncher || movable) requestAnimationFrame(() => floatingButton.current?.focus());
+  };
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -96,6 +144,11 @@ export default function CyberLabAI({ getContext, presentation = 'dock', floating
 
   if (!open) {
     if (presentation === 'floating') {
+      if (movable) return <button ref={floatingButton} type="button" className="dig-floating-launcher is-compact is-movable"
+        style={position ? { left: position.x, top: position.y, right: 'auto', bottom: 'auto' } : undefined}
+        onPointerDown={startDrag} onPointerMove={moveDrag} onPointerUp={() => { drag.current = null; }} onPointerCancel={() => { drag.current = null; dragged.current = true; }}
+        onKeyDown={moveWithKeyboard} onClick={() => { if (dragged.current) { dragged.current = false; return; } setOpen(true); }}
+        aria-label="Ask dig about this lesson" title="Ask dig · drag to move, arrow keys to reposition, Home to reset"><DigAvatar size={44}/></button>;
       if (floatingLauncher) return <button ref={floatingButton} type="button" className="dig-floating-launcher" onClick={() => setOpen(true)} aria-label="Ask dig, your learning assistant"><DigAvatar size={54}/><span><strong>dig</strong><small>Ask a question</small></span></button>;
       if (compactLauncher) return <button ref={floatingButton} type="button" className="dig-floating-launcher is-compact" onClick={() => setOpen(true)} aria-label="Ask dig about this lab" title="Ask dig"><DigAvatar size={44}/></button>;
       return null;
@@ -119,8 +172,9 @@ export default function CyberLabAI({ getContext, presentation = 'dock', floating
 
   return (
     <>
-      <div aria-hidden className="fixed inset-0 bg-black/40 backdrop-blur-xs z-40 lg:hidden" onClick={() => setOpen(false)} />
-      <div className={presentation === 'floating' ? 'fixed bottom-5 right-5 z-50 w-[400px] max-w-[calc(100vw-2.5rem)] h-[650px] max-h-[calc(100dvh-110px)] rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] flex flex-col overflow-hidden shadow-2xl' : 'fixed inset-x-0 bottom-0 z-50 h-[82vh] rounded-t-2xl border-t lg:border-t-0 lg:border-l border-[var(--color-border)] bg-[var(--color-surface)] flex flex-col overflow-hidden shadow-2xl lg:relative lg:inset-auto lg:z-auto lg:h-full lg:w-[380px] lg:rounded-none lg:shadow-none shrink-0'}>
+      <div aria-hidden className="fixed inset-0 bg-black/40 backdrop-blur-xs z-40 lg:hidden" onClick={close} />
+      <div className={panelIsFloating ? 'fixed bottom-5 right-5 z-50 w-[400px] max-w-[calc(100vw-2.5rem)] h-[650px] max-h-[calc(100dvh-110px)] rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] flex flex-col overflow-hidden shadow-2xl' : 'fixed inset-x-0 bottom-0 z-50 h-[82vh] rounded-t-2xl border-t lg:border-t-0 lg:border-l border-[var(--color-border)] bg-[var(--color-surface)] flex flex-col overflow-hidden shadow-2xl lg:relative lg:inset-auto lg:z-auto lg:h-full lg:w-[380px] lg:rounded-none lg:shadow-none shrink-0'}>
+        {movable && <div className="dig-placement-controls"><button type="button" onClick={() => setDocked(value => !value)} aria-pressed={docked}>{docked ? 'Float chat ↗' : 'Dock on right →'}</button></div>}
         <AiChatWindow
           title="dig"
           subtitle={floatingLauncher ? 'Your learning and library assistant' : `${isLab ? 'Hint-first lab mentor' : 'Concept explainer'} — ${context.title}`}
@@ -156,7 +210,7 @@ export default function CyberLabAI({ getContext, presentation = 'dock', floating
           onInputChange={setInput}
           onSubmit={(question, source) => send(question, 'ask', undefined, source)}
           onRetry={retry}
-          onClose={() => { setOpen(false); if (floatingLauncher || compactLauncher) requestAnimationFrame(() => floatingButton.current?.focus()); }}
+          onClose={close}
           placeholder={floatingLauncher ? 'Ask dig a question…' : isLab ? 'Ask about this lab…' : 'Ask about this lesson…'}
         />
       </div>
