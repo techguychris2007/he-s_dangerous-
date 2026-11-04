@@ -5,6 +5,7 @@ import { PYTHON_TASKS, PYTHON_TASK_CATEGORIES } from '../labs/pythonTasks';
 import { CPP_TASKS, CPP_TASK_CATEGORIES } from '../labs/cppTasks';
 import { JS_TASKS, JS_TASK_CATEGORIES } from '../labs/jsTasks';
 import { CSHARP_TASKS, CSHARP_TASK_CATEGORIES } from '../labs/csharpTasks';
+import { TS_TASKS, TS_TASK_CATEGORIES } from '../labs/typescriptTasks';
 import { SECURITY_TASKS, SECURITY_TASK_CATEGORIES } from '../labs/securityTasks';
 import type { CodeLanguage } from '../labs/codeTypes';
 import { useProgress } from '../state/progressStore';
@@ -26,7 +27,7 @@ const CODE_MODULE_SLUGS = [
   'programming-engineering',
 ];
 
-const ALL_TASKS = [...PYTHON_TASKS, ...CPP_TASKS, ...JS_TASKS, ...CSHARP_TASKS, ...SECURITY_TASKS];
+const ALL_TASKS = [...PYTHON_TASKS, ...CPP_TASKS, ...JS_TASKS, ...CSHARP_TASKS, ...TS_TASKS, ...SECURITY_TASKS];
 
 const LANGUAGE_TABS: { value: CodeLanguage | 'All'; label: string }[] = [
   { value: 'All', label: 'All languages' },
@@ -34,6 +35,7 @@ const LANGUAGE_TABS: { value: CodeLanguage | 'All'; label: string }[] = [
   { value: 'cpp', label: 'C++' },
   { value: 'javascript', label: 'JavaScript' },
   { value: 'csharp', label: 'C#' },
+  { value: 'typescript', label: 'TypeScript' },
 ];
 
 const CATEGORIES_BY_LANGUAGE: Record<CodeLanguage, readonly string[]> = {
@@ -41,9 +43,10 @@ const CATEGORIES_BY_LANGUAGE: Record<CodeLanguage, readonly string[]> = {
   cpp: CPP_TASK_CATEGORIES,
   javascript: JS_TASK_CATEGORIES,
   csharp: CSHARP_TASK_CATEGORIES,
+  typescript: TS_TASK_CATEGORIES,
 };
 
-const LANGUAGE_ICON: Record<CodeLanguage, string> = { python: 'python', cpp: 'chip', javascript: 'code', csharp: 'code' };
+const LANGUAGE_ICON: Record<CodeLanguage, string> = { python: 'python', cpp: 'chip', javascript: 'code', csharp: 'code', typescript: 'code' };
 const STATUSES = ['All', 'Not started', 'In progress', 'Solved'] as const;
 const PAGE_SIZE = 24;
 const CHIP_LIMIT = 12;

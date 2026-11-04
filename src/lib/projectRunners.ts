@@ -6,6 +6,7 @@ import { runCppProject } from './cppProjectRunner';
 import { runCSharpProject } from './csharpRunner';
 import { runSqlProject } from './sqlRunner';
 import { runDomProject } from './domRunner';
+import { runTypeScriptProject, runReactProject } from './tsRunner';
 
 type ProjectRunFn = (files: ProjectFile[], target: RunTarget, withTests: boolean) => Promise<RunResult>;
 
@@ -19,6 +20,9 @@ export const RUN_TARGET_RUNNERS: Record<RunTargetKind, ProjectRunFn> = {
   cpp: (files, target, withTests) => runCppProject(files, target.entry, withTests ? target.testCode : undefined),
   csharp: (files, target, withTests) => runCSharpProject(files, target.entry, withTests ? target.testCode : undefined),
   sql: (files, target, withTests) => runSqlProject(files, target.entry, withTests ? target.testCode : undefined),
+  typescript: (files, target, withTests) => runTypeScriptProject(files, target.entry, withTests ? target.testCode : undefined),
+  // A plain "Run" renders the app in preview mode and reports its console output and type errors.
+  react: (files, target, withTests) => runReactProject(files, target, withTests),
   // A plain "Run" on a dom target is a no-op here — DomPreviewPane renders the live page directly
   // from files/target.entry instead of going through this runner, since there's nothing to execute
   // and capture as stdout/stderr for a page with no assertions attached.

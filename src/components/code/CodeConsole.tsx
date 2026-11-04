@@ -4,6 +4,7 @@ import { runPython, runPythonTraced, isPyodideBooted, type TraceStep } from '../
 import { runCpp } from '../../lib/cppRunner';
 import { runJs } from '../../lib/jsRunner';
 import { runCSharp, isCSharpBooted } from '../../lib/csharpRunner';
+import { runTypeScriptSnippet, isTypeScriptReady, isReactSnippet } from '../../lib/tsRunner';
 import type { CodeLanguage } from '../../labs/codeTypes';
 import { parseChecks, parseTestResult, type CheckLine } from '../../lib/testResult';
 import { IconCheck, IconCode, IconLightning, IconRefresh, IconX } from '../layout/icons';
@@ -26,11 +27,19 @@ interface CodeConsoleProps {
 type Status = 'idle' | 'booting' | 'running' | 'error' | 'done';
 type PanelTab = 'tests' | 'output';
 
-const RUNNERS: Record<CodeLanguage, (code: string) => Promise<{ stdout: string; stderr: string; ok: boolean }>> = {
-  python: runPython,
-  cpp: runCpp,
-  javascript: runJs,
-  csharp: runCSharp,
+type RunOutput = { stdout: string; stderr: string; ok: boolean };
+type RunFn = (code: string, testCode: string | null) => Promise<RunOutput>;
+/** Most runners execute the learner's code with the test code appended; TypeScript keeps the tests
+ *  in their own module (solution.test.ts importing './solution'), as a real project would. */
+const appended = (runCode: (code: string) => Promise<RunOutput>): RunFn =>
+  (code, testCode) => runCode(testCode === null ? code : `${code}\n\n${testCode}`);
+
+const RUNNERS: Record<CodeLanguage, RunFn> = {
+  python: appended(runPython),
+  cpp: appended(runCpp),
+  javascript: appended(runJs),
+  csharp: appended(runCSharp),
+  typescript: runTypeScriptSnippet,
 };
 
 const FILE: Record<CodeLanguage, { name: string; runtime: string }> = {
@@ -38,6 +47,7 @@ const FILE: Record<CodeLanguage, { name: string; runtime: string }> = {
   cpp: { name: 'solution.cpp', runtime: 'C++ · in-browser' },
   javascript: { name: 'solution.js', runtime: 'JavaScript · sandboxed' },
   csharp: { name: 'Solution.cs', runtime: 'C# 14 · .NET 10 in-browser' },
+  typescript: { name: 'solution.ts', runtime: 'TypeScript 6 · strict mode' },
 };
 
 /** The coding workspace: a dark IDE frame with a file tab, run/debug/submit toolbar, the Monaco
@@ -71,12 +81,11 @@ export default function CodeConsole({ language, starterCode, testCode, onAllTest
 
   const run = async (withTests: boolean) => {
     if (withTests) onTestsAttempted?.();
-    setStatus((language === 'python' && !isPyodideBooted()) || (language === 'csharp' && !isCSharpBooted()) ? 'booting' : 'running');
+    setStatus((language === 'python' && !isPyodideBooted()) || (language === 'csharp' && !isCSharpBooted()) || (language === 'typescript' && !isTypeScriptReady()) ? 'booting' : 'running');
     setOutput('');
     clearResults();
     setPanel(withTests ? 'tests' : 'output');
-    const fullCode = withTests ? `${code}\n\n${testCode}` : code;
-    const result = await RUNNERS[language](fullCode).catch(error => ({
+    const result = await RUNNERS[language](code, withTests ? testCode : null).catch(error => ({
       stdout: '', stderr: error instanceof Error ? error.message : String(error), ok: false,
     }));
     const combined = [result.stdout, result.stderr].filter(Boolean).join(result.stdout && result.stderr ? '\n' : '');
@@ -127,16 +136,18 @@ export default function CodeConsole({ language, starterCode, testCode, onAllTest
   };
 
   const busy = status === 'booting' || status === 'running';
+  // React tasks are .tsx (JSX); every other TypeScript task is a plain .ts module.
+  const fileName = language === 'typescript' && isReactSnippet(starterCode, testCode) ? 'solution.tsx' : FILE[language].name;
   const modified = code !== starterCode;
   const allPassed = !!testSummary && testSummary.total > 0 && testSummary.passed === testSummary.total;
-  const statusText = status === 'booting' ? `Downloading the ${language === 'csharp' ? 'C# compiler and .NET' : 'Python'} runtime (first run only)…` : status === 'running' ? 'Running…' : status === 'error' ? 'Finished with errors' : status === 'done' ? 'Finished' : 'Ready';
+  const statusText = status === 'booting' ? `Downloading the ${language === 'csharp' ? 'C# compiler and .NET' : language === 'typescript' ? 'TypeScript compiler' : 'Python'} runtime (first run only)…` : status === 'running' ? 'Running…' : status === 'error' ? 'Finished with errors' : status === 'done' ? 'Finished' : 'Ready';
 
   return (
     <div className="dw-ide">
       <div className="dw-ide__bar">
         <div className="dw-ide__tabs" role="tablist" aria-label="Open files">
           <span className="dw-ide__tab" role="tab" aria-selected="true">
-            <IconCode className="h-3.5 w-3.5" />{FILE[language].name}
+            <IconCode className="h-3.5 w-3.5" />{fileName}
             {modified && <i className="dw-ide__dirty" title="Edited" aria-label="edited" />}
           </span>
         </div>
@@ -159,7 +170,7 @@ export default function CodeConsole({ language, starterCode, testCode, onAllTest
       </div>
 
       <div className="dw-ide__editor">
-        <CodeEditor value={code} onChange={value => { setCode(value); clearResults(); }} disabled={busy} language={language} />
+        <CodeEditor value={code} onChange={value => { setCode(value); clearResults(); }} disabled={busy} language={language} fileName={fileName} />
       </div>
 
       <section className="dw-ide__panel" aria-label="Results">

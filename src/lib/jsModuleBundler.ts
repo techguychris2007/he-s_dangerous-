@@ -43,7 +43,14 @@ function __dw_resolve__(fromPath, req) {
 function __dw_instantiate__(path) {
   if (__dw_cache__[path]) return __dw_cache__[path].exports;
   var factory = __dw_files__[path];
-  if (!factory) throw new Error("Cannot find module '" + path + "'");
+  if (!factory) {
+    // Packages a runtime kit pre-registered (react, vitest, … — see tools/ts-runtime), and style
+    // sheets, which the page assembler injects as <style> tags instead.
+    var kit = typeof globalThis !== 'undefined' && globalThis.__dw_modules__;
+    if (kit && Object.prototype.hasOwnProperty.call(kit, path)) return kit[path];
+    if (/\\.css$/.test(path)) return {};
+    throw new Error("Cannot find module '" + path + "'");
+  }
   var mod = { exports: {} };
   __dw_cache__[path] = mod;
   factory(mod, mod.exports, function (req) { return __dw_require__(path, req); });

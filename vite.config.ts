@@ -41,7 +41,7 @@ export default defineConfig({
         // Precache every hashed build artifact (JS/CSS/fonts) plus the shell + icons, so the whole
         // app boots and runs with zero network requests once a single online visit has completed.
         globPatterns: ['**/*.{js,mjs,css,html,svg,png,webp,ico,woff2,ttf}', '**/sql-wasm*.wasm'],
-        globIgnores: ['csharp-runtime/**'],
+        globIgnores: ['csharp-runtime/**', 'ts-runtime/**'],
         navigateFallback: '/index.html',
         // The main bundle passed 2 MiB once @supabase/supabase-js was added, then passed 5 MiB as
         // the Build Portal's SE task catalog (taskIndex.ts — metadata only, but eagerly imported by
@@ -49,6 +49,16 @@ export default defineConfig({
         // ceiling instead of splitting chunks, so the whole app still works fully offline.
         maximumFileSizeToCacheInBytes: 9 * 1024 * 1024,
         runtimeCaching: [
+          {
+            // TypeScript/React compiler assets load on demand and remain available offline.
+            urlPattern: ({ url, sameOrigin }) => sameOrigin && url.pathname.startsWith('/ts-runtime/'),
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'ts-runtime-v1',
+              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
           {
             urlPattern: ({ url, sameOrigin }) => sameOrigin && url.pathname.startsWith('/csharp-runtime/'),
             handler: 'CacheFirst',

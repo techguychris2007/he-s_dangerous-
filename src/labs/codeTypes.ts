@@ -1,4 +1,4 @@
-export type CodeLanguage = 'python' | 'cpp' | 'javascript' | 'csharp';
+export type CodeLanguage = 'python' | 'cpp' | 'javascript' | 'csharp' | 'typescript';
 export type CodeDifficulty = 'Easy' | 'Medium' | 'Hard';
 
 export interface CodeTask {

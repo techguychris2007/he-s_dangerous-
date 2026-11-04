@@ -12,6 +12,7 @@ export const SE_TRACKS: Record<SeLanguage, SeTrack[]> = {
   javascript: ['foundations', 'backend', 'fullstack'],
   cpp: ['foundations', 'systems'],
   csharp: ['foundations', 'backend'],
+  typescript: ['fullstack'],
 };
 
 export function seCategoriesFor(language: SeLanguage, track: SeTrack): string[] {
@@ -22,7 +23,7 @@ export function seCategoriesFor(language: SeLanguage, track: SeTrack): string[] 
 // `<its own id>.ts` (see e.g. python/foundations/se-py-fnd-001.ts) specifically so the id -> loader
 // mapping can be derived from the filename alone, without importing every module up front just to
 // read its `.id` field — that would defeat the entire purpose of splitting content out of taskIndex.ts.
-const loaders = import.meta.glob<{ default: ProjectTask }>('./{python,javascript,cpp,csharp}/**/*.ts');
+const loaders = import.meta.glob<{ default: ProjectTask }>('./{python,javascript,cpp,csharp,typescript}/**/*.ts');
 
 let idToLoader: Map<string, () => Promise<{ default: ProjectTask }>> | null = null;
 

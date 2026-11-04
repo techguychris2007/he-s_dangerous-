@@ -6,6 +6,10 @@ import { DN_MONTH1_A } from '../content/dotnet/m1-weeks-1-2';
 import { DN_MONTH1_B } from '../content/dotnet/m1-weeks-3-4';
 import { DN_MONTH2_A } from '../content/dotnet/m2-weeks-5-6';
 import { DN_MONTH2_B } from '../content/dotnet/m2-weeks-7-8';
+import { DN_MONTH3_A } from '../content/dotnet/m3-weeks-9-10';
+import { DN_MONTH3_B } from '../content/dotnet/m3-weeks-11-12';
+import { DN_MONTH4_A } from '../content/dotnet/m4-weeks-13-14';
+import { DN_MONTH4_B } from '../content/dotnet/m4-weeks-15-16';
 
 /** C# & .NET Software Engineering: a separate course structured as a six-month, 24-week
  *  engineering programme (C# foundations → ASP.NET Core and databases → architecture → TypeScript and
@@ -50,6 +54,24 @@ export const DN_MODULES: ModuleMeta[] = [
     sourceBooks: ['Microsoft Learn — ASP.NET Core & EF Core', 'RFC 9110 / RFC 9457', 'OWASP API Security Top 10'],
     icon: 'database',
   }, [...DN_MONTH2_A, ...DN_MONTH2_B]),
+  curriculumModule({
+    id: 'dn-m3-architecture',
+    slug: 'dn-month-3-architecture-ddd-events',
+    title: 'Month 3 · Software Architecture & Distributed Thinking',
+    subtitle: 'Weeks 9–12: clean architecture and CQRS, DDD and modular monoliths, event-driven systems, reliability engineering',
+    description: 'Week 9 — layers, the dependency rule, ports and adapters, vertical slices and CQRS (assignment: Architecture Refactor). Week 10 — ubiquitous language, bounded contexts, aggregates and invariants, and modular monoliths with enforced boundaries (assignment: Commerce Platform). Week 11 — commands and events, brokers and delivery guarantees, contract evolution, the transactional outbox, idempotent consumers and sagas (assignment: Event-Driven Order Workflow). Week 12 — SLOs and error budgets, retries with jitter, timeouts, circuit breakers, bulkheads, idempotency keys and reconciliation (assignment: The Payment Failure Challenge).',
+    sourceBooks: ['Architect Modern Web Applications with ASP.NET Core and Azure', '.NET Microservices: Architecture for Containerized .NET Applications', 'Azure Architecture Center — Cloud Design Patterns', 'Google SRE book'],
+    icon: 'layers',
+  }, [...DN_MONTH3_A, ...DN_MONTH3_B]),
+  curriculumModule({
+    id: 'dn-m4-frontend',
+    slug: 'dn-month-4-typescript-react',
+    title: 'Month 4 · TypeScript & React Engineering',
+    subtitle: 'Weeks 13–16: TypeScript engineering, React fundamentals, production React, frontend architecture and quality',
+    description: 'Week 13 — TypeScript for C# engineers: structural types, unions and narrowing, generics, parsing untrusted JSON and a typed fetch client (assignment: TypeScript Client). Week 14 — React fundamentals: components, props and state, lists and forms, effects without races, loading, empty and error states, custom hooks (assignment: Build the Client). Week 15 — production React: routing, sessions in a typed reducer and context, protected routes and safe redirects, session expiry, error summaries and focus management, optimistic updates with rollback, accessible dialogs and error boundaries (assignment: Production Features). Week 16 — frontend architecture and quality: homes for every kind of state, reducers, feature boundaries, measured performance, the testing trophy, mutation testing, CI and code review (assignment: Frontend Engineering Review). Every task is type-checked in strict mode and graded with Vitest-style tests in the browser; React work is tested the way users meet it, by role and label.',
+    sourceBooks: ['TypeScript Handbook', 'Full Stack Open (parts 0–2, 5–7, 9)', 'react.dev', 'TypeScript Deep Dive'],
+    icon: 'web',
+  }, [...DN_MONTH4_A, ...DN_MONTH4_B]),
 ];
 
 export const DN_ROADMAP: RoadmapStage[] = DN_MODULES.map((module) => ({
@@ -71,4 +93,6 @@ export const DN_LESSON_TASKS: Record<string, string[]> = Object.fromEntries([
   ...pairTasks('dn0', 'cs-0', 10),
   ...pairTasks('dn1', 'cs-1', 8),
   ...pairTasks('dn2', 'cs-2', 8),
+  ...pairTasks('dn3', 'cs-3', 8),
+  ...pairTasks('dn4', 'ts-4', 8),
 ].map(([lesson, tasks]) => [lesson, [...tasks]]));

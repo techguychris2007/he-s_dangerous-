@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import Editor from '@monaco-editor/react';
 import type { editor as MonacoEditorNs } from 'monaco-editor';
 import type { ProjectFile } from '../../labs/projectTypes';
-import { javascriptDefaults } from '../../lib/monacoLoader';
+import { javascriptDefaults, configureTypeScriptEditor } from '../../lib/monacoLoader';
 import { EDITOR_OPTIONS, THEME, defineEditorTheme } from './editorTheme';
 
 interface MonacoProjectEditorProps {
@@ -79,10 +79,14 @@ export default function MonacoProjectEditor({ initialFiles, activePath, onFileCh
         // JS/TS diagnostics would otherwise red-squiggle every reference to a global the test harness
         // provides (check/checkText/require/etc.) that isn't declared anywhere in the file itself.
         javascriptDefaults.setDiagnosticsOptions({ noSemanticValidation: true, noSyntaxValidation: false });
+        const typed = initialFiles.some((f) => f.language === 'typescript');
+        if (typed) void configureTypeScriptEditor().catch(() => {});
 
         for (const file of initialFiles) {
           editableRef.current.set(file.path, file.editable);
-          const uri = monaco.Uri.parse(`inmemory://dw/${instanceIdRef.current}/${file.path}`);
+          // TypeScript projects use file:/// URIs so imports of 'react' resolve to the type packages
+          // configureTypeScriptEditor registers under file:///node_modules.
+          const uri = monaco.Uri.parse(typed ? `file:///dw-${instanceIdRef.current}/${file.path}` : `inmemory://dw/${instanceIdRef.current}/${file.path}`);
           const model = monaco.editor.createModel(file.content, file.language, uri);
           model.onDidChangeContent(() => onFileChange(file.path, model.getValue()));
           modelsRef.current.set(file.path, model);

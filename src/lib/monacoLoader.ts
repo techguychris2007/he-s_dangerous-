@@ -14,8 +14,9 @@ import '../../node_modules/monaco-editor/esm/vs/languages/definitions/javascript
 import '../../node_modules/monaco-editor/esm/vs/languages/definitions/csharp/register.js';
 import '../../node_modules/monaco-editor/esm/vs/languages/definitions/xml/register.js';
 import '../../node_modules/monaco-editor/esm/vs/languages/definitions/sql/register.js';
+import '../../node_modules/monaco-editor/esm/vs/languages/definitions/typescript/register.js';
 // @ts-expect-error This runtime contribution does not ship a declaration file.
-import { javascriptDefaults } from '../../node_modules/monaco-editor/esm/vs/language/typescript/monaco.contribution.js';
+import { javascriptDefaults, typescriptDefaults, JsxEmit, ModuleKind, ModuleResolutionKind, ScriptTarget } from '../../node_modules/monaco-editor/esm/vs/language/typescript/monaco.contribution.js';
 self.MonacoEnvironment = {
   getWorker(_moduleId, label) {
     return label === 'typescript' || label === 'javascript'
@@ -24,6 +25,41 @@ self.MonacoEnvironment = {
 };
 loader.config({ monaco });
 export { javascriptDefaults };
+
+let typeScriptConfigured: Promise<void> | null = null;
+
+/** Gives the editor's TypeScript service the same strict options and the same React, react-dom and
+ *  test-kit declarations the grader compiles against (public/ts-runtime/types.json), so squiggles and
+ *  IntelliSense match what "Run tests" will report. Models must live under file:/// for
+ *  `import 'react'` to resolve to file:///node_modules/@types/react. Safe to call repeatedly. */
+export function configureTypeScriptEditor(): Promise<void> {
+  typeScriptConfigured ??= (async () => {
+    typescriptDefaults.setCompilerOptions({
+      strict: true,
+      target: ScriptTarget.ES2022,
+      module: ModuleKind.ESNext,
+      moduleResolution: ModuleResolutionKind.NodeJs,
+      jsx: JsxEmit.ReactJSX,
+      esModuleInterop: true,
+      isolatedModules: true,
+      skipLibCheck: true,
+      allowNonTsExtensions: true,
+      noImplicitOverride: true,
+      noImplicitReturns: true,
+      noFallthroughCasesInSwitch: true,
+      lib: ['es2023', 'dom', 'dom.iterable'],
+    });
+    typescriptDefaults.setEagerModelSync(true);
+    const response = await fetch(new URL('ts-runtime/types.json', document.baseURI));
+    if (!response.ok) throw new Error(`types.json: HTTP ${response.status}`);
+    const types = await response.json() as { files: Record<string, string> };
+    for (const [path, content] of Object.entries(types.files)) {
+      if (!path.startsWith('/lib/')) typescriptDefaults.addExtraLib(content, `file://${path}`);
+    }
+  })();
+  typeScriptConfigured.catch(() => { typeScriptConfigured = null; });
+  return typeScriptConfigured;
+}
 export function preloadMonaco(): void {
   void loader.init().catch(() => {});
 }

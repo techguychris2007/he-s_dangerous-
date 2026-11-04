@@ -1,16 +1,18 @@
 import { Link } from 'react-router-dom';
-import type { CodeTask } from '../../labs/codeTypes';
+import type { CodeLanguage, CodeTask } from '../../labs/codeTypes';
 import { useProgress } from '../../state/progressStore';
 import IsoBlock from '../labs/IsoBlock';
 import { IconCheck, IconCode, ModuleIcon } from '../layout/icons';
 import { codeTaskXp } from '../../data/xp';
 import './practice-card.css';
 
-const LANGUAGE_LABEL: Record<string, string> = {
+// Exhaustive over CodeLanguage, so adding a language without a label is a compile error.
+const LANGUAGE_LABEL: Record<CodeLanguage, string> = {
   python: 'Python',
   cpp: 'C++',
   javascript: 'JavaScript',
   csharp: 'C#',
+  typescript: 'TypeScript',
 };
 
 function iconFor(task: CodeTask): string {

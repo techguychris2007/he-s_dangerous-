@@ -4,6 +4,7 @@ import MonacoProjectEditor from './MonacoProjectEditor';
 import ProjectFileTabs from './ProjectFileTabs';
 import ProjectFileTree from './ProjectFileTree';
 import DomPreviewPane from './DomPreviewPane';
+import ReactPreviewPane from './ReactPreviewPane';
 import { RUN_TARGET_RUNNERS } from '../../lib/projectRunners';
 import { parseChecks, parseTestResult, type TestSummary } from '../../lib/testResult';
 import { IconCheck, IconRefresh, IconX } from '../layout/icons';
@@ -55,6 +56,9 @@ export default function ProjectConsole({ task, onAllTestsPassed, onFilesChange, 
 
   const showTree = task.files.length > 4 || task.files.some((f) => f.path.includes('/'));
   const domTarget = task.targets.find((t) => t.kind === 'dom');
+  // React projects preview their app entry (src/main.tsx), not the test target's entry.
+  const reactTarget = task.targets.find((t) => t.kind === 'react');
+  const reactPreviewEntry = reactTarget ? (task.files.find((f) => f.path === 'src/main.tsx' || f.path === 'main.tsx')?.path ?? reactTarget.entry) : null;
 
   // Memoized on contentsVersion (not recomputed on every unrelated re-render, e.g. a target's run
   // status changing) so DomPreviewPane below gets a genuinely stable array reference whenever nothing
@@ -208,6 +212,13 @@ export default function ProjectConsole({ task, onAllTestsPassed, onFilesChange, 
           {dirtyPaths.size > 0 && <><span className="dw-ide__status-sep" /><span>{dirtyPaths.size} modified</span></>}
         </div>
       </div>
+
+      {reactPreviewEntry && (
+        <div className="dw-project__preview">
+          <div className="dw-project__preview-head">Live preview</div>
+          <ReactPreviewPane files={currentFiles} entryPath={reactPreviewEntry} />
+        </div>
+      )}
 
       {domTarget && (
         <div className="dw-project__preview">
