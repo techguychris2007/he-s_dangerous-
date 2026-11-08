@@ -19,6 +19,28 @@ const R = {
   bicep: { title: 'Microsoft Learn — What is Bicep?', url: 'https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/overview' },
   opentofu: { title: 'OpenTofu documentation', url: 'https://opentofu.org/docs/' },
   upAndRunning: { title: 'Yevgeniy Brikman — Terraform: Up & Running (book site)', url: 'https://www.terraformupandrunning.com/' },
+  ghaDocs: { title: 'GitHub Docs — Understanding GitHub Actions', url: 'https://docs.github.com/en/actions/about-github-actions/understanding-github-actions' },
+  ghaDotnet: { title: 'GitHub Docs — Building and testing .NET', url: 'https://docs.github.com/en/actions/use-cases-and-examples/building-and-testing/building-and-testing-net' },
+  ghaHardening: { title: 'GitHub Docs — Security hardening for GitHub Actions', url: 'https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions' },
+  ghaTokenPermissions: { title: 'GitHub Docs — Controlling permissions for GITHUB_TOKEN', url: 'https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/controlling-permissions-for-github_token' },
+  ghaOidcAzure: { title: 'GitHub Docs — Configuring OpenID Connect in Azure', url: 'https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/configuring-openid-connect-in-azure' },
+  ghaEnvironments: { title: 'GitHub Docs — Managing environments for deployment', url: 'https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-deployments/managing-environments-for-deployment' },
+  ghaConcurrency: { title: 'GitHub Docs — Control the concurrency of workflows and jobs', url: 'https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/control-the-concurrency-of-workflows-and-jobs' },
+  azureLoginOidc: { title: 'Microsoft Learn — Use GitHub Actions to connect to Azure (OIDC)', url: 'https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure-openid-connect' },
+  dora: { title: 'DORA — Software delivery performance metrics', url: 'https://dora.dev/guides/dora-metrics-four-keys/' },
+  cdBook: { title: 'Martin Fowler — Continuous Delivery', url: 'https://martinfowler.com/bliki/ContinuousDelivery.html' },
+  otelDotnet: { title: 'OpenTelemetry — .NET getting started', url: 'https://opentelemetry.io/docs/languages/dotnet/getting-started/' },
+  dotnetObservability: { title: 'Microsoft Learn — .NET observability with OpenTelemetry', url: 'https://learn.microsoft.com/en-us/dotnet/core/diagnostics/observability-with-otel' },
+  dotnetLogging: { title: 'Microsoft Learn — Logging in .NET (message templates, high-performance logging)', url: 'https://learn.microsoft.com/en-us/dotnet/core/extensions/logging' },
+  dotnetDistributedTracing: { title: 'Microsoft Learn — Distributed tracing in .NET (Activity, ActivitySource)', url: 'https://learn.microsoft.com/en-us/dotnet/core/diagnostics/distributed-tracing' },
+  dotnetMetrics: { title: 'Microsoft Learn — Creating metrics in .NET (Meter, counters, histograms)', url: 'https://learn.microsoft.com/en-us/dotnet/core/diagnostics/metrics-instrumentation' },
+  azureMonitorOtel: { title: 'Microsoft Learn — Enable Azure Monitor OpenTelemetry for .NET', url: 'https://learn.microsoft.com/en-us/azure/azure-monitor/app/opentelemetry-enable?tabs=aspnetcore' },
+  otelCollector: { title: 'OpenTelemetry — Collector configuration', url: 'https://opentelemetry.io/docs/collector/configuration/' },
+  aspire: { title: 'Aspire documentation (formerly .NET Aspire)', url: 'https://learn.microsoft.com/en-us/dotnet/aspire/' },
+  aspireDashboard: { title: 'Aspire — Dashboard overview', url: 'https://learn.microsoft.com/en-us/dotnet/aspire/fundamentals/dashboard/overview' },
+  sreSlo: { title: 'Google SRE book — Service Level Objectives', url: 'https://sre.google/sre-book/service-level-objectives/' },
+  sreAlerting: { title: 'Google SRE workbook — Alerting on SLOs', url: 'https://sre.google/workbook/alerting-on-slos/' },
+  w3cTrace: { title: 'W3C — Trace Context', url: 'https://www.w3.org/TR/trace-context/' },
 } as const;
 
 /** Month 5, weeks 19–20: infrastructure as code with Terraform (assignment: Rebuild the Cloud), then
@@ -317,6 +339,315 @@ moved {
       { question: 'Where should provider blocks live?', options: ['In every module', 'In root modules only', 'In the backend', 'In outputs'], answer: 1, explanation: 'Modules only declare required providers.' },
       { question: 'How should dev and prod differ in a module-based layout?', options: ['Separate copies of all code', 'Thin roots passing different inputs, with separate state', 'One state file with two workspaces of the same credentials', 'Different providers'], answer: 1, explanation: 'Differences are visible and intentional.' },
       { question: 'What does writing a secret to an RBAC Key Vault with Terraform require?', options: ['Nothing — the creator has full access', 'A data-plane role such as Key Vault Secrets Officer for the deploying identity', 'An access key', 'Contributor on the subscription'], answer: 1, explanation: 'Control-plane rights do not include writing secrets.' },
+    ],
+  },
+  {
+    id: 'dn5-7',
+    slug: 'ci-cd-github-actions',
+    title: 'CI/CD with GitHub Actions: From Commit to Production Without Hands',
+    summary: 'Build the pipeline that replaces every manual step: a fast, trustworthy CI workflow as the required check on pull requests; a hardened workflow with least-privilege tokens and pinned actions; OpenID Connect sign-in to Azure with no stored secrets; build once, promote the same image through environments with approvals; and the DORA metrics that tell you whether it works.',
+    minutes: 60,
+    prerequisite: 'Lessons dn5-1 to dn5-6. A GitHub account; the graded tasks run in your browser.',
+    outcomes: [
+      'Explain continuous integration, continuous delivery and continuous deployment, and what each demands of a team.',
+      'Write a GitHub Actions CI workflow for .NET that restores, checks formatting, builds, tests and keeps results, fast enough to run on every push.',
+      'Harden workflows: least-privilege GITHUB_TOKEN permissions, pinned actions, safe triggers, timeouts and concurrency.',
+      'Sign in to Azure from a workflow with OpenID Connect and a federated credential instead of a stored secret.',
+      'Design a deployment that builds one artifact, promotes it through environments behind approvals, verifies it and can be rolled back.',
+    ],
+    introduction:
+      'Every week of this month has ended with "now run it yourself": build the image, apply the Terraform, run the deploy script. That is exactly the work a pipeline should do. When a merge to main produces a tested, deployed, verified release with no human typing commands, releasing stops being an event and becomes routine — and routine releases are small, frequent and easy to undo. This lesson builds that pipeline with GitHub Actions, with the security care a system that holds the keys to production deserves.',
+    keyTerms: [
+      { term: 'Continuous integration (CI)', meaning: 'Merging small changes to the main branch often, each verified automatically by a build and tests.' },
+      { term: 'Continuous delivery', meaning: 'Keeping main always releasable, with deployment a push-button (or approval) away.' },
+      { term: 'Continuous deployment', meaning: 'Every change that passes the pipeline goes to production automatically.' },
+      { term: 'Workflow', meaning: 'A YAML file in .github/workflows describing jobs that run on events such as push and pull_request.' },
+      { term: 'Environment', meaning: 'A named deployment target in GitHub with its own protection rules (required reviewers) and secrets.' },
+      { term: 'OIDC federation', meaning: 'Azure trusting short-lived tokens that GitHub issues for a specific repository and environment, instead of a stored secret.' },
+      { term: 'Build once, deploy many', meaning: 'Producing one immutable artifact and promoting that same artifact through every environment.' },
+    ],
+    sections: [
+      {
+        title: 'CI, CD and why small changes win',
+        paragraphs: [
+          'Continuous integration means everyone merges small changes into main frequently — at least daily — and every change is verified automatically. The point is not the tool but the feedback loop: a broken build is found minutes after the change that broke it, by the person who made it, while the change is small enough to understand. Long-lived branches merged weekly produce the opposite: big, conflicting changes whose failures nobody can attribute.',
+          'Continuous delivery extends that guarantee to release: main is always in a deployable state, and deploying is a routine, automated act — gated, perhaps, by an approval. Continuous deployment removes the gate. Research from DORA (DevOps Research and Assessment) has shown for years that teams that deploy small changes frequently have both higher throughput and fewer, faster-recovered failures; speed and stability are not a trade-off. Their four keys — deployment frequency, lead time for changes, change failure rate and time to restore service — are the measures to watch.',
+        ],
+      },
+      {
+        title: 'A CI workflow for .NET',
+        paragraphs: [
+          'A workflow is a YAML file under .github/workflows. on: lists the events that start it, jobs: lists jobs that run on fresh virtual machines (runners), and each job\'s steps either run shell commands (run:) or use reusable actions (uses:). For a pull request check, run on pull_request and on push to main; feature-branch pushes are already covered by their pull requests.',
+          'Restore once, then build and test with --no-restore and --no-build so no step repeats work, and use Release so you test what you ship. dotnet format --verify-no-changes makes formatting a check rather than a code-review argument. Write test results to a folder and upload them with actions/upload-artifact under if: always(), so a failing run still leaves its evidence. Then make the workflow a required status check in the branch protection rules for main: no merge without green CI. Keep it fast — under ten minutes — or people stop waiting for it.',
+        ],
+        code: `on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: \${{ github.workflow }}-\${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: 10.0.x }
+      - run: dotnet restore
+      - run: dotnet format --verify-no-changes --no-restore
+      - run: dotnet build --no-restore -c Release
+      - run: dotnet test --no-build -c Release --logger trx --results-directory TestResults
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: test-results, path: TestResults }`,
+        label: 'The required check',
+      },
+      {
+        title: 'Hardening: a pipeline is production infrastructure',
+        paragraphs: [
+          'A deploy workflow can change production, so an attacker who controls it controls production. Start with the token: every run gets a GITHUB_TOKEN, and the permissions: block decides what it may do. Set it at the top of every workflow to the minimum — contents: read for CI — and grant more per job only where needed. Pin actions to a version tag or, for the strongest guarantee, a full commit SHA; uses: some/action@main runs whatever that repository\'s main branch contains today, including a compromise pushed five minutes ago.',
+          'Be careful with triggers. pull_request runs code from a contributor\'s branch with a read-only token and no secrets, which is safe. pull_request_target runs with the base repository\'s secrets and write token, so it must never check out and run code from the pull request. Never interpolate untrusted text such as a pull request title directly into a run: script (an injection risk); pass it through an environment variable instead. Add timeout-minutes to every job (the default is six hours) and concurrency groups so overlapping runs do not race.',
+        ],
+      },
+      {
+        title: 'Signing in to Azure without a secret',
+        paragraphs: [
+          'The classic way to let a workflow reach Azure is a service principal with a client secret stored in GitHub — a long-lived credential that works from anywhere, must be rotated, and leaks if a workflow prints it. OpenID Connect removes it. You add a federated credential to the deployment identity (an app registration or a user-assigned managed identity) that says: trust tokens issued by GitHub for repository acme/bookings, environment production. At run time the workflow asks GitHub for a short-lived token (which needs permissions: id-token: write), and azure/login exchanges it for an Azure access token. Nothing secret is stored anywhere; the client, tenant and subscription ids are identifiers, conventionally kept in repository variables.',
+          'Scope the trust tightly. A federated credential for environment:production only works for jobs that run in that GitHub environment, so the production identity cannot be used from a feature branch or a pull request. Give that identity only the roles it needs on the production resource group — this is the "only the pipeline can change production" rule from Week 19, enforced.',
+        ],
+        code: `permissions:
+  id-token: write      # allow requesting an OIDC token
+  contents: read
+
+jobs:
+  deploy:
+    environment: production          # federated credential subject: environment:production
+    steps:
+      - uses: azure/login@v2
+        with:
+          client-id: \${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: \${{ vars.AZURE_TENANT_ID }}
+          subscription-id: \${{ vars.AZURE_SUBSCRIPTION_ID }}
+      # Terraform reads the same login: ARM_USE_OIDC=true plus ARM_CLIENT_ID / ARM_TENANT_ID / ARM_SUBSCRIPTION_ID`,
+        label: 'OIDC: no secret to steal',
+      },
+      {
+        title: 'Build once, promote, verify, roll back',
+        paragraphs: [
+          'Build the image exactly once, tag it with the commit SHA, and deploy that same image to every environment. Rebuilding per environment means production runs something that was never tested in staging. A typical deployment workflow has a build job, a deploy-to-dev job that needs it and runs automatically, and a deploy-to-production job that needs dev and runs in the production environment, whose protection rules require a reviewer\'s approval (and can restrict it to the main branch). Each deploy job applies the environment\'s Terraform root with -var image_tag=<sha>, so infrastructure and application change through one reviewed path.',
+          'A deployment is not finished when the command returns; it is finished when the new version is proven healthy. End every deploy job with a smoke test — curl --fail with retries against /health/ready, and ideally one or two real read requests — so a bad release fails the pipeline loudly. Use a concurrency group with cancel-in-progress: false for deployments: queue them, never kill one halfway. Rolling back means redeploying the previous SHA (the image still exists) or, with Container Apps revisions, moving traffic back. Practise it before you need it.',
+        ],
+        code: `jobs:
+  build:        # az acr build … --image bookings-api:\${{ github.sha }}
+  deploy-dev:
+    needs: build
+    environment: dev
+    # terraform -chdir=envs/dev apply -auto-approve -var "image_tag=\${{ github.sha }}"; smoke test
+  deploy-prod:
+    needs: deploy-dev
+    environment: production      # waits for a required reviewer
+    # the same commands against envs/prod, the same image`,
+        label: 'One artifact, two environments, one gate',
+      },
+    ],
+    table: {
+      headers: ['Risk', 'Control', 'Where'],
+      rows: [
+        ['Token can do too much', 'permissions: least privilege', 'Top of every workflow'],
+        ['Third-party action changes under you', 'Pin to a version or commit SHA', 'Every uses:'],
+        ['Stored cloud secret leaks', 'OIDC federated credential', 'azure/login with id-token: write'],
+        ['Unreviewed production change', 'Environment with required reviewers', 'environment: production'],
+        ['Untested artifact in production', 'Build once, promote by SHA', 'Deploy jobs reuse the image'],
+        ['Broken release goes unnoticed', 'Smoke test that fails the job', 'Last step of each deploy'],
+      ],
+    },
+    exercise: {
+      scenario: 'A team\'s deploy workflow runs on every push to any branch, signs in with AZURE_CREDENTIALS (a client secret created two years ago), uses some-org/deploy-action@main, builds a new image in each environment\'s job, and reports success as soon as az containerapp update returns.',
+      task: 'List the risks and the changes that fix each.',
+      answer: 'Any branch can deploy to production: trigger on push to main only and put the production job in a protected environment with required reviewers. The client secret is long-lived and stealable: replace it with OIDC (a federated credential scoped to environment:production, permissions: id-token: write, azure/login with client, tenant and subscription ids) and delete the secret. @main runs whatever that repository contains now: pin it to a release tag or commit SHA, and review it. Rebuilding per environment means production runs an untested artifact: build once, tag with github.sha, promote the same image. Success on command return hides bad releases: add a smoke test with curl --fail and retries against /health/ready. Also add least-privilege permissions, timeouts and a non-cancelling concurrency group.',
+      evidence: 'Main-only trigger, environment approval, OIDC, pinned actions, one artifact, smoke test.',
+    },
+    misconceptions: [
+      'CI means having a build server. It means integrating small changes into main often, with automated verification.',
+      'Deploying frequently makes production less stable. DORA research finds frequent small deployments go with lower failure rates and faster recovery.',
+      'A secret stored in GitHub is safe because it is masked in logs. It is still a long-lived credential that a malicious step can exfiltrate; OIDC avoids storing one.',
+      'Pinning actions to @main keeps you up to date safely. It runs unreviewed code; pin versions or SHAs and update deliberately.',
+      'A deploy step that exits 0 means the release works. Only a health or smoke check proves it.',
+    ],
+    sources: [R.ghaDocs, R.ghaDotnet, R.ghaHardening, R.ghaTokenPermissions, R.ghaOidcAzure, R.azureLoginOidc, R.ghaEnvironments, R.ghaConcurrency, R.dora, R.cdBook],
+    labs: [],
+    questions: [
+      { prompt: 'Which permission must a workflow have to request an OIDC token from GitHub? (hyphenated, as written in YAML)', answer: 'id-token: write', accept: ['id-token write', 'id-token', 'id token write'] },
+      { prompt: 'Which GitHub feature holds required reviewers that must approve a production deployment? (one word)', answer: 'environment', accept: ['environments'] },
+    ],
+    quiz: [
+      { question: 'Why pin actions to a version or SHA?', options: ['It is faster', 'A branch reference runs whatever that repository contains at the time, including compromises', 'GitHub requires it', 'It enables caching'], answer: 1, explanation: 'Pinned code is reviewed code.' },
+      { question: 'What does OIDC federation replace?', options: ['The runner', 'A long-lived client secret stored in GitHub', 'The container registry', 'Branch protection'], answer: 1, explanation: 'Azure trusts short-lived GitHub-issued tokens instead.' },
+      { question: 'Why build the image once and promote it?', options: ['To save registry space only', 'So production runs the exact artifact that was tested in earlier environments', 'Images cannot be rebuilt', 'It is required by Container Apps'], answer: 1, explanation: 'Rebuilding can produce a different artifact.' },
+      { question: 'Which concurrency setting suits a production deployment workflow?', options: ['cancel-in-progress: true', 'cancel-in-progress: false', 'No concurrency at all', 'A random group name'], answer: 1, explanation: 'Queue deployments; never kill one halfway.' },
+      { question: 'Which is one of DORA\'s four key metrics?', options: ['Lines of code per day', 'Change failure rate', 'Number of microservices', 'Test coverage'], answer: 1, explanation: 'Also deployment frequency, lead time and time to restore.' },
+    ],
+  },
+  {
+    id: 'dn5-8',
+    slug: 'observability-dotnet-opentelemetry',
+    title: 'Observability for .NET: Logs, Metrics, Traces and Alerts That Matter',
+    summary: 'Make a running system explain itself: structured logging with message templates, OpenTelemetry traces and metrics in ASP.NET Core, context propagation across services, the Collector, the Aspire dashboard for local development, and SLO-based burn-rate alerts that page for what users feel.',
+    minutes: 60,
+    prerequisite: 'Lesson dn5-7, and the reliability ideas from Month 3 (SLOs and error budgets).',
+    outcomes: [
+      'Distinguish logs, metrics and traces, and choose the right signal for a question.',
+      'Write structured logs with message templates, scopes and appropriate levels, keeping secrets and personal data out.',
+      'Instrument an ASP.NET Core API with OpenTelemetry — automatic and custom spans and metrics — and export through OTLP or Azure Monitor.',
+      'Explain trace context propagation and use the Aspire dashboard to follow a request across services locally.',
+      'Define SLIs and SLOs and alert on error-budget burn with multiple windows instead of on causes.',
+    ],
+    introduction:
+      'The system now deploys itself. When it misbehaves at 3 a.m., the only things you will have are what it recorded about itself. Observability is the ability to answer new questions about a running system from the outside — "why is booking creation slow for this one tenant since the last deploy?" — without shipping new code to find out. This lesson instruments the Bookings API with the three signals, routes them through OpenTelemetry, and finishes with the part most teams get wrong: alerts that wake people only when users are actually hurting.',
+    keyTerms: [
+      { term: 'Structured log', meaning: 'A log event with named, typed fields (OrderId=42) rather than only a formatted sentence.' },
+      { term: 'Metric', meaning: 'A numeric measurement aggregated over time — counts, rates, histograms — cheap to keep and to alert on.' },
+      { term: 'Trace and span', meaning: 'A trace is one request\'s journey; spans are its timed steps (an HTTP call, a database query), linked parent to child.' },
+      { term: 'OpenTelemetry (OTel)', meaning: 'The vendor-neutral standard and SDKs for producing and exporting traces, metrics and logs.' },
+      { term: 'OTLP', meaning: 'The OpenTelemetry protocol for sending telemetry to a collector or backend.' },
+      { term: 'SLI / SLO', meaning: 'A service level indicator measures user experience (success ratio); an objective sets its target (99.9% over 30 days).' },
+      { term: 'Burn rate', meaning: 'How fast the error budget is being spent, relative to spending exactly all of it over the SLO window.' },
+    ],
+    sections: [
+      {
+        title: 'Three signals, three kinds of question',
+        paragraphs: [
+          'Metrics answer "how much, how often, how fast?" across all requests: request rate, error ratio, latency percentiles, queue depth. They are cheap to store, so you keep them for months and alert on them. Traces answer "where did the time go in this request?": a tree of spans from the edge through your API, the database and downstream services. Logs answer "what exactly happened here?": discrete events with context — a validation failure, a retry, a payment provider\'s error message.',
+          'The signals are most powerful connected. A latency alert (metric) leads to slow traces from that period (trace), whose spans carry the trace id that finds the exact log lines for that request (log). OpenTelemetry provides that connection: every log written inside a traced request carries its trace and span ids automatically.',
+        ],
+      },
+      {
+        title: 'Structured logging done properly',
+        paragraphs: [
+          'ILogger supports message templates: logger.LogInformation("Booking {BookingId} cancelled by {UserId}", bookingId, userId). The template stays constant and the values become named properties you can filter and aggregate on (all events for BookingId 42). String interpolation — $"Booking {bookingId} cancelled" — produces a different message for every call and throws the structure away, so avoid it in log calls. For hot paths, the [LoggerMessage] source generator produces allocation-free logging methods.',
+          'Choose levels deliberately: Information for significant business events, Warning for something unexpected that the system handled, Error for a failed operation someone may need to act on, Debug for detail you switch on when investigating. Use scopes (logger.BeginScope) to attach context such as a tenant id to every event in a unit of work. Never log secrets, tokens, passwords or full personal data; log identifiers instead, and treat the log store as sensitive anyway.',
+        ],
+        code: `public sealed partial class BookingService(ILogger<BookingService> logger)
+{
+    public void Cancel(Booking booking, string reason)
+    {
+        // ... cancel ...
+        LogCancelled(logger, booking.Id, reason);   // structured: BookingId, Reason
+    }
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Booking {BookingId} cancelled: {Reason}")]
+    private static partial void LogCancelled(ILogger logger, Guid bookingId, string reason);
+}
+
+// Not this: one unique string per call, nothing to filter on
+logger.LogInformation($"Booking {booking.Id} cancelled: {reason}");`,
+        label: 'Templates, not interpolation',
+      },
+      {
+        title: 'OpenTelemetry in ASP.NET Core',
+        paragraphs: [
+          '.NET has the building blocks built in: System.Diagnostics.Activity is a span, ActivitySource creates them, and System.Diagnostics.Metrics.Meter creates counters and histograms. ASP.NET Core and HttpClient already emit spans and the standard http.server.request.duration metric. The OpenTelemetry SDK collects all of it and exports it: add the service name as a resource, enable the ASP.NET Core, HttpClient and runtime instrumentation, register your own ActivitySource and Meter names, and choose an exporter — OTLP to a collector or the Aspire dashboard, or the Azure Monitor distro (UseAzureMonitor) straight to Application Insights.',
+          'Add custom spans around meaningful work (charging a card, applying a migration) and custom metrics for business signals (bookings created, payments declined). Keep metric attribute values to a small, bounded set: an attribute per user id or per URL with ids in it creates a separate time series for every value and can overwhelm a metrics backend.',
+        ],
+        code: `builder.Services.AddOpenTelemetry()
+    .ConfigureResource(r => r.AddService("bookings-api"))
+    .WithTracing(t => t
+        .AddAspNetCoreInstrumentation()
+        .AddHttpClientInstrumentation()
+        .AddSource("Bookings"))
+    .WithMetrics(m => m
+        .AddAspNetCoreInstrumentation()
+        .AddHttpClientInstrumentation()
+        .AddRuntimeInstrumentation()
+        .AddMeter("Bookings"))
+    .UseOtlpExporter();                    // endpoint from OTEL_EXPORTER_OTLP_ENDPOINT
+builder.Logging.AddOpenTelemetry(o => { o.IncludeScopes = true; o.IncludeFormattedMessage = true; });
+
+// Custom telemetry
+static readonly ActivitySource Source = new("Bookings");
+static readonly Meter Meter = new("Bookings");
+static readonly Counter<long> Created = Meter.CreateCounter<long>("bookings.created");
+
+using var activity = Source.StartActivity("ChargeDeposit");
+activity?.SetTag("booking.id", booking.Id);
+Created.Add(1, new KeyValuePair<string, object?>("channel", "web"));   // bounded values only`,
+        label: 'Traces, metrics and logs from one setup',
+      },
+      {
+        title: 'Propagation, the Collector and the Aspire dashboard',
+        paragraphs: [
+          'When the API calls another service, HttpClient instrumentation adds a W3C traceparent header carrying the trace id and the current span id; the receiving service continues the same trace. Messages need the same treatment: put the trace context into the message headers when publishing (the Week 11 outbox) and restore it when consuming, so one trace spans the request, the event and the worker that handled it.',
+          'In production, apps usually send OTLP to an OpenTelemetry Collector rather than straight to a vendor. The Collector receives, processes and exports: it limits its own memory, batches, removes sensitive attributes such as Authorization headers, samples, and fans out to one or more backends — so changing backend is configuration, not a redeploy. Order matters in its pipelines: memory_limiter first, batch last. Locally, the Aspire dashboard (part of Aspire, formerly .NET Aspire, and also runnable as a single container) receives OTLP and shows logs, traces and metrics together; Aspire\'s ServiceDefaults project wires up OpenTelemetry, health checks and resilience for every service in a solution in one call.',
+        ],
+        code: `# Run the Aspire dashboard locally as an OTLP endpoint for any app
+docker run --rm -p 18888:18888 -p 4317:18889 mcr.microsoft.com/dotnet/aspire-dashboard:9.0
+# then: OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317 dotnet run`,
+        label: 'See every signal on your machine',
+      },
+      {
+        title: 'SLOs and alerts that respect people\'s sleep',
+        paragraphs: [
+          'Alert on symptoms users feel, not on causes. A CPU at 85% may be perfectly healthy; a single 5xx is normal at scale; both pages train on-call engineers to ignore pages. Define service level indicators that reflect user experience — the proportion of requests that succeed, the proportion served under 500 ms — and objectives for them: 99.9% of requests succeed over 30 days. The remaining 0.1% is the error budget: the amount of failure you have agreed is acceptable, to spend on releases, experiments and bad luck.',
+          'Then alert on how fast the budget is burning. A burn rate of 1 spends exactly the whole budget in 30 days; 14.4 spends 2% of it in an hour. The Google SRE workbook\'s multi-window, multi-burn-rate pattern pages when the burn rate is above 14.4 over the last hour and still above it over the last five minutes (so the alert is significant and current, and clears quickly once fixed), and when it is above 6 over six hours and thirty minutes; slower burns become tickets for working hours. Each page links to a runbook. Few, meaningful pages — each of which needs a human now — are the goal.',
+        ],
+        code: `# Recording rule: 5xx ratio over one hour (repeat for 5m, 30m, 6h)
+- record: bookings:error_ratio:rate1h
+  expr: |
+    sum(rate(http_server_request_duration_seconds_count{job="bookings-api",http_response_status_code=~"5.."}[1h]))
+    / sum(rate(http_server_request_duration_seconds_count{job="bookings-api"}[1h]))
+
+# Page: 2% of the 30-day budget in an hour, and still happening
+- alert: BookingsErrorBudgetFastBurn
+  expr: bookings:error_ratio:rate1h > (14.4 * 0.001) and bookings:error_ratio:rate5m > (14.4 * 0.001)
+  for: 2m
+  labels: { severity: page }
+  annotations:
+    runbook_url: https://runbooks.example.com/bookings/error-budget`,
+        label: 'Multi-window burn-rate alerting',
+      },
+    ],
+    table: {
+      headers: ['Question', 'Signal', 'Example'],
+      rows: [
+        ['Is the service meeting its objective?', 'Metrics (SLI)', 'Ratio of non-5xx requests over 30 days'],
+        ['Where did this slow request spend its time?', 'Trace', 'API span → database span 1.8 s'],
+        ['What happened to booking 42?', 'Logs', 'Filter on BookingId = 42'],
+        ['Should someone be woken up?', 'Burn-rate alert', '14.4× over 1h and 5m'],
+        ['Is a dependency failing?', 'Metrics + traces', 'HttpClient error rate by host'],
+      ],
+    },
+    exercise: {
+      scenario: 'After an incident, the review finds: alerts fired constantly for CPU and single errors and were muted; logs contained lines like "Error processing booking" with no ids; and nobody could tell whether the slowness was in the API or the payment provider.',
+      task: 'Describe the observability changes that would have shortened the incident.',
+      answer: 'Replace cause-based and single-error pages with SLO burn-rate alerts: define a success-ratio SLI and a 99.9% objective, record the error ratio over 5m, 30m, 1h and 6h, and page only on 14.4× (1h and 5m) and 6× (6h and 30m) burns, each with a runbook. Use structured logging with message templates (Booking {BookingId} payment failed: {Reason}) and scopes so events can be filtered by id, with OpenTelemetry attaching trace ids to logs. Instrument with OpenTelemetry — ASP.NET Core and HttpClient spans plus a custom span around the payment call — so a trace shows directly whether time went to the API or the provider, and an HttpClient error-rate metric by host shows a failing dependency.',
+      evidence: 'Symptom-based burn-rate alerts; structured, trace-correlated logs; spans around dependencies.',
+    },
+    misconceptions: [
+      'More alerts mean safer systems. Noisy alerts get ignored; page only when users are hurting now.',
+      'String interpolation in log calls is equivalent to message templates. It discards the structured properties.',
+      'Observability means buying a monitoring product. It is instrumenting the code so the system can answer new questions; OpenTelemetry keeps the backend replaceable.',
+      'High-cardinality metric attributes are harmless. Each distinct value creates a time series; use bounded values and put ids in traces and logs.',
+      'An SLO of 100% is the right goal. It leaves no budget for change; users cannot tell 99.99% from 100%, but your release speed can.',
+    ],
+    sources: [R.otelDotnet, R.dotnetObservability, R.dotnetLogging, R.dotnetDistributedTracing, R.dotnetMetrics, R.azureMonitorOtel, R.otelCollector, R.aspire, R.aspireDashboard, R.w3cTrace, R.sreSlo, R.sreAlerting],
+    labs: [],
+    questions: [
+      { prompt: 'Which HTTP header carries W3C trace context between services? (one word)', answer: 'traceparent' },
+      { prompt: 'What is the error budget of a 99.9% SLO, as a percentage? (number with a decimal point, no % sign)', answer: '0.1', accept: ['0.1%', '.1'] },
+    ],
+    quiz: [
+      { question: 'Which call keeps structured properties in the log event?', options: ['LogInformation($"Booking {id} cancelled")', 'LogInformation("Booking {BookingId} cancelled", id)', 'Console.WriteLine(id)', 'LogInformation("Booking " + id)'], answer: 1, explanation: 'Message templates keep BookingId as a field.' },
+      { question: 'What does a burn rate of 14.4 sustained for one hour consume of a 30-day budget?', options: ['0.1%', '2%', '14.4%', '50%'], answer: 1, explanation: '14.4 × 1h / 720h = 0.02.' },
+      { question: 'Why use two windows (1h and 5m) in one alert?', options: ['To double the number of pages', 'The long window shows significance; the short one shows it is still happening and lets the alert clear quickly', 'Prometheus requires two', 'To measure latency'], answer: 1, explanation: 'Multi-window alerts are both precise and responsive.' },
+      { question: 'In a Collector pipeline, where do memory_limiter and batch go?', options: ['batch first, memory_limiter last', 'memory_limiter first, batch last', 'Either order', 'They cannot be combined'], answer: 1, explanation: 'Refuse data early; batch what is actually sent.' },
+      { question: 'Which should page the on-call engineer?', options: ['CPU above 80% for a minute', 'Any single 5xx', 'The error budget burning 14.4× over 1h and 5m', 'A deployment starting'], answer: 2, explanation: 'Page on user-facing symptoms that need action now.' },
     ],
   },
 ];

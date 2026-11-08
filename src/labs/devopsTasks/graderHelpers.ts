@@ -95,4 +95,22 @@ function azFlag(c: AzCall, ...names: string[]): string {
 }
 const strictShell = (path: string) => parseShell(read(path)).find((c) => c.argv[0] === 'set' && c.argv.join(' ').includes('-e') && c.argv.join(' ').includes('u') && c.argv.join(' ').includes('pipefail'));
 const varOf = (value: string): string => (value.startsWith('$') ? value.slice(1).split('{').join('').split('}').join('') : '');
+
+// ---- Terraform (HCL)
+const EMPTY_BODY: HclBody = { attributes: {}, blocks: [] };
+function hclFile(path: string): { error: string; body: HclBody } {
+  if (!fileExists(path)) return { error: path + ' is missing', body: EMPTY_BODY };
+  const r = parseHcl(read(path));
+  return r.ok ? { error: '', body: r.value } : { error: path + ': ' + r.error, body: EMPTY_BODY };
+}
+const tfText = (b: { attributes: Record<string, HclValue> }, attr: string): string => hclText(b.attributes[attr]);
+function tfValue(b: { attributes: Record<string, HclValue> }, attr: string): unknown {
+  const v = b.attributes[attr];
+  return v && (v.type === 'string' || v.type === 'number' || v.type === 'bool') ? v.value : undefined;
+}
+const tfBlock = (where: string, body: HclBody, type: string, ...labels: string[]): HclBlock =>
+  need(findBlocks(body, type, ...labels)[0], where + ': add ' + [type, ...labels.map((l) => '"' + l + '"')].join(' ') + ' { … }');
+const tfChild = (b: HclBlock, type: string): HclBlock =>
+  need(b.blocks.find((x) => x.type === type), 'Add ' + ('aeiou'.includes(type[0]) ? 'an ' : 'a ') + type + ' { … } block inside ' + [b.type, ...b.labels].join(' '));
+const tfEntry = (v: HclValue | undefined, key: string): HclValue | undefined => (v && v.type === 'object' ? v.entries[key] : undefined);
 `;

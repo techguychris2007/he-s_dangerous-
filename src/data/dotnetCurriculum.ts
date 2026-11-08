@@ -78,9 +78,9 @@ export const DN_MODULES: ModuleMeta[] = [
     id: 'dn-m5-cloud',
     slug: 'dn-month-5-cloud-devops',
     title: 'Month 5 · Cloud, DevOps & Delivery',
-    subtitle: 'Weeks 17–19: containers, Azure and Terraform',
-    description: 'Week 17 — containers for .NET: images and layers, multi-stage Dockerfiles, non-root images, secrets kept out of layers, graceful shutdown, and Docker Compose with health-gated start-up, migrations, segmented networks and secrets (assignment: Containerize Everything). Week 18 — Azure: resources and regions, choosing a compute platform, managed identities, least-privilege RBAC, Key Vault, re-runnable CLI scripts, and Azure Container Apps with Key Vault secrets, probes, scaling and canary releases across revisions (assignment: Cloud Deployment). Week 19 — Terraform providers, resources, plans, remote state, modules, environments and secret handling. Configuration exercises are parsed and checked in your browser; they do not provision real cloud resources.',
-    sourceBooks: ['Docker documentation', 'Microsoft Learn — .NET containers and Azure Container Apps', '.NET Microservices: Architecture for Containerized .NET Applications', 'Azure Well-Architected Framework'],
+    subtitle: 'Weeks 17–20: containers, Azure, infrastructure as code, CI/CD and observability',
+    description: 'Week 17 — containers for .NET: images and layers, multi-stage Dockerfiles, non-root images, secrets kept out of layers, graceful shutdown, and Docker Compose with health-gated start-up, migrations, segmented networks and secrets (assignment: Containerize Everything). Week 18 — Azure: resources and regions, choosing a compute platform, managed identities, least-privilege RBAC, Key Vault, re-runnable CLI scripts, and Azure Container Apps with Key Vault secrets, probes, scaling and canary releases across revisions (assignment: Cloud Deployment). Week 19 — infrastructure as code with Terraform: pinned providers, validated variables, references and the dependency graph, the plan as a review, remote state with locking, modules and per-environment roots, lifecycle protections and generated secrets (assignment: Rebuild the Cloud). Week 20 — CI/CD and observability: a hardened GitHub Actions CI workflow, OpenID Connect sign-in to Azure, build-once promotion through approved environments with smoke tests, structured logging, OpenTelemetry traces and metrics, the Collector and Aspire dashboard, and SLO burn-rate alerts (assignment: No Manual Deployment). Every Dockerfile, compose.yaml, script, manifest, Terraform file and workflow you write is parsed and checked in your browser; these exercises do not provision real cloud resources.',
+    sourceBooks: ['Docker documentation', 'Microsoft Learn — .NET containers and Azure Container Apps', 'Terraform documentation', 'GitHub Actions documentation', 'OpenTelemetry documentation', 'Google SRE workbook'],
     icon: 'layers',
   }, [...DN_MONTH5_A, ...DN_MONTH5_B]),
 ];
@@ -106,5 +106,5 @@ export const DN_LESSON_TASKS: Record<string, string[]> = Object.fromEntries([
   ...pairTasks('dn2', 'cs-2', 8),
   ...pairTasks('dn3', 'cs-3', 8),
   ...pairTasks('dn4', 'ts-4', 8),
-  ...pairTasks('dn5', 'ops-5', 6),
+  ...pairTasks('dn5', 'ops-5', 8),
 ].map(([lesson, tasks]) => [lesson, [...tasks]]));
