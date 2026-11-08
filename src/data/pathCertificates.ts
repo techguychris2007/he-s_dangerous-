@@ -60,6 +60,14 @@ export const CERTIFICATE_PATHS: CertificatePath[] = [
     skills: ['Python & OOP', 'Testing', 'Design & APIs', 'Data & concurrency'],
     accent: 'analysis',
   },
+  {
+    track: 'dotnet',
+    name: 'C# & .NET Engineering',
+    credential: 'C# & .NET Software Engineering',
+    summary: 'Six months from C# foundations to production: ASP.NET Core APIs and databases, architecture, TypeScript and React, Azure DevOps, system design and a capstone.',
+    skills: ['C# & ASP.NET Core', 'Architecture & DDD', 'TypeScript & React', 'Azure, DevOps & system design'],
+    accent: 'foundation',
+  },
 ];
 
 export function certificatePath(track: string): CertificatePath | undefined {

@@ -12,6 +12,8 @@ import { DN_MONTH4_A } from '../content/dotnet/m4-weeks-13-14';
 import { DN_MONTH4_B } from '../content/dotnet/m4-weeks-15-16';
 import { DN_MONTH5_A } from '../content/dotnet/m5-weeks-17-18';
 import { DN_MONTH5_B } from '../content/dotnet/m5-weeks-19-20';
+import { DN_MONTH6_A } from '../content/dotnet/m6-weeks-21-22';
+import { DN_MONTH6_B } from '../content/dotnet/m6-weeks-23-24';
 
 /** C# & .NET Software Engineering: a separate course structured as a six-month, 24-week
  *  engineering programme (C# foundations → ASP.NET Core and databases → architecture → TypeScript and
@@ -83,6 +85,15 @@ export const DN_MODULES: ModuleMeta[] = [
     sourceBooks: ['Docker documentation', 'Microsoft Learn — .NET containers and Azure Container Apps', 'Terraform documentation', 'GitHub Actions documentation', 'OpenTelemetry documentation', 'Google SRE workbook'],
     icon: 'layers',
   }, [...DN_MONTH5_A, ...DN_MONTH5_B]),
+  curriculumModule({
+    id: 'dn-m6-design',
+    slug: 'dn-month-6-system-design-capstone',
+    title: 'Month 6 · System Design, Production Engineering & Capstone',
+    subtitle: 'Weeks 21–24: scalability fundamentals, distributed and real-time systems, advanced system design, capstone',
+    description: 'Week 21 — scalability fundamentals: requirements and estimates, stateless scaling, caching with stampede protection, availability arithmetic, coordination-free ids, partitioning, consistent hashing, replication and consistency (assignment: Design a URL Shortener). Week 22 — distributed and real-time systems: WebSockets and SignalR scale-out, fan-out, presence, backpressure, per-conversation ordering, at-least-once delivery made effectively-once, cursors and multi-device sync (assignment: Design a Messaging Platform). Week 23 — advanced system design for Africa: expiring holds and optimistic concurrency, asynchronous mobile-money payments, booking sagas and reconciliation, low-bandwidth and offline-first clients, USSD and SMS channels, data-protection law and geo search (assignment: Design an African Booking Platform). Week 24 — the capstone: scoping and walking skeletons, ADRs, STRIDE threat models, production readiness and runbooks, feature flags, readiness checks, error-budget policies and load-test evidence, then presenting and defending the work, documentation and blameless postmortems (assignment: Capstone). Design ideas are built as small, exactly tested C# simulations and written up as design documents.',
+    sourceBooks: ['The System Design Primer', 'Designing Data-Intensive Applications (Kleppmann)', 'Azure Architecture Center', 'Google SRE book'],
+    icon: 'layers',
+  }, [...DN_MONTH6_A, ...DN_MONTH6_B]),
 ];
 
 export const DN_ROADMAP: RoadmapStage[] = DN_MODULES.map((module) => ({
@@ -107,4 +118,5 @@ export const DN_LESSON_TASKS: Record<string, string[]> = Object.fromEntries([
   ...pairTasks('dn3', 'cs-3', 8),
   ...pairTasks('dn4', 'ts-4', 8),
   ...pairTasks('dn5', 'ops-5', 8),
+  ...pairTasks('dn6', 'cs-6', 8),
 ].map(([lesson, tasks]) => [lesson, [...tasks]]));

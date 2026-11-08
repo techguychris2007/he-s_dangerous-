@@ -7,9 +7,13 @@ import { CSHARP_MONTH2_A_TASKS } from './m2a';
 import { CSHARP_MONTH2_B_TASKS } from './m2b';
 import { CSHARP_MONTH3_A_TASKS } from './m3a';
 import { CSHARP_MONTH3_B_TASKS } from './m3b';
+import { CSHARP_MONTH6_A_TASKS } from './m6a';
+import { CSHARP_MONTH6_B_TASKS } from './m6b';
+import { CSHARP_MONTH6_C_TASKS } from './m6c';
+import { CSHARP_MONTH6_D_TASKS } from './m6d';
 
-const RAW_CSHARP_TASKS: CodeTask[] = [...CSHARP_FOUNDATION_TASKS, ...CSHARP_MONTH1_A_TASKS, ...CSHARP_MONTH1_B_TASKS, ...CSHARP_MONTH2_A_TASKS, ...CSHARP_MONTH2_B_TASKS, ...CSHARP_MONTH3_A_TASKS, ...CSHARP_MONTH3_B_TASKS];
+const RAW_CSHARP_TASKS: CodeTask[] = [...CSHARP_FOUNDATION_TASKS, ...CSHARP_MONTH1_A_TASKS, ...CSHARP_MONTH1_B_TASKS, ...CSHARP_MONTH2_A_TASKS, ...CSHARP_MONTH2_B_TASKS, ...CSHARP_MONTH3_A_TASKS, ...CSHARP_MONTH3_B_TASKS, ...CSHARP_MONTH6_A_TASKS, ...CSHARP_MONTH6_B_TASKS, ...CSHARP_MONTH6_C_TASKS, ...CSHARP_MONTH6_D_TASKS];
 
 export const CSHARP_TASKS: CodeTask[] = enrichCodeTasks(RAW_CSHARP_TASKS);
 
-export const CSHARP_TASK_CATEGORIES = ['C# Foundations', 'Month 1 · C# Engineering', 'Month 2 · APIs & Data', 'Month 3 · Architecture'] as const;
+export const CSHARP_TASK_CATEGORIES = ['C# Foundations', 'Month 1 · C# Engineering', 'Month 2 · APIs & Data', 'Month 3 · Architecture', 'Month 6 · System Design'] as const;

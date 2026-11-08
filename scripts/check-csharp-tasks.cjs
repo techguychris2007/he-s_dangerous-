@@ -9,6 +9,8 @@ const { pathToFileURL } = require('node:url');
 const { CSHARP_TASKS } = require('../src/labs/csharpTasks/index.ts');
 
 const RESULT_RE = /^__RESULT__ (\d+)\/(\d+)$/;
+// Usage: node scripts/check-csharp-tasks.cjs [taskOrProjectId ...]   (no ids = everything)
+const only = new Set(process.argv.slice(2));
 const TEST_MAIN = 'TestRunner';
 
 function lastLine(text) {
@@ -33,8 +35,10 @@ async function main() {
   const SQL = await require('sql.js')();
   const { runSqlTarget } = require('../src/lib/sqlHarness.ts');
   let checks = 0;
+  let tasks = 0;
   const failures = [];
   for (const task of CSHARP_TASKS) {
+    if (only.size && !only.has(task.id)) continue;
     const files = (code) => [{ path: 'Solution.cs', content: `${code}\n\n${task.testCode}` }];
 
     const solved = await run(files(task.solution), TEST_MAIN);
@@ -50,6 +54,7 @@ async function main() {
     assert.ok(starterMatch, `${task.id}: starter run did not report a result\n${describe(starter)}`);
     assert.ok(Number(starterMatch[1]) < Number(starterMatch[2]), `${task.id}: starter code already passes every check`);
     checks += Number(solvedMatch[2]);
+    tasks++;
   }
   // Build Portal projects: "Run tests" compiles every .cs file except the entry plus the hidden
   // Tests.cs (the same rule as runCSharpProject); "Run" must also build and run the demo program.
@@ -59,6 +64,7 @@ async function main() {
   for (const file of projectFiles) {
     const project = require(path.join(projectDir, file)).default;
     assert.equal(project.id, path.basename(file, '.ts'), `${file}: id must match file name (the lazy loader relies on it)`);
+    if (only.size && !only.has(project.id)) continue;
     for (const target of project.targets) {
       // Config graders (Month 5) are TypeScript targets — scripts/check-ts-tasks.cjs runs them.
       if (target.kind === 'typescript' || target.kind === 'react') continue;
@@ -80,6 +86,24 @@ ${demoSql.stderr}`);
         continue;
       }
       const sources = (files) => files.filter(f => f.path.endsWith('.cs') && f.path !== target.entry).map(({ path: p, content }) => ({ path: p, content }));
+      if (process.env.MUTATE) {
+        // Mutation run: MUTATE='File.cs|||old|||new;;;…' edits the reference files; the mutant SHOULD fail.
+        const edits = process.env.MUTATE.split(';;;').filter(Boolean).map(e => e.split('|||'));
+        const mutated = sources(project.solutionFiles).map(f => {
+          let content = f.content;
+          for (const [p, from, to] of edits) {
+            if (p !== f.path) continue;
+            if (!content.includes(from)) throw new Error(`MUTATE: "${from}" not found in ${p}`);
+            content = content.replace(from, to);
+          }
+          return { ...f, content };
+        });
+        const res = await run([...mutated, { path: 'Tests.cs', content: target.testCode }], TEST_MAIN);
+        const m = res.compiled && lastLine(res.stdout).match(RESULT_RE);
+        const caught = (res.stdout || '').split('\n').filter(l => l.startsWith('[FAIL]'));
+        console.log(`${project.id} [${target.id}]: mutant ${m && m[1] === m[2] ? 'SURVIVED' : 'caught'} (${m ? `${m[1]}/${m[2]}` : 'did not compile'})${caught.length ? `\n  ${caught.join('\n  ')}` : ''}`);
+        continue;
+      }
       const solved = await run([...sources(project.solutionFiles), { path: 'Tests.cs', content: target.testCode }], TEST_MAIN);
       const solvedMatch = solved.compiled && lastLine(solved.stdout).match(RESULT_RE);
       if (!solvedMatch || solvedMatch[1] !== solvedMatch[2]) { failures.push(`${project.id}: reference files do not pass all checks
@@ -102,7 +126,7 @@ ${describe(demo)}`);
     console.error(failures.join('\n\n'));
     process.exit(1);
   }
-  console.log(`C# tasks: ${CSHARP_TASKS.length} tasks and ${projects} build projects, ${checks} checks pass with the reference solutions and fail on the starters.`);
+  console.log(`C# tasks: ${tasks} tasks and ${projects} build projects, ${checks} checks pass with the reference solutions and fail on the starters.`);
   process.exit(0);
 }
 

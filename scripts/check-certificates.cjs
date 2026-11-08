@@ -2,7 +2,7 @@ require('./register-typescript.cjs');
 const assert = require('node:assert/strict');
 const { CERTIFICATE_PATHS, certificateStatus, certificateId } = require('../src/data/pathCertificates.ts');
 
-assert.equal(CERTIFICATE_PATHS.length, 5, 'Expected five learning-path certificates');
+assert.equal(CERTIFICATE_PATHS.length, 6, 'Expected six learning-path certificates');
 
 for (const path of CERTIFICATE_PATHS) {
   const none = certificateStatus(path.track, () => false);
