@@ -4,7 +4,7 @@ import { runPython, runPythonTraced, isPyodideBooted, type TraceStep } from '../
 import { runCpp } from '../../lib/cppRunner';
 import { runJs } from '../../lib/jsRunner';
 import { runCSharp, isCSharpBooted } from '../../lib/csharpRunner';
-import { runTypeScriptSnippet, isTypeScriptReady, isReactSnippet } from '../../lib/tsRunner';
+import { runTypeScriptSnippet, runConfigSnippet, isTypeScriptReady, isReactSnippet } from '../../lib/tsRunner';
 import type { CodeLanguage } from '../../labs/codeTypes';
 import { parseChecks, parseTestResult, type CheckLine } from '../../lib/testResult';
 import { IconCheck, IconCode, IconLightning, IconRefresh, IconX } from '../layout/icons';
@@ -22,6 +22,8 @@ interface CodeConsoleProps {
   /** fires once per "Run tests" click, win or lose — the raw signal behind "how many tries did
    *  this actually take," independent of whether it eventually passed. */
   onTestsAttempted?: () => void;
+  /** config tasks only: the file being edited ('Dockerfile', 'compose.yaml', 'main.tf', …) */
+  configFileName?: string;
 }
 
 type Status = 'idle' | 'booting' | 'running' | 'error' | 'done';
@@ -40,6 +42,8 @@ const RUNNERS: Record<CodeLanguage, RunFn> = {
   javascript: appended(runJs),
   csharp: appended(runCSharp),
   typescript: runTypeScriptSnippet,
+  // Replaced per task in run(): a config task's runner needs the file's real name.
+  config: (code, testCode) => runConfigSnippet('config.txt', code, testCode),
 };
 
 const FILE: Record<CodeLanguage, { name: string; runtime: string }> = {
@@ -48,11 +52,12 @@ const FILE: Record<CodeLanguage, { name: string; runtime: string }> = {
   javascript: { name: 'solution.js', runtime: 'JavaScript · sandboxed' },
   csharp: { name: 'Solution.cs', runtime: 'C# 14 · .NET 10 in-browser' },
   typescript: { name: 'solution.ts', runtime: 'TypeScript 6 · strict mode' },
+  config: { name: 'config.txt', runtime: 'Configuration · parsed and checked in-browser' },
 };
 
 /** The coding workspace: a dark IDE frame with a file tab, run/debug/submit toolbar, the Monaco
  *  editor, a Tests/Output panel and a status bar. Ctrl/Cmd+Enter runs the tests. */
-export default function CodeConsole({ language, starterCode, testCode, onAllTestsPassed, onCodeChange, onTestsAttempted }: CodeConsoleProps) {
+export default function CodeConsole({ language, starterCode, testCode, onAllTestsPassed, onCodeChange, onTestsAttempted, configFileName }: CodeConsoleProps) {
   const [code, setCode] = useState(starterCode);
   const [output, setOutput] = useState('');
   const [status, setStatus] = useState<Status>('idle');
@@ -81,11 +86,14 @@ export default function CodeConsole({ language, starterCode, testCode, onAllTest
 
   const run = async (withTests: boolean) => {
     if (withTests) onTestsAttempted?.();
-    setStatus((language === 'python' && !isPyodideBooted()) || (language === 'csharp' && !isCSharpBooted()) || (language === 'typescript' && !isTypeScriptReady()) ? 'booting' : 'running');
+    setStatus((language === 'python' && !isPyodideBooted()) || (language === 'csharp' && !isCSharpBooted()) || ((language === 'typescript' || language === 'config') && !isTypeScriptReady()) ? 'booting' : 'running');
     setOutput('');
     clearResults();
     setPanel(withTests ? 'tests' : 'output');
-    const result = await RUNNERS[language](code, withTests ? testCode : null).catch(error => ({
+    const runner = language === 'config' && configFileName
+      ? (c: string, t: string | null) => runConfigSnippet(configFileName, c, t)
+      : RUNNERS[language];
+    const result = await runner(code, withTests ? testCode : null).catch(error => ({
       stdout: '', stderr: error instanceof Error ? error.message : String(error), ok: false,
     }));
     const combined = [result.stdout, result.stderr].filter(Boolean).join(result.stdout && result.stderr ? '\n' : '');
@@ -137,10 +145,11 @@ export default function CodeConsole({ language, starterCode, testCode, onAllTest
 
   const busy = status === 'booting' || status === 'running';
   // React tasks are .tsx (JSX); every other TypeScript task is a plain .ts module.
-  const fileName = language === 'typescript' && isReactSnippet(starterCode, testCode) ? 'solution.tsx' : FILE[language].name;
+  const fileName = language === 'config' && configFileName ? configFileName.split('/').pop() ?? configFileName
+    : language === 'typescript' && isReactSnippet(starterCode, testCode) ? 'solution.tsx' : FILE[language].name;
   const modified = code !== starterCode;
   const allPassed = !!testSummary && testSummary.total > 0 && testSummary.passed === testSummary.total;
-  const statusText = status === 'booting' ? `Downloading the ${language === 'csharp' ? 'C# compiler and .NET' : language === 'typescript' ? 'TypeScript compiler' : 'Python'} runtime (first run only)…` : status === 'running' ? 'Running…' : status === 'error' ? 'Finished with errors' : status === 'done' ? 'Finished' : 'Ready';
+  const statusText = status === 'booting' ? `Downloading the ${language === 'csharp' ? 'C# compiler and .NET' : language === 'typescript' || language === 'config' ? 'TypeScript compiler and configuration checker' : 'Python'} runtime (first run only)…` : status === 'running' ? 'Running…' : status === 'error' ? 'Finished with errors' : status === 'done' ? 'Finished' : 'Ready';
 
   return (
     <div className="dw-ide">

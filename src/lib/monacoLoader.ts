@@ -15,6 +15,10 @@ import '../../node_modules/monaco-editor/esm/vs/languages/definitions/csharp/reg
 import '../../node_modules/monaco-editor/esm/vs/languages/definitions/xml/register.js';
 import '../../node_modules/monaco-editor/esm/vs/languages/definitions/sql/register.js';
 import '../../node_modules/monaco-editor/esm/vs/languages/definitions/typescript/register.js';
+import '../../node_modules/monaco-editor/esm/vs/languages/definitions/dockerfile/register.js';
+import '../../node_modules/monaco-editor/esm/vs/languages/definitions/yaml/register.js';
+import '../../node_modules/monaco-editor/esm/vs/languages/definitions/hcl/register.js';
+import '../../node_modules/monaco-editor/esm/vs/languages/definitions/shell/register.js';
 // @ts-expect-error This runtime contribution does not ship a declaration file.
 import { javascriptDefaults, typescriptDefaults, JsxEmit, ModuleKind, ModuleResolutionKind, ScriptTarget } from '../../node_modules/monaco-editor/esm/vs/language/typescript/monaco.contribution.js';
 self.MonacoEnvironment = {

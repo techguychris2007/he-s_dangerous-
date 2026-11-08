@@ -6,6 +6,7 @@ import { CPP_TASKS } from '../labs/cppTasks';
 import { JS_TASKS } from '../labs/jsTasks';
 import { CSHARP_TASKS } from '../labs/csharpTasks';
 import { TS_TASKS } from '../labs/typescriptTasks';
+import { DEVOPS_TASKS } from '../labs/devopsTasks';
 import { ML_TASKS } from '../labs/mlTasks';
 import { SECURITY_TASKS } from '../labs/securityTasks';
 import { useProgress } from '../state/progressStore';
@@ -18,11 +19,11 @@ import { codeTaskXp } from '../data/xp';
 import '../components/code/code-workspace.css';
 import type { CodeLanguage, CodeTask } from '../labs/codeTypes';
 
-const ALL_CODE_TASKS = [...PYTHON_TASKS, ...CPP_TASKS, ...JS_TASKS, ...CSHARP_TASKS, ...TS_TASKS, ...ML_TASKS, ...SECURITY_TASKS];
+const ALL_CODE_TASKS = [...PYTHON_TASKS, ...CPP_TASKS, ...JS_TASKS, ...CSHARP_TASKS, ...TS_TASKS, ...DEVOPS_TASKS, ...ML_TASKS, ...SECURITY_TASKS];
 const ALL_CODE_TASKS_MAP = new Map<string, CodeTask>(ALL_CODE_TASKS.map((t) => [t.id, t]));
 
-const EXTENSION_BY_LANGUAGE: Record<CodeLanguage, string> = { python: 'py', cpp: 'cpp', javascript: 'js', csharp: 'cs', typescript: 'ts' };
-const COMMENT_PREFIX_BY_LANGUAGE: Record<CodeLanguage, string> = { python: '#', cpp: '//', javascript: '//', csharp: '//', typescript: '//' };
+const EXTENSION_BY_LANGUAGE: Record<CodeLanguage, string> = { python: 'py', cpp: 'cpp', javascript: 'js', csharp: 'cs', typescript: 'ts', config: 'txt' };
+const COMMENT_PREFIX_BY_LANGUAGE: Record<CodeLanguage, string> = { python: '#', cpp: '//', javascript: '//', csharp: '//', typescript: '//', config: '#' };
 
 function slugify(title: string): string {
   return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'solution';
@@ -34,9 +35,11 @@ function slugify(title: string): string {
 function downloadTaskCode(task: CodeTask, code: string) {
   const ext = EXTENSION_BY_LANGUAGE[task.language];
   const c = COMMENT_PREFIX_BY_LANGUAGE[task.language];
-  const filename = `${slugify(task.title)}.${ext}`;
+  const filename = task.language === 'config' && task.fileName ? task.fileName.split('/').pop() ?? task.fileName : `${slugify(task.title)}.${ext}`;
   const header = [`${c} ${task.title}`, `${c} ${task.category} · ${task.difficulty}`, `${c} Code exported from DarkWorld — ${new Date().toISOString().slice(0, 10)}`, ''].join('\n');
-  const blob = new Blob([header + code.trimEnd() + '\n'], { type: 'text/plain;charset=utf-8' });
+  // Configuration downloads stay runnable: a shell shebang must remain the first line.
+  const body = task.language === 'config' ? code.trimEnd() + '\n' : header + code.trimEnd() + '\n';
+  const blob = new Blob([body], { type: 'text/plain;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -75,7 +78,7 @@ export default function CodeTaskPage() {
   const backHref = isMlTask ? '/ml-portal' : isSecurityTask ? '/library' : '/code-portal';
   const backLabel = isMlTask ? 'ML Portal' : isSecurityTask ? 'Library' : 'Code Portal';
 
-  const languageLabel = { python: 'Python', cpp: 'C++', javascript: 'JavaScript', csharp: 'C#', typescript: 'TypeScript' }[task.language];
+  const languageLabel = { python: 'Python', cpp: 'C++', javascript: 'JavaScript', csharp: 'C#', typescript: 'TypeScript', config: 'Configuration' }[task.language];
   const hintsUsed = Math.max(hintIndex, progress.codeTaskHintsUsed[task.id] ?? 0);
   const revealed = showSolution || !!progress.codeTaskSolutionRevealed[task.id];
   const xp = codeTaskXp(hintsUsed, revealed);
@@ -169,6 +172,7 @@ export default function CodeTaskPage() {
           <CodeConsole
             key={task.id}
             language={task.language}
+            configFileName={task.fileName}
             starterCode={task.starterCode}
             testCode={task.testCode}
             onAllTestsPassed={() => progress.completeCodeTask(task.id)}

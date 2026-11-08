@@ -65,7 +65,8 @@ declare module 'vitest' {
   }
   interface AsymmetricMatcher { readonly $$asymmetric: true }
   interface ExpectStatic {
-    (actual: unknown): Assertion;
+    /** message: what the assertion checks, reported before the matcher's own detail (as in Vitest) */
+    (actual: unknown, message?: string): Assertion;
     any(ctor: unknown): never;
     anything(): never;
     objectContaining(obj: object): never;
@@ -234,4 +235,46 @@ declare module 'react-router' {
 
 declare module 'react-router-dom' {
   export * from 'react-router';
+}
+
+/** Grader-only helpers for configuration tasks: the project's files and parsers for them. */
+declare module 'dw:project' {
+  export function listFiles(): string[];
+  export function fileExists(path: string): boolean;
+  export function readFile(path: string): string;
+
+  // YAML values are untyped data; graders narrow them as they inspect them.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  export function parseYaml(text: string): { ok: true; value: any } | { ok: false; error: string };
+
+  export interface DockerInstruction { instruction: string; args: string; flags: Record<string, string | true>; json: string[] | null; line: number; stage: number }
+  export interface DockerImage { name: string; tag: string | null; digest: string | null; ref: string }
+  export interface DockerStage { index: number; image: DockerImage; name: string | null; line: number; instructions: DockerInstruction[] }
+  export function parseDockerfile(text: string): { instructions: DockerInstruction[]; stages: DockerStage[]; errors: string[] };
+  export function parseImage(ref: string): DockerImage;
+
+  export interface ShellCommand { argv: string[]; line: number; text: string }
+  export function parseShell(text: string): ShellCommand[];
+  export function flagValue(argv: string[], flag: string): string | true | undefined;
+  export function flagValues(argv: string[], flag: string): string[];
+  export interface ShellAssignment { name: string; value: string; line: number }
+  export function shellAssignments(text: string): ShellAssignment[];
+  /** args start after "az"; assignTo is the variable a $(az …) result is stored in */
+  export interface AzCall { args: string[]; assignTo: string | null; line: number }
+  export function azCalls(text: string): AzCall[];
+
+  export type HclValue =
+    | { type: 'string'; value: string; template: boolean }
+    | { type: 'number'; value: number }
+    | { type: 'bool'; value: boolean }
+    | { type: 'null' }
+    | { type: 'list'; items: HclValue[] }
+    | { type: 'object'; entries: Record<string, HclValue> }
+    | { type: 'expr'; text: string };
+  export interface HclBody { attributes: Record<string, HclValue>; blocks: HclBlock[] }
+  export interface HclBlock extends HclBody { type: string; labels: string[]; line: number }
+  export function parseHcl(text: string): { ok: true; value: HclBody } | { ok: false; error: string };
+  export function mergeHcl(...docs: HclBody[]): HclBody;
+  export function findBlocks(body: HclBody, type: string, ...labels: string[]): HclBlock[];
+  export function hclText(value: HclValue | undefined): string;
 }

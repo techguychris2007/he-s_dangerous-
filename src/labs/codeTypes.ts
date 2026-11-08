@@ -1,4 +1,5 @@
-export type CodeLanguage = 'python' | 'cpp' | 'javascript' | 'csharp' | 'typescript';
+/** 'config' tasks edit a configuration file (Dockerfile, YAML, Terraform, shell) named by CodeTask.fileName. */
+export type CodeLanguage = 'python' | 'cpp' | 'javascript' | 'csharp' | 'typescript' | 'config';
 export type CodeDifficulty = 'Easy' | 'Medium' | 'Hard';
 
 export interface CodeTask {
@@ -19,4 +20,6 @@ export interface CodeTask {
   /** appended after the learner's code and executed together; calls their function(s)/class(es)
    *  with fixed inputs and prints a PASS/FAIL report line per case, ending in an "N/M tests passed" summary */
   testCode: string;
+  /** config tasks only: the file the learner edits, e.g. 'Dockerfile', 'compose.yaml', 'main.tf' */
+  fileName?: string;
 }

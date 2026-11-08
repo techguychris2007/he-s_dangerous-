@@ -13,6 +13,7 @@ const LANGUAGE_LABEL: Record<CodeLanguage, string> = {
   javascript: 'JavaScript',
   csharp: 'C#',
   typescript: 'TypeScript',
+  config: 'Config',
 };
 
 function iconFor(task: CodeTask): string {

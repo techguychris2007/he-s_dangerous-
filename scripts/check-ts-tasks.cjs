@@ -19,6 +19,8 @@ const { compileTypeScript, typeCheckReport, isTsSource, jsPathFor } = require('.
 const { bundleCommonJs } = require('../src/lib/jsModuleBundler.ts');
 const { buildReactDocument, REACT_SANDBOX } = require('../src/lib/reactHarness.ts');
 const { TS_TASKS } = require('../src/labs/typescriptTasks/index.ts');
+const { DEVOPS_TASKS } = require('../src/labs/devopsTasks/index.ts');
+const { languageForPath } = require('../src/labs/projectTypes.ts');
 
 const root = path.join(__dirname, '..');
 const runtimeDir = path.join(root, 'public', 'ts-runtime');
@@ -56,7 +58,17 @@ function prepare(files, entry, testCode, jsx) {
     ...files.filter((f) => f.language === 'javascript'),
     ...result.outputs.map((o) => ({ path: o.path, content: o.content, language: 'javascript', editable: false })),
   ];
-  return { bundle: bundleCommonJs(modules, jsPathFor(testPath)), report, styles: files.filter((f) => f.language === 'css').map((f) => f.content) };
+  // Same rule as src/lib/tsRunner.ts: when the learner writes no TypeScript (a Dockerfile, a
+  // workflow), the grader's own type check is not one of their checks unless it fails.
+  const learnerTs = files.some((f) => f.editable && isTsSource(f.path));
+  const countPrelude = learnerTs || !report.ok;
+  return {
+    bundle: bundleCommonJs(modules, jsPathFor(testPath)),
+    report: countPrelude ? report : { ok: true, lines: [] },
+    countPrelude,
+    projectFiles: Object.fromEntries(files.map((f) => [f.path, f.content])),
+    styles: files.filter((f) => f.language === 'css').map((f) => f.content),
+  };
 }
 
 /** Node VM run of a non-DOM TypeScript bundle with the worker test kit. */
@@ -68,20 +80,22 @@ async function runInVm(p) {
     setTimeout, clearTimeout, setInterval, clearInterval, queueMicrotask, structuredClone,
     URL, URLSearchParams, AbortController, AbortSignal, TextEncoder, TextDecoder, Headers, Request, Response,
     crypto: globalThis.crypto, atob, btoa, performance,
+    __dw_project_files__: p.projectFiles,
   });
   vm.runInContext(workerKit, context, { filename: 'testkit.js' });
   const lines = [...p.report.lines];
-  const passedPrelude = p.report.ok ? 1 : 0;
+  const passedPrelude = p.countPrelude && p.report.ok ? 1 : 0;
+  const preludeTotal = p.countPrelude ? 1 : 0;
   try {
     vm.runInContext(p.bundle, context, { filename: 'bundle.js', timeout: 10000 });
   } catch (e) {
-    lines.push(...out, `[FAIL] Test file failed to load: ${e && e.message}`, `__RESULT__ ${passedPrelude}/2`);
+    lines.push(...out, `[FAIL] Test file failed to load: ${e && e.message}`, `__RESULT__ ${passedPrelude}/${preludeTotal + 1}`);
     return lines.join('\n');
   }
   const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('timed out after 20 s')), 20000));
   const r = await Promise.race([context.__dw_runTests((l) => out.push(l)), timeout]);
   lines.push(...out);
-  let total = 1 + r.total;
+  let total = preludeTotal + r.total;
   if (r.total === 0) { lines.push('[FAIL] No tests ran'); total += 1; }
   lines.push(`__RESULT__ ${passedPrelude + r.passed}/${total}`);
   return lines.join('\n');
@@ -150,15 +164,25 @@ async function main() {
     const file = (code) => [{ path: react ? 'solution.tsx' : 'solution.ts', content: code, language: 'typescript', editable: true }];
     jobs.push({ id: task.id, react, solution: () => prepare(file(task.solution), 'solution.ts', task.testCode, react), starter: () => prepare(file(task.starterCode), 'solution.ts', task.testCode, react) });
   }
-  const projectDir = path.join(root, 'src', 'labs', 'seTasks', 'typescript');
-  const projectFiles = fs.existsSync(projectDir) ? fs.readdirSync(projectDir, { recursive: true }).filter((f) => f.endsWith('.ts')) : [];
+  for (const task of DEVOPS_TASKS) {
+    if (only.size && !only.has(task.id)) continue;
+    if (!task.fileName) throw new Error(`${task.id}: config tasks need a fileName`);
+    const file = (code) => [{ path: task.fileName, content: code, language: languageForPath(task.fileName), editable: true }];
+    jobs.push({ id: task.id, react: false, solution: () => prepare(file(task.solution), 'solution.ts', task.testCode, false), starter: () => prepare(file(task.starterCode), 'solution.ts', task.testCode, false) });
+  }
+  // TypeScript/React targets live in TypeScript projects and also in C# projects (Month 5's config
+  // graders); check-csharp-tasks.cjs runs those projects' C# and SQL targets.
+  const projectRoots = ['typescript', 'csharp'].map((d) => path.join(root, 'src', 'labs', 'seTasks', d));
+  const projectFiles = projectRoots.flatMap((dir) => (fs.existsSync(dir) ? fs.readdirSync(dir, { recursive: true }).filter((f) => f.endsWith('.ts')).map((f) => path.join(dir, f)) : []));
   let projects = 0;
   for (const file of projectFiles) {
-    const project = require(path.join(projectDir, file)).default;
+    const project = require(file).default;
     if (project.id !== path.basename(file, '.ts')) throw new Error(`${file}: id must match the file name (the lazy loader relies on it)`);
     if (only.size && !only.has(project.id)) continue;
+    const tsTargets = project.targets.filter((t) => t.kind === 'typescript' || t.kind === 'react');
+    if (!tsTargets.length) continue;
     projects++;
-    for (const target of project.targets) {
+    for (const target of tsTargets) {
       const react = target.kind === 'react';
       jobs.push({ id: `${project.id} [${target.id}]`, react, solution: () => prepare(mutate(project.solutionFiles), target.entry, target.testCode, react), starter: () => prepare(project.files, target.entry, target.testCode, react) });
     }
@@ -198,7 +222,7 @@ async function main() {
     process.exit(1);
   }
   if (process.env.MUTATE) return;
-  console.log(`TypeScript tasks: ${TS_TASKS.length} tasks, ${projects} projects, ${checks} checks pass with the reference solutions and fail on the starters${skipped ? ` (${skipped} React jobs skipped: no Chrome or Edge found)` : ''}.`);
+  console.log(`TypeScript tasks: ${TS_TASKS.length} TypeScript + ${DEVOPS_TASKS.length} config tasks, ${projects} projects, ${checks} checks pass with the reference solutions and fail on the starters${skipped ? ` (${skipped} React jobs skipped: no Chrome or Edge found)` : ''}.`);
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });

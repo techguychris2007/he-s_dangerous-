@@ -14,7 +14,8 @@ export type SeTrack = 'foundations' | 'backend' | 'fullstack' | 'systems';
  *  per-model language mode and (for html/css/js) the DOM runner's file-type routing. */
 export type FileLanguage =
   | 'python' | 'javascript' | 'typescript' | 'html' | 'css'
-  | 'json' | 'cpp' | 'csharp' | 'xml' | 'markdown' | 'sql' | 'plaintext';
+  | 'json' | 'cpp' | 'csharp' | 'xml' | 'markdown' | 'sql' | 'plaintext'
+  | 'dockerfile' | 'yaml' | 'hcl' | 'shell';
 
 export interface ProjectFile {
   /** POSIX-style, no leading slash — e.g. 'backend/models.py', 'index.html'. Must be unique within
@@ -86,11 +87,17 @@ const EXTENSION_LANGUAGE: Record<string, FileLanguage> = {
   cs: 'csharp', csproj: 'xml', sln: 'plaintext', props: 'xml',
   md: 'markdown',
   sql: 'sql',
+  yml: 'yaml', yaml: 'yaml',
+  tf: 'hcl', tfvars: 'hcl', hcl: 'hcl',
+  sh: 'shell', bash: 'shell',
 };
 
 /** Infers a file's language from its extension, so task authoring can omit `language` on most files.
  *  Falls back to 'plaintext' for anything unrecognized rather than guessing wrong. */
 export function languageForPath(path: string): FileLanguage {
+  const base = path.split('/').pop() ?? path;
+  // Dockerfile, Dockerfile.frontend, api.Dockerfile — named by convention, not by extension.
+  if (base === 'Dockerfile' || base.startsWith('Dockerfile.') || base.endsWith('.Dockerfile')) return 'dockerfile';
   const ext = path.split('.').pop()?.toLowerCase() ?? '';
   return EXTENSION_LANGUAGE[ext] ?? 'plaintext';
 }

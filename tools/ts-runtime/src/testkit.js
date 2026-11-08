@@ -214,7 +214,7 @@ function assertMock(value, name) {
   if (!value || !value._isMockFunction) throw new AssertionError(`${name} needs a mock created with vi.fn() or vi.spyOn(), got ${format(value)}`);
 }
 
-function buildAssertions(actual, negate, mode) {
+function buildAssertions(actual, negate, mode, label) {
   const api = {};
   for (const name of Object.keys(matchers)) {
     api[name] = (...args) => {
@@ -222,7 +222,9 @@ function buildAssertions(actual, negate, mode) {
         const result = matchers[name](value, ...args);
         if (result.pass === negate) {
           const msg = result.message();
-          throw new AssertionError(negate ? msg.replace(/^expected (.*?) to /, 'expected $1 not to ') : msg);
+          const detail = negate ? msg.replace(/^expected (.*?) to /, 'expected $1 not to ') : msg;
+          // expect(value, 'what this checks') — Vitest's optional message, shown before the detail.
+          throw new AssertionError(label ? `${label} (${detail})` : detail);
         }
       };
       if (mode === 'resolves') {
@@ -244,13 +246,13 @@ function buildAssertions(actual, negate, mode) {
   return api;
 }
 
-export function expect(actual) {
-  const api = buildAssertions(actual, false);
-  api.not = buildAssertions(actual, true);
-  api.resolves = buildAssertions(actual, false, 'resolves');
-  api.resolves.not = buildAssertions(actual, true, 'resolves');
-  api.rejects = buildAssertions(actual, false, 'rejects');
-  api.rejects.not = buildAssertions(actual, true, 'rejects');
+export function expect(actual, message) {
+  const api = buildAssertions(actual, false, undefined, message);
+  api.not = buildAssertions(actual, true, undefined, message);
+  api.resolves = buildAssertions(actual, false, 'resolves', message);
+  api.resolves.not = buildAssertions(actual, true, 'resolves', message);
+  api.rejects = buildAssertions(actual, false, 'rejects', message);
+  api.rejects.not = buildAssertions(actual, true, 'rejects', message);
   return api;
 }
 

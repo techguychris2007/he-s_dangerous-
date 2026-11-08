@@ -50,9 +50,9 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 9 * 1024 * 1024,
         runtimeCaching: [
           {
-            // TypeScript/React compiler assets load on demand and remain available offline.
+            // Refresh unversioned compiler/test-kit assets online so updated graders never use an old kit; retain the existing offline cache.
             urlPattern: ({ url, sameOrigin }) => sameOrigin && url.pathname.startsWith('/ts-runtime/'),
-            handler: 'StaleWhileRevalidate',
+            handler: 'NetworkFirst',
             options: {
               cacheName: 'ts-runtime-v1',
               expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },

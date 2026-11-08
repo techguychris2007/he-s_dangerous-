@@ -60,6 +60,8 @@ async function main() {
     const project = require(path.join(projectDir, file)).default;
     assert.equal(project.id, path.basename(file, '.ts'), `${file}: id must match file name (the lazy loader relies on it)`);
     for (const target of project.targets) {
+      // Config graders (Month 5) are TypeScript targets — scripts/check-ts-tasks.cjs runs them.
+      if (target.kind === 'typescript' || target.kind === 'react') continue;
       if (target.kind === 'sql') {
         const sqlFiles = (files) => files.filter(f => f.path.endsWith('.sql')).map(({ path: p, content }) => ({ path: p, content }));
         const solvedSql = runSqlTarget(SQL, sqlFiles(project.solutionFiles), target.entry, target.testCode);
@@ -94,7 +96,7 @@ ${describe(starter)}`);
 ${describe(demo)}`);
       checks += Number(solvedMatch[2]);
     }
-    projects++;
+    if (project.targets.some(t => t.kind === 'csharp' || t.kind === 'sql')) projects++;
   }
   if (failures.length) {
     console.error(failures.join('\n\n'));

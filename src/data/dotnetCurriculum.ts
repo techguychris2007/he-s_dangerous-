@@ -10,6 +10,8 @@ import { DN_MONTH3_A } from '../content/dotnet/m3-weeks-9-10';
 import { DN_MONTH3_B } from '../content/dotnet/m3-weeks-11-12';
 import { DN_MONTH4_A } from '../content/dotnet/m4-weeks-13-14';
 import { DN_MONTH4_B } from '../content/dotnet/m4-weeks-15-16';
+import { DN_MONTH5_A } from '../content/dotnet/m5-weeks-17-18';
+import { DN_MONTH5_B } from '../content/dotnet/m5-weeks-19-20';
 
 /** C# & .NET Software Engineering: a separate course structured as a six-month, 24-week
  *  engineering programme (C# foundations → ASP.NET Core and databases → architecture → TypeScript and
@@ -72,6 +74,15 @@ export const DN_MODULES: ModuleMeta[] = [
     sourceBooks: ['TypeScript Handbook', 'Full Stack Open (parts 0–2, 5–7, 9)', 'react.dev', 'TypeScript Deep Dive'],
     icon: 'web',
   }, [...DN_MONTH4_A, ...DN_MONTH4_B]),
+  curriculumModule({
+    id: 'dn-m5-cloud',
+    slug: 'dn-month-5-cloud-devops',
+    title: 'Month 5 · Cloud, DevOps & Delivery',
+    subtitle: 'Weeks 17–19: containers, Azure and Terraform',
+    description: 'Week 17 — containers for .NET: images and layers, multi-stage Dockerfiles, non-root images, secrets kept out of layers, graceful shutdown, and Docker Compose with health-gated start-up, migrations, segmented networks and secrets (assignment: Containerize Everything). Week 18 — Azure: resources and regions, choosing a compute platform, managed identities, least-privilege RBAC, Key Vault, re-runnable CLI scripts, and Azure Container Apps with Key Vault secrets, probes, scaling and canary releases across revisions (assignment: Cloud Deployment). Week 19 — Terraform providers, resources, plans, remote state, modules, environments and secret handling. Configuration exercises are parsed and checked in your browser; they do not provision real cloud resources.',
+    sourceBooks: ['Docker documentation', 'Microsoft Learn — .NET containers and Azure Container Apps', '.NET Microservices: Architecture for Containerized .NET Applications', 'Azure Well-Architected Framework'],
+    icon: 'layers',
+  }, [...DN_MONTH5_A, ...DN_MONTH5_B]),
 ];
 
 export const DN_ROADMAP: RoadmapStage[] = DN_MODULES.map((module) => ({
@@ -82,7 +93,7 @@ export const DN_ROADMAP: RoadmapStage[] = DN_MODULES.map((module) => ({
   track: 'dotnet',
 }));
 
-/** Lesson → paired C# Code Portal tasks (two verified tasks per lesson). */
+/** Lesson → paired Code Portal tasks (two verified tasks per lesson: C#, TypeScript, or Month 5's configuration tasks). */
 const pairTasks = (lessonPrefix: string, taskPrefix: string, lessons: number) =>
   Array.from({ length: lessons }, (_, i) => [
     `${lessonPrefix}-${i + 1}`,
@@ -95,4 +106,5 @@ export const DN_LESSON_TASKS: Record<string, string[]> = Object.fromEntries([
   ...pairTasks('dn2', 'cs-2', 8),
   ...pairTasks('dn3', 'cs-3', 8),
   ...pairTasks('dn4', 'ts-4', 8),
+  ...pairTasks('dn5', 'ops-5', 6),
 ].map(([lesson, tasks]) => [lesson, [...tasks]]));

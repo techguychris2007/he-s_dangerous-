@@ -1,5 +1,6 @@
 import Editor from '@monaco-editor/react';
 import type { CodeLanguage } from '../../labs/codeTypes';
+import { languageForPath } from '../../labs/projectTypes';
 import { javascriptDefaults, configureTypeScriptEditor } from '../../lib/monacoLoader';
 import { EDITOR_OPTIONS, THEME, defineEditorTheme } from './editorTheme';
 
@@ -19,19 +20,21 @@ interface CodeEditorProps {
  *  switches and "Reset to starter code" both flow through a prop change here, not a remount, exactly
  *  like the textarea this replaces. */
 export default function CodeEditor({ value, onChange, disabled, language, fileName }: CodeEditorProps) {
+  // A config task's grammar follows its file: Dockerfile, YAML, Terraform (HCL) or shell.
+  const editorLanguage = language === 'config' ? languageForPath(fileName ?? '') : language;
   return (
     <div className="w-full h-full min-h-[300px] overflow-hidden bg-[var(--chrome-bg)]">
       <Editor
         height="100%"
         value={value}
-        language={language}
+        language={editorLanguage}
         path={language === 'typescript' && fileName ? `file:///code/${fileName}` : undefined}
         theme={THEME}
         onChange={(v) => onChange(v ?? '')}
         options={{
           ...EDITOR_OPTIONS,
           readOnly: disabled,
-          tabSize: language === 'python' || language === 'csharp' ? 4 : 2,
+          tabSize: language === 'python' || language === 'csharp' || editorLanguage === 'dockerfile' ? 4 : 2,
         }}
         beforeMount={defineEditorTheme}
         onMount={(_editor, monaco) => {
