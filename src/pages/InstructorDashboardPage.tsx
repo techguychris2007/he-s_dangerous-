@@ -66,12 +66,17 @@ function SortHeader({ label, sortKey, active, dir, onClick }: { label: string; s
 
 export default function InstructorDashboardPage() {
   const [rows, setRows] = useState<LearnerProgressRow[] | null | undefined>(undefined);
+  const [reloadKey, setReloadKey] = useState(0);
   const [sortKey, setSortKey] = useState<SortKey>('lastActive');
   const [sortDir, setSortDir] = useState<1 | -1>(-1);
 
   useEffect(() => {
-    fetchAllLearnerProgress().then(setRows);
-  }, []);
+    let active = true;
+    fetchAllLearnerProgress()
+      .then((result) => { if (active) setRows(result); })
+      .catch(() => { if (active) setRows(null); });
+    return () => { active = false; };
+  }, [reloadKey]);
 
   const stats = useMemo(() => (rows ?? []).map(computeStats), [rows]);
 
@@ -120,11 +125,20 @@ export default function InstructorDashboardPage() {
       )}
 
       {rows === null && (
-        <div className="rounded-xl border border-[var(--color-danger)]/30 bg-[var(--color-danger)]/5 p-6 text-sm text-[var(--color-danger)]">
-          Couldn't load cohort progress. Either the <code>instructor_dashboard_progress()</code> Supabase
-          function hasn't been run yet (see <code>supabase/migrations/0003_instructor_dashboard.sql</code>), or
-          something else went wrong — try again in a moment.
-        </div>
+        <section className="premium-card rounded-2xl p-8" role="alert" aria-labelledby="cohort-load-error">
+          <h2 id="cohort-load-error" className="text-lg font-bold text-[var(--color-heading)] mb-2">
+            {navigator.onLine ? 'Cohort progress is unavailable' : 'Connect to view cohort progress'}
+          </h2>
+          <p className="text-sm text-[var(--color-text-dim)] mb-5">
+            {navigator.onLine
+              ? 'We could not retrieve the latest learner progress. Try again in a moment. If the problem continues, sign out and sign back in with your instructor account.'
+              : 'The instructor dashboard needs an internet connection to load the latest learner progress. Reconnect, then try again.'}
+          </p>
+          <button type="button" className="rounded-lg bg-[var(--color-accent)] px-5 py-2.5 text-sm font-bold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)]"
+            onClick={() => { setRows(undefined); setReloadKey((key) => key + 1); }}>
+            Try again
+          </button>
+        </section>
       )}
 
       {rows && (

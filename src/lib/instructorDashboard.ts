@@ -29,7 +29,7 @@ interface RpcRow {
   updated_at: string;
 }
 
-/** Calls the `instructor_dashboard_progress()` RPC (see supabase/migrations/0003_instructor_dashboard.sql).
+/** Calls the `instructor_dashboard_progress()` RPC (see supabase/migrations/0010_instructor_dashboard_email_type.sql).
  *  Returns null on any failure — wrong account, migration not yet run, offline — so the page can show
  *  a clear message instead of a raw Supabase error. The real access control lives server-side in the
  *  function itself; this call would simply fail for anyone who isn't the instructor. */
