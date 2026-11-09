@@ -19,7 +19,11 @@ export const wirelessLabs3: LabScenario[] = [
     briefing:
       'A red team engagement stood up a rogue AP cloning "MeridianCorp-Enterprise" alongside a hostapd-wpe ' +
       'rogue RADIUS server. Review the captured session log to confirm what a client with certificate ' +
-      'validation disabled actually handed over.',
+      'validation disabled actually handed over.' +
+      ' Why it matters: in PEAP and similar methods the client\'s password exchange is protected only by a ' +
+      'TLS tunnel to the RADIUS server, so a client that does not check the server\'s certificate will ' +
+      'build that tunnel to an attacker. The fix is managed client profiles that pin the expected CA and ' +
+      'server name, or certificate-based EAP-TLS, which sends no reusable password at all.',
     objectives: [
       { text: 'cat rogue-radius-session.log', why: 'A client that skips RADIUS server certificate validation (Lesson 6\'s critical failure mode) will complete the EAP exchange against ANY server presenting ANY certificate — including one the attacker fully controls.' },
       { text: 'Confirm whether the captured credential is Wi-Fi-only or a broader domain credential', why: 'This is the finding that makes rogue-RADIUS attacks so consistently high-severity in real assessments: the captured credential is typically the SAME one used for VPN, email, and Active Directory — not a Wi-Fi-scoped password.' },
@@ -56,7 +60,11 @@ export const wirelessLabs3: LabScenario[] = [
     briefing:
       'The Kismet WIDS fired an APSPOOF alert overnight. Review the alert details against the approved AP ' +
       'inventory to determine whether this is a genuine rogue access point or a legitimate device the ' +
-      'inventory simply hasn\'t been updated to include yet.',
+      'inventory simply hasn\'t been updated to include yet.' +
+      ' Triage approach: a wireless IDS reports what it heard, not intent. Confirm the BSSID and vendor ' +
+      'against the current inventory, check whether the device is connected to your wired network (switch ' +
+      'port and MAC tables), and record the outcome so the inventory and detection rules improve, whichever' +
+      ' way the answer goes.',
     objectives: [
       { text: 'cat kismet-alert.log', why: 'Read the actual alert details first — BSSID, vendor OUI, and the ESSID it\'s broadcasting — before jumping to a conclusion either way.' },
       { text: 'cat approved-ap-inventory-current.txt', why: 'Cross-referencing against the CURRENT (not stale) approved inventory is the actual triage step — this specific BSSID and vendor OUI do not match any approved device, and the vendor OUI resolves to consumer router hardware inconsistent with the enterprise-grade APs this organization deploys, confirming a genuine rogue device rather than an inventory gap.' },

@@ -14,7 +14,10 @@ export const binaryAnalysisLabs: LabScenario[] = [
     briefing:
       'A small challenge binary, crackme1, sits on your attack box. It asks for a password when run. ' +
       'Recover the correct password using pure static analysis — no debugger required — exactly as taught ' +
-      'in the Binary Analysis module\'s first lesson.',
+      'in the Binary Analysis module\'s first lesson.' +
+      ' Why it matters: anything compiled into a program ships to everyone who has the program. A password ' +
+      'compared as plain text can be read with strings in seconds, which is why real software checks ' +
+      'credentials on a server, or compares against a salted hash rather than the secret itself.',
     objectives: [
       { text: 'Identify the file format with file crackme1', why: 'Confirming what you\'re dealing with before analysis prevents wasted effort — always the first move.' },
       { text: 'Extract readable strings with strings crackme1', why: 'Many real crackmes and even real malware samples leave the actual comparison value in plain text — the highest-value, lowest-effort static analysis technique.' },

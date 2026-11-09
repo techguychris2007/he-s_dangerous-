@@ -19,7 +19,12 @@ export const mobileLabs3: LabScenario[] = [
     briefing:
       'A sample disguised as a QR code scanner ("QuickScan Pro") was flagged after several users reported ' +
       'unauthorized bank transfers. Review its Accessibility Service usage and the resulting fraud incident ' +
-      'timeline to confirm the full attack chain.',
+      'timeline to confirm the full attack chain.' +
+      ' Why it matters: an Accessibility Service can read the screen and act on the user\'s behalf, which ' +
+      'is why banking malware requests it under a harmless-looking pretext. Since Android 13, apps ' +
+      'installed outside an app store\'s session-based installer cannot enable it without the user ' +
+      'explicitly allowing restricted settings, though dropper malware has been reported working around ' +
+      'that. Banks add defences such as transaction confirmation that does not rely on SMS codes alone.',
     objectives: [
       { text: 'cat app_source/com/quickscan/service/AccessHelper.java', why: 'A QR scanner has no legitimate feature requiring Accessibility Service access at all — this is the first, immediate red flag from the lesson.' },
       { text: 'cat fraud-incident-timeline.txt', why: 'Confirms the full chain end to end: real-time screen reading detects the banking app opening, an overlay is drawn to capture credentials, and the intercepted SMS OTP completes a fraudulent transfer — combining Lesson 4\'s SMS interception with this lesson\'s overlay technique.' },
@@ -75,7 +80,11 @@ export const mobileLabs3: LabScenario[] = [
     briefing:
       'corpmdm-agent blocks corporate email access on rooted devices. Review the captured Frida session that ' +
       'defeated this check on a test device, and confirm why a client-side compliance check can never be a ' +
-      'fully reliable security boundary.',
+      'fully reliable security boundary.' +
+      ' Why it matters: code running on a device the attacker controls can be hooked and made to return any' +
+      ' answer, so a root check inside the app only raises the effort. Decisions about access should rely ' +
+      'on signals verified by a server, such as platform attestation (for example the Play Integrity API), ' +
+      'combined with server-side policy (OWASP MASVS-RESILIENCE).',
     objectives: [
       { text: 'cat root-checker-source.txt', why: 'Reviewing the actual check first — a static su-binary/Magisk-file presence check, exactly the pattern the lesson described.' },
       { text: 'cat frida-bypass-session.log', why: 'Confirms the check\'s return value was hooked and forced to always report false, using the identical technique from the certificate-pinning bypass earlier in this module — any client-side security decision can be overridden once an attacker controls the device.' },

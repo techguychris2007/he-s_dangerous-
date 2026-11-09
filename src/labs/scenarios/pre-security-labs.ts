@@ -7,7 +7,9 @@ export const preSecurityLabs: LabScenario[] = [
     title: 'Pre-Security Lab Orientation',
     difficulty: 'Easy',
     category: 'Linux',
-    briefing: 'Learn how DarkWorld labs behave before a real offensive challenge asks you to move quickly. You will read objectives, inspect files, search evidence, and capture a flag from a harmless training folder.',
+    briefing: 'Learn how DarkWorld labs behave before a real offensive challenge asks you to move quickly. You will read objectives, inspect files, search evidence, and capture a flag from a harmless training folder. ' +
+      'Ground rule for every lab: these environments are simulations built for practice. Use the same techniques on ' +
+      'real systems only with written permission from the owner, inside an agreed scope.',
     objectives: [
       { text: 'Run help and objectives to learn how the lab terminal explains itself', why: 'A good operator reads the environment before trying commands at random.' },
       { text: 'Use pwd, ls -la, cat, and grep inside /root/training', why: 'These four commands are the foundation for nearly every later Linux lab.' },

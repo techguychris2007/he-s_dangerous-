@@ -23,7 +23,11 @@ export const aiSecurityLabs3: LabScenario[] = [
     briefing:
       'mlguard-av flagged a sample as malicious, then cleared an almost-identical modified version as benign. ' +
       'Review the classifier\'s analysis log for both versions to confirm this is adversarial evasion, not a ' +
-      'genuine change in the file\'s actual behavior.',
+      'genuine change in the file\'s actual behavior.' +
+      ' Why it matters: changes that leave a program\'s behaviour untouched can still move a machine-' +
+      'learning score across the decision line (MITRE ATLAS AML.T0015 Evade AI Model). That is why static ' +
+      'ML classifiers are paired with behavioural and dynamic analysis, and why robustness to such changes ' +
+      'should be measured, not assumed.',
     objectives: [
       { text: 'cat classifier-analysis-original.txt', why: 'Establishes the baseline: the original sample is correctly flagged malicious, with the classifier\'s confidence score and the features it weighted most heavily.' },
       { text: 'cat classifier-analysis-perturbed.txt', why: 'The perturbed version changes only non-functional bytes (padding, an added benign-looking import) -- specifically searched for via gradient-based optimization against the classifier\'s decision boundary (this lesson\'s core technique) -- while a behavioral sandbox confirms the ACTUAL malicious functionality is byte-for-byte unchanged.' },
@@ -69,7 +73,10 @@ export const aiSecurityLabs3: LabScenario[] = [
     briefing:
       'orionmodel-v3\'s pre-release system card (published per the GPT-4-style external red-teaming template ' +
       'from this lesson) lists several findings. Review it to identify which finding shipped to production ' +
-      'with NO mitigation applied, and why that\'s a meaningful governance gap.',
+      'with NO mitigation applied, and why that\'s a meaningful governance gap. ' +
+      'Why it matters: a system card is only useful if each finding is tied either to a mitigation or to an ' +
+      'explicit, owned decision to accept the risk. A finding shipped with neither is a gap in the MANAGE ' +
+      'function of the NIST AI Risk Management Framework, whatever its technical severity.',
     objectives: [
       { text: 'cat orionmodel-v3-system-card-excerpt.txt', why: 'A system card documenting red-team findings AND their mitigation status is the actual governance artifact this lesson described -- the NIST AI RMF\'s MEASURE and MANAGE functions in a single published document.' },
     ],

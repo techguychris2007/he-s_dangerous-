@@ -186,7 +186,11 @@ export const mobileLabs: LabScenario[] = [
     category: 'Mobile',
     briefing:
       'A rooted-device extraction pulled brewhouseapp\'s private data directory for review. SharedPreferences ' +
-      'is meant for small, non-sensitive UI settings — confirm whether brewhouseapp treated it that way.',
+      'is meant for small, non-sensitive UI settings — confirm whether brewhouseapp treated it that way.' +
+      ' Why it matters: SharedPreferences are plain XML files in the app\'s private directory. That ' +
+      'directory is protected from other apps, but not from root access, a compromised device or some ' +
+      'backup paths. Passwords should not be stored on the device at all; store a revocable session token ' +
+      'instead, protected with a key held in the Android Keystore.',
     objectives: [
       { text: 'ls data/data/com.brewhouse.app/shared_prefs/', why: 'This is exactly the private data directory path from the lesson — root or run-as access is what makes this readable at all on a real device.' },
       { text: 'cat data/data/com.brewhouse.app/shared_prefs/user_session.xml', why: 'SharedPreferences files are plain XML on disk — anything stored here with no additional encryption is readable by anyone with root or physical/backup access to the device.' },

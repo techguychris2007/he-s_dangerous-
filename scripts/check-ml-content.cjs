@@ -7,6 +7,8 @@ const { COMPREHENSIVE_FOUNDATIONS } = require('../src/data/mlLessons/comprehensi
 const { COMPREHENSIVE_EVALUATION } = require('../src/data/mlLessons/comprehensiveEvaluation.ts');
 const { COMPREHENSIVE_FORECASTING } = require('../src/data/mlLessons/comprehensiveForecasting.ts');
 const { ML_ENGINEERING_PRACTICE } = require('../src/labs/mlTasks/engineeringPractice.ts');
+const { ML_SECURITY_LESSONS } = require('../src/data/mlLessons/mlSecurity.ts');
+const { ML_SECURITY_TASKS } = require('../src/labs/mlTasks/mlSecurity.ts');
 const replacements = { ...COMPREHENSIVE_FOUNDATIONS, ...COMPREHENSIVE_EVALUATION, ...COMPREHENSIVE_FORECASTING };
 const tasks = new Map(ML_TASKS.map(task => [task.id, task]));
 assert.equal(tasks.size, ML_TASKS.length, 'Coding task IDs must be unique');
@@ -29,6 +31,21 @@ for (const id of Object.keys(replacements)) {
     }
   }
 }
+// Module 14 (ML security): every lesson is routed, every code example is escaped and executed, and
+// every assignment is graded like the engineering-practice tasks.
+assert.equal(ML_LESSONS.filter(l => l.unit === 'ml-security').length, ML_SECURITY_LESSONS.length);
+for (const source of ML_SECURITY_LESSONS) {
+  const lesson = ML_LESSONS.find(l => l.id === source.id);
+  assert.ok(lesson && lesson.resources && lesson.resources.length, source.id + ': lesson and unit resources must be registered');
+  assert.ok(lesson.sections.some(s => s.heading === 'Check your understanding'), source.id + ': knowledge check required');
+  for (const section of source.sections) {
+    for (const match of section.body.matchAll(/<pre><code[^>]*>([\s\S]*?)<\/code><\/pre>/g)) {
+      assert.equal(/<(?!\/code>)[a-z]/i.test(match[1]), false, source.id + ': code must be escaped text');
+      examples.push({ name: source.id + ' / ' + section.heading, code: decode(match[1]) });
+    }
+  }
+}
+for (const task of ML_SECURITY_TASKS) assert.ok(ML_LESSONS.some(l => l.challengeTaskId === task.id), task.id + ': assignment must be linked from a lesson');
 const python = process.env.DARKWORLD_ML_PYTHON || 'python';
 if (process.argv.includes('--structure-only')) {
   console.log(`ML content integrity passed: ${Object.keys(replacements).length} complete lessons, ${examples.length} escaped Python examples, valid assignment routes.`);
@@ -37,7 +54,7 @@ if (process.argv.includes('--structure-only')) {
 const runner = "import ast, contextlib, io, json, re, sys\npayload = json.load(sys.stdin)\nfor example in payload[\"examples\"]:\n    ast.parse(example[\"code\"])\n    try:\n        with contextlib.redirect_stdout(io.StringIO()):\n            exec(compile(example[\"code\"], example[\"name\"], \"exec\"), {})\n    except Exception as error:\n        raise AssertionError(example[\"name\"]) from error\nfor task in payload[\"tasks\"]:\n    tree = ast.parse(task[\"starterCode\"])\n    for statement in tree.body:\n        assert isinstance(statement, (ast.FunctionDef, ast.AsyncFunctionDef)), \"Starter contains implementation\"\n        for body in statement.body:\n            assert isinstance(body, ast.Pass) or (\n                isinstance(body, ast.Expr) and isinstance(body.value, ast.Constant)\n                and isinstance(body.value.value, str)\n            ), \"Starter function is partially solved\"\n    outputs = []\n    for code in [task[\"solution\"], task[\"starterCode\"]]:\n        stream = io.StringIO()\n        with contextlib.redirect_stdout(stream):\n            exec(compile(code + \"\\n\" + task[\"testCode\"], task[\"id\"], \"exec\"), {})\n        result = re.findall(r\"^__RESULT__ (\\d+)/(\\d+)$\", stream.getvalue(), re.M)\n        assert result, task[\"id\"] + \": missing grading summary\"\n        passed, total = map(int, result[-1])\n        assert total > 0\n        outputs.append((passed, total))\n    assert outputs[0][0] == outputs[0][1], (task[\"id\"], outputs)\n    assert outputs[1][0] < outputs[1][1], \"Unimplemented starter must not pass\"\n    print(task[\"id\"] + \": \" + str(outputs[0][1]) + \" reference tests passed; starter rejected\")\nprint(str(len(payload[\"examples\"])) + \" independently executed lesson examples passed\")\n";
 
 const result = spawnSync(python, ['-c', runner], {
-  input: JSON.stringify({ examples, tasks: ML_ENGINEERING_PRACTICE }),
+  input: JSON.stringify({ examples, tasks: [...ML_ENGINEERING_PRACTICE, ...ML_SECURITY_TASKS] }),
   encoding: 'utf8', maxBuffer: 4 * 1024 * 1024,
 });
 if (result.stdout) process.stdout.write(result.stdout);

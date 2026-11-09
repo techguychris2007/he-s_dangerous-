@@ -225,6 +225,14 @@ export const RESOURCES_BY_UNIT: Record<string, MlResource[]> = {
     { title: 'Microsoft ML for Beginners', url: 'https://github.com/microsoft/ML-For-Beginners', kind: 'repo', note: 'Beginner-friendly project lessons that connect model building with data quality, interpretation, and responsible use.' },
     { title: 'Awesome Machine Learning', url: 'https://github.com/josephmisiti/awesome-machine-learning', kind: 'repo', note: 'A discovery index for libraries and learning material. Check each project’s maintenance status, license, and official documentation before adopting it.' },
   ],
+  'ml-security': [
+    { title: 'NIST AI 100-2 E2025: Adversarial Machine Learning', url: 'https://csrc.nist.gov/pubs/ai/100/2/e2025/final', kind: 'docs', note: 'The March 2025 NIST taxonomy of evasion, poisoning, privacy and generative-AI attacks and their mitigations used throughout this module.' },
+    { title: 'MITRE ATLAS', url: 'https://atlas.mitre.org/', kind: 'docs', note: 'Tactics, techniques and case studies of attacks on AI systems. The module cites technique IDs from the 2026.10 data release; check the live matrix for changes.' },
+    { title: 'OWASP Top 10 for LLM Applications', url: 'https://genai.owasp.org/llm-top-10/', kind: 'docs', note: 'The 2025 list of risks in applications built on large language models, from prompt injection to unbounded consumption.' },
+    { title: 'scikit-learn: novelty and outlier detection', url: 'https://scikit-learn.org/stable/modules/outlier_detection.html', kind: 'docs', note: 'Official guide to Isolation Forest, Local Outlier Factor and related estimators used for the anomaly-detection lesson.' },
+    { title: 'Adversarial Robustness Toolbox', url: 'https://github.com/Trusted-AI/adversarial-robustness-toolbox', kind: 'repo', note: 'An open-source library of evasion, poisoning, extraction and inference attacks and defences for testing models you are authorised to assess.' },
+    { title: 'Python documentation: pickle', url: 'https://docs.python.org/3/library/pickle.html', kind: 'docs', note: 'Read the security warning at the top: unpickling untrusted data can execute arbitrary code — the root of most model-file supply-chain risk.' },
+  ],
   'sql-ml-data-work': [
     { title: 'PostgreSQL: SQL language tutorial', url: 'https://www.postgresql.org/docs/current/tutorial.html', kind: 'docs', note: 'Official, executable introduction to relational queries, joins, aggregates, transactions, and database concepts used to prepare ML datasets.' },
     { title: 'PostgreSQL: window functions', url: 'https://www.postgresql.org/docs/current/tutorial-window.html', kind: 'docs', note: 'Explains partitions, ordering, frames, and the difference between a window calculation and a grouped aggregate.' },

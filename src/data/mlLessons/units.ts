@@ -20,4 +20,5 @@ export const ML_UNITS: MlUnit[] = [
   { id: 'time-series', title: 'Module 11 · Time Series', blurb: 'Modeling data where order matters.' },
   { id: 'mlops', title: 'Module 12 · Data Engineering & MLOps', blurb: 'Getting a model from a notebook into the real world, responsibly.' },
   { id: 'ml-system-design', title: 'Module 13 · ML System Design & Responsible Deployment', blurb: 'Turn a model into a dependable product: frame decisions, define data contracts, prevent leakage, serve predictions, investigate errors, and monitor outcomes.' },
+  { id: 'ml-security', title: 'Module 14 · ML for Security & Security of ML', blurb: 'Use models to detect attacks without drowning analysts, then defend models themselves against evasion, poisoning, supply-chain and privacy attacks, mapped to NIST AI 100-2 and MITRE ATLAS.' },
 ];

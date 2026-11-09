@@ -77,7 +77,11 @@ export const securityPlusAdvancedLabs: LabScenario[] = [
     briefing:
       'Review an exported firewall rule set for the DMZ segment. Real security audits routinely find at ' +
       'least one overly permissive "ANY-ANY" rule left over from a troubleshooting session that was never ' +
-      'removed — find it here.',
+      'removed — find it here.' +
+      ' What good looks like: a default-deny rule set where every allow rule names specific sources, ' +
+      'destinations and ports, records an owner and business reason, and carries an expiry date when it was' +
+      ' added for temporary troubleshooting. Periodic rule reviews exist to catch the temporary rules that ' +
+      'never got removed.',
     objectives: [
       { text: 'Review the exported firewall rule set', why: 'Firewall rule audits are a standard, recurring compliance activity (required under PCI DSS and most other frameworks) precisely because rule sets accumulate cruft over years of ad-hoc troubleshooting changes.' },
       { text: 'Identify the rule permitting ANY source, ANY destination, ANY port', why: 'An ANY-ANY rule anywhere in a rule set effectively negates every more specific rule around it — it\'s one of the highest-severity single findings a firewall audit can produce.' },

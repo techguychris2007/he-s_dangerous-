@@ -9,7 +9,11 @@ export const enumBruteforceLab: LabScenario = {
   briefing:
     'Target 10.10.30.7 is a small web + SSH server. Web enumeration will reveal a username; ' +
     'a wordlist on your attack box combined with hydra will get you the matching password. ' +
-    'Log in over SSH and read the flag from the user\'s home directory.',
+    'Log in over SSH and read the flag from the user\'s home directory.' +
+    ' Defender\'s view: two small weaknesses combine here, a username leaked through robots.txt and a ' +
+    'password weak enough to be in a common wordlist. SSH resists this when password login is disabled in' +
+    ' favour of keys, or when repeated failures are rate-limited and alerted on (MITRE ATT&CK T1110, ' +
+    'Brute Force). Only run password attacks against systems you have written permission to test.',
   objectives: [
     { text: 'Enumerate the web server with curl 10.10.30.7/robots.txt', why: 'robots.txt is a voluntary list of paths admins didn\'t want search engines indexing — which makes it a free hint list of things they considered sensitive enough to hide, without any authentication needed to read it.' },
     { text: 'Identify a valid SSH username from the disallowed path', why: 'Real usernames often leak this way — in path names, in commit history, in error messages — long before you ever guess one correctly.' },

@@ -92,7 +92,11 @@ export const forensicsAdvancedLabs: LabScenario[] = [
     briefing:
       'Continuing the same insider investigation, review the employee\'s browser history export for evidence ' +
       'of searches or downloads related to data exfiltration methods — a very standard part of any real ' +
-      'insider-threat forensic workflow.',
+      'insider-threat forensic workflow.' +
+      ' Handle with care: browser history shows what was searched and downloaded, not who was at the ' +
+      'keyboard or why. Corroborate it with logon records, endpoint and proxy logs, and file activity ' +
+      'before drawing conclusions, work only under the organisation\'s legal authority for the ' +
+      'investigation, and preserve the export with its hash and chain of custody.',
     objectives: [
       { text: 'Review the browser history export', why: 'Search queries immediately before an incident are some of the most direct evidence of intent available in any digital forensics case.' },
       { text: 'Identify the search query and downloaded tool related to data exfiltration', why: 'A search for "how to transfer files without IT detecting" followed immediately by downloading a file-transfer utility is a textbook pre-exfiltration pattern.' },

@@ -302,7 +302,11 @@ export const adRedteamLabs: LabScenario[] = [
     category: 'Active Directory',
     briefing:
       'Full chain: start with a low-privilege foothold on a domain workstation, escalate locally via a sudo ' +
-      'misconfiguration, recover a cached domain admin credential, then use it against the domain controller.',
+      'misconfiguration, recover a cached domain admin credential, then use it against the domain controller.' +
+      ' Defender\'s view: the chain only works because a domain administrator account was used to log on to' +
+      ' an ordinary workstation, leaving a reusable credential behind. Administrative tiering, where domain' +
+      ' admin accounts are used only on domain controllers and dedicated admin workstations, breaks this ' +
+      'chain even when a workstation is fully compromised.',
     objectives: [
       { text: 'Scan 10.10.104.6 and gain SSH access as "helpdesk" using anonymous FTP-leaked credentials', why: 'Domain-joined workstations are usually softer targets than the domain controller itself — this is why real intrusions almost never start at the DC.' },
       { text: "Run 'sudo -l' and escalate to root via the NOPASSWD rule", why: 'Local root on a domain-joined box is valuable specifically because it can expose cached credentials from prior logons.' },

@@ -9,7 +9,11 @@ export const networkReconLab: LabScenario = {
   briefing:
     'A single host, 10.10.20.5, sits in scope for this engagement. You have no other information. ' +
     'Scan it, identify every open service and its version, then use anonymous FTP access to retrieve ' +
-    'a file left on the server containing the flag.',
+    'a file left on the server containing the flag.' +
+    ' Defender\'s view: anonymous FTP is still enabled by default on some appliances and old servers, and' +
+    ' anything placed in its directory is readable by anyone who can reach the port. Disable anonymous ' +
+    'access unless it is a deliberate public mirror, prefer SFTP for file transfer, and include open FTP ' +
+    'services in regular external exposure scans.',
   objectives: [
     { text: 'Scan 10.10.20.5 with nmap -sV to enumerate all open ports/services', scene: 'The scope gives you one IP address and no service inventory. Choosing a web or login attack now would be guesswork.', question: 'Which TCP services answer on the target, and what software does each response appear to identify?', why: 'Version detection converts open port numbers into service and software hypotheses. That lets you choose the next protocol-aware action; it does not mean every returned version is vulnerable.', observe: 'Record port, state, service and version for every result. Notice that FTP, SSH and HTTP are different attack surfaces and that only one currently advertises a low-friction access path.', decision: 'Prioritise the service that exposes data with the least privilege, while retaining the other services as documented leads.' },
     { text: 'Connect to the FTP service anonymously with ftp 10.10.20.5', scene: 'Reconnaissance found an FTP listener. Before testing passwords or exploits, you need to determine whether the service intentionally or accidentally permits guest access.', question: 'Does the server accept anonymous access, and which files can that identity see?', why: 'Anonymous authentication is the least invasive, protocol-correct check for an FTP service. A successful login proves guest access; only the directory contents can establish whether that access exposes anything sensitive.', observe: 'Read the server response and file listing. Separate the harmless welcome file from a filename that suggests operational notes or backups.', decision: 'Choose the most relevant exposed file for retrieval and explain why listing access alone is not yet proof of sensitive-data exposure.' },

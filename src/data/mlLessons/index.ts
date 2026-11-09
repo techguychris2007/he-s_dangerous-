@@ -17,6 +17,7 @@ import { NLP_LESSONS } from './nlp';
 import { TIME_SERIES_LESSONS } from './timeSeries';
 import { MLOPS_LESSONS } from './mlops';
 import { ML_SYSTEM_DESIGN_LESSONS } from './systemDesign';
+import { ML_SECURITY_LESSONS } from './mlSecurity';
 import { RESOURCES_BY_UNIT } from './resources';
 import type { MlLesson } from './types';
 import { enrichMlLessonWithCode } from './mlCodeEnrichment';
@@ -39,6 +40,7 @@ const RAW_LESSONS: MlLesson[] = [
   ...TIME_SERIES_LESSONS,
   ...MLOPS_LESSONS,
   ...ML_SYSTEM_DESIGN_LESSONS,
+  ...ML_SECURITY_LESSONS,
 ].map((lesson) => SQL_DEEP_DIVE[lesson.id]
   ? { ...lesson, sections: SQL_DEEP_DIVE[lesson.id] }
   : lesson);

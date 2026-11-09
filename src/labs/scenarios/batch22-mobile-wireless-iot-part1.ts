@@ -54,7 +54,11 @@ export const batch22MobileWirelessIotLabs: LabScenario[] = [
     category: 'Mobile',
     briefing:
       'Using JADX (Java Decompiler), we can decompile APK bytecode back to readable Java source code. ' +
-      'This reveals: hardcoded API keys, weak cryptography, insecure network communication, and logic flaws.',
+      'This reveals: hardcoded API keys, weak cryptography, insecure network communication, and logic flaws.' +
+      ' Why it matters: an APK is shipped to every user, so anything inside it should be treated as public.' +
+      ' Secrets belong on a server that issues short-lived, per-user tokens, and security decisions made in' +
+      ' the client can be read and changed by anyone who decompiles it. OWASP MASVS covers these checks in ' +
+      'its MASVS-STORAGE, MASVS-CRYPTO, MASVS-NETWORK and MASVS-CODE groups.',
     objectives: [
       { text: 'cat ApiClient.java', why: 'Find hardcoded API keys.' },
       { text: 'grep -n "API_KEY\\|API_SECRET" ApiClient.java', why: 'Search for the exact hardcoded credentials.' },

@@ -30,7 +30,11 @@ export const mobileLabs2: LabScenario[] = [
     briefing:
       'northstarwallet\'s AndroidManifest.xml was pulled during static analysis. Its <application> tag sets ' +
       'android:allowBackup — confirm the value, and what that setting actually lets anyone with a USB cable ' +
-      'and no unlock code pull off the device.',
+      'and no unlock code pull off the device.' +
+      ' Context: since Android 12, adb backup leaves out the data of apps that target API level 31 or ' +
+      'higher unless the app is debuggable, so this route matters most for apps targeting older API levels ' +
+      'or devices running older Android. Setting allowBackup explicitly, and excluding secrets with backup ' +
+      'rules, still matters for the backups the platform does perform.',
     objectives: [
       { text: 'cat AndroidManifest.xml', why: 'android:allowBackup defaults to true if the developer never explicitly sets it — but even an EXPLICIT true, with no custom backup rules restricting what\'s included, is the actual finding here.' },
       { text: 'cat adb-backup-extraction.log', why: 'Confirms the practical consequence: adb backup requires no PIN, password, or biometric unlock on many Android versions when USB debugging is enabled — just physical access and a cable.' },

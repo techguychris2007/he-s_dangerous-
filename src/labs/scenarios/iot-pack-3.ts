@@ -25,7 +25,11 @@ export const iotLabs3: LabScenario[] = [
     briefing:
       'aquasense\'s companion app displays pool sensor readings pushed by the device to a cloud endpoint. ' +
       'Review the API traffic capture to confirm whether the backend verifies that a telemetry update ' +
-      'actually came from the genuine, paired device.',
+      'actually came from the genuine, paired device.' +
+      ' Why it matters: if the cloud accepts any request that looks like telemetry, anyone can impersonate ' +
+      'a device and feed false readings to its owner. Each device needs its own credential, such as a per-' +
+      'device certificate used for mutual TLS, and the backend must check that the authenticated device is ' +
+      'the one the reading claims to come from.',
     objectives: [
       { text: 'cat telemetry-api-capture.txt', why: 'Confirms the ecosystem-layer trust assumption from Lesson 1: the ' +
           'device, companion app, and cloud backend all have to agree on what counts as a legitimate update — and here, nothing does.' },
@@ -94,7 +98,12 @@ export const iotLabs3: LabScenario[] = [
     category: 'IoT',
     briefing:
       'With no UART console access available on this particular device, the SPI NOR flash chip was desoldered ' +
-      'and read directly with a CH341A programmer. Review the flashrom session and the recovered contents.',
+      'and read directly with a CH341A programmer. Review the flashrom session and the recovered contents.' +
+      ' Why it matters: reading a flash chip directly bypasses every software protection on the device, so ' +
+      'anything stored there unencrypted, including keys, should be treated as recoverable by someone with ' +
+      'the hardware in hand. Private signing keys belong in the vendor\'s build infrastructure, not on the ' +
+      'device; device secrets belong in a secure element or hardware-protected key store, with flash ' +
+      'encryption where the chip supports it.',
     objectives: [
       { text: 'cat flashrom-spi-dump-session.log', why: 'This is Lesson 3\'s SPI flash workflow — reading the chip directly, independent of whether the CPU or any software-level protection is even running, the fallback when UART/JTAG access isn\'t available.' },
       { text: 'grep -i "private" recovered-flash-dump.bin', why: 'A private signing key baked into the SAME flash chip that stores the firmware it signs defeats the entire point of code signing (the Security Engineering module\'s threat-modeling lesson) — anyone who can dump the chip can also forge validly-signed malicious updates.' },
@@ -135,7 +144,12 @@ export const iotLabs3: LabScenario[] = [
     briefing:
       'streamguard-cam-04 is running a firmware build string matching a well-documented, publicly disclosed ' +
       'unauthenticated command injection in its web server (CVE-2021-36260). Confirm the version, then run ' +
-      'the exploit.',
+      'the exploit.' +
+      ' Background: Hikvision\'s September 2021 advisory rates this flaw 9.8 (CVSS 3.1) and lists builds ' +
+      'dated before 210628 as affected; CISA added it to the Known Exploited Vulnerabilities catalog on 10 ' +
+      'January 2022. Cameras are rarely patched once installed, which is why version-to-CVE matching finds ' +
+      'this so often. The defences are firmware updates, keeping camera web interfaces off the internet, ' +
+      'and segmenting cameras from the rest of the network.',
     objectives: [
       { text: 'nmap -sV 10.10.72.30', why: 'Correlating a service\'s identified version against known CVE databases (Lesson 2\'s closing point) is often the fastest path to a documented, pre-existing exploit — no custom vulnerability research needed.' },
       { text: 'exploit cve-2021-36260-hikvision-webserver-rce 10.10.72.30', why: 'Confirms the version-to-CVE correlation was correct by actually running the documented exploit against the identified, vulnerable service.' },
@@ -178,7 +192,11 @@ export const iotLabs3: LabScenario[] = [
     briefing:
       'A copy of Mirai\'s publicly leaked source code (2016) is available for review. Read the scanner ' +
       'module\'s core logic to confirm exactly how it identified and validated candidate targets before ' +
-      'attempting the credential table from Lesson 1.',
+      'attempting the credential table from Lesson 1.' +
+      ' Why it matters: Mirai needed no vulnerability at all; it logged in to Telnet with factory-default ' +
+      'usernames and passwords. The leaked code was reused by many later botnets, so reading it explains a ' +
+      'whole family of attacks. The defences are unique per-device passwords, disabling Telnet, and ' +
+      'blocking management ports at the network edge.',
     objectives: [
       { text: 'cat mirai-source-excerpt-scanner.c', why: 'Reading the actual leaked source (Lesson 5) shows Mirai\'s scanning was not random — it deliberately excluded entire IP ranges (including, notably, Department of Defense and other government/major-corporation ranges) specifically to reduce the chance of drawing high-profile law enforcement attention.' },
     ],
@@ -220,7 +238,13 @@ export const iotLabs3: LabScenario[] = [
     category: 'IoT',
     briefing:
       'A Zigbee sniffer captured a device joining meridianhome\'s mesh network. Review the commissioning ' +
-      'exchange to confirm whether the network key transport was actually protected.',
+      'exchange to confirm whether the network key transport was actually protected.' +
+      ' Why it matters: when a device joins using the publicly known default Trust Center link key ' +
+      '("ZigBeeAlliance09"), the network key that protects the whole mesh is encrypted with a key everyone ' +
+      'knows, so a sniffer that captures the join can decrypt the network key and then all traffic. Zigbee ' +
+      '3.0 devices carry install codes, a per-device secret printed on the label from which a unique link ' +
+      'key is derived; requiring them at the Trust Center, and only opening the network for joining ' +
+      'briefly, is the fix.',
     objectives: [
       { text: 'cat zigbee-commissioning-capture.log', why: 'The Zigbee specification\'s well-known default Trust Center link key ("ZigBeeAlliance09") is meant only for the brief key-transport step — but many real implementations use no additional protection during that step, meaning anyone capturing it recovers the network key for the ENTIRE mesh, not just the joining device.' },
     ],

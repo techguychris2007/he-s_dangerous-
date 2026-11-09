@@ -114,7 +114,12 @@ export const iotLabs: LabScenario[] = [
     briefing:
       'skyviewcam-fw-v3.2.1 (the same camera firmware from earlier in this module) exposes a remote shell ' +
       'service with one of the exact factory-default credential pairs Mirai\'s hardcoded table actually ' +
-      'used in 2016. Confirm the device still accepts it.',
+      'used in 2016. Confirm the device still accepts it.' +
+      ' Why it matters: Mirai\'s spread showed that factory-default passwords on internet-reachable devices' +
+      ' are enough to build a botnet. Several jurisdictions now regulate this: the UK\'s product security ' +
+      'regime, in force since 29 April 2024, bans universal default passwords on consumer connectable ' +
+      'products, matching ETSI EN 303 645 provision 5.1. Defences are unique per-device credentials, ' +
+      'disabling remote shells, and keeping management ports off the internet.',
     objectives: [
       { text: 'hydra -l root -P mirai-defaults.txt ssh://10.10.70.20', why: 'A small, targeted list of real historical default credentials — rather than a large generic wordlist — mirrors exactly how Mirai\'s own hardcoded table worked: a short, curated set of known factory defaults, not a brute-force of the full keyspace.' },
       { text: 'ssh root@10.10.70.20, then supply the cracked password', why: 'Confirms the credential grants real access end-to-end, not just a "valid" result from hydra alone.' },
