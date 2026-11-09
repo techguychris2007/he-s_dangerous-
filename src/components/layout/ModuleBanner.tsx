@@ -65,6 +65,7 @@ const BANNERS: Record<string, BannerConfig> = {
   'se-testing': { from: '#0d1d24', to: '#1f8a6b', pattern: 'dots' },
   'se-design': { from: '#14112c', to: '#7a4fd0', pattern: 'grid' },
   'se-data-systems': { from: '#0c1a2e', to: '#2f6fa8', pattern: 'scan' },
+  'se-secure-engineering': { from: '#12122c', to: '#4c5fd5', pattern: 'circuit' },
   'se-delivery': { from: '#151229', to: '#a8792f', pattern: 'circuit' },
   'api-security': { from: '#0d2438', to: '#0891b2', pattern: 'grid' },
   'crypto-attacks': { from: '#2a1a05', to: '#92660f', pattern: 'scan' },

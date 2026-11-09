@@ -7,6 +7,7 @@ import { SE_MODULE_2 } from '../content/software-engineering/m2-construction';
 import { SE_MODULE_3 } from '../content/software-engineering/m3-testing';
 import { SE_MODULE_4 } from '../content/software-engineering/m4-design';
 import { SE_MODULE_5 } from '../content/software-engineering/m5-data-systems';
+import { SE_MODULE_6 } from '../content/software-engineering/m6-secure-engineering';
 
 const SOURCES = ['SWEBOK Guide V4.0', 'Software Engineering at Google'];
 
@@ -77,6 +78,15 @@ export const SE_MODULES: ModuleMeta[] = [
     sourceBooks: [...SOURCES, 'Designing Data-Intensive Applications', 'Amazon Builders\' Library'],
     icon: 'database',
   }, SE_MODULE_5),
+  curriculumModule({
+    id: 'se-secure-engineering',
+    slug: 'se-secure-engineering',
+    title: 'SE 8 · Secure Software Engineering',
+    subtitle: 'Threat models and requirements, injection, secrets and passwords, and the software supply chain',
+    description: 'Build security in the way you build correctness: model threats with STRIDE and set testable requirements with OWASP ASVS; fix SQL injection, command injection and path traversal with the safe API, shown side by side with the vulnerable code and mapped to CWE; keep secrets out of code and logs and store passwords properly; and make dependencies and builds verifiable with lock files, hashes, SBOMs, SLSA and KEV-aware release gates.',
+    sourceBooks: [...SOURCES, 'OWASP ASVS 5.0', 'NIST SP 800-218 (SSDF)', 'SLSA v1.2', '2025 CWE Top 25'],
+    icon: 'shield',
+  }, SE_MODULE_6),
 ];
 
 export const SE_ROADMAP: RoadmapStage[] = SE_MODULES.map((module) => ({
@@ -113,4 +123,8 @@ export const SE_LESSON_TASKS: Record<string, string[]> = {
   'swe-18': ['se-swe-35', 'se-swe-36'],
   'swe-19': ['se-swe-37', 'se-swe-38', 'se-swe-39'],
   'swe-20': ['se-swe-40', 'se-swe-41'],
+  'swe-21': ['se-swe-42', 'se-swe-43'],
+  'swe-22': ['se-swe-44', 'se-swe-45'],
+  'swe-23': ['se-swe-46', 'se-swe-47'],
+  'swe-24': ['se-swe-48', 'se-swe-49'],
 };
