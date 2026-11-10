@@ -59,7 +59,7 @@ function PageLoader() {
 function RequireLogin({ children }: { children: React.ReactNode }) {
   const auth = useAuth();
   if (auth.loading) return <FullScreenLoader />;
-  if (!auth.user) return <Navigate to="/welcome" replace />;
+  if (!auth.user || auth.user.is_anonymous) return <Navigate to="/welcome" replace />;
   return <>{children}</>;
 }
 

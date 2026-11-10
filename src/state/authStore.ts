@@ -30,20 +30,13 @@ function readCachedSessionForOfflineUse(): Session | null {
 interface AuthApi {
   session: Session | null;
   user: User | null;
-  /** True for a session created via signInAsGuest() — a real Supabase Auth user (so RLS/progress
-   *  sync work exactly as for any other account), just one with no email/password yet. Convenience
-   *  derived from `user.is_anonymous` so call sites don't need to know that field exists. */
+  /** Legacy marker; anonymous sessions are rejected before entering the workspace. */
   isGuest: boolean;
   /** True until the initial session check resolves — gates render so a logged-in user never flashes the login page. */
   loading: boolean;
   signUp: (email: string, password: string, fullName: string) => Promise<SignUpResult>;
   signIn: (email: string, password: string) => Promise<AuthResult>;
   signInWithOAuth: (provider: 'google' | 'github') => Promise<AuthResult>;
-  /** Starts an anonymous session — a real, RLS-scoped Supabase Auth account with no credentials, so
-   *  the same progress-sync path every other account uses works immediately. There is no password to
-   *  sign back in with afterward, so this identity only survives as long as this browser's session
-   *  does unless the learner later calls upgradeGuestAccount(). */
-  signInAsGuest: () => Promise<AuthResult>;
   /** Converts the current anonymous session into a permanent one with the same user id (so every row
    *  of already-synced progress carries over untouched) by attaching an email + password to it.
    *  Supabase sends a confirmation link to the new email — the account only fully upgrades ("is_anonymous"
@@ -69,11 +62,12 @@ export function useAuthState(): AuthApi {
       // the raw cached value here only ever runs when the SDK itself couldn't establish a session, so
       // it can never override or race a real, verified one.
       const resolved = data.session ?? (navigator.onLine ? null : readCachedSessionForOfflineUse());
-      if (active && !explicitlySignedOut) { setSession(resolved); setLoading(false); }
+      if (active && !explicitlySignedOut) { setSession(resolved?.user?.is_anonymous ? null : resolved); setLoading(false); }
     }).catch(() => { if (active && !explicitlySignedOut) { setSession(readCachedSessionForOfflineUse()); setLoading(false); } });
     const { data: subscription } = supabase.auth.onAuthStateChange((event, newSession) => {
       explicitlySignedOut = event === 'SIGNED_OUT';
-      setSession(newSession ?? (event !== 'SIGNED_OUT' ? readCachedSessionForOfflineUse() : null));
+      const resolved = newSession ?? (event !== 'SIGNED_OUT' ? readCachedSessionForOfflineUse() : null);
+      setSession(resolved?.user?.is_anonymous ? null : resolved);
       setLoading(false);
       // Fired once the recovery link's one-time token has been exchanged for a real (temporary)
       // session — this is the ONLY reliable signal that "the visitor just clicked a password-reset
@@ -125,11 +119,6 @@ export function useAuthState(): AuthApi {
     return { error: error ? error.message : null };
   }, []);
 
-  const signInAsGuest = useCallback(async (): Promise<AuthResult> => {
-    const { error } = await supabase.auth.signInAnonymously();
-    return { error: error ? error.message : null };
-  }, []);
-
   const upgradeGuestAccount = useCallback(async (email: string, password: string, fullName: string): Promise<AuthResult> => {
     const { error } = await supabase.auth.updateUser({
       email,
@@ -165,13 +154,12 @@ export function useAuthState(): AuthApi {
       signUp,
       signIn,
       signInWithOAuth,
-      signInAsGuest,
       upgradeGuestAccount,
       signOut,
       sendPasswordReset,
       updatePassword,
     }),
-    [session, loading, signUp, signIn, signInWithOAuth, signInAsGuest, upgradeGuestAccount, signOut, sendPasswordReset, updatePassword],
+    [session, loading, signUp, signIn, signInWithOAuth, upgradeGuestAccount, signOut, sendPasswordReset, updatePassword],
   );
 }
 

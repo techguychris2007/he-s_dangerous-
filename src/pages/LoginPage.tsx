@@ -23,7 +23,6 @@ export default function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
-  const [guestSubmitting, setGuestSubmitting] = useState(false);
   const [oauthSubmitting, setOauthSubmitting] = useState<'google' | 'github' | null>(null);
 
   useEffect(() => {
@@ -57,7 +56,7 @@ export default function LoginPage() {
   }, [auth.loading, auth.user, navigate]);
 
   const switchMode = (next: Mode) => {
-    if (submitting || guestSubmitting || oauthSubmitting) return;
+    if (submitting || oauthSubmitting) return;
     setSearchParams(next === 'signin' ? {} : { mode: next });
     setPassword(''); setConfirmPassword('');
     setError(null);
@@ -66,7 +65,7 @@ export default function LoginPage() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (submitting || guestSubmitting) return;
+    if (submitting) return;
     setError(null);
     setInfo(null);
 
@@ -110,17 +109,6 @@ export default function LoginPage() {
     navigate('/', { replace: true });
   };
 
-  const continueAsGuest = async () => {
-    if (guestSubmitting || submitting) return;
-    setError(null);
-    setInfo(null);
-    setGuestSubmitting(true);
-    const { error: guestError } = await auth.signInAsGuest().catch(() => ({error: 'Could not start a guest session. Check your connection and retry.'}));
-    setGuestSubmitting(false);
-    if (guestError) return setError(guestError);
-    navigate('/', { replace: true });
-  };
-
   const continueWithOAuth = async (provider: 'google' | 'github') => {
     if (busy || oauthSubmitting) return;
     setError(null);
@@ -133,7 +121,7 @@ export default function LoginPage() {
     }
   };
 
-  const busy = submitting || guestSubmitting || Boolean(oauthSubmitting);
+  const busy = submitting || Boolean(oauthSubmitting);
   return (
     <main className="dw-entry dw-auth">
       <aside className="dw-auth-story">
@@ -178,7 +166,6 @@ export default function LoginPage() {
               </button>
             </div>
             <div className="dw-auth-divider"><span>or explore first</span></div>
-            <button type="button" className="dw-button dw-button-secondary" disabled={busy} onClick={continueAsGuest}>{guestSubmitting ? 'Opening your workspace…' : 'Continue as guest'}</button>
             <p className="dw-auth-note">Try the lessons and labs before creating an account. Add an email from your profile to keep access to your progress.</p>
           </>}
         </div>
