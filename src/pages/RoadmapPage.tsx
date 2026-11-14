@@ -11,6 +11,7 @@ import './learning-pages.css';
 import AcademyHero from '../components/common/AcademyHero';
 import RoadmapTree from '../components/roadmap/RoadmapTree';
 import '../components/dashboard/dashboard.css';
+import { OWNER_TRACKS, useIsOwner } from '../lib/ownerAccess';
 
 const PATHS: { value: RoadmapTrack; label: string; title: string; blurb: string; focus: string }[] = [
   { value: 'presecurity', label: 'Pre-security', title: 'Pre-security roadmap', blurb: 'Understand computers, networks, operating systems, and safe lab practice. Build the habits and vocabulary you will use in every investigation.', focus: 'No prior experience needed' },
@@ -25,7 +26,9 @@ const PATHS: { value: RoadmapTrack; label: string; title: string; blurb: string;
 export default function RoadmapPage() {
   const [params, setParams] = useSearchParams();
   const treeView = !params.get('track');
-  const active = PATHS.find(path => path.value === params.get('track')) ?? PATHS[0];
+  const owner = useIsOwner();
+  const paths = PATHS.filter(path => owner || !OWNER_TRACKS.has(path.value));
+  const active = paths.find(path => path.value === params.get('track')) ?? paths[0];
   const progress = useProgress();
   const labsData = useLabsData();
   const stages = ROADMAP.filter(stage => stage.track === active.value);
@@ -40,7 +43,7 @@ export default function RoadmapPage() {
   return <div className="learning-page roadmap-page mx-auto max-w-6xl px-4 py-8 sm:px-7 sm:py-12">
     <nav aria-label="Learning paths" className="learning-path-nav">
       <button onClick={() => setParams({})} aria-pressed={treeView} className={`rounded-lg border px-3.5 py-2.5 text-xs font-semibold transition ${treeView ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/10 text-[var(--color-accent-dim)]' : 'border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-dim)] hover:text-[var(--color-heading)]'}`}>Roadmap tree</button>
-      {PATHS.map(path => <button key={path.value} onClick={() => setParams({ track: path.value })} aria-pressed={!treeView && active.value === path.value} className={`rounded-lg border px-3.5 py-2.5 text-xs font-semibold transition ${!treeView && active.value === path.value ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/10 text-[var(--color-accent-dim)]' : 'border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-dim)] hover:text-[var(--color-heading)]'}`}>{path.label}</button>)}
+      {paths.map(path => <button key={path.value} onClick={() => setParams({ track: path.value })} aria-pressed={!treeView && active.value === path.value} className={`rounded-lg border px-3.5 py-2.5 text-xs font-semibold transition ${!treeView && active.value === path.value ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/10 text-[var(--color-accent-dim)]' : 'border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-dim)] hover:text-[var(--color-heading)]'}`}>{path.label}</button>)}
     </nav>
     {treeView ? <>
       <header className="mb-8 text-center"><p className="gold-eyebrow mb-2">// the darkworld roadmap</p><h1 className="mb-2 text-3xl font-bold text-[var(--color-heading)] sm:text-4xl">Your learning roadmap</h1><p className="mx-auto max-w-2xl text-sm leading-relaxed text-[var(--color-text-dim)]">Start with the foundations, then choose a career path. Every module shows your progress; the highlighted card in each branch is your next step.</p></header>

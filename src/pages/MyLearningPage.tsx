@@ -18,6 +18,7 @@ import {
   IconFlask,
 } from '../components/layout/icons';
 import type { RoadmapStage, RoadmapTrack } from '../types';
+import { OWNER_TRACKS, useIsOwner } from '../lib/ownerAccess';
 
 const PRACTICE_LABS = [
   ...LABS.map(lab => ({ ...lab, href: '/lab/' + lab.slug })),
@@ -198,7 +199,8 @@ function SavedTab() {
 export default function MyLearningPage() {
   const [tab, setTab] = useState<TabId>('current');
   const [params, setParams] = useSearchParams();
-  const paths = [['presecurity', 'Pre-security'], ['security', 'Offensive security'], ['defensive', 'Defensive security'], ['programming', 'Programming'], ['software', 'Software engineering']] as const;
+  const owner = useIsOwner();
+  const paths = ([['presecurity', 'Pre-security'], ['security', 'Offensive security'], ['defensive', 'Defensive security'], ['programming', 'Programming'], ['software', 'Software engineering']] as const).filter(([id]) => owner || !OWNER_TRACKS.has(id));
   const track = paths.find(([id]) => id === params.get('track'))?.[0] ?? 'presecurity';
   const progress = useProgress();
   const modules = ROADMAP.filter(stage => stage.track === track).map(stage => findModule(stage.moduleSlug)).filter(mod => mod !== undefined);

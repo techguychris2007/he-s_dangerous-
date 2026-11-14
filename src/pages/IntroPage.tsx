@@ -12,6 +12,7 @@ import { IconArrowRight, IconBook, IconCheck, IconCode, IconFlag, IconLightning,
 import type { RoadmapTrack } from '../types';
 import './entry-pages.css';
 import './landing.css';
+import { OWNER_TRACKS, useIsOwner } from '../lib/ownerAccess';
 
 const PATHS: { track: RoadmapTrack; title: string; label: string; body: string; icon: string; tone: IsoTone; guide: CharacterId }[] = [
   { track: 'presecurity', label: 'Start here', title: 'Pre-security', body: 'Computers, networks, Linux and the tools every lab uses — from zero.', icon: 'terminal', tone: 'progress', guide: 'byte' },
@@ -62,6 +63,7 @@ function HeroScene() {
 }
 
 export default function IntroPage() {
+  const owner = useIsOwner();
   const auth = useAuth();
   const labsData = useLabsData();
   if (!auth.loading && auth.user) return <Navigate to="/" replace />;
@@ -127,7 +129,7 @@ export default function IntroPage() {
         <div className="ln-wrap">
           <div className="ln-head ln-head--light"><p className="ln-kicker"><span />Learning paths</p><h2 id="paths-title">Choose your side. Clear the map.</h2><p>Five paths, each a roadmap of modules lit tile by tile as you progress. Start with pre-security if you are new.</p></div>
           <div className="ln-paths">
-            {PATHS.map((p) => (
+            {PATHS.filter((p) => owner || !OWNER_TRACKS.has(p.track)).map((p) => (
               <Link key={p.track} to="/login?mode=signup" className="ln-path">
                 <div className="ln-path__top">
                   <IsoBlock width={74} depth={14} tone={p.tone} crest={<ModuleIcon icon={p.icon} />} />

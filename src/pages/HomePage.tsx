@@ -12,6 +12,7 @@ import { ProfileHeader, ContinueCard, DailyOpCard, WeekCard, CrewPicker, type Co
 import { guideForArea, type CharacterId } from '../data/characters';
 import AchievementShelf from '../components/common/AchievementShelf';
 import { categoryIconKey } from '../data/labIcon';
+import { OWNER_TRACKS, useIsOwner } from '../lib/ownerAccess';
 
 const TOTAL_LESSONS = MODULES.reduce((n, m) => n + m.lessons.length, 0);
 const MODULE_PREVIEW = 9;
@@ -123,12 +124,13 @@ export default function HomePage() {
         }
       : { title: 'Put your knowledge to work', detail: 'Choose a practical challenge from the lab catalog.', to: '/labs', label: 'Explore labs', percent: 0, guide: 'vex', icon: 'flag', kind: 'Rooms' };
 
-  const paths = useMemo(() => PATHS.map((path) => {
+  const owner = useIsOwner();
+  const paths = useMemo(() => PATHS.filter((path) => owner || !OWNER_TRACKS.has(path.track)).map((path) => {
     const lessons = ROADMAP.filter((stage) => stage.track === path.track && stage.moduleSlug)
       .flatMap((stage) => findModule(stage.moduleSlug)?.lessons ?? []);
     const done = lessons.filter((l) => progress.completedLessons[l.id]).length;
     return { ...path, done, total: lessons.length };
-  }), [progress.completedLessons]);
+  }), [progress.completedLessons, owner]);
 
   const shownModules = showAllModules || moduleSearch.trim() ? visibleModules : visibleModules.slice(0, MODULE_PREVIEW);
   const numbers = [

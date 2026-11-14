@@ -18,6 +18,7 @@ import LessonPath from '../components/learning/LessonPath';
 import '../components/labs/catalog.css';
 import { booksInTrack } from '../data/books';
 import OfflineRuntimeCard from '../components/layout/OfflineRuntimeCard';
+import { isOwnerOnlyTask, useIsOwner } from '../lib/ownerAccess';
 
 const CODE_MODULE_SLUGS = [
   'code-python-fundamentals',
@@ -28,7 +29,7 @@ const CODE_MODULE_SLUGS = [
   'programming-engineering',
 ];
 
-const ALL_TASKS = [...PYTHON_TASKS, ...CPP_TASKS, ...JS_TASKS, ...CSHARP_TASKS, ...TS_TASKS, ...DEVOPS_TASKS, ...SECURITY_TASKS];
+const EVERY_TASK = [...PYTHON_TASKS, ...CPP_TASKS, ...JS_TASKS, ...CSHARP_TASKS, ...TS_TASKS, ...DEVOPS_TASKS, ...SECURITY_TASKS];
 
 const LANGUAGE_TABS: { value: CodeLanguage | 'All'; label: string }[] = [
   { value: 'All', label: 'All languages' },
@@ -58,6 +59,10 @@ const percent = (value: number, total: number) => (total ? Math.round((100 * val
 
 export default function CodePortalPage() {
   const progress = useProgress();
+  const owner = useIsOwner();
+  // C#, software engineering and ML tasks belong to owner-only tracks.
+  const ALL_TASKS = useMemo(() => owner ? EVERY_TASK : EVERY_TASK.filter((task) => !isOwnerOnlyTask(task)), [owner]);
+  const languageTabs = LANGUAGE_TABS.filter((tab) => tab.value === 'All' || ALL_TASKS.some((task) => task.language === tab.value));
   const [languageFilter, setLanguageFilter] = useState<CodeLanguage | 'All'>('All');
   const [categoryFilter, setCategoryFilter] = useState<string>('All');
   const [search, setSearch] = useState('');
@@ -90,23 +95,23 @@ export default function CodePortalPage() {
   const tasksDone = useMemo(
     () => ALL_TASKS.filter((t) => progress.isCodeTaskComplete(t.id)).length,
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [progress.completedCodeTasks],
+    [progress.completedCodeTasks, ALL_TASKS],
   );
   const languageStats = useMemo(
     () =>
-      LANGUAGE_TABS.filter((tab): tab is { value: CodeLanguage; label: string } => tab.value !== 'All').map((tab) => {
+      languageTabs.filter((tab): tab is { value: CodeLanguage; label: string } => tab.value !== 'All').map((tab) => {
         const tasks = ALL_TASKS.filter((task) => task.language === tab.value);
         const solved = tasks.filter((task) => progress.isCodeTaskComplete(task.id)).length;
         return { ...tab, total: tasks.length, solved };
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [progress.completedCodeTasks],
+    [progress.completedCodeTasks, ALL_TASKS],
   );
 
   const categoriesForLanguage = useMemo(() => {
     if (languageFilter === 'All') return Array.from(new Set(ALL_TASKS.map((t) => t.category)));
-    return CATEGORIES_BY_LANGUAGE[languageFilter];
-  }, [languageFilter]);
+    return CATEGORIES_BY_LANGUAGE[languageFilter].filter((category) => ALL_TASKS.some((t) => t.language === languageFilter && t.category === category));
+  }, [languageFilter, ALL_TASKS]);
 
   const search_ = search.trim().toLowerCase();
   const filteredTasks = useMemo(
@@ -117,7 +122,7 @@ export default function CodePortalPage() {
         if (search_ && !t.title.toLowerCase().includes(search_) && !t.category.toLowerCase().includes(search_)) return false;
         return true;
       }),
-    [languageFilter, categoryFilter, search_],
+    [languageFilter, categoryFilter, search_, ALL_TASKS],
   );
 
   const lessonPercent = percent(lessonsDone, totalLessons);
@@ -223,7 +228,7 @@ export default function CodePortalPage() {
               {search && <button onClick={() => setSearch('')} aria-label="Clear search"><IconX className="h-3.5 w-3.5" /></button>}
             </div>
             <div className="dw-segment" role="group" aria-label="Filter by programming language">
-              {LANGUAGE_TABS.map((tab) => <button key={tab.value} onClick={() => { setLanguageFilter(tab.value); setCategoryFilter('All'); setVisibleCount(PAGE_SIZE); }} aria-pressed={languageFilter === tab.value}>{tab.label}</button>)}
+              {languageTabs.map((tab) => <button key={tab.value} onClick={() => { setLanguageFilter(tab.value); setCategoryFilter('All'); setVisibleCount(PAGE_SIZE); }} aria-pressed={languageFilter === tab.value}>{tab.label}</button>)}
             </div>
             <div className="dw-segment" role="group" aria-label="Filter by progress status">
               {STATUSES.map((s) => <button key={s} onClick={() => { setStatusFilter(s); setVisibleCount(PAGE_SIZE); }} aria-pressed={statusFilter === s}>{s}</button>)}

@@ -6,12 +6,15 @@ import type { SiemLabScenario } from '../../labs/siemTypes';
 import { assessWorkbookAnswer, workbookProof } from '../../labs/workbookAssessment';
 import QueryConsole from './QueryConsole';
 import RoomHero from '../common/RoomHero';
-import TaskList from '../common/TaskList';
+import TaskList from '../common/MissionPlan';
 import RoomAside from '../common/RoomAside';
 import { guideForArea } from '../../data/characters';
 import { labXpReward } from '../../data/levels';
 import { estimateMinutes } from '../../data/rooms';
+import { IconShield, IconTerminal } from '../layout/icons';
+import '../labs/lab-mission.css';
 import './case-workbook.css';
+import { isOwnerEmail } from '../../lib/ownerAccess';
 
 export default function CaseWorkbook({ scenario }: { scenario: SiemLabScenario }) {
   const { user } = useAuth();
@@ -22,6 +25,7 @@ function AccountCaseWorkbook({ scenario }: { scenario: SiemLabScenario }) {
   const book = scenario.workbook!;
   const { user } = useAuth();
   const progress = useProgress();
+  const owner = isOwnerEmail(user?.email);
   const key = `dw.workbook.v${book.version}.${user?.id ?? 'guest'}.${scenario.id}`;
   const [index, setIndex] = useState(() => {
     try { const saved = Number(localStorage.getItem(key + '.question')); return Number.isInteger(saved) && saved >= 0 && saved < book.questions.length ? saved : 0; } catch { return 0; }
@@ -51,7 +55,7 @@ function AccountCaseWorkbook({ scenario }: { scenario: SiemLabScenario }) {
     if (assessment.passed) progress.captureFlag(scenario.id, workbookProof(scenario.id, question.id), scenario.totalFlags);
   }
   return <>
-    <section className="dw-case-launch"><div className="dw-room-page"><div className="min-w-0"><RoomHero
+    <section className="dw-mission-launch"><div className="dw-room-page"><div className="min-w-0"><RoomHero
         guide={guideForArea(`${scenario.title} soc`)}
         crumbs={[{ label: 'SOC casebooks', to: '/soc-portal' }, { label: 'Analyst casebook' }, { label: scenario.title }]}
         title={scenario.title}
@@ -71,14 +75,36 @@ function AccountCaseWorkbook({ scenario }: { scenario: SiemLabScenario }) {
       />
       <TaskList
         title="Case chapters"
-        tasks={book.chapters.map(chapter => ({ text: chapter.title, done: book.questions.every(item => item.chapter !== chapter.id || verified(item.id)) }))}
+        tasks={book.chapters.map(chapter => {
+          const items = book.questions.filter(item => item.chapter === chapter.id);
+          const solved = items.filter(item => verified(item.id)).length;
+          const complete = items.every(item => verified(item.id));
+          return { text: chapter.title, detail: `${items.length} finding${items.length === 1 ? '' : 's'} to verify in this chapter (${solved} verified).${items[0] ? ` It opens with: ${items[0].prompt}` : ''}`, done: complete, status: complete ? 'complete' as const : undefined };
+        })}
         onOpen={chapterIndex => {
           const chapterId = book.chapters[chapterIndex].id;
           const first = book.questions.findIndex(item => item.chapter === chapterId && !verified(item.id));
           navigate(first >= 0 ? first : book.questions.findIndex(item => item.chapter === chapterId));
           openCase();
         }}
-      /><details><summary>Dataset provenance & offline support</summary><p>{book.provenance}</p><p>The documented query subsets run on your device. Download the app while online before disconnecting. There is no live vendor SIEM connection and no query-server charge.</p></details></div>
+      />
+      <section className="dw-case-file" aria-labelledby="case-file-title">
+        <div className="dw-case-file__heading"><span>Case file</span><h2 id="case-file-title">Your role and mission</h2></div>
+        <div className="dw-case-file__grid">
+          <div><h3>Assignment</h3><p>SOC analyst on the case. Answer each finding from the evidence in the records, and only claim what that evidence supports.</p></div>
+          <div><h3>Situation</h3><p>{scenario.narrative?.scene ?? scenario.briefing}</p></div>
+          <div><h3>Evidence</h3><p>{scenario.entries.length.toLocaleString()} records across {book.chapters.length} chapters, searchable in five query dialects (KQL, SPL and more). {book.questions.length} findings close the case.</p></div>
+          <div><h3>Training basis</h3><p>{book.provenance}</p></div>
+        </div>
+        {scenario.narrative?.mission && <p className="dw-case-file__mission"><strong>Mission:</strong> {scenario.narrative.mission}</p>}
+      </section>
+      <section className="dw-room-brief" aria-labelledby="case-workspace-title">
+        <h2 id="case-workspace-title">Your workspace</h2>
+        <div className="dw-room-brief__grid">
+          <div><span className="dw-room-brief__icon"><IconTerminal className="h-4 w-4" /></span><h3>Questions beside the queries</h3><p>Each finding sits next to a query console over the same case records. Pick any dialect, run your search and submit what the evidence shows. Only verified findings count toward closing the case.</p></div>
+          <div><span className="dw-room-brief__icon"><IconShield className="h-4 w-4" /></span><h3>Runs on your device</h3><p>The documented query subsets run locally in your browser.{owner ? ' Download the app while online before disconnecting.' : ''} There is no live vendor SIEM connection and no query-server charge.</p></div>
+        </div>
+      </section></div>
       <RoomAside
         difficulty={scenario.difficulty}
         minutes={estimateMinutes(scenario.difficulty, Math.ceil(book.questions.length / 2))}

@@ -304,6 +304,7 @@ export const MODULE_TO_LAB_CATEGORY: Record<string, (typeof LAB_CATEGORIES)[numb
   'kali-workstation': 'Linux',
   'evidence-led-validation': 'Network',
   'session-access-boundaries': 'Linux',
+  'pre-introduction': 'Security+',
   'pre-computing': 'Linux',
   'pre-networks-web': 'Network',
   'pre-operating-systems': 'Network',

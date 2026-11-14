@@ -2,6 +2,22 @@ import type { TypedQuestion } from '../../types';
 
 /** Pre-security and Kali workstation lessons. */
 export const PRE_SECURITY_QUESTIONS: Record<string, TypedQuestion[]> = {
+  'pre-intro-1': [
+    { prompt: 'Which CIA goal is broken when ransomware stops a hospital from opening patient records?', answer: 'availability' },
+    { prompt: 'Which step of AAA decides what a logged-in user is allowed to do?', answer: 'authorisation', accept: ['authorization'] },
+  ],
+  'pre-intro-2': [
+    { prompt: 'What do we call a weakness — such as a software bug or weak password — that a threat could exploit?', answer: 'vulnerability', accept: ['a vulnerability'] },
+    { prompt: 'An alert that fires on 50 failed logins in a minute is which kind of control: preventive, detective, or corrective?', answer: 'detective', accept: ['detective control'] },
+  ],
+  'pre-intro-3': [
+    { prompt: 'What is the written agreement that sets scope, timing, and limits for an authorised test called?', answer: 'rules of engagement', accept: ['rules of engagement document'] },
+    { prompt: 'Which NIST CSF 2.0 function covers monitoring alerts and noticing attacks?', answer: 'detect', accept: ['Detect'] },
+  ],
+  'pre-intro-4': [
+    { prompt: 'Which NICE Framework category contains Incident Response and Threat Analysis work roles?', answer: 'protection and defense', accept: ['protection and defence', 'Protection and Defense', 'Protection and Defence'] },
+    { prompt: 'What do we call a competition or practice challenge where participants solve security puzzles to find hidden flags?', answer: 'CTF', accept: ['capture the flag', 'Capture The Flag'] },
+  ],
   'pre-compute-1': [
     { prompt: 'Which command lists a directory including its hidden files?', answer: 'ls -la', accept: ['ls -a', 'ls -al'] },
     { prompt: 'What does the platform call the checkpoint that proves you completed a specific action?', answer: 'flag', accept: ['a flag', 'flags'] },

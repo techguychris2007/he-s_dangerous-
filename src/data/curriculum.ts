@@ -13,6 +13,7 @@ import { PRE_SECURITY_MODULES, PRE_SECURITY_ROADMAP } from './preSecurityCurricu
 import { DEFENSIVE_MODULES, DEFENSIVE_ROADMAP } from './defensiveCurriculum';
 import { SE_MODULES, SE_ROADMAP } from './softwareEngineeringCurriculum';
 import { DN_MODULES, DN_ROADMAP } from './dotnetCurriculum';
+import { watchOwnerSession } from '../lib/ownerSession';
 
 const OsiTcpIp = lazy(() => import('../content/networking/01-osi-tcpip'));
 const IpSubnetting = lazy(() => import('../content/networking/02-ip-subnetting'));
@@ -1004,6 +1005,23 @@ export const ROADMAP: RoadmapStage[] = [
   { title: 'Time Series', status: 'available', href: '/ml-lesson/time-series', sourceBooks: ['GCI World Session 12'], track: 'ml' },
   { title: 'Data Engineering & MLOps', status: 'available', href: '/ml-lesson/sql-databases', sourceBooks: ['GCI World Session 10 & extension'], track: 'ml' },
 ];
+
+const ALL_MODULES = [...MODULES];
+const ALL_ROADMAP = [...ROADMAP];
+const OWNER_MODULE_SLUGS = new Set([...SE_MODULES, ...DN_MODULES].map(module => module.slug));
+const OWNER_ROADMAP_TRACKS = new Set(['software', 'dotnet', 'ml']);
+let ownerCurriculum: boolean | undefined;
+
+/** Machine learning, C# & .NET and software engineering are visible only to the owner accounts
+ *  (see src/lib/ownerAccess.ts). Applied with the signed-in account before pages render, so every
+ *  list, count and lookup built on MODULES / ROADMAP leaves those tracks out for everyone else. */
+export function applyCurriculumAccess(owner: boolean) {
+  if (ownerCurriculum === owner) return;
+  ownerCurriculum = owner;
+  MODULES.splice(0, MODULES.length, ...(owner ? ALL_MODULES : ALL_MODULES.filter(module => !OWNER_MODULE_SLUGS.has(module.slug))));
+  ROADMAP.splice(0, ROADMAP.length, ...(owner ? ALL_ROADMAP : ALL_ROADMAP.filter(stage => !OWNER_ROADMAP_TRACKS.has(stage.track))));
+}
+watchOwnerSession(applyCurriculumAccess);
 
 export function findModule(slug?: string) {
   return MODULES.find((m) => m.slug === slug);

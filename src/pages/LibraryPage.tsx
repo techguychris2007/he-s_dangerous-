@@ -5,6 +5,7 @@ import { BOOKS, booksInTrack, type Book, type BookTrack } from '../data/books';
 import PortalNavigation from '../components/layout/PortalNavigation';
 import { IconBook, IconCheck, IconDownload, IconExternal, IconSearch, IconX } from '../components/layout/icons';
 import CharacterAvatar from '../components/characters/CharacterAvatar';
+import { useIsOwner } from '../lib/ownerAccess';
 
 type OfflineBookStatus = 'checking' | 'ready' | 'saving' | 'saved' | 'removing' | 'error' | 'unsupported';
 
@@ -75,6 +76,7 @@ function groupByStage(books: Book[]): { stage: string | undefined; books: Book[]
 }
 
 export default function LibraryPage() {
+  const owner = useIsOwner();
   const [params, setParams] = useSearchParams();
   const [offlineStates, setOfflineStates] = useState<Record<string, OfflineBookStatus>>({});
   const [online, setOnline] = useState(() => navigator.onLine);
@@ -296,7 +298,7 @@ export default function LibraryPage() {
                 {['Book', 'Documentation', 'Repository', 'Course'].map(kind => <option key={kind} value={kind}>{kind}</option>)}
               </select>
               <span className="text-xs text-[var(--color-text-dim)]" role="status">{visibleBooks.length} resources shown</span>
-              <Link to="/ml-portal" className="ml-auto text-sm font-semibold text-[var(--color-accent)]">Continue ML lessons &rarr;</Link>
+              {owner && <Link to="/ml-portal" className="ml-auto text-sm font-semibold text-[var(--color-accent)]">Continue ML lessons &rarr;</Link>}
             </div>
           )}
         </div>

@@ -9,6 +9,7 @@ import CharacterAvatar from '../characters/CharacterAvatar';
 import ProgressRing from '../common/ProgressRing';
 import { IconCheck, ModuleIcon } from '../layout/icons';
 import './roadmap-tree.css';
+import { OWNER_TRACKS, useIsOwner } from '../../lib/ownerAccess';
 
 /** Track tone = one platform token per career path, used for icon tiles, connectors and badges. */
 const BRANCHES: { track: RoadmapTrack; title: string; blurb: string; tone: string; guide: CharacterId }[] = [
@@ -103,6 +104,7 @@ function Branch({ branch, onOpen }: { branch: (typeof BRANCHES)[number]; onOpen:
 /** TryHackMe-style roadmap: a trunk of foundations that branches into four careers, with progress on
  *  every module and a guide at the head of each branch. */
 export default function RoadmapTree({ onOpen }: { onOpen: (track: RoadmapTrack) => void }) {
+  const owner = useIsOwner();
   const status = useStageStatus();
   const pre = ROADMAP.filter((s) => s.track === 'presecurity');
   const preDone = pre.filter((s) => status(s).complete).length;
@@ -129,7 +131,7 @@ export default function RoadmapTree({ onOpen }: { onOpen: (track: RoadmapTrack) 
       </div>
       <div className="rm-split" aria-hidden="true" />
       <div className="rm-branches">
-        {BRANCHES.map((branch) => <Branch key={branch.track} branch={branch} onOpen={onOpen} />)}
+        {BRANCHES.filter((branch) => owner || !OWNER_TRACKS.has(branch.track)).map((branch) => <Branch key={branch.track} branch={branch} onOpen={onOpen} />)}
       </div>
       <div className="rm-end">
         <div className="rm-end__beam" aria-hidden="true" />

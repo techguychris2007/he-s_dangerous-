@@ -39,7 +39,7 @@ const defaults: Record<string, string[]> = {
   'crypto-attacks': ['crypto', 'tls'], cloud: ['cloud', 'identity'], binaryanalysis: ['memory', 'shell'],
   malware: ['memory', 'permissions'], secengineering: ['identity', 'crypto'], mobile: ['mobile', 'http'],
   wireless: ['network', 'packets'], iot: ['iot', 'network'], 'ai-security': ['ai', 'identity'],
-  'pre-computing': ['shell', 'permissions'], 'kali-workstation': ['shell', 'network'],
+  'pre-introduction': ['identity', 'network'], 'pre-computing': ['shell', 'permissions'], 'kali-workstation': ['shell', 'network'],
   'pre-networks-web': ['network', 'http'], 'pre-operating-systems': ['shell', 'packets'],
   'pre-scripting-data': ['python', 'json'], 'pre-security-principles': ['identity', 'logs'],
   'pre-lab-readiness': ['shell', 'network'], forensics: ['logs', 'permissions'], securityplus: ['identity', 'network'],

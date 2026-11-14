@@ -14,6 +14,8 @@ import StatCard from '../components/common/StatCard';
 import AchievementShelf from '../components/common/AchievementShelf';
 import DifficultyPill from '../components/common/DifficultyPill';
 import WorkspaceHeader from '../components/common/WorkspaceHeader';
+import { isOwnerOnlyTask, OWNER_TRACKS, useIsOwner } from '../lib/ownerAccess';
+import type { RoadmapTrack } from '../types';
 
 /** Every code-portal task registry combined, mirroring how CodePortalPage + MlPortalPage already
  *  compute their own totals — this is the same real task list, not a new invented count. */
@@ -32,6 +34,9 @@ function toLocalDateStr(d: Date): string {
 }
 
 export default function ProgressPage() {
+  const owner = useIsOwner();
+  // C#, software engineering and ML tasks count only for the owner accounts that can see them.
+  const codeTasks = useMemo(() => owner ? ALL_CODE_TASKS : ALL_CODE_TASKS.filter((task) => !isOwnerOnlyTask(task)), [owner]);
   const progress = useProgress();
 
   const allLessons = useMemo(
@@ -63,9 +68,9 @@ export default function ProgressPage() {
   }, [progress.labFlags]);
 
   const codeTasksDone = useMemo(
-    () => ALL_CODE_TASKS.filter((t) => progress.isCodeTaskComplete(t.id)).length,
+    () => codeTasks.filter((t) => progress.isCodeTaskComplete(t.id)).length,
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [progress.completedCodeTasks],
+    [progress.completedCodeTasks, codeTasks],
   );
 
   const { quizzesTaken, avgQuizScore } = useMemo(() => {
@@ -84,7 +89,7 @@ export default function ProgressPage() {
   // Overall completion folds in every real, trackable unit of work — not just lessons/labs like the
   // old ring did — so it actually reflects the Code Portal effort visible in the stats right next to it.
   const overallDone = completedLessons + labsDone + codeTasksDone;
-  const overallTotal = totalLessons + LABS.length + ALL_CODE_TASKS.length;
+  const overallTotal = totalLessons + LABS.length + codeTasks.length;
   const scorePct = Math.round((100 * overallDone) / Math.max(1, overallTotal));
   const circumference = 2 * Math.PI * 54;
   const dash = (scorePct / 100) * circumference;
@@ -146,7 +151,7 @@ export default function ProgressPage() {
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-10">
         <StatCard icon={<IconCheck className="w-5 h-5" />} color="var(--color-success)" label="Flags captured" value={`${capturedFlags} / ${totalFlags}`} />
-        <StatCard icon={<IconCode className="w-5 h-5" />} color="var(--color-accent)" label="Code tasks done" value={`${codeTasksDone} / ${ALL_CODE_TASKS.length}`} />
+        <StatCard icon={<IconCode className="w-5 h-5" />} color="var(--color-accent)" label="Code tasks done" value={`${codeTasksDone} / ${codeTasks.length}`} />
         <StatCard icon={<IconBook className="w-5 h-5" />} color="var(--color-accent-2)" label="Quizzes taken" value={quizzesTaken} />
         <StatCard icon={<IconStar className="w-5 h-5" />} color="var(--color-gold)" label="Avg. quiz score" value={`${avgQuizScore}%`} />
         <Link to="/profile" className="block">
@@ -223,7 +228,7 @@ export default function ProgressPage() {
       </div>
 
       {/* Per-module, per-track breakdown — the real detail behind the summary numbers above. */}
-      {Object.entries(TRACK_LABEL).map(([track, label]) => { const modules = trackModules.filter(item => item.stage.track === track); return (
+      {Object.entries(TRACK_LABEL).filter(([track]) => owner || !OWNER_TRACKS.has(track as RoadmapTrack)).map(([track, label]) => { const modules = trackModules.filter(item => item.stage.track === track); return (
         modules.length === 0 ? null : (
           <section key={track} className="mb-10">
             <h2 className="text-base font-bold text-[var(--color-heading)] mb-3">{label}</h2>

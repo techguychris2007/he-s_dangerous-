@@ -6,6 +6,7 @@ import { ProgressContext, useProgressState, useProgress } from './state/progress
 import { AuthContext, useAuthState, useAuth } from './state/authStore';
 import { pullProgress, pushProgressWithRetry } from './lib/progressSync';
 import { isInstructor } from './lib/instructorConfig';
+import { isOwnerEmail, setOwnerSession, useIsOwner } from './lib/ownerAccess';
 import { setSyncStatus } from './state/syncStatus';
 
 // Keep sign-in independent of the academy shell and curriculum downloads.
@@ -54,6 +55,11 @@ function PageLoader() {
       <p className="text-sm text-[var(--color-text-dim)]">Loading your workspace…</p>
     </div>
   );
+}
+
+/** Machine learning and Build (software engineering) portals: owner accounts only. */
+function RequireOwner({ children }: { children: React.ReactNode }) {
+  return useIsOwner() ? <>{children}</> : <Navigate to="/" replace />;
 }
 
 function RequireLogin({ children }: { children: React.ReactNode }) {
@@ -207,6 +213,7 @@ function ProgressSync() {
 function App() {
   const progress = useProgressState();
   const auth = useAuthState();
+  setOwnerSession(isOwnerEmail(auth.user?.email));
 
   return (
     <ProgressContext.Provider value={progress}>
@@ -264,7 +271,7 @@ function App() {
               element={
                 <RequireLogin>
                   <Suspense fallback={<PageLoader />}>
-                    <BuildPortalPage />
+                    <RequireOwner><BuildPortalPage /></RequireOwner>
                   </Suspense>
                 </RequireLogin>
               }
@@ -274,7 +281,7 @@ function App() {
               element={
                 <RequireLogin>
                   <Suspense fallback={<PageLoader />}>
-                    <LearningShell><ProjectTaskPage /></LearningShell>
+                    <RequireOwner><LearningShell><ProjectTaskPage /></LearningShell></RequireOwner>
                   </Suspense>
                 </RequireLogin>
               }
@@ -284,7 +291,7 @@ function App() {
               element={
                 <RequireLogin>
                   <Suspense fallback={<PageLoader />}>
-                    <SeVerifyPage />
+                    <RequireOwner><SeVerifyPage /></RequireOwner>
                   </Suspense>
                 </RequireLogin>
               }
@@ -314,7 +321,7 @@ function App() {
               element={
                 <RequireLogin>
                   <Suspense fallback={<PageLoader />}>
-                    <MlPortalPage />
+                    <RequireOwner><MlPortalPage /></RequireOwner>
                   </Suspense>
                 </RequireLogin>
               }
@@ -324,7 +331,7 @@ function App() {
               element={
                 <RequireLogin>
                   <Suspense fallback={<PageLoader />}>
-                    <LearningShell><MlLessonPage /></LearningShell>
+                    <RequireOwner><LearningShell><MlLessonPage /></LearningShell></RequireOwner>
                   </Suspense>
                 </RequireLogin>
               }

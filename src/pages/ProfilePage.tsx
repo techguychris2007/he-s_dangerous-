@@ -14,6 +14,7 @@ import { ProfileHeader } from '../components/dashboard/DashboardWidgets';
 import { useHandle } from '../state/useHandle';
 import { Link } from 'react-router-dom';
 import { CERTIFICATE_PATHS, certificateStatus } from '../data/pathCertificates';
+import { OWNER_TRACKS, useIsOwner } from '../lib/ownerAccess';
 
 const POINTS: Record<string, number> = { Easy: 10, Medium: 20, Hard: 30 };
 
@@ -111,7 +112,9 @@ export default function ProfilePage() {
   const progress = useProgress();
   const auth = useAuth();
   const { handle, reroll: rerollHandle } = useHandle();
-  const certsEarned = CERTIFICATE_PATHS.filter((path) => certificateStatus(path.track, progress.isLessonComplete).earned).length;
+  const owner = useIsOwner();
+  const certificatePaths = CERTIFICATE_PATHS.filter((path) => owner || !OWNER_TRACKS.has(path.track));
+  const certsEarned = certificatePaths.filter((path) => certificateStatus(path.track, progress.isLessonComplete).earned).length;
 
   const totalLessons = useMemo(() => MODULES.reduce((sum, m) => sum + m.lessons.length, 0), []);
   const completedLessons = useMemo(
@@ -192,7 +195,7 @@ export default function ProfilePage() {
           <h2 className="text-lg font-bold text-[var(--color-heading)]">The DarkWorld badge</h2>
           <p className="mt-2 text-xs leading-6 text-[var(--color-text-dim)]">A shared identity for curious builders, testers, and defenders. Use this platform badge alongside your own portfolio; individual lab certificates record your learning progress.</p>
           <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-semibold text-[var(--color-accent)]">
-            <Link to="/certificates">Path certificates · {certsEarned} of {CERTIFICATE_PATHS.length} earned →</Link>
+            <Link to="/certificates">Path certificates · {certsEarned} of {certificatePaths.length} earned →</Link>
             <a href={`${import.meta.env.BASE_URL}darkworld-badge.png`} download="darkworld-badge.png">Download badge · PNG →</a>
             <a href={`${import.meta.env.BASE_URL}darkworld-badge.svg`} download="darkworld-badge.svg">Vector · SVG →</a>
           </div>

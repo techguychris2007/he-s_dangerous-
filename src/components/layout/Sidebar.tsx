@@ -8,7 +8,8 @@ import Logo from './Logo';
 import { OperatorAvatar } from '../characters/CharacterAvatar';
 import { useHandle } from '../../state/useHandle';
 import AcademySearch from './AcademySearch';
-import { LEARNING_PATHS } from './navigation';
+import { visibleLearningPaths } from './navigation';
+import { useIsOwner } from '../../lib/ownerAccess';
 import { IconDashboard, IconFlask, IconChart, IconMap, IconCheck, IconCalendar, IconTrophy, IconBook, IconMegaphone, IconUser, IconShieldCheck, IconHelp, IconMail, IconCode, IconCrown, IconRoute, IconLayers, IconCertificate } from './icons';
 import './navigation.css';
 
@@ -57,6 +58,7 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   function link(to: string, label: string, Icon: NavIcon) {
     return <NavLink key={to} to={to} end={to === '/'} onClick={onNavigate} className={({ isActive }) => 'dw-nav-link' + (isActive ? ' is-active' : '')}><Icon className="dw-nav-icon"/><span>{label}</span></NavLink>;
   }
+  const owner = useIsOwner();
   return <aside className="dw-sidebar">
     <div className="dw-sidebar-header">
       <NavLink to="/" onClick={onNavigate} className="dw-sidebar-brand" aria-label="DarkWorld overview"><Logo className="h-11 w-11 shrink-0"/><span><strong>DarkWorld</strong><small>CYBER ACADEMY</small></span></NavLink>
@@ -68,12 +70,12 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         <div className="dw-nav-section"><p className="dw-nav-label">Learn</p>
           <details className="dw-nav-disclosure" open={location.pathname === '/roadmap'}>
             <summary><IconMap className="dw-nav-icon"/><span>Learning paths</span><span className="dw-nav-chevron" aria-hidden="true">⌄</span></summary>
-            <div className="dw-nav-sublist">{LEARNING_PATHS.map(path => <NavLink key={path.track} to={path.to} onClick={onNavigate} className={'dw-nav-path' + (location.pathname === '/roadmap' && activeTrack === path.track ? ' is-active' : '')} aria-current={location.pathname === '/roadmap' && activeTrack === path.track ? 'page' : undefined}>{path.title}</NavLink>)}</div>
+            <div className="dw-nav-sublist">{visibleLearningPaths().map(path => <NavLink key={path.track} to={path.to} onClick={onNavigate} className={'dw-nav-path' + (location.pathname === '/roadmap' && activeTrack === path.track ? ' is-active' : '')} aria-current={location.pathname === '/roadmap' && activeTrack === path.track ? 'page' : undefined}>{path.title}</NavLink>)}</div>
           </details>
-          {link('/ml-portal', 'Machine learning', IconChart)}
+          {owner && link('/ml-portal', 'Machine learning', IconChart)}
         </div>
         <div className="dw-nav-section"><p className="dw-nav-label">Practice</p>
-          {link('/labs', 'Rooms', IconFlask)}{link('/soc-portal', 'SOC casebooks', IconShieldCheck)}{link('/code-portal', 'Coding practice', IconCode)}{link('/build-portal', 'Build projects', IconLayers)}
+          {link('/labs', 'Rooms', IconFlask)}{link('/soc-portal', 'SOC casebooks', IconShieldCheck)}{link('/code-portal', 'Coding practice', IconCode)}{owner && link('/build-portal', 'Build projects', IconLayers)}
         </div>
         <div className="dw-nav-section"><p className="dw-nav-label">Reference</p>{link('/library', 'Library', IconBook)}{link('/resources', 'Resources', IconBook)}</div>
         <details className="dw-nav-disclosure dw-nav-activity" open={activityLinks.some(([to]) => location.pathname === to)}><summary><IconTrophy className="dw-nav-icon"/><span>Activity & community</span><span className="dw-nav-chevron" aria-hidden="true">⌄</span></summary><div className="dw-nav-sublist">{activityLinks.map(([to, label, Icon]) => link(to, label, Icon))}</div></details>

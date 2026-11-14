@@ -3,6 +3,68 @@ import type { LessonDepth } from './types';
 /** Beginner depth for the pre-security path — the first lessons a newcomer reads. Every addition
  *  explains the idea in everyday language first, then walks through a concrete example step by step. */
 export const PRE_SECURITY_DEPTH: Record<string, LessonDepth> = {
+  'pre-intro-1': {
+    keyTerms: [
+      { term: 'CIA triad', meaning: 'The three security goals every professional works toward: Confidentiality, Integrity, and Availability.' },
+      { term: 'MFA', meaning: 'Multi-factor authentication — requiring two or more independent proofs of identity, so a stolen password alone is not enough.' },
+    ],
+    before: [
+      {
+        title: 'In plain English: a school records office',
+        paragraphs: [
+          'Imagine a school records office. It holds student files (secrets), a grade register (records that must be accurate), and a front door that must open every morning (a service staff and students need). Security for that office means three things: strangers cannot read the files, nobody quietly changes a grade, and the door does not get jammed on exam day.',
+          'Cybersecurity is exactly that, applied to computers. The files are databases. The register is any record people trust. The front door is a website, an app, or a network. The CIA triad — Confidentiality, Integrity, Availability — names those three goals. Almost every control you will ever study protects at least one of them.',
+        ],
+      },
+    ],
+    after: [
+      {
+        title: 'Step by step: classify a headline in under 30 seconds',
+        paragraphs: [
+          'Next time you see a security news story, ask one question: which CIA goal failed? A database of customer emails posted online — Confidentiality. A health app that showed wrong medication doses — Integrity. A bank app offline for two hours — Availability. Many incidents break more than one, but there is usually a primary failure. Practice this until it is automatic.',
+        ],
+      },
+    ],
+  },
+  'pre-intro-2': {
+    keyTerms: [
+      { term: 'Risk register', meaning: 'A document that lists known risks, their likelihood and impact, and what the organisation is doing about each one.' },
+    ],
+    before: [
+      {
+        title: 'In plain English: open windows and burglars',
+        paragraphs: [
+          'A burglar is a threat. An open window is a vulnerability. Climbing through the window is the exploit. Risk is how likely a burglary is multiplied by how much you would lose. A house full of valuables on a busy street has more risk than an empty shed in a locked compound, even if both have the same open window.',
+          'Controls are what you do about it: lock the window (prevent), install a camera (detect), and keep insurance (recover from). Cybersecurity uses exactly this reasoning — just with servers instead of windows.',
+        ],
+      },
+    ],
+    after: [],
+  },
+  'pre-intro-3': {
+    before: [
+      {
+        title: 'In plain English: the locksmith you hire',
+        paragraphs: [
+          'A homeowner hires a locksmith to try to get in, so they can find which locks are weak before a burglar does. The locksmith agrees in advance which doors to try, when to come, and not to take anything. Afterwards they hand over a list: "the back window latch opens with a card — here is how, here is the fix."',
+          'That is authorised security testing. The skill is real attacker skill. The job is to protect. A locksmith who tries the neighbour\'s door without asking is not a professional — they are a burglar with good tools. Permission is the only thing that changes the story.',
+        ],
+      },
+    ],
+    after: [],
+  },
+  'pre-intro-4': {
+    before: [
+      {
+        title: 'In plain English: skills beat job titles',
+        paragraphs: [
+          'The cybersecurity job market rewards demonstrable ability. Two candidates apply for a SOC role: one has a certificate name on a CV and nothing else; the other has three lab write-ups, five solved CTF challenges with clear explanations, and a brief home-lab project documented on GitHub. Employers consistently say the second candidate stands out — because they have shown they can think, not just memorise.',
+          'The good news is that every exercise on this platform produces portfolio material if you write it up. Every flag, every evidence note, every limitation statement is practice for the kind of clear thinking security employers want.',
+        ],
+      },
+    ],
+    after: [],
+  },
   'pre-compute-1': {
     keyTerms: [
       { term: 'Lab', meaning: 'A small, safe practice environment with a fixed target and a goal, built so you can learn by doing without touching real systems.' },

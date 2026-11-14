@@ -1,4 +1,6 @@
 import { MODULES } from '../../data/curriculum';
+import { isOwnerOnlyPath, isOwnerSession, OWNER_TRACKS } from '../../lib/ownerSession';
+import type { RoadmapTrack } from '../../types';
 
 export interface AcademyDestination {
   title: string;
@@ -40,7 +42,10 @@ export const ACADEMY_DESTINATIONS: AcademyDestination[] = [
   { title: 'Feedback', to: '/feedback', group: 'Support', description: 'Share feedback with the academy' },
   { title: 'Instructor dashboard', to: '/instructor', group: 'Staff', description: 'Authorized instructor workspace', staff: true },
 ];
-const moduleDestinations: AcademyDestination[] = MODULES.flatMap(module => [
+/** Learning paths this account can see (owner-only tracks are hidden from everyone else). */
+export const visibleLearningPaths = () => LEARNING_PATHS.filter(path => isOwnerSession() || !OWNER_TRACKS.has(path.track as RoadmapTrack));
+// Built on demand: MODULES only holds the modules this account can see.
+const moduleDestinations = (): AcademyDestination[] => MODULES.flatMap(module => [
   { title: module.title, to: '/module/' + module.slug, group: 'Modules', description: module.description ?? 'Open module' },
   ...module.lessons.map(lesson => ({
     title: lesson.title, to: '/module/' + module.slug + '/lesson/' + lesson.slug,
@@ -50,8 +55,8 @@ const moduleDestinations: AcademyDestination[] = MODULES.flatMap(module => [
 const normalize = (value: string) => value.normalize('NFKD').replace(/\p{Diacritic}/gu, '').toLowerCase().trim();
 export function searchAcademy(query: string, staff = false): AcademyDestination[] {
   const terms = normalize(query).split(/\s+/).filter(Boolean);
-  const candidates = terms.length ? [...ACADEMY_DESTINATIONS, ...moduleDestinations] : ACADEMY_DESTINATIONS.slice(0, 3).concat(ACADEMY_DESTINATIONS.filter(item => ['/labs', '/soc-portal', '/code-portal'].includes(item.to)));
-  return candidates.filter(item => (!item.staff || staff) && terms.every(term =>
+  const candidates = terms.length ? [...ACADEMY_DESTINATIONS, ...moduleDestinations()] : ACADEMY_DESTINATIONS.slice(0, 3).concat(ACADEMY_DESTINATIONS.filter(item => ['/labs', '/soc-portal', '/code-portal'].includes(item.to)));
+  return candidates.filter(item => (!item.staff || staff) && (isOwnerSession() || !isOwnerOnlyPath(item.to)) && terms.every(term =>
     normalize([item.title, item.group, item.description, item.keywords ?? ''].join(' ')).includes(term)
   )).sort((a, b) => {
     const score = (item: AcademyDestination) => {

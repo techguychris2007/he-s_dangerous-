@@ -1,5 +1,6 @@
 import type { RoadmapStage } from '../types';
 import { curriculumModule } from '../content/curriculumDefinition';
+import { introductionLessons } from '../content/pre-security/introduction';
 import { computingLessons } from '../content/pre-security/computing';
 import { beginnerNetworkLessons } from '../content/pre-security/networking';
 import { beginnerSystemLessons } from '../content/pre-security/systems';
@@ -9,9 +10,10 @@ import { readinessLessons } from '../content/pre-security/readiness';
 import { KALI_WORKSTATION_MODULE } from './kaliFoundationsCurriculum';
 import { workstationLessons } from '../content/kali-foundations/workstation';
 
-export const PRE_SECURITY_LESSONS = [...computingLessons, ...workstationLessons, ...beginnerNetworkLessons, ...beginnerSystemLessons, ...beginnerScriptingLessons, ...beginnerSecurityLessons, ...readinessLessons];
+export const PRE_SECURITY_LESSONS = [...introductionLessons, ...computingLessons, ...workstationLessons, ...beginnerNetworkLessons, ...beginnerSystemLessons, ...beginnerScriptingLessons, ...beginnerSecurityLessons, ...readinessLessons];
 
 export const PRE_SECURITY_MODULES = [
+  curriculumModule({ id: 'pre-introduction', slug: 'pre-introduction', title: 'Introduction to Cybersecurity', subtitle: 'What the field protects, the threat landscape, and how both sides of the profession work', description: 'Build the conceptual vocabulary every security professional uses: CIA triad, threats and risk, the defensive and offensive sides of the field, careers and how to choose a direction. No technical tools yet — just the ideas that make every later lesson make sense.', icon: 'shield', sourceBooks: ['NIST Cybersecurity Framework 2.0', 'NIST SP 800-30', 'NICE Workforce Framework', 'PTES'] }, introductionLessons),
   curriculumModule({ id: 'pre-computing', slug: 'pre-computing', title: 'Lab Orientation & Evidence Basics', subtitle: 'Flags, scope, paths, permissions and safe practice spaces', description: 'Start with the DarkWorld lab workflow itself: objectives, flags, transcripts, evidence notes, filesystem basics, user permissions and the difference between safe simulations and real systems.', icon: 'terminal', sourceBooks: ['GNU Bash manual', 'NIST SP 800-115'] }, computingLessons),
   KALI_WORKSTATION_MODULE,
   curriculumModule({ id: 'pre-networks-web', slug: 'pre-networks-web', title: 'Networking, HTTP & Netcat', subtitle: 'IP addresses, ports, DNS, TCP, TLS and service banners', description: 'Learn the network language offensive and defensive labs assume: IPs, ports, services, DNS, TCP, TLS visibility, Netcat banners and the HTTP request parts Burp will later expose.', icon: 'network', sourceBooks: ['Nmap Ncat guide', 'MDN Web Docs', 'Wireshark User Guide'] }, beginnerNetworkLessons),

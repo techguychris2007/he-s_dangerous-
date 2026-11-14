@@ -3,8 +3,14 @@ import DigAvatar from '../characters/DigAvatar';
 import { eligibleLibraryBooks, libraryReadiness, type BookReadiness } from '../../lib/offlineLibrary';
 import { cancelOfflineWorkspace, getOfflineWorkspaceState, prepareOfflineWorkspace, refreshOfflineWorkspace, subscribeOfflineWorkspace } from '../../lib/offlineWorkspace';
 import '../books/offline-library.css';
+import { useIsOwner } from '../../lib/ownerAccess';
 
+/** Offline preparation is available to the owner accounts only; everyone else sees nothing. */
 export default function OfflineWorkspaceCard({ compact = false }: { compact?: boolean }) {
+  return useIsOwner() ? <OwnerOfflineWorkspaceCard compact={compact} /> : null;
+}
+
+function OwnerOfflineWorkspaceCard({ compact = false }: { compact?: boolean }) {
   const state = useSyncExternalStore(subscribeOfflineWorkspace, getOfflineWorkspaceState, getOfflineWorkspaceState);
   const [online, setOnline] = useState(() => navigator.onLine);
   const [books, setBooks] = useState<Record<string, BookReadiness>>({});

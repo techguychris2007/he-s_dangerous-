@@ -18,6 +18,7 @@ import { IconCheck, IconCode, IconDownload } from '../components/layout/icons';
 import { codeTaskXp } from '../data/xp';
 import '../components/code/code-workspace.css';
 import type { CodeLanguage, CodeTask } from '../labs/codeTypes';
+import { isOwnerOnlyTask, useIsOwner } from '../lib/ownerAccess';
 
 const ALL_CODE_TASKS = [...PYTHON_TASKS, ...CPP_TASKS, ...JS_TASKS, ...CSHARP_TASKS, ...TS_TASKS, ...DEVOPS_TASKS, ...ML_TASKS, ...SECURITY_TASKS];
 const ALL_CODE_TASKS_MAP = new Map<string, CodeTask>(ALL_CODE_TASKS.map((t) => [t.id, t]));
@@ -53,6 +54,7 @@ function downloadTaskCode(task: CodeTask, code: string) {
 export default function CodeTaskPage() {
   const { taskId } = useParams();
   const progress = useProgress();
+  const owner = useIsOwner();
   const [hintIndex, setHintIndex] = useState(0);
   const [showSolution, setShowSolution] = useState(false);
   const [tab, setTab] = useState<'brief' | 'hints' | 'solution' | 'discuss'>('brief');
@@ -70,7 +72,7 @@ export default function CodeTaskPage() {
     revealedHintsRef.current = task ? task.hints.slice(0, hintIndex) : [];
   }, [task, hintIndex]);
 
-  if (!task) return <Navigate to="/code-portal" replace />;
+  if (!task || (!owner && isOwnerOnlyTask(task))) return <Navigate to="/code-portal" replace />;
 
   const done = progress.isCodeTaskComplete(task.id);
   const isMlTask = task.category.startsWith('ML:');
