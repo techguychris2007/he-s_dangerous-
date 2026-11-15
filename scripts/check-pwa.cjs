@@ -19,14 +19,18 @@ const cached = JSON.stringify({ access_token: 'cached-access', refresh_token: 'c
 assert.equal(cachedOfflineSession(cached, false).user.id, 'local-learner');
 assert.equal(cachedOfflineSession(cached, true), null, 'Online authentication must be verified by the provider');
 for (const invalid of [null, '{}', '{broken', '{"access_token":true,"refresh_token":true,"user":{}}']) assert.equal(cachedOfflineSession(invalid, false), null);
-let handlers = new Map(), options, installedPrompts = 0, updates = 0;
+let handlers = new Map(), options, registrations = 0, installedPrompts = 0, updates = 0, unregistered = 0;
+const deletedCaches = [];
 const window = { addEventListener: (name, callback) => handlers.set(name, callback), dispatchEvent: event => handlers.get(event.type)?.(event) };
 const moduleExports = {};
 const source = fs.readFileSync(path.join(__dirname, '../src/state/pwa.ts'), 'utf8').replace(/import\.meta\.env\.DEV/g, 'false').replace(/import\.meta\.env\.BASE_URL/g, '"/"');
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
-vm.runInNewContext(compiled, { exports: moduleExports, window, URL, Event, location: { origin: 'https://darkworld.example', href: 'https://darkworld.example/' }, caches: { match: async () => ({ status: 200 }) }, matchMedia: () => ({ matches: false, addEventListener: () => {} }), require: name => name === 'react' ? { useSyncExternalStore: (_subscribe, snapshot) => snapshot() } : { registerSW: config => { options = config; return async () => { updates++; }; } } });
+vm.runInNewContext(compiled, { exports: moduleExports, window, URL, Event, location: { origin: 'https://darkworld.example', href: 'https://darkworld.example/' }, caches: { match: async () => ({ status: 200 }), keys: async () => ['workbox-precache-v2-https://darkworld.example/', 'darkworld-offline-books'], delete: async key => { deletedCaches.push(key); return true; } }, navigator: { serviceWorker: { getRegistrations: async () => [{ unregister: async () => { unregistered++; return true; } }] } }, matchMedia: () => ({ matches: false, addEventListener: () => {} }), require: name => name === 'react' ? { useSyncExternalStore: (_subscribe, snapshot) => snapshot() } : { registerSW: config => { options = config; registrations++; return async () => { updates++; }; } } });
 async function main() {
   moduleExports.startPwa(); moduleExports.startPwa();
+  assert.equal(registrations, 0, 'No offline worker may start before the account is known');
+  moduleExports.enableOfflineCaching(true); moduleExports.enableOfflineCaching(true);
+  assert.equal(registrations, 1, 'Owner accounts register the offline worker exactly once');
   options.onOfflineReady(); assert.equal(moduleExports.usePwa().offlineReady, true);
   options.onNeedRefresh(); assert.equal(moduleExports.usePwa().updateAvailable, true);
   assert.equal(updates, 0, 'An available update must never reload a lesson automatically');
@@ -36,6 +40,11 @@ async function main() {
   await moduleExports.installApp(); await moduleExports.installApp();
   assert.equal(installedPrompts, 1, 'A native install event is single use');
   handlers.get('appinstalled')(); assert.equal(moduleExports.usePwa().installed, true);
-  console.log('PWA passed: install lifecycle, explicit updates, version-specific runtime completeness and safe offline session restoration.');
+  moduleExports.enableOfflineCaching(false);
+  await new Promise(resolve => setTimeout(resolve, 0)); await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(unregistered, 1, 'Other accounts must not keep the offline worker');
+  assert.deepEqual(deletedCaches, ['workbox-precache-v2-https://darkworld.example/'], 'Only the saved app copy is removed; offline book caches stay');
+  assert.equal(moduleExports.usePwa().offlineReady, false);
+  console.log('PWA passed: owner-only offline worker, install lifecycle, explicit updates, version-specific runtime completeness and safe offline session restoration.');
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });

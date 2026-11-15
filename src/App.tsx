@@ -8,6 +8,7 @@ import { pullProgress, pushProgressWithRetry } from './lib/progressSync';
 import { isInstructor } from './lib/instructorConfig';
 import { isOwnerEmail, setOwnerSession, useIsOwner } from './lib/ownerAccess';
 import { setSyncStatus } from './state/syncStatus';
+import { enableOfflineCaching } from './state/pwa';
 
 // Keep sign-in independent of the academy shell and curriculum downloads.
 import LoginPage from './pages/LoginPage';
@@ -213,7 +214,10 @@ function ProgressSync() {
 function App() {
   const progress = useProgressState();
   const auth = useAuthState();
-  setOwnerSession(isOwnerEmail(auth.user?.email));
+  const owner = isOwnerEmail(auth.user?.email);
+  setOwnerSession(owner);
+  // Offline caching follows the account, but only once sign-in has resolved.
+  useEffect(() => { if (!auth.loading) enableOfflineCaching(owner); }, [auth.loading, owner]);
 
   return (
     <ProgressContext.Provider value={progress}>
