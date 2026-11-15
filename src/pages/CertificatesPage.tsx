@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useProgress } from '../state/progressStore';
-import { CERTIFICATE_PATHS, certificateStatus, certificateId } from '../data/pathCertificates';
+import { visibleCertificatePaths, certificateStatus, certificateId } from '../data/pathCertificates';
 import PathCertificate from '../components/certificate/PathCertificate';
 import ProgressRing from '../components/common/ProgressRing';
 import { IconArrowRight, IconDownload, IconCheck } from '../components/layout/icons';
 import './learning-pages.css';
-import { OWNER_TRACKS, useIsOwner } from '../lib/ownerAccess';
+import { useIsOwner } from '../lib/ownerAccess';
 
 export default function CertificatesPage() {
   const owner = useIsOwner();
@@ -20,7 +20,7 @@ export default function CertificatesPage() {
   );
   const displayName = name.trim() || 'Learner';
 
-  const rows = CERTIFICATE_PATHS.filter((path) => owner || !OWNER_TRACKS.has(path.track)).map((path) => ({
+  const rows = visibleCertificatePaths(owner).map((path) => ({
     path,
     status: certificateStatus(path.track, (id) => progress.isLessonComplete(id)),
     recordId: certificateId(path.track, displayName),

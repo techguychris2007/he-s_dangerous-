@@ -13,8 +13,8 @@ import RankCard from '../components/common/RankCard';
 import { ProfileHeader } from '../components/dashboard/DashboardWidgets';
 import { useHandle } from '../state/useHandle';
 import { Link } from 'react-router-dom';
-import { CERTIFICATE_PATHS, certificateStatus } from '../data/pathCertificates';
-import { OWNER_TRACKS, useIsOwner } from '../lib/ownerAccess';
+import { visibleCertificatePaths, certificateStatus } from '../data/pathCertificates';
+import { useIsOwner } from '../lib/ownerAccess';
 
 const POINTS: Record<string, number> = { Easy: 10, Medium: 20, Hard: 30 };
 
@@ -113,7 +113,7 @@ export default function ProfilePage() {
   const auth = useAuth();
   const { handle, reroll: rerollHandle } = useHandle();
   const owner = useIsOwner();
-  const certificatePaths = CERTIFICATE_PATHS.filter((path) => owner || !OWNER_TRACKS.has(path.track));
+  const certificatePaths = visibleCertificatePaths(owner);
   const certsEarned = certificatePaths.filter((path) => certificateStatus(path.track, progress.isLessonComplete).earned).length;
 
   const totalLessons = useMemo(() => MODULES.reduce((sum, m) => sum + m.lessons.length, 0), []);

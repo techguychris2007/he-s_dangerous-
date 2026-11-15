@@ -1,6 +1,17 @@
 require('./register-typescript.cjs');
 const assert = require('node:assert/strict');
-const { CERTIFICATE_PATHS, certificateStatus, certificateId } = require('../src/data/pathCertificates.ts');
+const { CERTIFICATE_PATHS, certificateStatus, certificateId, visibleCertificatePaths } = require('../src/data/pathCertificates.ts');
+const { setOwnerSession } = require('../src/lib/ownerSession.ts');
+
+// Launch visibility: other accounts see only certificates with lessons they can open; the owner-only
+// C# and software engineering certificates stay hidden from them, not removed.
+setOwnerSession(false);
+assert.deepEqual(visibleCertificatePaths(false).map((path) => path.track), ['presecurity', 'security', 'defensive', 'programming'], 'Other accounts see only certificates with lessons');
+for (const path of visibleCertificatePaths(false)) assert.ok(certificateStatus(path.track, () => false).total > 0, `${path.track}: visible certificate has no lessons`);
+
+// Owners see every certificate, so check each one as an owner account sees it.
+setOwnerSession(true);
+assert.equal(visibleCertificatePaths(true).length, CERTIFICATE_PATHS.length, 'Owner accounts see every certificate');
 
 assert.equal(CERTIFICATE_PATHS.length, 6, 'Expected six learning-path certificates');
 

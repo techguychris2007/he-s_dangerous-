@@ -70,6 +70,14 @@ export const CERTIFICATE_PATHS: CertificatePath[] = [
   },
 ];
 
+/** The certificates a viewer can see: only paths with at least one lesson that viewer can open.
+ *  Owner-only tracks (C# & .NET, software engineering) have no lessons for other accounts, so their
+ *  certificates stay hidden until those tracks open; a path that has no lessons yet is hidden for everyone
+ *  else too. The owner accounts always see every certificate. Hidden, not removed: nothing is deleted. */
+export function visibleCertificatePaths(owner: boolean): CertificatePath[] {
+  return CERTIFICATE_PATHS.filter((path) => owner || trackLessons(path.track).all.length > 0);
+}
+
 export function certificatePath(track: string): CertificatePath | undefined {
   return CERTIFICATE_PATHS.find((path) => path.track === track);
 }
