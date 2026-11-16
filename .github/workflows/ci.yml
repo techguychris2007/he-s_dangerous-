@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      # `build` runs tsc -b (typecheck) and then the production bundle. It needs no Supabase keys.
+      - name: Typecheck and build
+        run: npm run build
+
+      - name: Platform checks
+        run: npm run test:platform
+
+      # Runs against dist/, so it must come after the build: it proves owner-only content is not shipped.
+      - name: Owner content stays out of the bundle
+        run: npm run test:owner-content
+
+      # Not run here: `test:ml-content` executes the ML lesson code and needs Python with numpy and
+      # friends installed. Its structure-only mode already runs inside `test:platform`.
+      - name: Remaining content and library checks
+        run: |
+          npm run test:ml-library
+          npm run test:offline-library
+          npm run test:offline-workspace
+          npm run test:achievement-awards
+          npm run test:documents
+          npm run test:engagements
+          npm run test:navigation
