@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { reportError } from '../../lib/monitoring';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -22,6 +23,7 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
   componentDidCatch(error: Error, info: ErrorInfo) {
     // eslint-disable-next-line no-console
     console.error('[DarkWorld] Uncaught render error:', error, info.componentStack);
+    reportError(error, info.componentStack);
   }
 
   handleReload = () => {

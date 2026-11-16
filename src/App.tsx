@@ -9,6 +9,7 @@ import { isInstructor } from './lib/instructorConfig';
 import { isOwnerEmail, setOwnerSession, useIsOwner } from './lib/ownerAccess';
 import { setSyncStatus } from './state/syncStatus';
 import { enableOfflineCaching } from './state/pwa';
+import { startAnalytics } from './lib/analytics';
 import { loadOwnerContent, useOwnerContent } from './lib/ownerContent';
 
 // Keep sign-in independent of the academy shell and curriculum downloads.
@@ -230,6 +231,8 @@ function App() {
   setOwnerSession(owner);
   // Offline caching follows the account, but only once sign-in has resolved.
   useEffect(() => { if (!auth.loading) enableOfflineCaching(owner); }, [auth.loading, owner]);
+  // Page-view analytics also waits for sign-in, so owner visits are never counted.
+  useEffect(() => { if (!auth.loading) startAnalytics(owner); }, [auth.loading, owner]);
   useEffect(() => { if (!auth.loading && owner) void loadOwnerContent(); }, [auth.loading, owner]);
 
   return (

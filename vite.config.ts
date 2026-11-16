@@ -5,6 +5,8 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
+  // Tags error reports with the deployed commit, so a report points at the exact code that failed.
+  define: { 'import.meta.env.VITE_APP_RELEASE': JSON.stringify(process.env.VERCEL_GIT_COMMIT_SHA ?? '') },
   plugins: [
     react(),
     tailwindcss(),

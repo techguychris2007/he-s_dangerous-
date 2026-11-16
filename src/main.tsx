@@ -14,6 +14,7 @@ import ComputerAccessGate from './components/layout/ComputerAccessGate.tsx'
 import './academy-system.css';
 import { startPwa } from './state/pwa';
 import { applyInitialTheme } from './state/theme';
+import { startMonitoring } from './lib/monitoring';
 
 applyInitialTheme();
 startPwa();
@@ -25,5 +26,8 @@ createRoot(document.getElementById('root')!).render(
     </ErrorBoundary>
   </StrictMode>,
 )
+
+// Error reporting loads after the first render so it never delays a lesson.
+void startMonitoring();
 
 // The app registers its service worker explicitly and offers updates when learners are ready.
