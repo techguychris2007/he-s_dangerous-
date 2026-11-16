@@ -22,6 +22,9 @@ export function startAnalytics(owner: boolean) {
   script.async = true;
   // DarkWorld uses hash routes; without this every page would count as "/".
   script.dataset.mode = 'hash';
+  // Count www.darkworldacademy.tech under the website registered in Simple Analytics
+  // (darkworldacademy.tech), whichever of the two addresses the visit came from.
+  script.dataset.hostname = location.hostname.toLowerCase().replace(/^www\./, '');
   script.referrerPolicy = 'strict-origin-when-cross-origin';
   document.head.appendChild(script);
 }
