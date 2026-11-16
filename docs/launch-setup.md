@@ -5,12 +5,12 @@ are added in Vercel, so nothing changes for learners until you switch them on.
 
 ## 1. Checks on every push (GitHub Actions)
 
-`.github/workflows/checks.yml` runs lint, the type check and build, `test:platform` and the other
-checks on every push to `main` and every pull request. It needs no secrets.
+`.github/workflows/ci.yml` runs lint, the type check and build, `test:platform`, the owner-content
+bundle check and the other checks on every push to `main` and every pull request. It needs no secrets.
 
 - Results: the **Actions** tab on GitHub, and a ✓ or ✗ next to each commit.
 - Optional, recommended: GitHub → Settings → Branches → add a rule for `main` that requires the
-  **Checks** job to pass before merging. This matters once more than one person pushes.
+  **CI** workflow's `check` job to pass before merging. This matters once more than one person pushes.
 
 ## 2. Error reports (Sentry)
 

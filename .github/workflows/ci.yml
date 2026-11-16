@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -51,3 +52,4 @@ jobs:
           npm run test:documents
           npm run test:engagements
           npm run test:navigation
+          npm run test:dig-shell
