@@ -8,8 +8,7 @@ import { modernLinuxLessons, modernWebLessons } from '../content/kali-foundation
 import { exploitationBinaryLessons } from '../content/exploitation-foundations/binary';
 import { exploitationNetworkLessons, exploitationEngineeringLessons, exploitationCryptoLessons } from '../content/exploitation-foundations/network-security';
 import { MODERN_COLLECTION_LESSON_LABS } from './modernCollectionCurriculum';
-import { SE_LESSON_TASKS } from './softwareEngineeringCurriculum';
-import { DN_LESSON_TASKS } from './dotnetCurriculum';
+import { SE_LESSON_TASKS, DN_LESSON_TASKS } from './ownerLessonTasks';
 
 export const LESSON_LABS: Record<string, string[]> = {
   ...MODERN_COLLECTION_LESSON_LABS,

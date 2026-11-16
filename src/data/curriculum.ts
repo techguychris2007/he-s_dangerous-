@@ -11,8 +11,6 @@ import { COLLECTION_EXTENSIONS, MODERN_DATABASE_MODULE } from './modernCollectio
 import { ADVANCED_OFFENSIVE_MODULES, ADVANCED_OFFENSIVE_ROADMAP } from './advancedOffensiveCurriculum';
 import { PRE_SECURITY_MODULES, PRE_SECURITY_ROADMAP } from './preSecurityCurriculum';
 import { DEFENSIVE_MODULES, DEFENSIVE_ROADMAP } from './defensiveCurriculum';
-import { SE_MODULES, SE_ROADMAP } from './softwareEngineeringCurriculum';
-import { DN_MODULES, DN_ROADMAP } from './dotnetCurriculum';
 import { watchOwnerSession } from '../lib/ownerSession';
 
 const OsiTcpIp = lazy(() => import('../content/networking/01-osi-tcpip'));
@@ -916,8 +914,6 @@ MODULES.splice(MODULES.findIndex(module => module.slug === 'webapp') + 1, 0, MOD
 MODULES.push(...KALI_OFFENSIVE_MODULES);
 MODULES.unshift(...PRE_SECURITY_MODULES);
 MODULES.push(...DEFENSIVE_MODULES);
-MODULES.push(...SE_MODULES);
-MODULES.push(...DN_MODULES);
 
 // Extend the established modules without changing existing routes or progress IDs.
 for (const addition of [
@@ -990,8 +986,6 @@ export const ROADMAP: RoadmapStage[] = [
   { title: 'Building Python Programs', status: 'available', moduleSlug: 'code-python-practice', sourceBooks: ['Python Crash Course', 'Automate the Boring Stuff with Python'], track: 'programming' },
   { title: 'Data Structures & Algorithms', status: 'available', moduleSlug: 'programming-algorithms', sourceBooks: ['OSSU Computer Science', 'TheAlgorithms/Python'], track: 'programming' },
   { title: 'Software & Systems Engineering', status: 'available', moduleSlug: 'programming-engineering', sourceBooks: ['System Design Primer', 'OWASP Cheat Sheet Series'], track: 'programming' },
-  ...SE_ROADMAP,
-  ...DN_ROADMAP,
   { title: 'Code Portal: C++ & JavaScript Practice', status: 'available', href: '/code-portal', sourceBooks: ['Code Portal practice tasks'], track: 'programming' },
 
   { title: 'Foundations: Python, NumPy, Pandas & Math', status: 'available', href: '/ml-lesson/python-basics', sourceBooks: ['GCI World Pre-Lecture & Sessions 2-4'], track: 'ml' },
@@ -1008,8 +1002,26 @@ export const ROADMAP: RoadmapStage[] = [
 
 const ALL_MODULES = [...MODULES];
 const ALL_ROADMAP = [...ROADMAP];
-const OWNER_MODULE_SLUGS = new Set([...SE_MODULES, ...DN_MODULES].map(module => module.slug));
+const OWNER_MODULE_SLUGS = new Set<string>();
 const OWNER_ROADMAP_TRACKS = new Set(['software', 'dotnet', 'ml']);
+
+/** The software engineering and C# & .NET modules are not part of the app bundle: they arrive from
+ *  the private owner-content bucket (src/lib/ownerContent.ts) and are added here, after the
+ *  programming path, once an owner account has downloaded them. */
+export function registerOwnerCurriculum(modules: ModuleMeta[], stages: RoadmapStage[]) {
+  for (const module of modules) {
+    if (OWNER_MODULE_SLUGS.has(module.slug)) continue;
+    OWNER_MODULE_SLUGS.add(module.slug);
+    ALL_MODULES.push(module);
+  }
+  const known = new Set(ALL_ROADMAP.map(stage => stage.moduleSlug ?? stage.href));
+  const fresh = stages.filter(stage => !known.has(stage.moduleSlug ?? stage.href));
+  const anchor = ALL_ROADMAP.findIndex(stage => stage.moduleSlug === 'programming-engineering');
+  ALL_ROADMAP.splice(anchor < 0 ? ALL_ROADMAP.length : anchor + 1, 0, ...fresh);
+  const owner = ownerCurriculum ?? false;
+  ownerCurriculum = undefined;
+  applyCurriculumAccess(owner);
+}
 let ownerCurriculum: boolean | undefined;
 
 /** Machine learning, C# & .NET and software engineering are visible only to the owner accounts

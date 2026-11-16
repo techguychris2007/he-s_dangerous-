@@ -9,7 +9,9 @@ setOwnerSession(false);
 assert.deepEqual(visibleCertificatePaths(false).map((path) => path.track), ['presecurity', 'security', 'defensive', 'programming'], 'Other accounts see only certificates with lessons');
 for (const path of visibleCertificatePaths(false)) assert.ok(certificateStatus(path.track, () => false).total > 0, `${path.track}: visible certificate has no lessons`);
 
-// Owners see every certificate, so check each one as an owner account sees it.
+// Owners see every certificate, so check each one as an owner account sees it. Their modules arrive
+// from the private owner-content bucket in the app; register them from source here.
+require('./register-owner-content.cjs');
 setOwnerSession(true);
 assert.equal(visibleCertificatePaths(true).length, CERTIFICATE_PATHS.length, 'Owner accounts see every certificate');
 

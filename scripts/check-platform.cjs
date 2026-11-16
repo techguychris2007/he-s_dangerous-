@@ -2,6 +2,7 @@ require('./register-typescript.cjs');
 const assert = require('node:assert/strict');
 for (const extension of ['.css', '.jpg', '.png', '.svg']) require.extensions[extension] = module => { module.exports = ''; };
 const { MODULES, ROADMAP } = require('../src/data/curriculum.ts');
+require('./register-owner-content.cjs');
 const { PRE_SECURITY_MODULES } = require('../src/data/preSecurityCurriculum.tsx');
 const { DEFENSIVE_MODULES, DEFENSIVE_MILESTONES } = require('../src/data/defensiveCurriculum.tsx');
 const { labsForLesson } = require('../src/data/lessonLabs.ts');

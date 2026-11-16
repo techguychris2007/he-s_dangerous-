@@ -9,6 +9,7 @@ import { isInstructor } from './lib/instructorConfig';
 import { isOwnerEmail, setOwnerSession, useIsOwner } from './lib/ownerAccess';
 import { setSyncStatus } from './state/syncStatus';
 import { enableOfflineCaching } from './state/pwa';
+import { loadOwnerContent, useOwnerContent } from './lib/ownerContent';
 
 // Keep sign-in independent of the academy shell and curriculum downloads.
 import LoginPage from './pages/LoginPage';
@@ -65,9 +66,20 @@ function RequireOwner({ children }: { children: React.ReactNode }) {
 
 function RequireLogin({ children }: { children: React.ReactNode }) {
   const auth = useAuth();
+  const ownerContent = useOwnerContent();
   if (auth.loading) return <FullScreenLoader />;
   if (!auth.user || auth.user.is_anonymous) return <Navigate to="/welcome" replace />;
-  return <>{children}</>;
+  // Owner accounts wait for their private content so every page sees the full curriculum.
+  const owner = isOwnerEmail(auth.user.email);
+  if (owner && (ownerContent.status === 'idle' || ownerContent.status === 'loading')) return <FullScreenLoader />;
+  return <>{children}{owner && ownerContent.status === 'unavailable' && <OwnerContentNotice message={ownerContent.error} />}</>;
+}
+
+function OwnerContentNotice({ message }: { message: string }) {
+  return <div role="alert" style={{ position: 'fixed', right: 16, bottom: 16, zIndex: 60, maxWidth: 360, padding: '12px 14px', borderRadius: 10, border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-heading)', boxShadow: '0 12px 32px #0000003d', fontSize: 13, lineHeight: 1.5 }}>
+    <strong>Machine learning, C# and software engineering content is unavailable.</strong> {message}{' '}
+    <button type="button" onClick={() => void loadOwnerContent()} style={{ color: 'var(--color-accent)', fontWeight: 650 }}>Try again</button>
+  </div>;
 }
 
 /** Route-level gate for the Instructor Dashboard — purely a UX nicety (redirects a non-instructor
@@ -218,6 +230,7 @@ function App() {
   setOwnerSession(owner);
   // Offline caching follows the account, but only once sign-in has resolved.
   useEffect(() => { if (!auth.loading) enableOfflineCaching(owner); }, [auth.loading, owner]);
+  useEffect(() => { if (!auth.loading && owner) void loadOwnerContent(); }, [auth.loading, owner]);
 
   return (
     <ProgressContext.Provider value={progress}>

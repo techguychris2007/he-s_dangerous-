@@ -38,6 +38,9 @@ for (const component of ['../src/components/layout/PortalNavigation.tsx', '../sr
   const componentPath = require.resolve(component);
   require.cache[componentPath] = { id: componentPath, filename: componentPath, loaded: true, exports: { __esModule: true, default: () => null } };
 }
+// The page asks whether the account is an owner; render it as a learner without the sign-in store.
+const ownerAccessPath = require.resolve('../src/lib/ownerAccess.ts');
+require.cache[ownerAccessPath] = { id: ownerAccessPath, filename: ownerAccessPath, loaded: true, exports: { __esModule: true, ...require('../src/lib/ownerSession.ts'), useIsOwner: () => false } };
 const React = require('react');
 const { renderToStaticMarkup } = require('react-dom/server');
 const { MemoryRouter } = require('react-router-dom');

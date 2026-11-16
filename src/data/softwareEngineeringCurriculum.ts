@@ -1,5 +1,7 @@
 import type { ModuleMeta, RoadmapStage } from '../types';
-import { curriculumModule } from '../content/curriculumDefinition';
+import { curriculumModule, type CurriculumLesson } from '../content/curriculumDefinition';
+import { withDepth } from '../content/depth';
+import { SOFTWARE_ENGINEERING_LESSON_DEPTH } from '../content/depth/ownerDepth';
 import { SE_BASICS_MODULE } from '../content/software-engineering/m0-programming-basics';
 import { SE_OOP_MODULE } from '../content/software-engineering/m0-programs-and-oop';
 import { SE_MODULE_1 } from '../content/software-engineering/m1-engineering-mindset';
@@ -14,8 +16,8 @@ const SOURCES = ['SWEBOK Guide V4.0', 'Software Engineering at Google'];
 /** Programming for Software Engineering: a SWEBOK V4-aligned track, separate from the
  *  security-focused programming path, with verified coding tasks paired to every lesson. It starts
  *  from zero — variables through object-oriented programming — before any professional practice. */
-export const SE_MODULES: ModuleMeta[] = [
-  curriculumModule({
+const RAW_SE_MODULE_SOURCES: { meta: Omit<ModuleMeta, 'lessons' | 'status'>; lessons: CurriculumLesson[] }[] = [
+  { meta: {
     id: 'se-programming-basics',
     slug: 'se-programming-basics',
     title: 'SE 1 · Programming Basics',
@@ -23,8 +25,8 @@ export const SE_MODULES: ModuleMeta[] = [
     description: 'Start here if you have never programmed. Write and run your first Python program, store values in variables, work with text, make decisions with if, repeat work with loops, organise data in lists and dictionaries, and package steps into functions. Every idea comes with an everyday comparison, a small example and two graded coding tasks.',
     sourceBooks: ['Python Tutorial (python.org)', 'Think Python (Downey)'],
     icon: 'python',
-  }, SE_BASICS_MODULE),
-  curriculumModule({
+  }, lessons: SE_BASICS_MODULE },
+  { meta: {
     id: 'se-programs-oop',
     slug: 'se-programs-oop',
     title: 'SE 2 · Building Programs & Object-Oriented Programming',
@@ -32,8 +34,8 @@ export const SE_MODULES: ModuleMeta[] = [
     description: 'Turn scripts into real programs: read error messages and handle bad input, save data to files and JSON, split code into modules, and then learn object-oriented programming step by step — classes and objects, properties that keep data valid, and inheritance, polymorphism and composition.',
     sourceBooks: ['Python Tutorial (python.org)', 'Think Python (Downey)'],
     icon: 'code',
-  }, SE_OOP_MODULE),
-  curriculumModule({
+  }, lessons: SE_OOP_MODULE },
+  { meta: {
     id: 'se-foundations',
     slug: 'se-foundations',
     title: 'SE 3 · The Engineering Mindset & Toolchain',
@@ -41,8 +43,8 @@ export const SE_MODULES: ModuleMeta[] = [
     description: 'Start thinking like a professional engineer: why code that lives for years needs different habits, how to use Git the way strong teams do, how to debug with a method instead of guesswork, and how to turn vague requests into testable acceptance criteria.',
     sourceBooks: [...SOURCES, 'Pro Git', 'The Debugging Book'],
     icon: 'route',
-  }, SE_MODULE_1),
-  curriculumModule({
+  }, lessons: SE_MODULE_1 },
+  { meta: {
     id: 'se-construction',
     slug: 'se-construction',
     title: 'SE 4 · Software Construction',
@@ -50,8 +52,8 @@ export const SE_MODULES: ModuleMeta[] = [
     description: 'Build code other people can rely on: precise specifications and contracts, abstract data types that protect their invariants, error handling that fails fast and fails safely, and refactoring in small, test-protected steps.',
     sourceBooks: [...SOURCES, 'MIT 6.102 Software Construction', 'Refactoring (Fowler)'],
     icon: 'code',
-  }, SE_MODULE_2),
-  curriculumModule({
+  }, lessons: SE_MODULE_2 },
+  { meta: {
     id: 'se-testing',
     slug: 'se-testing',
     title: 'SE 5 · Testing & Quality',
@@ -59,8 +61,8 @@ export const SE_MODULES: ModuleMeta[] = [
     description: 'Learn to choose the few tests that find most bugs, design code that is easy to test, let the computer generate edge cases, test real collaborators together, and build a quality culture with TDD, code review and automated gates. Two coding tasks grade your tests with mutation testing.',
     sourceBooks: [...SOURCES, 'MIT 6.102 Software Construction', 'The Practical Test Pyramid'],
     icon: 'bug',
-  }, SE_MODULE_3),
-  curriculumModule({
+  }, lessons: SE_MODULE_3 },
+  { meta: {
     id: 'se-design',
     slug: 'se-design',
     title: 'SE 6 · Design & Architecture',
@@ -68,8 +70,8 @@ export const SE_MODULES: ModuleMeta[] = [
     description: 'Make change cheap: coupling, cohesion, SOLID and information hiding; the patterns worth knowing; architecture styles chosen from quality attributes and recorded in ADRs; fitness functions that stop erosion; and HTTP APIs with correct semantics, problem-details errors, cursor pagination and idempotent writes.',
     sourceBooks: [...SOURCES, 'Architecture Decision Records', 'RFC 9110 / RFC 9457'],
     icon: 'layers',
-  }, SE_MODULE_4),
-  curriculumModule({
+  }, lessons: SE_MODULE_4 },
+  { meta: {
     id: 'se-data-systems',
     slug: 'se-data-systems',
     title: 'SE 7 · Data, Concurrency & Distributed Systems',
@@ -77,8 +79,8 @@ export const SE_MODULES: ModuleMeta[] = [
     description: 'Keep data correct and systems up under load: schemas, indexes and isolation levels; optimistic locking and N+1 fixes; threads, asyncio, the GIL and deadlock prevention; timeouts, jittered retries, circuit breakers and the transactional outbox; and performance work driven by profiles, percentiles and Little\'s law.',
     sourceBooks: [...SOURCES, 'Designing Data-Intensive Applications', 'Amazon Builders\' Library'],
     icon: 'database',
-  }, SE_MODULE_5),
-  curriculumModule({
+  }, lessons: SE_MODULE_5 },
+  { meta: {
     id: 'se-secure-engineering',
     slug: 'se-secure-engineering',
     title: 'SE 8 · Secure Software Engineering',
@@ -86,8 +88,13 @@ export const SE_MODULES: ModuleMeta[] = [
     description: 'Build security in the way you build correctness: model threats with STRIDE and set testable requirements with OWASP ASVS; fix SQL injection, command injection and path traversal with the safe API, shown side by side with the vulnerable code and mapped to CWE; keep secrets out of code and logs and store passwords properly; and make dependencies and builds verifiable with lock files, hashes, SBOMs, SLSA and KEV-aware release gates.',
     sourceBooks: [...SOURCES, 'OWASP ASVS 5.0', 'NIST SP 800-218 (SSDF)', 'SLSA v1.2', '2025 CWE Top 25'],
     icon: 'shield',
-  }, SE_MODULE_6),
+  }, lessons: SE_MODULE_6 },
 ];
+
+/** Lessons with their beginner depth already applied, ready to upload as plain data. */
+export const SE_MODULE_SOURCES = RAW_SE_MODULE_SOURCES.map(({ meta, lessons }) => ({ meta, lessons: lessons.map((lesson) => withDepth(lesson, SOFTWARE_ENGINEERING_LESSON_DEPTH)) }));
+
+export const SE_MODULES: ModuleMeta[] = SE_MODULE_SOURCES.map(({ meta, lessons }) => curriculumModule(meta, lessons));
 
 export const SE_ROADMAP: RoadmapStage[] = SE_MODULES.map((module) => ({
   title: module.title,
@@ -97,34 +104,4 @@ export const SE_ROADMAP: RoadmapStage[] = SE_MODULES.map((module) => ({
   track: 'software',
 }));
 
-/** Lesson → paired Code Portal tasks (two verified tasks per lesson). */
-export const SE_LESSON_TASKS: Record<string, string[]> = {
-  ...Object.fromEntries(Array.from({ length: 11 }, (_, i) => [
-    `sef-${i + 1}`,
-    [`se-fnd-${String(2 * i + 1).padStart(2, '0')}`, `se-fnd-${String(2 * i + 2).padStart(2, '0')}`],
-  ])),
-  'swe-1': ['se-swe-01', 'se-swe-02'],
-  'swe-2': ['se-swe-03', 'se-swe-04'],
-  'swe-3': ['se-swe-05', 'se-swe-06'],
-  'swe-4': ['se-swe-07', 'se-swe-08'],
-  'swe-5': ['se-swe-09', 'se-swe-10'],
-  'swe-6': ['se-swe-11', 'se-swe-12'],
-  'swe-7': ['se-swe-13', 'se-swe-14'],
-  'swe-8': ['se-swe-15', 'se-swe-16'],
-  'swe-9': ['se-swe-17', 'se-swe-18'],
-  'swe-10': ['se-swe-19', 'se-swe-20'],
-  'swe-11': ['se-swe-21', 'se-swe-22'],
-  'swe-12': ['se-swe-23', 'se-swe-24'],
-  'swe-13': ['se-swe-25', 'se-swe-26'],
-  'swe-14': ['se-swe-27', 'se-swe-28'],
-  'swe-15': ['se-swe-29', 'se-swe-30'],
-  'swe-16': ['se-swe-31', 'se-swe-32'],
-  'swe-17': ['se-swe-33', 'se-swe-34'],
-  'swe-18': ['se-swe-35', 'se-swe-36'],
-  'swe-19': ['se-swe-37', 'se-swe-38', 'se-swe-39'],
-  'swe-20': ['se-swe-40', 'se-swe-41'],
-  'swe-21': ['se-swe-42', 'se-swe-43'],
-  'swe-22': ['se-swe-44', 'se-swe-45'],
-  'swe-23': ['se-swe-46', 'se-swe-47'],
-  'swe-24': ['se-swe-48', 'se-swe-49'],
-};
+export { SE_LESSON_TASKS } from './ownerLessonTasks';

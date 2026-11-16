@@ -4,6 +4,7 @@
 require('./register-typescript.cjs');
 const assert = require('node:assert/strict');
 const { MODULES } = require('../src/data/curriculum.ts');
+require('./register-owner-content.cjs');
 const { QUESTION_BANK } = require('../src/data/questionBank/index.ts');
 const { lessonQuestions, isCorrectAnswer, normaliseAnswer, answerMask, isCapturedFlag } = require('../src/data/lessonQuestions.ts');
 

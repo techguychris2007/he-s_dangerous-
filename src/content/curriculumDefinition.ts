@@ -28,7 +28,7 @@ export interface CurriculumLesson {
 
 
 export function curriculumModule(meta: Omit<ModuleMeta, 'lessons' | 'status'>, lessons: CurriculumLesson[]): ModuleMeta {
-  return { ...meta, status: 'available', lessons: lessons.map(withDepth).map(lesson => ({
+  return { ...meta, status: 'available', lessons: lessons.map((lesson) => withDepth(lesson)).map(lesson => ({
     id: lesson.id, slug: lesson.slug, title: lesson.title, summary: lesson.summary, minutes: lesson.minutes,
     objectives: lesson.outcomes, prerequisite: lesson.prerequisite,
     questions: lesson.questions, keyTerms: lesson.keyTerms,

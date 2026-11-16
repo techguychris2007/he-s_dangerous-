@@ -1,5 +1,5 @@
 import { PYTHON_TASKS } from './pythonTasks';
-import { CSHARP_TASKS } from './csharpTasks';
+import { CSHARP_TASKS } from './ownerTasks';
 import { TS_TASKS } from './typescriptTasks';
 import { DEVOPS_TASKS } from './devopsTasks';
 

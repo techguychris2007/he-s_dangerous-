@@ -8,7 +8,7 @@ import { PYTHON_TASKS } from '../labs/pythonTasks';
 import { CPP_TASKS } from '../labs/cppTasks';
 import { JS_TASKS } from '../labs/jsTasks';
 import { SECURITY_TASKS } from '../labs/securityTasks';
-import { ML_TASKS } from '../labs/mlTasks';
+import { ML_TASKS } from '../labs/ownerTasks';
 import { IconCheck, IconChart, IconFlask, IconCode, IconTrophy, IconArrowRight, IconLightning, IconBook, IconStar, ModuleIcon } from '../components/layout/icons';
 import StatCard from '../components/common/StatCard';
 import AchievementShelf from '../components/common/AchievementShelf';

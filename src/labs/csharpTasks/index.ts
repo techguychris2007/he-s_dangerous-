@@ -16,4 +16,4 @@ const RAW_CSHARP_TASKS: CodeTask[] = [...CSHARP_FOUNDATION_TASKS, ...CSHARP_MONT
 
 export const CSHARP_TASKS: CodeTask[] = enrichCodeTasks(RAW_CSHARP_TASKS);
 
-export const CSHARP_TASK_CATEGORIES = ['C# Foundations', 'Month 1 · C# Engineering', 'Month 2 · APIs & Data', 'Month 3 · Architecture', 'Month 6 · System Design'] as const;
+export { CSHARP_TASK_CATEGORIES } from './categories';

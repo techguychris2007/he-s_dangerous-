@@ -48,8 +48,8 @@ export function startPwa() {
 let registered = false;
 /** The worker that saves DarkWorld for offline use runs only for the owner accounts (see
  *  src/lib/ownerSession.ts). Called once sign-in has resolved. For anyone else, an existing worker
- *  is removed with the app copy it saved, so the app needs the network like any website; updates
- *  then arrive on the next load. Offline book and Python downloads are left alone. */
+ *  is removed with the app copy it saved (and any owner-content copy), so the app needs the network
+ *  like any website; updates then arrive on the next load. Offline book and Python downloads stay. */
 export function enableOfflineCaching(owner: boolean) {
   if (import.meta.env.DEV) return;
   if (!owner) {
@@ -58,7 +58,7 @@ export function enableOfflineCaching(owner: boolean) {
     update = undefined;
     void navigator.serviceWorker?.getRegistrations().then(registrations => Promise.all(registrations.map(registration => registration.unregister()))).catch(() => {});
     const storage = globalThis.caches;
-    void storage?.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('workbox-precache')).map(key => storage.delete(key)))).catch(() => {});
+    void storage?.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('workbox-precache') || key === 'darkworld-owner-content').map(key => storage.delete(key)))).catch(() => {});
     return;
   }
   if (registered) return;

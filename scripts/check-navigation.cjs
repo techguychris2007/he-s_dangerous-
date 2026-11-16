@@ -18,6 +18,13 @@ assert.ok(searchAcademy('').length > 0, 'Empty query should offer useful startin
 const { setOwnerSession, OWNER_TRACKS, isOwnerOnlyPath } = require('../src/lib/ownerSession.ts');
 for (const path of LEARNING_PATHS.filter(path => !OWNER_TRACKS.has(path.track))) assert.ok(searchAcademy(path.title).some(item => item.to === path.to), 'Search must preserve track parameters');
 assert.equal(searchAcademy('machine learning').concat(searchAcademy('build projects'), searchAcademy('C# & .NET')).some(item => isOwnerOnlyPath(item.to)), false, 'Owner-only portals and tracks must stay out of learner search');
+// Owner modules arrive from the private bucket at runtime; register them from source as the app would.
+const { registerOwnerCurriculum } = require('../src/data/curriculum.ts');
+const { curriculumModule } = require('../src/content/curriculumDefinition.ts');
+const { SE_MODULE_SOURCES, SE_ROADMAP } = require('../src/data/softwareEngineeringCurriculum.ts');
+const { DN_MODULE_SOURCES, DN_ROADMAP } = require('../src/data/dotnetCurriculum.ts');
+assert.equal(MODULES.some(module => module.slug.startsWith('dn-')), false, 'The app bundle must not include the C# & .NET modules');
+registerOwnerCurriculum([...SE_MODULE_SOURCES, ...DN_MODULE_SOURCES].map(({ meta, lessons }) => curriculumModule(meta, lessons)), [...SE_ROADMAP, ...DN_ROADMAP]);
 setOwnerSession(true);
 for (const path of LEARNING_PATHS) assert.ok(searchAcademy(path.title).some(item => item.to === path.to), 'Owner search must include every track');
 assert.ok(MODULES.some(module => module.slug.startsWith('dn-')), 'Owner curriculum must include the C# & .NET modules');

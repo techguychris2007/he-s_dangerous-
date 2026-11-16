@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { ML_LESSONS, ML_MODULES } from '../data/mlLessons';
-import { ML_TASKS } from '../labs/mlTasks';
+import { ML_LESSONS } from '../data/ownerMlLessons';
+import { ML_UNITS as ML_MODULES } from '../data/mlLessons/units';
+import { ML_TASKS } from '../labs/ownerTasks';
 import { useProgress } from '../state/progressStore';
 import PortalNavigation from '../components/layout/PortalNavigation';
 import { IconCheck, IconCode, IconLightning } from '../components/layout/icons';
