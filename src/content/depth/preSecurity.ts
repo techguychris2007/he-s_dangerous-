@@ -229,296 +229,52 @@ export const PRE_SECURITY_DEPTH: Record<string, LessonDepth> = {
   },
 
   'pre-system-1': {
-    before: [
-      {
-        title: 'In plain English: a security camera for your network cable',
-        paragraphs: [
-          'Wireshark records every packet that crosses a network connection, like a security camera that films every parcel through a sorting office. Each recorded packet is a frame, numbered in the order it arrived.',
-          'A capture can contain thousands of frames, so you use display filters to show only what matters, just like searching camera footage for "red van between 2 and 3pm". The filter dns shows only DNS packets; ip.addr == 10.10.10.20 shows only traffic to or from that address.',
-        ],
-      },
-    ],
-    after: [
-      {
-        title: 'Step by step: narrowing 2,000 frames to 2',
-        paragraphs: [
-          'Start broad and narrow down. Type each filter in the bar at the top of Wireshark and press Enter. The status bar shows how many frames are "Displayed" — watch it shrink.',
-          'With the last filter you see one DNS query and its answer. Click the answer frame, expand "Answers" in the detail pane, and you can read the name and address. Record the frame number and the filter so anyone can find the same packet again.',
-        ],
-        code: 'Filter                                  Displayed\n(none)                                  2,047 of 2,047\ndns                                       38 of 2,047\ndns && ip.addr == 10.10.10.53             12 of 2,047\ndns.qry.name == "portal.lab"               2 of 2,047\n\nFrame 412: Standard query response A portal.lab A 10.10.10.20',
-        label: 'Each filter removes noise until only the evidence remains',
-      },
-    ],
+    before: [{ title: 'In plain English: the building manager', paragraphs: ['Think of a computer as an office building. The hardware is the building itself, the applications are the tenants, and the operating system is the building manager who hands out keys, assigns rooms and decides who may use the lifts.', 'Tenants never rewire the building themselves; they ask the manager. If someone tricks the manager, they get keys to every room. That is why the operating system matters so much in security.'] }],
+    after: [{ title: 'Worked example: same program, different damage', paragraphs: ['The same buggy web server is attacked on two machines. On the first it runs as root (full control); on the second as a limited "www-data" account. The bug is identical, but the outcome is not.', 'On the first machine the attacker immediately controls everything. On the second they can only touch the website\'s own files and must find a second weakness to go further, which gives defenders time to notice.'], code: 'Machine A: nginx running as root      -> attacker gets full system control\nMachine B: nginx running as www-data  -> attacker limited to website files', label: 'The account a process runs as decides the damage' }],
   },
-
   'pre-system-2': {
-    before: [
-      {
-        title: 'In plain English: putting the pages back in order',
-        paragraphs: [
-          'A conversation between a browser and a server is split into many packets, like a letter cut into strips and posted separately. Looking at one packet is reading one strip. "Follow TCP Stream" collects every strip of that conversation and lays them out in order, so you can read the whole letter.',
-          'With plain HTTP (no encryption), the reassembled conversation is readable text: you can see the request your browser sent and the page the server returned. That is exactly why HTTPS exists — and why plain HTTP should never carry passwords.',
-        ],
-      },
-    ],
-    after: [
-      {
-        title: 'Step by step: following one conversation',
-        paragraphs: [
-          'Filter for http, right-click the request frame and choose Follow → TCP Stream. Wireshark opens a window showing the conversation, with your side in one colour and the server\'s replies in another, and a stream number such as tcp.stream eq 3.',
-          'In the example, you can read the login form being submitted in clear text — including the password. Your evidence note names the stream number, quotes the relevant line, and states the conclusion: "credentials crossed the network unencrypted in stream 3."',
-        ],
-        code: 'POST /login HTTP/1.1\nHost: intranet.lab\nContent-Type: application/x-www-form-urlencoded\n\nusername=alex&password=Summer2024!\n\nHTTP/1.1 302 Found\nLocation: /dashboard',
-        label: 'Follow TCP Stream (tcp.stream eq 3): readable because it is plain HTTP',
-      },
-    ],
+    before: [{ title: 'In plain English: keys and key cards', paragraphs: ['An administrator account is a master key that opens every door. A standard account is a key card that opens only the rooms you need. Least privilege means handing out key cards, and keeping master keys locked away for the rare jobs that need them.', 'If a key card is stolen, the thief gets a few rooms. If a master key is stolen, they get the whole building.'] }],
+    after: [{ title: 'Worked example: separating daily and admin accounts', paragraphs: ['An IT technician has two accounts: "sam" for email and browsing, and "sam-admin" used only to install software or change settings. A phishing link clicked from "sam" can damage only Sam\'s own files.', 'If Sam browsed with "sam-admin", the same click could install malware for every user and switch off protection.'], code: 'sam        -> email, documents, browsing      (standard)\nsam-admin  -> installs and settings only        (administrator)', label: 'Two accounts, two levels of risk' }],
   },
-
   'pre-system-3': {
-    before: [
-      {
-        title: 'In plain English: you can see the envelope, not the letter',
-        paragraphs: [
-          'With HTTPS, Wireshark can still see who is talking to whom, when, and how much data moved — the outside of the envelope. It cannot read the letter inside, because TLS encrypted it. That is TLS doing its job, not Wireshark failing.',
-          'One useful clue survives: during the TLS handshake the browser usually announces which website it wants, in a field called SNI (Server Name Indication). So you may learn "this laptop connected to bank.example over TLS" without learning anything the user typed.',
-          'When a filter shows nothing, do not invent a conclusion. Check the filter spelling, the time range and whether the traffic is encrypted before deciding "it never happened".',
-        ],
-      },
-    ],
-    after: [
-      {
-        title: 'Step by step: what an encrypted connection still tells you',
-        paragraphs: [
-          'Filter tls.handshake.type == 1 to show TLS "Client Hello" messages — the first message of each encrypted connection. Expand it and find the server_name extension.',
-          'A careful finding states only what the evidence supports: the destination name and address, the time and the TLS version — and explicitly says the content is not visible. That honesty is what separates analysis from guessing.',
-        ],
-        code: 'Filter: tls.handshake.type == 1\n\nFrame 88  10.10.10.5 -> 10.10.10.30  TLSv1.3  Client Hello\n  Extension: server_name\n    Server Name: portal.lab\n\nFinding: 10.10.10.5 opened a TLS 1.3 session to portal.lab (frame 88).\nLimitation: the application content is encrypted and not visible.',
-        label: 'Metadata is visible; content is not',
-      },
-    ],
+    before: [{ title: 'In plain English: locks, fewer doors and a spare key', paragraphs: ['Patching is fixing the locks once a flaw is known. Hardening is bricking up the doors nobody uses. Endpoint protection is the alarm system. Backups are the spare key and the insurance policy for when something gets through anyway.', 'No single measure is enough; together they make an attack harder, louder and less damaging.'] }],
+    after: [{ title: 'Worked example: a hardening checklist for a new laptop', paragraphs: ['Before a new laptop is handed to an employee, IT runs through a short list. Each line removes a way in or adds a way to recover.', 'The same thinking applies to servers and phones: remove what is unused, update what remains, watch it, and keep a way back.'], code: '[x] Install all operating system and app updates; enable automatic updates\n[x] Remove trial software and unused apps\n[x] Turn on the firewall and full-disk encryption\n[x] Daily work uses a standard account\n[x] Endpoint protection installed and reporting\n[x] Backups scheduled, with one copy offline', label: 'Each item shrinks the attack surface or speeds recovery' }],
   },
-
   'pre-script-1': {
-    before: [
-      {
-        title: 'In plain English: a checkpoint between your browser and the website',
-        paragraphs: [
-          'Normally your browser talks straight to a website. Burp Suite sits in the middle as a checkpoint: every request stops there first, so you can read it, keep a copy in the HTTP history, and even change it before it continues.',
-          'Repeater is Burp\'s workbench. You send one request there, change a single detail, press Send, and compare the response with the original. Because you control exactly one change at a time, you learn precisely how the server reacts — without clicking around the site and creating confusing extra traffic.',
-        ],
-      },
-    ],
-    after: [
-      {
-        title: 'Step by step: from history to Repeater',
-        paragraphs: [
-          '1) Browse the lab site with Burp\'s browser so requests appear in Proxy → HTTP history. 2) Find the request you care about, right-click it and choose "Send to Repeater". 3) In Repeater, press Send once without changes — this is your baseline. 4) Change one value and press Send again.',
-          'Compare the two responses side by side: status code, length and body. In the example, changing the profile ID from 7 to 8 returns another user\'s profile with 200 OK. That single, controlled comparison is the evidence.',
-        ],
-        code: 'Baseline   GET /api/profile/7   -> 200 OK  length 142  {"id":7,"name":"learner"}\nChanged    GET /api/profile/8   -> 200 OK  length 139  {"id":8,"name":"sam"}\n\nNote: changing only the ID returned a different user\'s profile.',
-        label: 'Repeater: one change, two responses, one conclusion',
-      },
-    ],
+    before: [{ title: 'In plain English: ordering at a counter', paragraphs: ['Visiting a website is like ordering at a counter. You hand over an order slip (the request) saying what you want; the counter hands back your food or a note saying why not (the response, with a status code).', 'Anyone can write anything on an order slip, so a good counter checks every slip instead of trusting it.'] }],
+    after: [{ title: 'Worked example: one page, many requests', paragraphs: ['Opening a single shop page can trigger dozens of requests. Each has its own status code, and each is a separate chance for the server to check who is asking.', 'When something fails, the status code is the first clue: 404 means it is not there, 403 means you are not allowed, 500 means the server broke.'], code: 'GET /shop            200 OK          (the page)\nGET /styles.css      200 OK          (its design)\nGET /api/basket      401 Unauthorized (not signed in yet)\nGET /old-banner.png  404 Not Found   (missing image)', label: 'Status codes tell the story of each request' }],
   },
-
   'pre-script-2': {
-    before: [
-      {
-        title: 'In plain English: the bouncer\'s three answers',
-        paragraphs: [
-          'Think of a club with a bouncer. 200 means "come in". 401 means "I don\'t know who you are — show me ID" (you are not logged in, or your login is wrong). 403 means "I know exactly who you are, and you\'re still not allowed in" (logged in, but not permitted).',
-          'That difference matters. A 401 is about authentication (who you are). A 403 is about authorization (what you may do). Other common answers: 404 "no such room", 302 "go to this other door" (a redirect), and 500 "something broke inside" (a server error).',
-        ],
-      },
-    ],
-    after: [
-      {
-        title: 'Step by step: the same request three ways',
-        paragraphs: [
-          'Send the admin page request three times in Repeater: with no session cookie, with a normal user\'s cookie, and with the admin\'s cookie. Write down each status code.',
-          'The pattern 401 → 403 → 200 shows the server is checking both identity and permission — this boundary works. If the normal user had received 200, you would have found an authorization bug.',
-        ],
-        code: 'No cookie            GET /admin  -> 401 Unauthorized\nUser cookie (sam)    GET /admin  -> 403 Forbidden\nAdmin cookie (root)  GET /admin  -> 200 OK\n\nConclusion: authentication and authorization are both enforced on /admin.',
-        label: 'Three identities, three different answers',
-      },
-    ],
+    before: [{ title: 'In plain English: a cloakroom ticket', paragraphs: ['A session cookie works like a cloakroom ticket. You prove who you are once, get a numbered ticket, and from then on the attendant hands your coat to whoever shows that ticket.', 'That is convenient, and it is also the risk: if someone copies your ticket, the attendant cannot tell them apart from you.'] }],
+    after: [{ title: 'Worked example: reading a Set-Cookie header', paragraphs: ['Each part of a Set-Cookie header has a job. Reading it tells you how well a site protects its sessions.', 'If Secure or HttpOnly is missing on a session cookie, that is worth noting as a weakness, even before anything has gone wrong.'], code: 'Set-Cookie: session=8b1f6e2c9a; Secure; HttpOnly; SameSite=Lax; Max-Age=1800\n\nsession=8b1f...  the identifier (long and random)\nSecure           only sent over HTTPS\nHttpOnly         page scripts cannot read it\nSameSite=Lax     not sent on most cross-site requests\nMax-Age=1800     expires after 30 minutes', label: 'Every attribute closes a different gap' }],
   },
-
   'pre-script-3': {
-    before: [
-      {
-        title: 'In plain English: change one ingredient at a time',
-        paragraphs: [
-          'If a cake comes out wrong and you changed the flour, the sugar and the oven temperature all at once, you will never know which change mattered. Testing websites works the same way.',
-          'One-variable testing means: send a normal request (the baseline), change exactly one thing, send it again, and compare. If the response changes, you know which change caused it. This habit is the foundation of almost every web vulnerability lab that follows.',
-        ],
-      },
-    ],
-    after: [
-      {
-        title: 'Step by step: a tidy test log',
-        paragraphs: [
-          'Keep a small table as you test. Each row is one request: what you changed, the status code, the response length and what it means. The baseline row comes first.',
-          'Reading the log below, only test 2 changed the outcome — the server returned another user\'s invoice. Tests 3 and 4 behaved safely. A reviewer can repeat any row and get the same result, which is what makes it evidence.',
-        ],
-        code: '#  Change from baseline            Status  Length  Meaning\n1  (baseline) invoice=41          200     310     my own invoice\n2  invoice=42                     200     298     another customer\'s invoice\n3  invoice=abc                    400      44     input rejected\n4  removed Cookie header          401      30     login required',
-        label: 'One variable per row — the finding is row 2',
-      },
-    ],
+    before: [{ title: 'In plain English: the front door and the rooms', paragraphs: ['Authentication is the front desk checking your ID. Authorization is every room door checking whether your badge opens it. A building that checks IDs at the front but leaves every room unlocked is not secure.', 'Most web applications get the front desk right. The common mistakes are rooms that forget to check.'] }],
+    after: [{ title: 'Worked example: testing your own account safely', paragraphs: ['A developer checks their own app with two test accounts, A and B. Signed in as A, they open A\'s invoice, then change the number in the address to B\'s invoice.', 'The correct result is 403 or 404. Getting B\'s invoice means broken access control, a serious bug to fix on the server. Only test like this on systems you own or are authorised to test.'], code: 'Signed in as A:  GET /invoices/501  -> 200 (A\'s own invoice: correct)\nSigned in as A:  GET /invoices/502  -> 403 (B\'s invoice: correctly refused)\n                                     -> 200 would mean broken access control', label: 'Authorization must be checked on every request' }],
   },
-
   'pre-security-1': {
-    before: [
-      {
-        title: 'In plain English: an evidence locker with a logbook',
-        paragraphs: [
-          'Digital forensics is careful detective work on computer evidence. Autopsy is the investigator\'s evidence locker: you open a case (the folder for one investigation), add a data source (the evidence, such as a copy of a hard drive), and Autopsy sorts what it finds into searchable artifacts.',
-          'Order and honesty matter more than speed. Every finding must say which file it came from, when that file was changed and what it actually shows — so another investigator could check your work and reach the same answer.',
-        ],
-      },
-    ],
-    after: [
-      {
-        title: 'Step by step: opening a case',
-        paragraphs: [
-          '1) Create a new case and give it a clear name and number. 2) Add the data source — in DarkWorld, the supplied training fixture. 3) Let the ingest modules run; they extract files, timestamps and keywords. 4) Open the timeline view and sort by time.',
-          'Write down each step as you go, like the case log below. Note that the timestamps include the timezone; without it, "09:14" could mean three different moments.',
-        ],
-        code: 'Case:        DW-101 Training fixture review\nData source: dw-fixture-01 (synthetic training files)\nIngest:      completed 09:02 UTC, 14 files, 2 deleted entries\n\n09:14 UTC  F-03 notes.txt       created\n09:20 UTC  F-07 receipt.pdf     deleted (metadata recoverable)\n09:31 UTC  F-09 browser history  visit to portal.lab',
-        label: 'A simple, reviewable case log',
-      },
-    ],
+    before: [{ title: 'In plain English: a flight recorder', paragraphs: ['Logs are a computer\'s flight recorder. Most of the time nobody reads them, but after something goes wrong they are how investigators work out what happened, in what order and who was involved.', 'A flight recorder is only useful if it was switched on, kept accurate time and survived the crash. The same is true of logs.'] }],
+    after: [{ title: 'Worked example: lining up events across systems', paragraphs: ['An analyst collects events from three systems for the same morning. Because all three record UTC, they can be merged into one timeline.', 'The merged view shows a story none of the systems shows alone: a successful sign-in after failures, then a new admin account, then a large upload.'], code: '09:13:02Z  vpn     alice signed in from 203.0.113.25 (after 20 failures)\n09:15:40Z  server  new account "support2" added to Administrators by alice\n09:21:08Z  proxy   9.4 GB uploaded from server to unfamiliar address', label: 'Three systems, one timeline' }],
   },
-
   'pre-security-2': {
-    before: [
-      {
-        title: 'In plain English: a search hit is a lead, not a verdict',
-        paragraphs: [
-          'Searching evidence for a word is like a detective finding a name in a diary. It is a good lead — but it does not prove that person wrote the diary, read it, or did anything wrong.',
-          'Autopsy\'s keyword search tells you where a word appears. Your job is to say exactly that, and no more, until other evidence (timestamps, other files, logs) supports a bigger conclusion.',
-        ],
-      },
-    ],
-    after: [
-      {
-        title: 'Step by step: from hit to careful sentence',
-        paragraphs: [
-          'Search for the keyword, open each hit and look at the surrounding text and the file\'s details. Then write one sentence per hit that states only what is visible.',
-          'Compare the two conclusions below. The first jumps from "the word appears" to "the user stole data". The second is factual and still useful — and it tells the next analyst what to check.',
-        ],
-        code: 'Keyword: "payroll"   Hits: 3\n  F-04 email-draft.txt   "...send the payroll export to my personal address..."\n\n✗ "Alex stole the payroll file."\n✓ "F-04, a draft created 09:12 UTC, contains text proposing to send a payroll\n   export to a personal address. It does not show that anything was sent."',
-        label: 'State what the artifact shows — and what it does not',
-      },
-    ],
+    before: [{ title: 'In plain English: a sealed evidence bag', paragraphs: ['Police put evidence in a sealed bag and sign a label every time it changes hands. If the seal is broken or a signature is missing, a court may not trust what is inside.', 'Digital investigators do the same with hashes (the seal) and chain of custody records (the signatures).'] }],
+    after: [{ title: 'Worked example: a chain of custody record', paragraphs: ['Every transfer of a seized laptop is written down. Anyone reviewing the case can see exactly who had it and confirm the hash never changed.', 'If the hash on the last line differed, investigators would know the data changed and would need to explain why.'], code: 'Item: Laptop SN 4471, disk image SHA-256 9f2c...e41a\n14 Mar 10:05  Collected by J. Mensah from Room 12     hash 9f2c...e41a\n14 Mar 11:30  Transferred to A. Owusu (forensics)      hash 9f2c...e41a\n15 Mar 09:00  Image verified before analysis           hash 9f2c...e41a', label: 'Same hash at every step: the evidence is unchanged' }],
   },
-
   'pre-security-3': {
-    before: [
-      {
-        title: 'In plain English: labelled evidence bags',
-        paragraphs: [
-          'At a crime scene, each item goes into a labelled bag with a number, a description and who collected it. Tags and an evidence register do the same job in Autopsy: each important artifact gets a label and a row in a table, so the final report can point to exact items.',
-          'A good report then turns those rows into plain sentences a manager can understand, with a limitations section that says honestly what the evidence cannot show.',
-        ],
-      },
-    ],
-    after: [
-      {
-        title: 'Step by step: from register to report paragraph',
-        paragraphs: [
-          'Tag each relevant artifact in Autopsy (for example "Notable" or a custom tag), then copy its details into a register. Each row needs an ID, the file path, the time and what it supports.',
-          'The report paragraph below is built only from register rows, so every claim can be traced to an item. The final sentence is the limitation — it makes the report stronger, not weaker.',
-        ],
-        code: 'ID    Path                    Time (UTC)  Supports\nE-01  /docs/email-draft.txt   09:12       intent to send an export\nE-02  /tmp/payroll.csv        09:15       export file existed\nE-03  browser history         09:18       visit to a file-sharing site\n\nReport: E-01 to E-03 show an export was created and a file-sharing site was\nvisited within six minutes. Limitation: no evidence shows a file was uploaded.',
-        label: 'Every sentence traces back to a register row',
-      },
-    ],
+    before: [{ title: 'In plain English: a fire drill', paragraphs: ['Incident response is like fire safety. You install alarms and plan exits before a fire (prepare), notice smoke (detect), close doors to stop the spread (contain), put it out (eradicate), repair the building (recover) and then ask how it started (lessons learned).', 'Organisations that practise drills respond calmly; those that do not lose precious time.'] }],
+    after: [{ title: 'Worked example: a phishing incident from start to finish', paragraphs: ['An employee reports entering their password on a fake sign-in page. The team follows its plan step by step.', 'The final step is what stops the same attack working next month.'], code: 'Detect      User reports the fake page; sign-in logs show a new location\nAnalyse     Attacker signed in once and created a mail forwarding rule\nContain     Reset password, end all sessions, remove the forwarding rule\nEradicate   Block the fake domain; check other users for the same rule\nRecover     Confirm normal sign-ins over the next week\nLearn       Require phishing-resistant MFA; run awareness training', label: 'Each phase has a clear, checkable action' }],
   },
 
   'pre-ready-1': {
-    keyTerms: [
-      { term: 'Evidence question', meaning: 'The specific thing you need to prove right now, e.g. "what service is on port 8080?". Pick the tool that answers it.' },
-      { term: 'Baseline', meaning: 'A normal, unchanged result you capture first, so later changes can be compared against it.' },
-      { term: 'Banner', meaning: 'The greeting text a network service sends when you connect, often naming the software and version.' },
-      { term: 'Stream', meaning: 'In Wireshark, all the packets of one connection put back in order so you can read the conversation.' },
-    ],
-    before: [
-      {
-        title: 'In plain English: choose the tool for the question',
-        paragraphs: [
-          'A plumber does not use a hammer for every job. Each tool you have learned answers one kind of question. Netcat answers "what does this service say?". Wireshark answers "what crossed the network?". Burp answers "how does the website react if I change this request?". Autopsy answers "what do these files show?".',
-          'So before reaching for a tool, say the question out loud. If you cannot say what question a tool will answer, it is probably the wrong tool for this moment.',
-        ],
-      },
-    ],
-    after: [
-      {
-        title: 'Step by step: one scenario, four questions',
-        paragraphs: [
-          'A briefing says: "portal.lab is behaving strangely; find out what it runs, what clients send it and what a saved file on the server shows." Break that into questions and match each to a tool, as in the plan below.',
-          'Working in this order keeps the investigation tidy: each step produces one clear piece of evidence, and each piece of evidence answers one question.',
-        ],
-        code: 'Question                              Tool            Evidence to save\n1 What address is portal.lab?          dig / Wireshark DNS answer frame\n2 What service is on port 8080?        Netcat          exact banner text\n3 What does a client request look like? Burp history    one baseline request\n4 What does config.bak contain?        Autopsy         artifact ID, path, time',
-        label: 'A tool plan written before touching anything',
-      },
-    ],
+    before: [{ title: 'In plain English: a detective, not a fortune teller', paragraphs: ['A detective does not announce who did it the moment they walk in. They ask a narrow question, look for the clue that can answer it, and only then say what the clue shows. Security work is the same.', 'The tools change every year. The habit of question, evidence, careful conclusion does not.'] }],
+    after: [{ title: 'Worked example: from worry to answerable questions', paragraphs: ['A vague worry becomes three questions, each tied to the evidence that can answer it. Anything that cannot be answered yet is written down as unknown, not guessed.', 'This list is also a plan: it tells you what to look at first and when you are done.'], code: 'Worry:     "Our website might be hacked."\nQ1  Any admin sign-ins from unfamiliar addresses this week?   -> sign-in logs\nQ2  Any files on the web server changed since the last update? -> hashes vs known-good copy\nQ3  Any unusual outbound traffic from the server?              -> firewall records\nUnknown:   What visitors saw (no copy of pages served)', label: 'Every question names its evidence' }],
   },
-
   'pre-ready-2': {
-    keyTerms: [
-      { term: 'Write-up', meaning: 'A short document explaining what you did in a lab, what you found and how you know — your proof of skill.' },
-      { term: 'Limitation', meaning: 'A clear statement of what your evidence does not show. Including it makes your work more trustworthy.' },
-      { term: 'Caption', meaning: 'One or two sentences under a screenshot saying what it shows and why it matters.' },
-      { term: 'Reproducible', meaning: 'Written so that someone else can follow your steps and get the same result.' },
-    ],
-    before: [
-      {
-        title: 'In plain English: notes your future self can trust',
-        paragraphs: [
-          'Imagine reading your own lab notes in six months, or an employer reading them in an interview. "Got the flag lol" helps nobody. "Connected to 10.10.10.20:31337 with Netcat; the banner read DW-SVC v1.2" tells the whole story in one line.',
-          'Good notes always answer five things: what was the target, what were you trying to learn, what did you do, what did you see, and what does it mean. Add one more line — what it does not prove — and your notes look like professional analyst work.',
-        ],
-      },
-    ],
-    after: [
-      {
-        title: 'Step by step: turning a messy note into a professional one',
-        paragraphs: [
-          'Take a quick scribble and rewrite it into the five-line format. Notice that nothing new was discovered — the same work is simply presented so anyone can follow and check it.',
-        ],
-        code: 'Before:  "nc to the box, it said some service thing, got flag"\n\nAfter:\nTarget:      10.10.10.20 (DarkWorld Netcat lab)\nQuestion:    What service listens on TCP 31337?\nAction:      nc 10.10.10.20 31337\nEvidence:    Banner "DW-TRAINING-SVC v1.2 ready"; flag captured\nConclusion:  A plain-text training service answers on 31337.\nLimitation:  The banner is self-reported and was not verified another way.',
-        label: 'Same work, written so it can be reviewed',
-      },
-    ],
+    before: [{ title: 'In plain English: a recipe someone else can follow', paragraphs: ['A good note is like a recipe: someone else should be able to follow it and get the same result. A good report is like a news story: the headline tells busy readers what matters, and the details are there for those who need them.', 'If only you can understand your notes, the work cannot be checked or continued by anyone else.'] }],
+    after: [{ title: 'Worked example: one finding, two audiences', paragraphs: ['The same finding is written twice: once for the developers who will fix it, once for the manager who must approve the fix.', 'Both versions are accurate. They differ in what the reader needs to do next.'], code: 'For developers:\n  GET /invoices/502 as user A returned user B\'s invoice (200 OK).\n  The server checks sign-in but not invoice ownership. Fix: verify owner per request.\n\nFor the manager:\n  Any customer can read other customers\' invoices, including addresses.\n  Fixing it is a small code change; we recommend doing it this week.', label: 'Same facts, different readers' }],
   },
-
   'pre-ready-3': {
-    keyTerms: [
-      { term: 'Capstone', meaning: 'A final exercise that combines everything in a course into one realistic task.' },
-      { term: 'Workflow', meaning: 'The repeatable order of steps you follow: scope, baseline, one change, evidence, conclusion, limitation.' },
-      { term: 'Checkpoint', meaning: 'A point in a lab where a flag proves you completed a step.' },
-      { term: 'Readiness', meaning: 'Being able to do the core tasks calmly and explain them, not just having seen them once.' },
-    ],
-    before: [
-      {
-        title: 'In plain English: your driving test',
-        paragraphs: [
-          'Lessons taught you each control separately — steering, braking, mirrors. The capstone is the driving test: you use them all together on one route. Nothing new is introduced; the challenge is choosing the right skill at the right moment and explaining what you did.',
-          'If you feel stuck, go back to the question-first habit: what do I need to prove next, and which tool answers that? The capstone rewards calm, ordered work far more than speed.',
-        ],
-      },
-    ],
-    after: [
-      {
-        title: 'Step by step: a capstone run sheet',
-        paragraphs: [
-          'Before you start, write a run sheet like the one below. Tick each row as you capture its evidence. If a step fails, write what you saw and why you think it failed — then move on and come back.',
-          'When every row is ticked, you have both the flags and a finished write-up, because the run sheet already is one.',
-        ],
-        code: '[ ] 1 Scope: confirm target names and addresses from the briefing\n[ ] 2 DNS: prove portal.lab -> address (Wireshark frame #)\n[ ] 3 Service: read the banner on the stated port (Netcat)\n[ ] 4 Web: baseline request + one-change comparison (Burp Repeater)\n[ ] 5 Files: tag the relevant artifact (Autopsy ID + time)\n[ ] 6 Report: five-line notes per step + one limitation each',
-        label: 'Plan the evidence before you collect it',
-      },
-    ],
+    before: [{ title: 'In plain English: one story, every chapter', paragraphs: ['Each module in this path was one chapter: the field, DarkWorld, computers, networks, the web, logs and incidents. A real incident is the whole book at once.', 'The capstone asks you to read that book: follow one attack from start to finish and notice where each chapter would have helped.'] }],
+    after: [{ title: 'Worked example: the shop incident as a timeline', paragraphs: ['Putting the scenario into a timeline shows each failed layer and the control that would have stopped it. This is the kind of summary you will write in defensive casebooks and offensive reports alike.', 'Notice that no single control is enough; together they make the attack much harder.'], code: '03:02  Hundreds of failed admin sign-ins        -> rate limiting, MFA\n03:10  Admin sign-in succeeds                    -> MFA, separate admin account\n03:14  New admin account created                 -> alert on admin changes\n03:20  Server sends data to unknown address      -> egress monitoring, least privilege\nLater  Contain, patch, restore, review           -> tested incident response plan', label: 'Every step was a chance to stop the attack' }],
   },
 };
