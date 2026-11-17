@@ -445,3 +445,15 @@ main h1, main h2, main h3, .page-title {
 .progress-accordion[open] > summary .progress-accordion-chevron {
   transform: rotate(90deg);
 }
+
+/* ── Phones and tablets ──────────────────────────────────────────────────────────────────────────
+   iOS Safari zooms the whole page in when a text field under 16px gains focus, and leaves it zoomed.
+   On touch screens every text field gets 16px text instead; pinch-zoom stays available (the viewport
+   is not locked), and mouse-and-keyboard computers keep the compact sizes. */
+@media (hover: none) and (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}

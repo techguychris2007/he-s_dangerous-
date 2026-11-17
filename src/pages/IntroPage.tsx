@@ -13,6 +13,7 @@ import type { RoadmapTrack } from '../types';
 import './entry-pages.css';
 import './landing.css';
 import { OWNER_TRACKS, useIsOwner } from '../lib/ownerAccess';
+import { COMPUTER_ONLY } from '../components/layout/ComputerAccessGate';
 
 const PATHS: { track: RoadmapTrack; title: string; label: string; body: string; icon: string; tone: IsoTone; guide: CharacterId }[] = [
   { track: 'presecurity', label: 'Start here', title: 'Pre-security', body: 'Computers, networks, Linux and the tools every lab uses — from zero.', icon: 'terminal', tone: 'progress', guide: 'byte' },
@@ -213,7 +214,7 @@ export default function IntroPage() {
         <div className="ln-cta__art" aria-hidden="true"><IsoBlock width={120} depth={26} tone="done" glow crest={<IconFlag />} /></div>
         <div>
           <h2 id="cta-title">Your first room takes ten minutes.</h2>
-          <p>Free to begin. Built for laptops and desktops. Your progress, XP and streak save automatically.</p>
+          <p>Free to begin. {COMPUTER_ONLY ? 'Built for laptops and desktops.' : 'Works on phones, tablets and computers.'} Your progress, XP and streak save automatically.</p>
         </div>
         <Link to="/login?mode=signup" className="ln-btn ln-btn--primary ln-btn--lg">Create your account <IconArrowRight className="h-4 w-4" /></Link>
       </section>

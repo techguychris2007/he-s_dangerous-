@@ -3,7 +3,13 @@ import { isUnsupportedDevice } from '../../lib/deviceAccess';
 import Logo from './Logo';
 import '../../pages/entry-pages.css';
 
+/** Computer-only mode. Off by default, so phones and tablets can use DarkWorld. Build with
+ *  VITE_COMPUTER_ONLY=on (in Vercel: Project → Settings → Environment Variables) to show phones and
+ *  tablets the "Continue on a computer" notice instead. */
+export const COMPUTER_ONLY = import.meta.env.VITE_COMPUTER_ONLY === 'on';
+
 export default function ComputerAccessGate({ children }: { children: ReactNode }) {
+  if (!COMPUTER_ONLY) return children;
   const browser = navigator as Navigator & { userAgentData?: { mobile?: boolean } };
   const blocked = isUnsupportedDevice({
     userAgent: browser.userAgent,

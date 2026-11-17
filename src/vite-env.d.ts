@@ -10,6 +10,9 @@ interface ImportMetaEnv {
   readonly VITE_APP_RELEASE?: string;
   /** SimpleAnalytics hostname to report as; analytics stays off when unset (src/lib/analytics.ts). */
   readonly VITE_ANALYTICS_HOSTNAME?: string;
+  /** "on" limits DarkWorld to laptops and desktops (src/components/layout/ComputerAccessGate.tsx).
+   *  Anything else, the default, lets phones and tablets in. */
+  readonly VITE_COMPUTER_ONLY?: string;
 }
 
 interface ImportMeta {
