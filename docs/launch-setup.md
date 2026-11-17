@@ -3,6 +3,20 @@
 The code for all four is in the repo. Error reports and analytics stay off until the settings below
 are added in Vercel, so nothing changes for learners until you switch them on.
 
+## Current setup (November 2026)
+
+| Piece | Where | State |
+| --- | --- | --- |
+| Domain | Namify (DNS), Vercel | `www.darkworldacademy.tech` is production; `darkworldacademy.tech` and `darworld.vercel.app` redirect to it (308) |
+| Sign-in | Supabase, Google Cloud, GitHub OAuth app | Site URL and redirect URLs, Google origins and consent links, GitHub homepage all use the new domain |
+| Auth email | Resend → Supabase custom SMTP | Sends from `no-reply@darkworldacademy.tech`; Supabase limit 30 emails/hour, Resend free plan 100/day |
+| Error reports | Sentry, org `darkworld-academy`, project `darkworld-web` (EU) | `VITE_SENTRY_DSN` set for Production; data scrubbing on, IP addresses not stored |
+| Analytics | SimpleAnalytics, site `darkworldacademy.tech` | `VITE_ANALYTICS_HOSTNAME=www.darkworldacademy.tech`; Free plan trial ends 30 Nov 2026 |
+| Search | Google Search Console, Domain property | Verified by a TXT record at Namify; `sitemap.xml` submitted |
+
+Keep these DNS records at Namify: the Google `google-site-verification` TXT record (Search
+Console) and the Resend records `resend._domainkey`, `send`, `rsend` and `_dmarc` (email).
+
 ## 1. Checks on every push (GitHub Actions)
 
 `.github/workflows/ci.yml` runs lint, the type check and build, `test:platform`, the owner-content
