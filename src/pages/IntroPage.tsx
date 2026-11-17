@@ -188,11 +188,14 @@ export default function IntroPage() {
         <div className="ln-head">
           <p className="ln-kicker ln-kicker--ink"><span />The people behind DarkWorld</p>
           <h2 id="contributors-title">Built together.</h2>
-          <p>DarkWorld grew from friendship, a shared idea and the commitment to make it real. ChrisB and Benedict Adjei built this platform together.</p>
+          <p>DarkWorld grew from friendship, a shared idea and the commitment to make it real. Benedict Adjei and Bondam Christopher Kweku founded and built this platform together.</p>
         </div>
         <div className="ln-contributors">
           {CONTRIBUTORS.map((contributor) => (
             <article key={contributor.name} className="ln-contributor">
+              {contributor.photo && (
+                <img src={contributor.photo} alt={`Portrait of ${contributor.name}`} className="ln-contributor__photo" width={96} height={96} loading="lazy" decoding="async" />
+              )}
               <p className="ln-contributor__role">{contributor.role}</p>
               <h3>{contributor.name}</h3>
               <p className="ln-contributor__story">{contributor.contribution}</p>

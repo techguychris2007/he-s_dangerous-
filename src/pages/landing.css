@@ -109,6 +109,7 @@
 
 .ln-contributors { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.2rem; }
 .ln-contributor { display: flex; flex-direction: column; align-items: flex-start; padding: 1.8rem; border: 1px solid var(--color-border); border-radius: 14px; background: var(--color-surface); }
+.ln-contributor__photo { width: 96px; height: 96px; margin-bottom: 1.1rem; border-radius: 50%; object-fit: cover; border: 2px solid var(--color-border); background: var(--color-surface); }
 .ln-contributor__role { margin: 0; font-size: .75rem; font-weight: 700; color: var(--color-accent-dim); }
 .ln-contributor h3 { margin: .6rem 0 .8rem; font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; color: var(--color-heading); }
 .ln-contributor__story { max-width: 60ch; margin: 0; font-size: .95rem; line-height: 1.8; color: var(--color-text-dim); }
