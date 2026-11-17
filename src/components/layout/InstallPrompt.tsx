@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../../state/authStore';
 import { applyAppUpdate, installApp, usePwa } from '../../state/pwa';
 import OfflineRuntimeCard from './OfflineRuntimeCard';
-import InstallAppButton from './InstallAppButton';
 import Logo from './Logo';
 import { isOwnerEmail } from '../../lib/ownerAccess';
 import AppUpdateSymbol from './AppUpdateSymbol';
@@ -30,7 +29,6 @@ export default function InstallPrompt() {
   const safari = /Safari/.test(navigator.userAgent) && !/Chrome|Chromium|Edg|OPR/.test(navigator.userAgent);
   const firefox = /Firefox/.test(navigator.userAgent);
   return <>
-    {!auth.user && <div className="dw-entry-install"><InstallAppButton/></div>}
     <dialog ref={dialog} className="dw-app-dialog" aria-labelledby="dw-app-title" onCancel={() => setOpen(false)} onClose={() => setOpen(false)} onClick={event => { if (event.target === event.currentTarget) setOpen(false); }}>
       <header><Logo className="h-12 w-12"/><div><p>YOUR DESKTOP WORKSPACE</p><h2 id="dw-app-title">DarkWorld, ready when you are.</h2></div><button type="button" aria-label={owner ? 'Close app and offline settings' : 'Close app settings'} onClick={() => setOpen(false)}>×</button></header>
       <div className="dw-app-content">
