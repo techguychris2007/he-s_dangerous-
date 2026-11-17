@@ -2,7 +2,12 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!-- Favicons. Google Search needs a square icon at a multiple of 48px (48, 96, 192) or /favicon.ico. -->
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/icons/icon-96.png" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/icons/icon-48.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16.png" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
@@ -11,8 +16,41 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="DarkWorld" />
-    <meta name="description" content="DarkWorld Academy — pre-security foundations, offensive and defensive learning paths, interactive labs, and a professional portfolio of practice evidence." />
-    <title>DarkWorld — Cybersecurity Academy</title>
+    <meta name="description" content="Learn cybersecurity by doing. DarkWorld Academy takes you from security foundations to offensive and defensive paths, with hands-on labs and a portfolio of your work." />
+    <title>DarkWorld Academy — Learn Cybersecurity by Doing</title>
+    <link rel="canonical" href="https://www.darkworldacademy.tech/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="DarkWorld Academy" />
+    <meta property="og:title" content="DarkWorld Academy — Learn Cybersecurity by Doing" />
+    <meta property="og:description" content="Security foundations, offensive and defensive learning paths, hands-on labs and a portfolio of your practice work." />
+    <meta property="og:url" content="https://www.darkworldacademy.tech/" />
+    <meta property="og:image" content="https://www.darkworldacademy.tech/darkworld-badge.png" />
+    <meta property="og:image:width" content="960" />
+    <meta property="og:image:height" content="960" />
+    <meta property="og:image:alt" content="DarkWorld Cyber Academy badge" />
+    <meta name="twitter:card" content="summary" />
+    <!-- Tells Google Search the site's name and logo, shown above the result instead of the bare domain. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://www.darkworldacademy.tech/#website",
+            "name": "DarkWorld Academy",
+            "alternateName": ["DarkWorld", "DarkWorld Cyber Academy"],
+            "url": "https://www.darkworldacademy.tech/"
+          },
+          {
+            "@type": "EducationalOrganization",
+            "@id": "https://www.darkworldacademy.tech/#organization",
+            "name": "DarkWorld Academy",
+            "url": "https://www.darkworldacademy.tech/",
+            "logo": "https://www.darkworldacademy.tech/icons/icon-512.png"
+          }
+        ]
+      }
+    </script>
     <!-- Google Fonts: Inter (UI/body) + Plus Jakarta Sans (headings/display) -->
     <script>
       (function () {
