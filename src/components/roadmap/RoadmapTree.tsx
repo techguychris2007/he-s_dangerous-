@@ -101,7 +101,7 @@ function Branch({ branch, onOpen }: { branch: (typeof BRANCHES)[number]; onOpen:
   );
 }
 
-/** TryHackMe-style roadmap: a trunk of foundations that branches into four careers, with progress on
+/** Roadmap: a trunk of foundations that branches into four careers, with progress on
  *  every module and a guide at the head of each branch. */
 export default function RoadmapTree({ onOpen }: { onOpen: (track: RoadmapTrack) => void }) {
   const owner = useIsOwner();

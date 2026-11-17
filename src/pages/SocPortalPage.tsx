@@ -108,7 +108,7 @@ export default function SocPortalPage() {
 
         <section className="mb-12" aria-labelledby="standalone-workbooks">
           <div className="dw-section-head">
-            <div><p className="dw-catalog-eyebrow dw-catalog-eyebrow--ink">Side cases</p><h2 id="standalone-workbooks">Standalone casebooks</h2><p className="dw-section-sub">Self-contained KC7-style investigations outside the season — query the evidence and submit your findings. Practice five query dialects against the same dataset.</p></div>
+            <div><p className="dw-catalog-eyebrow dw-catalog-eyebrow--ink">Side cases</p><h2 id="standalone-workbooks">Standalone casebooks</h2><p className="dw-section-sub">Self-contained, story-driven investigations outside the season — query the evidence and submit your findings. Practice five query dialects against the same dataset.</p></div>
             <span>{standaloneWorkbooks.length} {standaloneWorkbooks.length === 1 ? 'case' : 'cases'}</span>
           </div>
           <div className="grid gap-4 lg:grid-cols-3">{standaloneWorkbooks.map(lab => <SiemLabCard key={lab.id} lab={lab} />)}</div>
@@ -116,7 +116,7 @@ export default function SocPortalPage() {
 
         <details className="mb-12 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
           <summary className="cursor-pointer text-sm font-bold text-[var(--color-heading)]">Classic drills ({classicDrills.length}) — the earlier checkpoint-style investigations</summary>
-          <p className="mt-2 mb-4 text-xs leading-relaxed text-[var(--color-text-dim)]">These original casefiles stay playable. Most have a newer, KC7-style Season 1 episode above that covers the same incident on a richer dataset.</p>
+          <p className="mt-2 mb-4 text-xs leading-relaxed text-[var(--color-text-dim)]">These original casefiles stay playable. Most have a newer Season 1 episode above that covers the same incident on a richer dataset.</p>
           <div className="grid gap-4 lg:grid-cols-3">{classicDrills.map(lab => <SiemLabCard key={lab.id} lab={lab} />)}</div>
         </details>
         <section className="mb-12" aria-labelledby="soc-curriculum">

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { IconCheck } from '../layout/icons';
 import './room-hero.css';
 
-/** A room's steps as TryHackMe-style task cards: a numbered header that expands to the task's
+/** A room's steps as task cards: a numbered header that expands to the task's
  *  context, with a way back into the workspace at that step. */
 export default function TaskList({ title, tasks, onOpen }: { title: string; tasks: { text: string; done: boolean; detail?: string }[]; onOpen: (index: number) => void }) {
   const firstOpen = tasks.findIndex((t) => !t.done);

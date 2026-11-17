@@ -22,7 +22,7 @@ export interface PathNode {
   meta?: string;
 }
 
-/** Zig-zag columns (percent of board width) the tiles step through, TryHackMe-path style. */
+/** Zig-zag columns (percent of board width) the tiles step through. */
 const COLUMNS = [34, 66, 50, 30, 64, 46];
 const ROW = 150;
 const BINARY = ['10101001', '110001110110110', '--------', '01010111', '010000011', '------------', '10101', '01001000100', '0001000100'];

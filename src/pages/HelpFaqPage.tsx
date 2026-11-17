@@ -9,7 +9,7 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: 'Do I need Kali Linux or any real tools installed?',
-    a: 'No. The in-browser terminal understands a real subset of Linux/security-tool syntax (nmap, curl, ssh, hydra, crackmapexec, secretsdump, hashcat, gdb, objdump, yara, and more) well enough to practice the workflow. Once you are comfortable here, install a real Kali VM or use Hack The Box / TryHackMe to apply the same commands against real infrastructure.',
+    a: 'No. The in-browser terminal understands a real subset of Linux/security-tool syntax (nmap, curl, ssh, hydra, crackmapexec, secretsdump, hashcat, gdb, objdump, yara, and more) well enough to practice the workflow. Once you are comfortable here, install a real Kali VM and apply the same commands in a lab you own or are authorized to test.',
   },
   {
     q: 'Where is my progress saved?',

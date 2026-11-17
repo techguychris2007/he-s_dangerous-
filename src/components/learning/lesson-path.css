@@ -1,4 +1,4 @@
-/* Isometric lesson path (TryHackMe "My Learning" style), built on the navy chrome tokens.
+/* Isometric lesson path, built on the navy chrome tokens.
    Tile colours derive from --color-success (cleared), --color-accent (current) and the chrome
    greys (ahead / locked), so the board follows the platform palette in both themes. */
 .lp-board { position: relative; overflow: hidden; margin-bottom: 2rem; padding: 1.25rem; border: 1px solid var(--chrome-line); border-radius: 14px; color: var(--chrome-ink); background: radial-gradient(70% 50% at 50% 0%, color-mix(in srgb, var(--color-accent) 16%, transparent), transparent 70%), var(--chrome-bg); }

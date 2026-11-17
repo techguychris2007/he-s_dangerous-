@@ -61,7 +61,7 @@
   --term-success: #7ee081;
 
   /* Chrome palette: the navy sidebar, portal bar and room banners stay dark in both themes (the
-     TryHackMe-style "console" frame around light content). Highlights derive from the crest-indigo
+     "console" frame around light content). Highlights derive from the crest-indigo
      accent so the chrome and the content read as one system. */
   --chrome-bg: #0f1424;
   --chrome-raise: #172036;

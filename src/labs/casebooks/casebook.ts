@@ -1,7 +1,7 @@
 import type { InvestigationQuestion, SiemEntry, SiemLabScenario } from '../siemTypes';
 import { Telemetry, workingDays, at } from './world';
 
-/** Declarative KC7-style casebook. A case is a story, a list of chapters, the attacker's records injected
+/** Declarative story-driven casebook. A case is a story, a list of chapters, the attacker's records injected
  *  into ordinary Halcyon Freight working days, and ordered questions. Each question carries the reference
  *  query whose single-row result *is* the answer, so answers are always derived from the data the learner
  *  queries and can never drift from it (see workbookAssessment.ts and check-investigation-workbook.cjs). */

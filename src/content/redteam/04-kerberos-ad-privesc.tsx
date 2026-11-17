@@ -171,8 +171,8 @@ sentence as "delegation is no longer a privilege-escalation path here."`}</CodeB
         <p>
           Kerberoasting, AS-REP Roasting, Golden Ticket attacks, and unconstrained delegation abuse are real,
           powerful techniques used in the majority of major ransomware intrusions. They are for authorized
-          red team engagements and dedicated AD lab environments (Hack The Box's Active Directory content, in
-          particular) — never against infrastructure without explicit written authorization.
+          red team engagements and dedicated AD lab environments (such as DarkWorld's Active Directory
+          labs) — never against infrastructure without explicit written authorization.
         </p>
       </Callout>
 

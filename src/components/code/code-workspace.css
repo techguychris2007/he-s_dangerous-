@@ -1,4 +1,4 @@
-/* Coding workspace: a navy IDE frame (same chrome as the sidebar) inside a TryHackMe-style task page.
+/* Coding workspace: a navy IDE frame (same chrome as the sidebar) inside a task page.
    Colours come from --chrome-* and platform tokens only. */
 .dw-ide { display: flex; flex-direction: column; height: 100%; min-height: 600px; overflow: hidden; border: 1px solid var(--chrome-line); border-radius: 12px; background: var(--chrome-bg); color: var(--chrome-text); box-shadow: 0 24px 60px -40px #000; }
 

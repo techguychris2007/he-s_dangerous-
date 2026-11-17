@@ -1,4 +1,4 @@
-/* Room catalog — TryHackMe-style navy world band, sticky filter bar, section heads. Tokens only. */
+/* Room catalog — navy world band, sticky filter bar, section heads. Tokens only. */
 .dw-catalog { min-height: 100%; background: var(--color-bg); }
 
 .dw-catalog-hero { position: relative; isolation: isolate; overflow: hidden; margin-bottom: 1.25rem; padding: 1.75rem clamp(1rem, 2.5vw, 2rem) 1.5rem; border: 1px solid var(--chrome-line); border-radius: 16px; color: var(--chrome-ink);

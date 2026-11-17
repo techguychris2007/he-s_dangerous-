@@ -178,10 +178,8 @@ Full-scope incident, disproportionate to how "small" the original shortcut felt`
       <ul>
         <li><a href="https://portswigger.net/web-security" target="_blank" rel="noreferrer">PortSwigger Web Security Academy</a></li>
         <li><a href="https://owasp.org" target="_blank" rel="noreferrer">OWASP</a></li>
-        <li><a href="https://academy.hackthebox.com" target="_blank" rel="noreferrer">Hack The Box Academy</a></li>
-        <li><a href="https://tryhackme.com" target="_blank" rel="noreferrer">TryHackMe</a></li>
         <li><a href="https://overthewire.org" target="_blank" rel="noreferrer">OverTheWire</a></li>
-        <li><a href="https://pentesterlab.com" target="_blank" rel="noreferrer">PentesterLab</a></li>
+        <li><a href="https://picoctf.org" target="_blank" rel="noreferrer">picoCTF</a></li>
       </ul>
 
       <h3>Bug bounty platforms</h3>

@@ -41,10 +41,8 @@ const SITES: ResourceGroup[] = [
     items: [
       { name: 'PortSwigger Web Security Academy', note: 'Free, hands-on web security training' },
       { name: 'OWASP', note: 'Top 10, testing guides, cheat sheets' },
-      { name: 'Hack The Box Academy', note: 'Guided offensive security modules' },
-      { name: 'TryHackMe', note: 'Guided rooms across every discipline' },
       { name: 'OverTheWire', note: 'Wargames for Linux/binary fundamentals' },
-      { name: 'PentesterLab', note: 'Exercise-driven web/exploit training' },
+      { name: 'picoCTF', note: 'Free beginner CTF challenges from Carnegie Mellon' },
     ],
   },
   {

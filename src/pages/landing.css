@@ -1,4 +1,4 @@
-/* Landing page — TryHackMe-style navy hero with an isometric 3D scene, then gamified sections.
+/* Landing page — navy hero with an isometric 3D scene, then gamified sections.
    Platform tokens only; the hero and paths band use the navy chrome in both themes. */
 .ln { min-height: 100%; background: var(--color-bg); color: var(--color-heading); }
 .ln-wrap { width: min(1240px, calc(100% - 48px)); margin-inline: auto; }

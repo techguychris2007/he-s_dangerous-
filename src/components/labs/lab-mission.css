@@ -9,7 +9,7 @@
 .dw-mission-launch-footer strong,.dw-mission-launch-footer span{display:block;font-size:13px}.dw-mission-launch-footer span{margin-top:5px;color:var(--color-text-dim)}
 .dw-mission-launch-footer button,.dw-mission-primary{background:var(--color-accent);color:white!important;border:0!important;border-radius:6px;padding:12px 18px;font-size:13px;font-weight:650}
 .dw-mission-preflight h2{font-size:19px;font-weight:700}.dw-mission-launch>.space-y-6{max-width:1000px;margin:auto}
-/* ── Lab workspace (the "room"): TryHackMe split — tasks on the left, machine on the right. ─────────
+/* ── Lab workspace (the "room"): split view — tasks on the left, machine on the right. ─────────
    Theme-aware: every colour is a platform token; the header is the navy band used by room banners. */
 .dw-mission-room{position:fixed;inset:0;width:100vw;max-width:none;height:100dvh;max-height:none;margin:0;padding:0;border:0;background:var(--color-bg);color:var(--color-text);overflow:hidden;font-family:var(--font-sans)}
 .dw-mission-room[open]{display:flex;flex-direction:column}.dw-mission-room::backdrop{background:var(--color-navy)}

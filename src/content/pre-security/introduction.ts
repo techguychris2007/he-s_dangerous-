@@ -774,7 +774,6 @@ export const introductionLessons: CurriculumLesson[] = [
           '─────────────────────────────────────────────────────────────\n' +
           'picoCTF          Beginner CTF challenges, always open (Carnegie Mellon)\n' +
           'OverTheWire      Linux wargames from zero — start with Bandit\n' +
-          'CyberDefenders   Blue team practice labs — real SIEM, EDR, network data\n' +
           'roadmap.sh       Visual, structured cyber security learning map\n' +
           '─────────────────────────────────────────────────────────────',
         label: 'Start here — build the habit of writing up everything you do',
@@ -838,7 +837,6 @@ export const introductionLessons: CurriculumLesson[] = [
       introSources.act772,
       { title: 'picoCTF — free beginner challenges (Carnegie Mellon)',  url: 'https://picoctf.org/' },
       { title: 'OverTheWire — Bandit wargame',                          url: 'https://overthewire.org/wargames/bandit/' },
-      { title: 'CyberDefenders — blue team practice labs',              url: 'https://cyberdefenders.org/' },
       { title: 'roadmap.sh — Cyber Security roadmap',                   url: 'https://roadmap.sh/cyber-security' },
     ],
     labs: [],

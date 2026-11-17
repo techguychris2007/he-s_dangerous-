@@ -22,7 +22,7 @@ export interface LessonMeta {
   prerequisite?: string;
   Content: ComponentType;
   quiz?: QuizQuestion[];
-  /** Typed-answer questions (TryHackMe style) asked at the end of the lesson. */
+  /** Typed-answer questions asked at the end of the lesson. */
   questions?: TypedQuestion[];
   /** Lesson vocabulary; also feeds typed questions when none are authored. */
   keyTerms?: { term: string; meaning: string }[];

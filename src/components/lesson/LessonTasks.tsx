@@ -32,7 +32,7 @@ function persist(lessonId: string, saved: Saved) {
   try { localStorage.setItem(storageKey(lessonId), JSON.stringify(saved)); } catch { /* private mode: progress still completes */ }
 }
 
-/** TryHackMe-style end of a lesson: typed-answer questions plus flags from the paired labs. The
+/** End of a lesson: typed-answer questions plus flags from the paired labs. The
  *  lesson completes when every question is answered and every required lab flag is submitted.
  *  Flags are checked against the flags the learner actually captured, so no answers ship to the page. */
 export default function LessonTasks({ lesson, labSlugs }: { lesson: LessonMeta; labSlugs: string[] }) {

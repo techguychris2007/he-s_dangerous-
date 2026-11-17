@@ -1,7 +1,7 @@
 import type { LessonMeta, TypedQuestion } from '../types';
 import { QUESTION_BANK } from './questionBank';
 
-/** Shortest answers that are reasonable to type exactly (THM-style "Answer format: *** ****"). */
+/** Shortest answers that are reasonable to type exactly ("Answer format: *** ****"). */
 const MAX_ANSWER_CHARS = 30;
 const MAX_ANSWER_WORDS = 4;
 export const QUESTIONS_PER_LESSON = 2;
@@ -40,7 +40,7 @@ export function isCorrectAnswer(question: TypedQuestion, attempt: string): boole
   return [question.answer, ...(question.accept ?? [])].some((ok) => normaliseAnswer(ok) === given);
 }
 
-/** THM answer-format mask: every letter or digit becomes "*", spaces and symbols stay. */
+/** Answer-format mask: every letter or digit becomes "*", spaces and symbols stay. */
 export function answerMask(answer: string): string {
   return answer.replace(/[A-Za-z0-9]/g, '*');
 }

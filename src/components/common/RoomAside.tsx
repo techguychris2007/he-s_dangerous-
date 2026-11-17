@@ -22,7 +22,7 @@ export interface RoomAsideProps {
   progressLabel?: string;
 }
 
-/** The right-hand details rail on a room overview — mirrors KC7/TryHackMe's room sidebar and fills the
+/** The right-hand details rail on a room overview — a room sidebar that fills the
  *  width that a single centred column would leave blank. */
 export default function RoomAside({ difficulty, minutes, xp, facts, outcomes, outcomesTitle = "What you'll cover", guide, backTo, backLabel, percent, progressLabel = 'Room progress' }: RoomAsideProps) {
   const character = CHARACTERS[guide];

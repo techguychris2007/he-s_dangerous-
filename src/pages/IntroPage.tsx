@@ -17,7 +17,7 @@ import { OWNER_TRACKS, useIsOwner } from '../lib/ownerAccess';
 const PATHS: { track: RoadmapTrack; title: string; label: string; body: string; icon: string; tone: IsoTone; guide: CharacterId }[] = [
   { track: 'presecurity', label: 'Start here', title: 'Pre-security', body: 'Computers, networks, Linux and the tools every lab uses — from zero.', icon: 'terminal', tone: 'progress', guide: 'byte' },
   { track: 'security', label: 'Red team', title: 'Offensive security', body: 'Recon, web, Active Directory and cloud attacks against controlled targets.', icon: 'crosshair', tone: 'offense', guide: 'vex' },
-  { track: 'defensive', label: 'Blue team', title: 'Defensive security', body: 'Triage alerts, query telemetry and run KC7-style incident casebooks.', icon: 'shield', tone: 'defense', guide: 'sentinel' },
+  { track: 'defensive', label: 'Blue team', title: 'Defensive security', body: 'Triage alerts, query telemetry and work story-driven incident casebooks.', icon: 'shield', tone: 'defense', guide: 'sentinel' },
   { track: 'programming', label: 'Build tools', title: 'Programming', body: 'Python, JavaScript and C++ with auto-graded challenges in the browser.', icon: 'code', tone: 'analysis', guide: 'cipher' },
   { track: 'software', label: 'Engineer', title: 'Software engineering', body: 'Specs, testing, design, delivery and secure development — the full craft.', icon: 'layers', tone: 'done', guide: 'cipher' },
 ];
@@ -95,7 +95,7 @@ export default function IntroPage() {
           <div className="ln-hero__copy">
             <p className="ln-kicker"><span />Hands-on cybersecurity training</p>
             <h1 id="entry-title">Learn security<br />by <em>doing it.</em></h1>
-            <p className="ln-lead">Gamified rooms, real terminals and KC7-style investigations. Learn a concept, hack the lab, capture the flag — and level up from Initiate to Operator.</p>
+            <p className="ln-lead">Gamified rooms, real terminals and story-driven investigations. Learn a concept, hack the lab, capture the flag — and level up from Initiate to Operator.</p>
             <div className="ln-actions">
               <Link to="/login?mode=signup" className="ln-btn ln-btn--primary ln-btn--lg">Start learning free <IconArrowRight className="h-4 w-4" /></Link>
               <a href="#paths" onClick={jump('paths')} className="ln-btn ln-btn--ghost ln-btn--lg">Explore paths</a>

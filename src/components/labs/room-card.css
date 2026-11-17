@@ -1,4 +1,4 @@
-/* Room card — TryHackMe-style: a tinted navy banner with the room guide, then title, meta and CTA.
+/* Room card: a tinted navy banner with the room guide, then title, meta and CTA.
    Platform tokens only. */
 .dw-room-card {
   display: flex;

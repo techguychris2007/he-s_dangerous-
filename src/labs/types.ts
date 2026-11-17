@@ -197,7 +197,7 @@ export interface ObjectiveStep {
   decision?: string;
 }
 
-/** KC7-style case scene for a lab: who the learner is, the story unfolding, what is at stake, and the
+/** Story-driven case scene for a lab: who the learner is, the story unfolding, what is at stake, and the
  *  real-world event or technique it reconstructs. Rendered as a cinematic briefing on the lab overview
  *  and in the workspace, so a lab reads as a realistic investigation rather than a checklist. */
 export interface LabNarrative {

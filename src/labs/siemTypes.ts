@@ -66,7 +66,7 @@ export interface SiemLabScenario {
   /** When present, the lab is rendered as a gamified story investigation instead of a plain guide */
   narrative?: SiemNarrative;
   investigation?: InvestigationCase;
-  /** KC7-style casebooks (src/labs/casebooks) belong to a season and are ordered by episode. */
+  /** Story-driven casebooks (src/labs/casebooks) belong to a season and are ordered by episode. */
   season?: number;
   episode?: number;
   /** The legacy drill a casebook supersedes in the SOC portal; the drill stays playable. */

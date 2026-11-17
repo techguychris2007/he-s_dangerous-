@@ -1,4 +1,4 @@
-/* End-of-lesson tasks, TryHackMe style: a navy mission header with a trophy block and progress pips,
+/* End-of-lesson tasks: a navy mission header with a trophy block and progress pips,
    then numbered task cards — typed answers, flag capture, code tasks and SOC cases. */
 .lt { display: grid; gap: .9rem; }
 

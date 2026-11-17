@@ -1,6 +1,6 @@
 import type { LabNarrative, LabScenario } from './types';
 
-/** KC7-style case scenes for flagship labs, keyed by scenario id and merged into the scenario at load
+/** Story-driven case scenes for flagship labs, keyed by scenario id and merged into the scenario at load
  *  time (see data/labs.ts). Each puts the learner in a role, sets a realistic scene, names the stakes
  *  and the real event/technique it reconstructs — so a lab reads as an investigation, not a checklist.
  *  All environments are simulated and isolated; "based on" means a training reconstruction, never live. */

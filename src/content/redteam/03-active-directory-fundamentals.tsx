@@ -119,7 +119,7 @@ SharpHound.exe -c All
         <p>
           Enumerating a real organization's AD structure without authorization is both a serious crime and
           exposes sensitive personal/organizational data — practice AD enumeration only in dedicated lab
-          environments (like Hack The Box's Active Directory tracks) or authorized engagements.
+          environments (like DarkWorld's Active Directory labs) or authorized engagements.
         </p>
       </Callout>
 

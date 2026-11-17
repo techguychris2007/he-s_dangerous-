@@ -121,7 +121,7 @@
 .ml-reader .reader-outline-inner { top: 28px; }
 @media (max-width: 760px) { .ml-lesson-section { padding-bottom: 24px; margin-bottom: 24px; } .ml-lesson-body .prose-hh p, .ml-lesson-body .prose-hh li { font-size: 15px; } }
 
-/* ── Room-style lesson header (TryHackMe structure, DarkWorld palette) ───────────────────────────
+/* ── Room-style lesson header (DarkWorld palette) ───────────────────────────
    A navy band in both themes, matching the navy sidebar, with light text tuned for that surface. */
 .reader-room {
   --room-text: color-mix(in srgb, white 88%, var(--color-navy));
@@ -283,7 +283,7 @@
 .ml-resource p { margin: 0; font-size: .84rem; line-height: 1.55; color: var(--color-text-dim); }
 .ml-reader .reader-room { margin: 0 0 28px; border: 1px solid var(--chrome-line); border-radius: 14px; overflow: hidden; }
 
-/* ML lesson sections as TryHackMe-style task cards (platform tokens). */
+/* ML lesson sections as task cards (platform tokens). */
 .ml-lesson-body { counter-reset: ml-task; }
 .ml-lesson-section { counter-increment: ml-task; margin: 0 0 1rem !important; padding: 0 !important; overflow: hidden; border: 1px solid var(--color-border) !important; border-radius: 14px; background: var(--color-surface); border-left: 4px solid var(--color-accent) !important; box-shadow: 0 2px 10px -8px var(--color-heading); }
 .ml-lesson-section:last-child { margin-bottom: 0 !important; }

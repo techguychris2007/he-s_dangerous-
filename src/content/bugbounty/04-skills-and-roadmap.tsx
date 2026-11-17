@@ -34,8 +34,8 @@ export default function SkillsAndRoadmap() {
       <CodeBlock label="month by month">{`Month 1:  Networking, Linux, HTTP fundamentals (Modules 1-2 of this course)
 Month 2:  Burp Suite/curl workflow, OWASP Top 10 (Web Application Hacking module)
 Month 3:  PortSwigger Web Security Academy — work through every free lab category
-Month 4:  TryHackMe "Jr Penetration Tester" path — structured, guided practice
-Month 5:  Hack The Box — Easy/Medium boxes, then Active Directory-focused machines
+Month 4:  DarkWorld guided pentest labs — structured, step-by-step engagements
+Month 5:  DarkWorld Hard labs and capstones, then the Active Directory labs
 Month 6:  Start submitting on HackerOne and Bugcrowd; read disclosed public reports daily`}</CodeBlock>
       <Callout variant="tip">
         <p>
@@ -77,23 +77,23 @@ Critical, top-tier targets        $50,000-$100,000+  (RCE or full compromise at 
         opening up.
       </p>
 
-      <h2>Free labs worth mastering (referenced throughout this roadmap)</h2>
+      <h2>Labs worth mastering (referenced throughout this roadmap)</h2>
       <ul>
         <li><strong>PortSwigger Web Security Academy</strong> — free, extremely thorough, the closest thing
         to an academic curriculum for web vulnerabilities specifically (XSS, SQLi, SSRF, XXE, IDOR,
         deserialization, OAuth flaws).</li>
-        <li><strong>TryHackMe</strong> — structured learning paths (Pre Security, Jr Penetration Tester, Web
-        Fundamentals, OWASP Top 10) ideal for the guided, step-by-step phase of learning.</li>
-        <li><strong>Hack The Box</strong> — less hand-holding, more realistic machines; start with Starting
-        Point, move to Easy/Medium boxes, and use the Active Directory-labeled machines to apply the Red
-        Team module directly.</li>
+        <li><strong>DarkWorld guided pentest labs</strong> — full engagements broken into guided stages,
+        ideal for the step-by-step phase of learning.</li>
+        <li><strong>DarkWorld capstones and Active Directory labs</strong> — less hand-holding and multi-host
+        networks; use them to apply the Red Team module directly before moving to live programs.</li>
+        <li><strong>OverTheWire</strong> — free wargames that drill Linux and binary fundamentals.</li>
       </ul>
 
       <Callout variant="warn">
         <p>
-          This course's interactive labs are designed to build the exact muscle memory these external
-          platforms assume you already have — commands, methodology, and mindset — so that when you get to
-          PortSwigger, THM, or HTB, you're applying skills, not learning syntax for the first time.
+          This course's interactive labs are designed to build the exact muscle memory that live programs
+          and external practice sites assume you already have — commands, methodology, and mindset — so that
+          when you reach real targets you're applying skills, not learning syntax for the first time.
         </p>
       </Callout>
 
@@ -106,9 +106,8 @@ Critical, top-tier targets        $50,000-$100,000+  (RCE or full compromise at 
           Security for Developers</em> by Malcolm McDonald (short, sharp, excellent for understanding the
           defender's side of every bug you find). For continued hands-on practice, the sites this roadmap
           already leans on — <strong>PortSwigger Web Security Academy</strong>, <strong>OWASP</strong>'s own
-          projects and testing guides, <strong>Hack The Box Academy</strong>, <strong>TryHackMe</strong>, and
-          the older but still excellent <strong>OverTheWire</strong> wargames and <strong>PentesterLab</strong>
-          exercises — cover everything from first-principles fundamentals to realistic, guided vulnerable
+          projects and testing guides, the free <strong>picoCTF</strong> challenges, and the older but still
+          excellent <strong>OverTheWire</strong> wargames — together with DarkWorld's own labs — cover everything from first-principles fundamentals to realistic, guided vulnerable
           applications, and remain the field's default answer to "what do I do after finishing a course."
         </p>
       </Callout>

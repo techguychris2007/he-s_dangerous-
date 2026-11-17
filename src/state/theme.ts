@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-/** v2: the platform became dark-first (TryHackMe style); the new key resets earlier light defaults. */
+/** v2: the platform became dark-first; the new key resets earlier light defaults. */
 const THEME_KEY = 'darkworld.theme.v2';
 
 /** Sets the theme attribute before the first render on every entry point, so pages without the app
