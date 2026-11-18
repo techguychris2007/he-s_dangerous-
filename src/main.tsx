@@ -15,9 +15,12 @@ import './academy-system.css';
 import { startPwa } from './state/pwa';
 import { applyInitialTheme } from './state/theme';
 import { startMonitoring } from './lib/monitoring';
+import { recoverFromStaleBuilds } from './lib/staleBuildRecovery';
 
 applyInitialTheme();
 startPwa();
+// A tab left open across a deploy reloads once to pick up the new build instead of erroring.
+recoverFromStaleBuilds();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
