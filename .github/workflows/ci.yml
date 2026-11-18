@@ -25,7 +25,12 @@ jobs:
           node-version: 24
           cache: npm
 
+      # onnxruntime-node (pulled in by @huggingface/transformers) downloads a CUDA build during install on
+      # Linux x64. That download now returns 404 and fails the whole install; DarkWorld never uses the GPU
+      # build, so skip it. The variable is read by onnxruntime-node's own install script.
       - run: npm ci
+        env:
+          ONNXRUNTIME_NODE_INSTALL_CUDA: skip
 
       - name: Lint
         run: npm run lint
