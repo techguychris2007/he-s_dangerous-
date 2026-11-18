@@ -6,6 +6,7 @@ import { isLearningWorkspace } from './learningWorkspace';
 import Companion from '../companion/Companion';
 import XpToaster from '../common/XpToaster';
 import HandleWelcome from '../characters/HandleWelcome';
+import GuidedTour from '../tour/GuidedTour';
 import '../common/academy.css';
 
 export default function AppLayout() {
@@ -68,6 +69,7 @@ export default function AppLayout() {
       <Companion />
       <XpToaster />
       <HandleWelcome />
+      <GuidedTour />
       {!learning && <div
         id="platform-navigation"
         ref={navRef}

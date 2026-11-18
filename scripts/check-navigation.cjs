@@ -33,4 +33,67 @@ assert.equal(MODULES.some(module => module.slug.startsWith('dn-')), false, 'Lear
 const lesson = MODULES.find(module => module.slug === 'networking').lessons[0];
 assert.ok(searchAcademy(lesson.title).some(item => item.to === '/module/networking/lesson/' + lesson.slug), 'Lesson search must open the actual lesson route');
 assert.ok(searchAcademy('security').length <= 9, 'Keep keyboard results manageable');
-console.log('Navigation passed: every destination resolves; track parameters, lesson lookup, normalization, staff and owner-only filtering verified.');
+
+// Guided tour: the steps point at elements that exist, open where they say, and the card stays on screen.
+const tour = require('../src/lib/guidedTour.ts');
+const navigationSource = fs.readFileSync(require('node:path').join(__dirname, '../src/components/layout/LearningNavigation.tsx'), 'utf8');
+const ids = tour.TOUR_STEPS.map(step => step.id);
+assert.equal(new Set(ids).size, ids.length, 'Tour step ids must be unique');
+assert.equal(ids[0], 'welcome', 'The tour opens with the welcome');
+assert.equal(ids.at(-1), 'finish', 'The tour ends with the finish step');
+for (const step of tour.TOUR_STEPS) {
+  assert.ok(step.title.trim() && step.body.trim(), 'Every tour step needs a title and body: ' + step.id);
+  for (const name of [...(step.target ?? '').matchAll(/data-tour="([^"]+)"/g)].map(match => match[1])) {
+    const declared = navigationSource.includes(`data-tour="${name}"`) || (name.startsWith('tab-') && navigationSource.includes('data-tour={`tab-${title.toLowerCase()}`}'));
+    assert.ok(declared, 'Tour target is not marked in LearningNavigation: ' + name);
+  }
+}
+for (const tab of tour.TOUR_STEPS.filter(step => step.target?.includes('data-tour="tab-'))) {
+  const title = tab.target.match(/tab-([a-z]+)/)[1];
+  assert.ok(new RegExp(`title: '${title}'`, 'i').test(navigationSource), 'Tour points at a tab that does not exist: ' + title);
+}
+assert.ok(routes.some(route => matchPath(route, tour.TOUR_START_PATH.split('?')[0])), 'The tour must finish on a real page');
+assert.ok(LEARNING_PATHS.some(path => path.to === tour.TOUR_START_PATH && !OWNER_TRACKS.has(path.track)), 'The tour must start learners on a path every account can open');
+
+assert.equal(tour.shouldAutoStart({ pathname: '/', handleSeen: true, record: null }), true);
+assert.equal(tour.shouldAutoStart({ pathname: '/', handleSeen: false, record: null }), false, 'Wait for the cyber-name welcome');
+assert.equal(tour.shouldAutoStart({ pathname: '/labs', handleSeen: true, record: null }), false, 'Only start on the Overview');
+assert.equal(tour.shouldAutoStart({ pathname: '/', handleSeen: true, record: 'skipped' }), false, 'Never show a skipped tour again by itself');
+assert.equal(tour.shouldAutoStart({ pathname: '/', handleSeen: true, record: 'completed' }), false);
+const memory = new Map();
+const store = { getItem: key => memory.get(key) ?? null, setItem: (key, value) => memory.set(key, value) };
+assert.equal(tour.readTourRecord(store, 'user-1'), null);
+tour.writeTourRecord(store, 'user-1', 'completed');
+assert.equal(tour.readTourRecord(store, 'user-1'), 'completed');
+assert.equal(tour.readTourRecord(store, 'user-2'), null, 'The tour is remembered per learner');
+assert.equal(tour.readTourRecord({ getItem: () => { throw new Error('blocked'); } }, 'user-1'), 'skipped', 'Blocked storage must not show the tour on every visit');
+assert.equal(tour.readTourRecord(undefined, 'user-1'), 'skipped');
+assert.equal(tour.fillTourText('Ready, {handle}? Press {shortcut}.', { handle: 'NullWarden', shortcut: 'Ctrl K' }), 'Ready, NullWarden? Press Ctrl K.');
+const searchStep = tour.TOUR_STEPS.find(step => step.id === 'search');
+assert.equal(tour.fillTourText(searchStep.body, { handle: '', shortcut: '' }), 'Search jumps straight to any lesson, room or page.', 'Touch devices get no keyboard shortcut sentence');
+assert.ok(tour.fillTourText(searchStep.body, { handle: '', shortcut: 'Ctrl K' }).endsWith('Press Ctrl K from anywhere in the academy.'));
+
+const desk = { width: 1366, height: 820 };
+const card = { width: 400, height: 220 };
+assert.deepEqual(tour.placeTourCard(null, card, desk), { mode: 'center' });
+const tab = { top: 20, left: 600, width: 60, height: 50 };
+const below = tour.placeTourCard(tab, card, desk);
+assert.equal(below.mode, 'below');
+assert.equal(below.top, 20 + 50 + 14);
+assert.ok(below.left >= 16 && below.left + card.width <= desk.width - 16, 'The card stays inside the viewport');
+assert.ok(Math.abs(below.left + below.arrowLeft - (600 + 30)) < 1, 'The arrow points at the element');
+const corner = tour.placeTourCard({ top: 20, left: 1320, width: 30, height: 30 }, card, desk);
+assert.equal(corner.left, desk.width - card.width - 16, 'A card near the right edge is pulled back on screen');
+assert.ok(corner.arrowLeft <= card.width - 24, 'The arrow never leaves the card');
+assert.equal(tour.placeTourCard({ top: 700, left: 600, width: 60, height: 50 }, card, desk).mode, 'above', 'No room below: go above');
+assert.deepEqual(tour.placeTourCard({ top: 300, left: 600, width: 60, height: 50 }, { width: 400, height: 500 }, { width: 1366, height: 700 }), { mode: 'sheet', edge: 'bottom' }, 'No room either side: dock as a sheet');
+assert.deepEqual(tour.placeTourCard(tab, card, { width: 375, height: 812 }), { mode: 'sheet', edge: 'bottom' }, 'Phones use a bottom sheet away from a top element');
+assert.deepEqual(tour.placeTourCard({ top: 740, left: 300, width: 54, height: 54 }, card, { width: 375, height: 812 }), { mode: 'sheet', edge: 'top' }, 'A sheet moves to the top for an element near the bottom');
+
+// After a deploy, an old tab reloads once for a missing chunk, and never loops.
+const { shouldReloadForStaleBuild } = require('../src/lib/staleBuildRecovery.ts');
+assert.equal(shouldReloadForStaleBuild(null, 1_000_000), true);
+assert.equal(shouldReloadForStaleBuild(1_000_000, 1_030_000), false, 'A second failure within a minute shows the error page');
+assert.equal(shouldReloadForStaleBuild(1_000_000, 1_070_000), true);
+
+console.log('Navigation passed: every destination resolves; track parameters, lesson lookup, normalization, staff and owner-only filtering verified; guided tour targets, start rules, memory and card placement verified; stale-build reload guard verified.');
