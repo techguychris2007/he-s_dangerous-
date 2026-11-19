@@ -1,12 +1,12 @@
 // Shared by the production build (vite.config.ts → scripts/build-public-content.cjs) and the publisher
 // (scripts/publish-paid-content.cjs). It loads the full curriculum and lab catalogue from source, then
 // works out:
-//   * which labs and lessons are paid (src/data/planTiers.ts),
+//   * which labs and lessons are paid (src/features/billing/data/planTiers.ts),
 //   * the public lab catalogue: free labs in full, paid labs as stubs without hosts, files, flags,
 //     hints or objectives,
 //   * the private files: each paid lab's full scenario and each paid lesson's body, quiz and questions.
 // Paid lesson bodies are React components; they are stored as a plain element tree (see
-// serializeElement) that src/lib/paidContent.ts turns back into React elements.
+// serializeElement) that src/features/billing/lib/paidContent.ts turns back into React elements.
 require('./register-typescript.cjs');
 for (const extension of ['.css', '.jpg', '.png', '.svg', '.webp']) require.extensions[extension] = module => { module.exports = ''; };
 const React = require('react');
@@ -14,11 +14,11 @@ const React = require('react');
 let cache;
 function load() {
   if (cache) return cache;
-  const { LABS } = require('../src/data/labs.ts');
-  const { MODULES } = require('../src/data/curriculum.ts');
-  const { labPlan, lessonPlan } = require('../src/data/planTiers.ts');
-  const { lessonQuestions } = require('../src/data/lessonQuestions.ts');
-  const { labReference } = require('../src/labs/labReference.ts');
+  const { LABS } = require('../src/features/labs/data/labs.ts');
+  const { MODULES } = require('../src/features/curriculum/data/curriculum.ts');
+  const { labPlan, lessonPlan } = require('../src/features/billing/data/planTiers.ts');
+  const { lessonQuestions } = require('../src/features/curriculum/data/lessonQuestions.ts');
+  const { labReference } = require('../src/features/labs/engine/labReference.ts');
   const paidLabs = new Map();
   for (const entry of LABS) { const plan = labPlan(entry.slug); if (plan !== 'free') paidLabs.set(entry.slug, plan); }
   const paidLessons = new Map();
@@ -59,10 +59,10 @@ function publicLabEntries() {
 // button). Everything else is expanded into plain elements.
 function leafComponents() {
   return new Map([
-    [require('../src/components/lesson/CodeBlock.tsx').default, 'CodeBlock'],
-    [require('../src/components/lesson/Callout.tsx').default, 'Callout'],
-    [require('../src/components/lesson/PracticeTasksCallout.tsx').default, 'PracticeTasksCallout'],
-    [require('../src/content/CurriculumArticle.tsx').default, 'CurriculumArticle'],
+    [require('../src/features/curriculum/components/lesson/CodeBlock.tsx').default, 'CodeBlock'],
+    [require('../src/features/curriculum/components/lesson/Callout.tsx').default, 'Callout'],
+    [require('../src/features/curriculum/components/lesson/PracticeTasksCallout.tsx').default, 'PracticeTasksCallout'],
+    [require('../src/features/curriculum/content/CurriculumArticle.tsx').default, 'CurriculumArticle'],
   ]);
 }
 
@@ -130,7 +130,7 @@ async function leakProbes() {
   const { LABS, MODULES, paidLabs, paidLessons } = load();
   // Text that is public on purpose: the lab catalogue, the free SIEM investigations (some reuse a
   // paid lab's evidence) and every lesson's outline (title, summary, outcomes).
-  const { SIEM_LABS } = require('../src/labs/siemScenarios.ts');
+  const { SIEM_LABS } = require('../src/features/soc/engine/siemScenarios.ts');
   const outlines = MODULES.flatMap(module => module.lessons.map(({ id, slug, title, summary, objectives, prerequisite }) => ({ id, slug, title, summary, objectives, prerequisite })));
   // Free lessons are public too; a sentence a paid lesson shares with one is not a leak.
   const leaves = leafComponents();

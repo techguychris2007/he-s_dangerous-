@@ -1,0 +1,191 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { MODULES, findModule, findLesson } from '../../features/curriculum/data/curriculum';
+import { useLabsData } from '../../features/labs/state/useLabsData';
+import { useProgress } from '../../features/progress/state/progressStore';
+import { useTheme } from '../../shared/state/theme';
+import { useSyncStatus } from '../../features/progress/state/syncStatus';
+import { IconMenu, IconSun, IconMoon, IconBell, IconCheck, IconFlag } from '../../shared/components/layout/icons';
+import InstallAppButton from '../../features/offline/components/InstallAppButton';
+import PlanChip from '../../features/billing/components/PlanChip';
+import LevelHud from '../../features/progress/components/LevelHud';
+
+/** completedLessons is keyed by lesson id, not slug — there's no direct id lookup in curriculum.ts,
+ *  so this scans once. Fine at this scale (a few hundred lessons total, called from a useMemo). */
+function findLessonTitleById(lessonId: string): string | undefined {
+  for (const mod of MODULES) {
+    const lesson = mod.lessons.find((l) => l.id === lessonId);
+    if (lesson) return lesson.title;
+  }
+  return undefined;
+}
+
+const PAGE_TITLES: Record<string, string> = {
+  'siem-lab': 'Investigation lab',
+  'soc-portal': 'Security operations',
+  'code-portal': 'Code Portal',
+  'ml-portal': 'Machine Learning',
+  'build-portal': 'Build Portal',
+  library: 'Library',
+  tasks: 'My tasks',
+  schedule: 'Schedule',
+  leaderboard: 'Leaderboard',
+  resources: 'Resources',
+  announcements: 'Announcements',
+  profile: 'Profile',
+  security: 'Security',
+  help: 'Help & FAQ',
+  feedback: 'Feedback',
+  billing: 'Plan and billing',
+  instructor: 'Instructor Dashboard',
+  admin: 'Admin Dashboard',
+};
+
+function usePageTitle(): string {
+  const { pathname } = useLocation();
+  const labsData = useLabsData();
+  const parts = pathname.split('/').filter(Boolean);
+
+  if (parts.length === 0) return 'Dashboard';
+  if (parts[0] === 'labs') return 'Rooms';
+  if (parts[0] === 'progress') return 'Progress';
+  if (parts[0] === 'roadmap') return 'Roadmap';
+  if (parts[0] === 'my-learning') return 'My Learning';
+  if (parts[0] === 'lab') return labsData?.findLab(parts[1])?.scenario.title ?? 'Room';
+  if (parts[0] === 'module' && parts[2] === 'lesson') {
+    return findLesson(parts[1], parts[3])?.lesson.title ?? 'Lesson';
+  }
+  if (parts[0] === 'module') return findModule(parts[1])?.title ?? 'Module';
+  if (PAGE_TITLES[parts[0]]) return PAGE_TITLES[parts[0]];
+  return 'DarkWorld';
+}
+
+interface Notification {
+  key: string;
+  text: string;
+  icon: 'flag' | 'check';
+}
+
+function useRecentActivity(): Notification[] {
+  const progress = useProgress();
+  const labsData = useLabsData();
+  return useMemo(() => {
+    const items: Notification[] = [];
+    for (const [labId, flags] of Object.entries(progress.labFlags)) {
+      const labTitle = labsData?.findLab(labId)?.scenario.title ?? labId;
+      for (const flag of flags) items.push({ key: `${labId}:${flag}`, text: `Captured a flag in ${labTitle}`, icon: 'flag' });
+    }
+    for (const lessonId of Object.keys(progress.completedLessons)) {
+      if (progress.completedLessons[lessonId]) {
+        items.push({ key: `lesson:${lessonId}`, text: `Completed "${findLessonTitleById(lessonId) ?? lessonId}"`, icon: 'check' });
+      }
+    }
+    return items.slice(-6).reverse();
+  }, [progress.labFlags, progress.completedLessons, labsData]);
+}
+
+export default function TopBar({ onMenuClick, menuOpen = false }: { onMenuClick: () => void; menuOpen?: boolean }) {
+  const sync = useSyncStatus();
+  const title = usePageTitle();
+  const location = useLocation();
+  const { theme, toggle } = useTheme();
+  const [notifOpen, setNotifOpen] = useState(false);
+  const activity = useRecentActivity();
+  const notifButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => { document.title = `${title} · DarkWorld`; }, [title]);
+
+  useEffect(() => {
+    setNotifOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!notifOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setNotifOpen(false);
+        notifButtonRef.current?.focus();
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [notifOpen]);
+
+  return (
+    <header className="dw-topbar surface-glass">
+      <button
+        onClick={onMenuClick}
+        className="dw-topbar-control lg:hidden"
+        aria-label="Toggle navigation"
+        aria-expanded={menuOpen}
+        aria-controls="platform-navigation"
+      >
+        <IconMenu className="w-5 h-5" />
+      </button>
+      <div className="min-w-0 flex-1">
+        <div className="dw-topbar-context"><Link to="/">Workspace</Link><span aria-hidden="true">/</span><span>DarkWorld Academy</span></div>
+        <div className="dw-topbar-title">{title}</div>
+      </div>
+
+      <div className="dw-topbar-actions">
+        <InstallAppButton />
+        <PlanChip />
+        <LevelHud />
+        {sync !== 'idle' && <span role="status" title={sync === 'local' ? 'Progress is saved on this device. Cloud sync will retry.' : 'Account progress sync'} className={`dw-topbar-sync ${sync === 'local' ? 'is-local' : ''}`}>{sync === 'local' ? 'Saved locally' : sync === 'loading' ? 'Loading…' : sync === 'saving' ? 'Saving…' : 'Synced'}</span>}
+        <button
+          onClick={toggle}
+          title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          className="dw-topbar-control dw-topbar-theme"
+        >
+          {theme === 'dark' ? <IconSun className="w-4 h-4" /> : <IconMoon className="w-4 h-4" />}
+        </button>
+
+        <div className="relative">
+          <button
+            ref={notifButtonRef}
+            onClick={() => setNotifOpen((o) => !o)}
+            title="Notifications"
+            aria-label="Notifications"
+            aria-controls="recent-activity-panel"
+            aria-expanded={notifOpen}
+            className="dw-topbar-control"
+          >
+            <IconBell className="w-4 h-4" />
+            {activity.length > 0 && (
+              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[var(--color-accent)]" />
+            )}
+          </button>
+          {notifOpen && (
+            <>
+              <div className="fixed inset-0 z-30" onClick={() => setNotifOpen(false)} />
+              <div id="recent-activity-panel" role="region" aria-label="Recent activity" className="dw-topbar-activity premium-card absolute right-0 top-12 w-80 max-w-[calc(100vw-1.5rem)] z-40 overflow-hidden">
+                <div className="px-3.5 py-2.5 border-b border-[var(--color-border)] text-xs font-bold uppercase tracking-wide text-[var(--color-text-dim)]">
+                  Recent activity
+                </div>
+                {activity.length === 0 ? (
+                  <div className="px-3.5 py-6 text-xs text-[var(--color-text-dim)] text-center">
+                    Nothing yet — complete a lesson or capture a flag to see it here.
+                  </div>
+                ) : (
+                  <div className="max-h-72 overflow-y-auto">
+                    {activity.map((a) => (
+                      <div key={a.key} className="flex items-center gap-2.5 px-3.5 py-2.5 text-xs text-[var(--color-text)] border-b border-[var(--color-border)] last:border-0">
+                        {a.icon === 'flag' ? (
+                          <IconFlag className="w-3.5 h-3.5 text-[var(--color-accent)] shrink-0" />
+                        ) : (
+                          <IconCheck className="w-3.5 h-3.5 text-[var(--color-success)] shrink-0" />
+                        )}
+                        <span className="leading-relaxed">{a.text}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </header>
+  );
+}

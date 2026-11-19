@@ -1,11 +1,11 @@
 // Vite plugin for production builds: keeps Pro and Max content out of the public bundle.
-//  * src/data/labScenarios.ts becomes the generated catalogue (paid labs are stubs), so none of the
+//  * src/features/labs/data/labScenarios.ts becomes the generated catalogue (paid labs are stubs), so none of the
 //    scenario packs, with their hosts, files and flags, are bundled.
 //  * Source files holding only paid lesson bodies become an empty component.
 //  * Paid lessons defined as data lose their body, quiz and questions; depth notes and question-bank
 //    entries keyed by a paid lesson id are removed.
 // The full content is published separately (scripts/publish-paid-content.cjs) and downloaded by
-// accounts whose plan includes it (src/lib/paidContent.ts). scripts/check-paid-build.cjs then
+// accounts whose plan includes it (src/features/billing/lib/paidContent.ts). scripts/check-paid-build.cjs then
 // proves no paid flag or lesson text reached dist/.
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -26,7 +26,7 @@ const LESSON_DATA_FIELDS = {
   keyTerms: 'undefined',
 };
 const LESSON_META_FIELDS = { quiz: '[]', questions: 'undefined', keyTerms: 'undefined' };
-// Defensive case records (src/data/defensiveCurriculum.tsx) that are turned into lessons later.
+// Defensive case records (src/features/curriculum/data/defensiveCurriculum.tsx) that are turned into lessons later.
 const LESSON_CASE_FIELDS = { paragraphs: "['', '', '']", scenario: "''", task: "''", answer: "''", question: "''", choices: '[]' };
 
 const nameOf = property => property.name && (ts.isIdentifier(property.name) || ts.isStringLiteral(property.name)) ? property.name.text : undefined;
@@ -78,8 +78,8 @@ export default function paidContentPlugin({ root, enabled }) {
   let data;
   let lessonFiles;
   let paidIds;
-  const scenarios = path.join(root, 'src/data/labScenarios.ts');
-  const keyed = [path.join(root, 'src/content/depth') + path.sep, path.join(root, 'src/data/questionBank') + path.sep];
+  const scenarios = path.join(root, 'src/features/labs/data/labScenarios.ts');
+  const keyed = [path.join(root, 'src/features/curriculum/content/depth') + path.sep, path.join(root, 'src/features/curriculum/data/questionBank') + path.sep];
   return {
     name: 'darkworld-paid-content',
     apply: 'build',

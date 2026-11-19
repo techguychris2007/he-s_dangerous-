@@ -6,11 +6,11 @@ require.extensions['.svg'] = () => null;
 
 const fs = require('fs');
 const path = require('path');
-const { MODULES } = require('../src/data/curriculum.ts');
+const { MODULES } = require('../src/features/curriculum/data/curriculum.ts');
 
 const root = path.resolve(__dirname, '..');
-const curriculumArticle = fs.readFileSync(path.join(root, 'src/content/CurriculumArticle.tsx'), 'utf8');
-const moduleEnrichment = fs.readFileSync(path.join(root, 'src/data/moduleEnrichment.tsx'), 'utf8');
+const curriculumArticle = fs.readFileSync(path.join(root, 'src/features/curriculum/content/CurriculumArticle.tsx'), 'utf8');
+const moduleEnrichment = fs.readFileSync(path.join(root, 'src/features/curriculum/data/moduleEnrichment.tsx'), 'utf8');
 
 const requiredArticlePhrases = [
   'Senior educator notes',

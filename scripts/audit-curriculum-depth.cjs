@@ -1,8 +1,8 @@
 require('./register-typescript.cjs');
 const assert = require('node:assert/strict');
 for (const extension of ['.css', '.jpg', '.png', '.svg']) require.extensions[extension] = module => { module.exports = ''; };
-const { MODULES, ROADMAP } = require('../src/data/curriculum.ts');
-const { labsForLesson } = require('../src/data/lessonLabs.ts');
+const { MODULES, ROADMAP } = require('../src/features/curriculum/data/curriculum.ts');
+const { labsForLesson } = require('../src/features/curriculum/data/lessonLabs.ts');
 
 const tracksBySlug = new Map(ROADMAP.filter(stage => stage.moduleSlug).map(stage => [stage.moduleSlug, stage.track]));
 const warnings = [];

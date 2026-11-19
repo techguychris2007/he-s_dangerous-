@@ -1,7 +1,7 @@
 // One-off local tool: generates candidate module banner images via Pollinations.ai (free, no API
 // key, Flux model — see https://github.com/pollinations/pollinations/blob/master/APIDOCS.md) and
 // writes them to src/assets/banners/generated/ for manual review. Never wired into the app
-// automatically — src/components/layout/ModuleBanner.tsx is only updated to point at one of these
+// automatically — src/app/layout/ModuleBanner.tsx is only updated to point at one of these
 // after a human looks at it and decides it's actually better than the current banner.
 //
 // Usage:  node scripts/generateModuleBanners.mjs [moduleId ...]
@@ -17,8 +17,8 @@ const OUT_DIR = path.join(__dirname, '..', 'src', 'assets', 'banners', 'generate
 const WIDTH = 1200;
 const HEIGHT = 480; // ~2.5:1, matching ModuleBanner.tsx's existing 400x160 viewBox aspect ratio.
 
-// Mirrors src/components/layout/ModuleBanner.tsx's BANNERS map (title/subtitle from
-// src/data/curriculum.ts) so prompts stay in sync with what's actually in the app.
+// Mirrors src/app/layout/ModuleBanner.tsx's BANNERS map (title/subtitle from
+// src/features/curriculum/data/curriculum.ts) so prompts stay in sync with what's actually in the app.
 const MODULES = [
   { id: 'networking', title: 'Networking Fundamentals', subtitle: 'OSI, TCP/IP, subnetting, ports & protocols', from: '#0f2a4a', to: '#1c4f82', concept: 'an abstract glowing network topology of interconnected nodes and data routes across a world map silhouette' },
   { id: 'linux', title: 'Linux Basics for Hackers', subtitle: 'Filesystem, permissions, processes, bash, and attack ops', from: '#0d1b12', to: '#1f4d2e', concept: 'a stylized terminal window with a glowing command prompt and a subtle penguin silhouette motif' },

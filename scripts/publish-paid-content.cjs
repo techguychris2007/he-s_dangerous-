@@ -1,5 +1,5 @@
 // Publishes Pro and Max content to the private `paid-content` Supabase Storage bucket. The public
-// build does not contain it (scripts/vite-paid-content.mjs); src/lib/paidContent.ts downloads it for
+// build does not contain it (scripts/vite-paid-content.mjs); src/features/billing/lib/paidContent.ts downloads it for
 // accounts whose plan includes it (supabase/migrations/0014_paid_content.sql).
 //
 //   node scripts/publish-paid-content.cjs --dry-run            build the files only

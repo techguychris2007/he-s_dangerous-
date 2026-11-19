@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => ({
   // Tags error reports with the deployed commit, so a report points at the exact code that failed.
   define: { 'import.meta.env.VITE_APP_RELEASE': JSON.stringify(process.env.VERCEL_GIT_COMMIT_SHA ?? '') },
   plugins: [
-    // Once paid plans are switched on (VITE_PAID_PLANS=on, src/lib/billing.ts), production builds
+    // Once paid plans are switched on (VITE_PAID_PLANS=on, src/features/billing/lib/billing.ts), production builds
     // ship Pro and Max labs and lessons only as outlines; until then everything stays in the bundle.
     paidContent({ root, enabled: loadEnv(mode, root, 'VITE_').VITE_PAID_PLANS === 'on' }),
     react(),

@@ -6,16 +6,16 @@ require.extensions['.svg'] = () => null;
 
 const fs = require('fs');
 const path = require('path');
-const { LABS } = require('../src/data/labs.ts');
+const { LABS } = require('../src/features/labs/data/labs.ts');
 
 const labsWithEngagement = LABS.filter(entry => entry.scenario.engagement).map(entry => entry.slug);
 const requiredLabText = [];
 const sourceTargets = [
-  'src/pages/LabPage.tsx',
-  'src/components/lesson/LessonLabCard.tsx',
-  'src/components/labs/LabLearningBridge.tsx',
-  'src/components/labs/ShareWriteupModal.tsx',
-  'src/labs/scenarios/visual-pentest-labs.ts',
+  'src/features/labs/pages/LabPage.tsx',
+  'src/features/curriculum/components/lesson/LessonLabCard.tsx',
+  'src/features/labs/components/LabLearningBridge.tsx',
+  'src/features/labs/components/ShareWriteupModal.tsx',
+  'src/features/labs/scenarios/visual-pentest-labs.ts',
 ];
 const forbidden = [
   /Complete engagement/i,
