@@ -6,6 +6,7 @@ import { ProgressContext, useProgressState, useProgress } from './state/progress
 import { AuthContext, useAuthState, useAuth } from './state/authStore';
 import { pullProgress, pushProgressWithRetry } from './lib/progressSync';
 import { isInstructor } from './lib/instructorConfig';
+import { isAdmin } from './lib/adminConfig';
 import { isOwnerEmail, setOwnerSession, useIsOwner } from './lib/ownerAccess';
 import { setSyncStatus } from './state/syncStatus';
 import { enableOfflineCaching } from './state/pwa';
@@ -49,6 +50,7 @@ const MlLessonPage = lazy(() => import('./pages/MlLessonPage'));
 const LibraryPage = lazy(() => import('./pages/LibraryPage'));
 const BookReaderPage = lazy(() => import('./pages/BookReaderPage'));
 const InstructorDashboardPage = lazy(() => import('./pages/InstructorDashboardPage'));
+const AdminDashboardPage = lazy(() => import('./pages/AdminDashboardPage'));
 
 // ─── Shared route-level spinner ───────────────────────────────────────────────
 function PageLoader() {
@@ -91,6 +93,15 @@ function RequireInstructor({ children }: { children: React.ReactNode }) {
   const auth = useAuth();
   if (auth.loading) return <FullScreenLoader />;
   if (!isInstructor(auth.user)) return <Navigate to="/" replace />;
+  return <>{children}</>;
+}
+
+/** Route-level gate for the Admin Dashboard. UX only: admin_access() in
+ *  supabase/migrations/0015_admin_dashboard.sql is what keeps the data from non-admins. */
+function RequireAdmin({ children }: { children: React.ReactNode }) {
+  const auth = useAuth();
+  if (auth.loading) return <FullScreenLoader />;
+  if (!isAdmin(auth.user)) return <Navigate to="/" replace />;
   return <>{children}</>;
 }
 
@@ -391,6 +402,16 @@ function App() {
                       <InstructorDashboardPage />
                     </Suspense>
                   </RequireInstructor>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <RequireAdmin>
+                    <Suspense fallback={<PageLoader />}>
+                      <AdminDashboardPage />
+                    </Suspense>
+                  </RequireAdmin>
                 }
               />
               <Route path="*" element={<Navigate to="/" replace />} />
