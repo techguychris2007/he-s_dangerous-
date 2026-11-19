@@ -6,11 +6,13 @@ import AcademyHero from '../components/common/AcademyHero';
 import ModuleSyllabus from '../components/learning/ModuleSyllabus';
 import { guideForArea } from '../data/characters';
 import './learning-pages.css';
+import { hasPlan, planForLesson, useEntitlement } from '../lib/billing';
 
 
 export default function ModulePage() {
   const { moduleSlug } = useParams();
   const progress = useProgress();
+  const { plan } = useEntitlement();
   const mod = findModule(moduleSlug);
   if (!mod) return <Navigate to="/" replace />;
 
@@ -53,8 +55,9 @@ export default function ModulePage() {
       <ModuleSyllabus
         title={mod.subtitle}
         totalMinutes={studyMinutes}
-        lessons={mod.lessons.map(lesson => {
+        lessons={mod.lessons.map((lesson, index) => {
           const complete = progress.isLessonComplete(lesson.id);
+          const required = planForLesson(mod.slug, index);
           return {
             id: lesson.id,
             title: lesson.title,
@@ -64,6 +67,7 @@ export default function ModulePage() {
             objectives: lesson.objectives?.length ?? 0,
             labs: lessonLabBadges.get(lesson.id)?.totalCount ?? 0,
             state: complete ? 'done' : lesson.id === nextLesson?.id ? 'current' : 'open',
+            lockedPlan: required !== 'free' && !hasPlan(plan, required) ? required : undefined,
           };
         })}
       />

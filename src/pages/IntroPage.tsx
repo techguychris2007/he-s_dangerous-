@@ -13,6 +13,7 @@ import type { RoadmapTrack } from '../types';
 import './entry-pages.css';
 import './landing.css';
 import { OWNER_TRACKS, useIsOwner } from '../lib/ownerAccess';
+import { PAID_PLANS_LIVE } from '../lib/billing';
 import { COMPUTER_ONLY } from '../components/layout/ComputerAccessGate';
 
 const PATHS: { track: RoadmapTrack; title: string; label: string; body: string; icon: string; tone: IsoTone; guide: CharacterId }[] = [
@@ -85,6 +86,7 @@ export default function IntroPage() {
             <a href="#how" onClick={jump('how')}>How it works</a>
             <a href="#paths" onClick={jump('paths')}>Learning paths</a>
             <a href="#levels" onClick={jump('levels')}>Level up</a>
+            {PAID_PLANS_LIVE && <Link to="/pricing">Pricing</Link>}
             <Link to="/login">Sign in</Link>
             <Link to="/login?mode=signup" className="ln-btn ln-btn--primary">Join for free <IconArrowRight className="h-4 w-4" /></Link>
           </nav>
@@ -96,7 +98,7 @@ export default function IntroPage() {
           <div className="ln-hero__copy">
             <p className="ln-kicker"><span />Hands-on cybersecurity training</p>
             <h1 id="entry-title">Learn security<br />by <em>doing it.</em></h1>
-            <p className="ln-lead">Gamified rooms, real terminals and story-driven investigations. Learn a concept, hack the lab, capture the flag — and level up from Initiate to Operator.</p>
+            <p className="ln-lead">Hands-on rooms, in-browser terminals and story-driven investigations. Learn a concept, work the lab, capture the flag, and level up from Initiate to Operator.</p>
             <div className="ln-actions">
               <Link to="/login?mode=signup" className="ln-btn ln-btn--primary ln-btn--lg">Start learning free <IconArrowRight className="h-4 w-4" /></Link>
               <a href="#paths" onClick={jump('paths')} className="ln-btn ln-btn--ghost ln-btn--lg">Explore paths</a>
@@ -219,7 +221,7 @@ export default function IntroPage() {
         <Link to="/login?mode=signup" className="ln-btn ln-btn--primary ln-btn--lg">Create your account <IconArrowRight className="h-4 w-4" /></Link>
       </section>
 
-      <footer className="ln-footer ln-wrap"><span>© {new Date().getFullYear()} DarkWorld Academy</span><a href="#contributors" onClick={jump('contributors')}>Contributors</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><p>Learn deliberately. Practice responsibly.</p><Link to="/login">Enter your workspace →</Link></footer>
+      <footer className="ln-footer ln-wrap"><span>© {new Date().getFullYear()} DarkWorld Academy</span><a href="#contributors" onClick={jump('contributors')}>Contributors</a>{PAID_PLANS_LIVE && <Link to="/pricing">Pricing</Link>}<a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a>{PAID_PLANS_LIVE && <a href="/refunds.html">Refunds</a>}<p>Learn deliberately. Practice responsibly.</p><Link to="/login">Enter your workspace →</Link></footer>
     </main>
   );
 }

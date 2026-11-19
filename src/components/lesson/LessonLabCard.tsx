@@ -7,6 +7,8 @@ import ShareWriteupModal from '../labs/ShareWriteupModal';
 import { useProgress } from '../../state/progressStore';
 import { findLab } from '../../data/labs';
 import { IconFlask, IconFlag, IconCheck, IconExternal } from '../layout/icons';
+import { planForLab } from '../../lib/billing';
+import { PlanBadge } from '../billing/PlanGate';
 
 const DIFFICULTY_CLASS: Record<string, string> = {
   Easy: 'bg-[var(--color-success)]/15 text-[var(--color-success)]',
@@ -23,6 +25,28 @@ export default function LessonLabCard({ labSlug }: { labSlug: string }) {
   const { scenario } = entry;
   const captured = progress.flagCount(scenario.id);
   const done = captured >= scenario.totalFlags;
+  const plan = planForLab(entry.slug);
+
+  // Pro and Max labs open on their own page, which checks the plan and downloads the scenario.
+  if (plan !== 'free') return (
+    <div className="lesson-lab-card my-5 rounded-xl overflow-hidden shadow-sm">
+      <div className="lesson-lab-card__header relative overflow-hidden px-5 py-4 flex items-center justify-between gap-4 flex-wrap">
+        <div className="relative flex items-start gap-3 min-w-0">
+          <span className="lesson-lab-card__icon w-9 h-9 rounded-xl flex items-center justify-center shrink-0"><IconFlask className="w-4.5 h-4.5" /></span>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 mb-0.5">
+              <span className={`lesson-lab-card__difficulty lesson-lab-card__difficulty--${scenario.difficulty.toLowerCase()} pill ${DIFFICULTY_CLASS[scenario.difficulty]}`}>{scenario.difficulty}</span>
+              <PlanBadge plan={plan} />
+              {done && <span className="lesson-lab-card__solved pill flex items-center gap-1"><IconCheck className="w-3 h-3" /> Solved</span>}
+            </div>
+            <div className="lesson-lab-card__title font-semibold text-sm">{scenario.title}</div>
+            <div className="lesson-lab-card__description text-xs">{captured}/{scenario.totalFlags} flags captured</div>
+          </div>
+        </div>
+        <Link to={`/lab/${entry.slug}`} className="lesson-lab-card__action inline-flex items-center gap-1.5 text-xs font-semibold">Open lab <IconExternal className="w-3.5 h-3.5" /></Link>
+      </div>
+    </div>
+  );
 
   return (
     <div className="lesson-lab-card my-5 rounded-xl overflow-hidden shadow-sm">

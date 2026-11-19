@@ -18,13 +18,45 @@ import CharacterAvatar from '../components/characters/CharacterAvatar';
 import { guideForArea } from '../data/characters';
 import { LESSON_XP, QUIZ_MAX_XP } from '../data/levels';
 import '../components/lesson/lesson-reader.css';
+import { planForLesson, usePlanAccess } from '../lib/billing';
+import { PlanLoading, UpgradePanel } from '../components/billing/PlanGate';
+import { loadPaidLesson, unlockedLesson } from '../lib/paidContent';
+import '../components/billing/billing.css';
 
 export default function LessonPage() {
   const { moduleSlug, lessonSlug } = useParams();
   const mod = findModule(moduleSlug);
   const lesson = mod?.lessons.find(item => item.slug === lessonSlug);
   if (!mod || !lesson) return <Navigate to="/roadmap" replace />;
-  return <LessonReader key={lesson.id} mod={mod} lesson={lesson} />;
+  return <LessonPlanGate key={lesson.id} mod={mod} lesson={lesson} />;
+}
+
+/** The first lesson of every module is free; the rest follow the module's plan (src/data/planTiers.ts). */
+function LessonPlanGate({ mod, lesson }: { mod: ModuleMeta; lesson: LessonMeta }) {
+  const required = planForLesson(mod.slug, mod.lessons.indexOf(lesson));
+  const access = usePlanAccess(required);
+  if (access.loading) return <PlanLoading />;
+  if (!access.allowed && required !== 'free') return <UpgradePanel required={required} kind="lesson" title={lesson.title} backTo={`/module/${mod.slug}`} backLabel="Back to the module" />;
+  if (lesson.locked && required !== 'free') return <PaidLessonLoader mod={mod} lesson={lesson} plan={required} />;
+  return <LessonReader mod={mod} lesson={lesson} />;
+}
+
+/** In production a paid lesson ships as its outline only; the body is downloaded for this account. */
+function PaidLessonLoader({ mod, lesson, plan }: { mod: ModuleMeta; lesson: LessonMeta; plan: 'pro' | 'max' }) {
+  const [full, setFull] = useState<LessonMeta>();
+  const [error, setError] = useState('');
+  const [attempt, setAttempt] = useState(0);
+  useEffect(() => {
+    let active = true;
+    setError('');
+    loadPaidLesson(lesson.id, plan)
+      .then(paid => { if (active) setFull(unlockedLesson(lesson, paid)); })
+      .catch(failure => { if (active) setError(failure instanceof Error ? failure.message : 'This lesson could not be opened.'); });
+    return () => { active = false; };
+  }, [lesson, plan, attempt]);
+  if (error) return <div role="alert" className="dw-upgrade"><h1>{lesson.title}</h1><p className="dw-upgrade__lead">{error}</p><button type="button" className="dw-billing-btn dw-billing-btn--primary" onClick={() => setAttempt(value => value + 1)}>Try again</button></div>;
+  if (!full) return <div role="status" className="dw-upgrade dw-upgrade--loading"><span className="dw-billing-spinner" aria-hidden="true" />Opening your lesson…</div>;
+  return <LessonReader mod={mod} lesson={full} />;
 }
 
 function LessonReader({ mod, lesson }: { mod: ModuleMeta; lesson: LessonMeta }) {

@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>DarkWorld Academy flyer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<style>
+  /* Editorial palette: deep navy, warm paper, one gold accent taken from the logo's orbit. */
+  :root {
+    --navy: #0c1834;
+    --navy-2: #13224a;
+    --ink: #0f1b36;
+    --paper: #f4f0e7;
+    --paper-2: #ebe5d8;
+    --rule: #d8cfbd;
+    --gold: #c9a24c;
+    --gold-soft: #e3c77f;
+    --slate: #5a6378;
+    --white: #f7f5ef;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1080px; height: 1350px; background: var(--paper); }
+  body { font-family: Inter, sans-serif; color: var(--ink); overflow: hidden; -webkit-font-smoothing: antialiased; }
+  .serif { font-family: Newsreader, Georgia, serif; }
+
+  .flyer { position: relative; width: 1080px; height: 1350px; }
+
+  /* Navy top */
+  .top { position: absolute; inset: 0 0 auto 0; height: 706px; padding: 52px 76px 0; color: var(--white);
+    background:
+      radial-gradient(900px 500px at 100% 0%, rgba(201,162,76,.14), transparent 60%),
+      linear-gradient(180deg, var(--navy) 0%, var(--navy-2) 100%); }
+  .top::after { /* fine diagonal texture, like engraved paper */
+    content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .5;
+    background-image: repeating-linear-gradient(135deg, rgba(255,255,255,.018) 0 1px, transparent 1px 7px); }
+  .top > * { position: relative; z-index: 1; }
+
+  .masthead { display: flex; align-items: center; gap: 16px; padding-bottom: 22px; border-bottom: 1px solid rgba(201,162,76,.45); }
+  .masthead img { width: 54px; height: 54px; }
+  .masthead .wordmark { font-weight: 700; font-size: 19px; letter-spacing: .3em; }
+  .masthead .sub { margin-top: 3px; font-size: 12.5px; font-weight: 500; letter-spacing: .34em; color: rgba(247,245,239,.62); }
+  .masthead .edition { margin-left: auto; text-align: right; font-family: "IBM Plex Mono", monospace; font-size: 13px; letter-spacing: .12em; color: var(--gold-soft); line-height: 1.6; }
+
+  .eyebrow { margin-top: 38px; font-size: 14px; font-weight: 600; letter-spacing: .3em; color: var(--gold-soft); text-transform: uppercase; }
+  h1 { margin-top: 14px; font-family: Newsreader, Georgia, serif; font-weight: 500; font-size: 70px; line-height: 1.03; letter-spacing: -.018em; font-variation-settings: "opsz" 72; }
+  h1 em { font-style: italic; font-weight: 500; color: var(--gold-soft); }
+  .lead { margin-top: 20px; max-width: 900px; font-size: 21px; line-height: 1.55; color: rgba(247,245,239,.82); }
+
+  /* Product shot, overlapping the two halves */
+  .shot { position: absolute; left: 130px; right: 130px; top: 486px; z-index: 2; border-radius: 14px; overflow: hidden;
+    background: #0b1022; box-shadow: 0 40px 80px -20px rgba(9,15,35,.55), 0 0 0 1px rgba(201,162,76,.35); }
+  .shot .bar { height: 34px; display: flex; align-items: center; gap: 8px; padding: 0 14px; background: #161f3d; border-bottom: 1px solid rgba(255,255,255,.06); }
+  .shot .bar i { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,.18); display: block; }
+  .shot .bar .url { margin-left: 14px; flex: 1; height: 20px; border-radius: 6px; background: rgba(255,255,255,.07);
+    font-family: "IBM Plex Mono", monospace; font-size: 11.5px; line-height: 20px; padding-left: 10px; color: rgba(247,245,239,.7); }
+  .shot img { display: block; width: 100%; }
+
+  /* Paper bottom */
+  .bottom { position: absolute; left: 0; right: 0; top: 706px; bottom: 0; padding: 0 76px; }
+
+  .figures { margin-top: 0; padding-top: 236px; display: grid; grid-template-columns: repeat(4, 1fr); }
+  .figure { padding: 0 20px; border-left: 1px solid var(--rule); }
+  .figure:first-child { padding-left: 0; border-left: 0; }
+  .figure b { display: block; font-family: Newsreader, Georgia, serif; font-weight: 600; font-size: 44px; line-height: 1; color: var(--navy); letter-spacing: -.01em; }
+  .figure span { display: block; margin-top: 8px; font-size: 14.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--slate); }
+
+  .paths { margin-top: 22px; padding: 13px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+    font-size: 17px; color: var(--slate); }
+  .paths strong { color: var(--ink); font-weight: 600; }
+  .paths .dot { color: var(--gold); margin: 0 10px; }
+
+  .closing { margin-top: 22px; display: grid; grid-template-columns: 1fr 210px; gap: 34px; align-items: stretch; }
+  .founders .label { font-size: 13px; font-weight: 700; letter-spacing: .26em; text-transform: uppercase; color: var(--gold); }
+  .founders p { margin-top: 8px; font-family: Newsreader, Georgia, serif; font-size: 23px; line-height: 1.42; color: var(--ink); }
+  .founders p span { color: var(--slate); font-style: italic; }
+  .cta-line { margin-top: 14px; font-size: 16px; color: var(--slate); line-height: 1.5; }
+  .cta-line b { color: var(--ink); }
+
+  .card { border-radius: 16px; background: var(--navy); color: var(--white); padding: 14px 14px 12px; text-align: center;
+    box-shadow: 0 18px 40px -18px rgba(12,24,52,.55); }
+  .qr { width: 162px; height: 162px; margin: 0 auto; padding: 10px; border-radius: 10px; background: #fff; }
+  .qr svg { width: 142px; height: 142px; display: block; }
+  .card .go { margin-top: 10px; font-size: 12.5px; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; color: var(--gold-soft); }
+  .card .url { margin-top: 3px; font-family: "IBM Plex Mono", monospace; font-size: 14.5px; font-weight: 500; }
+</style>
+</head>
+<body>
+<div class="flyer">
+  <section class="top">
+    <header class="masthead">
+      <img src="darkworld-badge.png" alt="" />
+      <div>
+        <div class="wordmark">DARKWORLD</div>
+        <div class="sub">CYBERSECURITY ACADEMY</div>
+      </div>
+      <div class="edition">FREE TO JOIN<br />DARKWORLDACADEMY.TECH</div>
+    </header>
+
+    <div class="eyebrow">Hands-on cybersecurity training</div>
+    <h1>Cybersecurity is hard<br />to break into.<br /><em>So we made it practical.</em></h1>
+    <p class="lead">Structured lessons with real labs: terminals, live websites and SIEM consoles.</p>
+  </section>
+
+  <figure class="shot">
+    <div class="bar"><i></i><i></i><i></i><div class="url">www.darkworldacademy.tech</div></div>
+    <img src="site-hero-crop.png" alt="" />
+  </figure>
+
+  <section class="bottom">
+    <div class="figures">
+      <div class="figure"><b>600+</b><span>Hands-on rooms</span></div>
+      <div class="figure"><b>280+</b><span>Lessons</span></div>
+      <div class="figure"><b>50</b><span>Modules</span></div>
+      <div class="figure"><b>38</b><span>Investigations</span></div>
+    </div>
+
+    <div class="paths"><strong>Five paths</strong><span class="dot">/</span>Pre-security<span class="dot">·</span>Offensive<span class="dot">·</span>Defensive<span class="dot">·</span>Programming<span class="dot">·</span>Software engineering</div>
+
+    <div class="closing">
+      <div class="founders">
+        <div class="label">Built by students, for learners</div>
+        <p>Benedict Adjei <span>Livingstone College, USA</span><br />Bondam Christopher Kweku <span>University of Ghana</span></p>
+        <div class="cta-line"><b>Your first room takes ten minutes.</b> Sign up free with Google, GitHub or email. Best on a laptop or desktop.</div>
+      </div>
+      <div class="card">
+        <div class="qr" id="qr"></div>
+        <div class="go">Scan to start</div>
+        </div>
+    </div>
+  </section>
+</div>
+<script>
+  try {
+    var qr = qrcode(0, 'M');
+    qr.addData('https://www.darkworldacademy.tech/');
+    qr.make();
+    document.getElementById('qr').innerHTML = qr.createSvgTag({ cellSize: 6, margin: 0, scalable: true });
+  } catch (e) {
+    document.getElementById('qr').textContent = 'darkworldacademy.tech';
+  }
+</script>
+</body>
+</html>

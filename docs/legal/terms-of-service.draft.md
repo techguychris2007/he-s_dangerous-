@@ -1,10 +1,10 @@
 # DarkWorld Academy Terms of Service
 
-**Draft for owner review — not published or effective. Prepared October 27, 2026.**
+**Draft for owner review — not published or effective. Prepared November 17, 2026.**
 
 ## The service
 
-DarkWorld Academy is a learning platform for cybersecurity, programming, software engineering, and related subjects. It is operated by ChrisB. Contact **techguychris2007@gmail.com** about these terms or the service.
+DarkWorld Academy is a learning platform for cybersecurity, programming, software engineering, and related subjects. It is operated by **[Registered business name]**, a business registered in Ghana (registration number **[number]**), founded by Benedict Adjei and Bondam Christopher Kweku. Our address is **[business address]**. Contact **techguychris2007@gmail.com** about these terms or the service.
 
 When published and presented to users, these terms will govern use of the DarkWorld website, installed web app, and associated training features. The Privacy Policy explains how personal information is handled. These drafts do not themselves change any existing user agreement.
 
@@ -14,7 +14,7 @@ Provide accurate account information and protect access to your email, sign-in p
 
 Google and GitHub sign-in depend on those providers and our authentication service. Features may be unavailable during maintenance, provider outages, or network failures. Contact us promptly if you believe your account has been compromised.
 
-You must be able to enter an agreement under the rules that apply to you. If a parent, guardian, school, or employer must authorize your participation, obtain that authorization before using the service or supplying personal information.
+You must be able to enter an agreement under the rules that apply to you. If a parent, guardian, school, or employer must authorize your participation, obtain that authorization before using the service or supplying personal information. To buy a paid plan you must be at least 18 years old, or have a parent or guardian make or approve the purchase.
 
 ## Authorized security practice
 
@@ -31,6 +31,24 @@ Labs use browser-based simulations, datasets, and other training components. The
 Educational content and automated grading can contain mistakes or become outdated. Verify technical conclusions before applying them in a real environment. A reconstructed incident illustrates a learning scenario; fictional organizations, events, addresses, and artifacts should not be treated as independent evidence about a real organization or person.
 
 Points, ranks, badges, and certificates describe learning activity on DarkWorld. They are not a professional license, employment qualification, or claim of accreditation by a third-party certification body. Do not misrepresent another learner's work or manufacture progress records.
+
+## Plans, payments, and renewal
+
+DarkWorld offers a free plan and two paid plans, **Pro** and **Max**. The pricing page lists what each plan includes and its current price in Ghana cedis (GHS). Any US dollar amount shown is an estimate; you are charged in GHS, and your bank or provider may apply its own exchange rate or fees.
+
+Payments are processed by **Paystack**. DarkWorld does not receive or store your full card number, card security code, or mobile money PIN. Paystack's own terms apply to the payment itself.
+
+**Card subscriptions** renew automatically every month at the price shown when you subscribed, until you cancel. We will tell you before any price change applies to a renewal, and you can cancel before it takes effect. **Passes** (1, 3 or 12 months, by card or mobile money) are one-time payments that do not renew.
+
+Your paid access starts when Paystack confirms the payment. If a renewal fails, Paystack may retry it; access continues until the end of the period already paid for. When a plan ends, your account returns to the free plan. Your progress, flags, and write-ups are kept.
+
+Upgrading from Pro to Max starts Max immediately; unused Pro time is converted to Max time in proportion to the two monthly prices. Buying Pro while Max is active adds the Pro time to Max, converted the same way.
+
+## Cancellation and refunds
+
+You can cancel a card subscription at any time from the Billing page. Cancellation stops future renewals; access continues until the end of the current paid period. Refunds are handled under the **Refund Policy**, which forms part of these terms. Nothing in these terms limits a right to a refund that applicable consumer law gives you.
+
+Paid plans are personal. Do not share your account, resell access, or use automated tools to copy course or lab content.
 
 ## Contributions and community behavior
 
@@ -52,6 +70,8 @@ AI responses can be incorrect, incomplete, or unsuitable for a particular situat
 
 DarkWorld's original material, branding, and interface remain subject to their applicable ownership and licensing terms. External resources, books, source code, datasets, and tools retain their own licenses and attribution requirements. Access through DarkWorld is not permission to redistribute, sell, or publish those materials.
 
+The DarkWorld library is free on every plan. Books in it are provided under their authors' licenses, and no plan charges for access to them.
+
 Third-party names and product references describe learning topics and integrations; they do not imply endorsement or affiliation. External websites and sign-in providers operate under their own terms.
 
 ## Offline use and saved work
@@ -71,6 +91,8 @@ You may stop using DarkWorld at any time. Uninstalling the app or revoking a sig
 DarkWorld is provided for learning. It does not promise uninterrupted availability, error-free content, compatibility with every device, or a particular employment or certification outcome. You remain responsible for your actions and for obtaining authorization before applying security techniques.
 
 These terms do not remove rights or responsibilities that applicable law does not allow parties to exclude. Questions or concerns should first be raised through the support email so that the issue can be reviewed.
+
+These terms are governed by the laws of the Republic of Ghana. If a dispute cannot be resolved through support, it will be handled by the courts of Ghana, without removing any right you have to bring a claim where you live.
 
 ## Updates and contact
 

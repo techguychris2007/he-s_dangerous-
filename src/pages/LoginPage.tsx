@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../state/authStore';
+import { takeReturnTo } from '../lib/billing';
 import Logo from '../components/layout/Logo';
 import './entry-pages.css';
 import CharacterAvatar from '../components/characters/CharacterAvatar';
@@ -52,7 +53,7 @@ export default function LoginPage() {
   }, [oauthSubmitting]);
 
   useEffect(() => {
-    if (!auth.loading && auth.user) navigate('/', { replace: true });
+    if (!auth.loading && auth.user) navigate(takeReturnTo(), { replace: true });
   }, [auth.loading, auth.user, navigate]);
 
   const switchMode = (next: Mode) => {
@@ -95,7 +96,7 @@ export default function LoginPage() {
         setInfo('Account created — check your email to confirm it before signing in.');
         return;
       }
-      navigate('/', { replace: true });
+      navigate(takeReturnTo(), { replace: true });
       return;
     }
 
@@ -106,7 +107,7 @@ export default function LoginPage() {
     const { error: signInError } = await auth.signIn(email.trim(), password).catch(() => ({error: 'Could not sign in. Check your connection and retry.'}));
     setSubmitting(false);
     if (signInError) return setError(signInError);
-    navigate('/', { replace: true });
+    navigate(takeReturnTo(), { replace: true });
   };
 
   const continueWithOAuth = async (provider: 'google' | 'github') => {

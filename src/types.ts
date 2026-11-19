@@ -27,6 +27,8 @@ export interface LessonMeta {
   /** Lesson vocabulary; also feeds typed questions when none are authored. */
   keyTerms?: { term: string; meaning: string }[];
   labId?: string;
+  /** Set in the production build when the lesson body is paid content (see src/lib/paidContent.ts). */
+  locked?: boolean;
 }
 
 /** A question answered by typing. Answers are compared case-insensitively, ignoring punctuation,

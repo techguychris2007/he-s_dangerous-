@@ -244,6 +244,9 @@ export interface LabScenario {
   attacker: AttackerBox;
   network: HostDef[];
   totalFlags: number;
+  /** Set on catalogue stubs in the production build: the full scenario is paid content that
+   *  src/lib/paidContent.ts downloads for accounts whose plan includes it. */
+  locked?: boolean;
   /** Exact-match canned output for real Windows-native commands (reg query, schtasks /query,
    *  wevtutil qe, dir /r, arp -a) that a DFIR/SOC lab's hints instruct the learner to run literally —
    *  keyed by the exact command line (case-insensitive, whitespace-collapsed; see engine.ts's

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { IconArrowRight, IconCheck } from '../layout/icons';
 import './module-syllabus.css';
+import { PlanBadge } from '../billing/PlanGate';
 
 export interface SyllabusLesson {
   id: string;
@@ -11,6 +12,8 @@ export interface SyllabusLesson {
   objectives: number;
   labs: number;
   state: 'done' | 'current' | 'open';
+  /** Plan that unlocks this lesson; shown as a badge when the learner's plan does not include it. */
+  lockedPlan?: 'pro' | 'max';
 }
 
 const STATE_LABEL: Record<SyllabusLesson['state'], string> = { done: 'Completed', current: 'Up next', open: 'Not started' };
@@ -35,7 +38,7 @@ export default function ModuleSyllabus({ title, lessons, totalMinutes }: { title
             <Link to={lesson.to} className="syllabus__link">
               <span className="syllabus__num" aria-hidden="true">{lesson.state === 'done' ? <IconCheck className="h-4 w-4" /> : String(index + 1).padStart(2, '0')}</span>
               <span className="syllabus__body">
-                <strong>{lesson.title}</strong>
+                <strong>{lesson.title}{lesson.lockedPlan && <span className="syllabus__plan"><PlanBadge plan={lesson.lockedPlan} locked /></span>}</strong>
                 <span className="syllabus__summary">{lesson.summary}</span>
                 <span className="syllabus__meta">
                   <span>{lesson.minutes} min</span>

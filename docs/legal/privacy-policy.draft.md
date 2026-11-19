@@ -1,10 +1,10 @@
 # DarkWorld Academy Privacy Policy
 
-**Draft for owner review — not published or effective. Prepared October 27, 2026.**
+**Draft for owner review — not published or effective. Prepared November 17, 2026.**
 
 ## Who this policy covers
 
-This policy describes how DarkWorld Academy handles information when you use its website, installed web app, account services, lessons, and training labs. DarkWorld is operated by ChrisB. Contact us about privacy or your account at **techguychris2007@gmail.com**.
+This policy describes how DarkWorld Academy handles information when you use its website, installed web app, account services, lessons, and training labs. DarkWorld is operated by **[Registered business name]**, **[business address]**, Ghana, which is the data controller for the information described here. Contact us about privacy or your account at **techguychris2007@gmail.com**.
 
 ## Information we receive
 
@@ -18,11 +18,13 @@ This policy describes how DarkWorld Academy handles information when you use its
 
 **Contributions and support.** We receive lab comments, ratings, difficulty feedback, and support messages that you submit. A feedback submission can include its category, the page from which you submitted it, your account identifier, and submission time.
 
+**Payments.** If you buy Pro or Max, **Paystack** processes the payment. We receive the plan you bought, the amount, currency, payment reference, payment method type (card or mobile money), the payment time, and the Paystack customer and subscription identifiers needed to renew or cancel a card subscription. Paystack sends us your email address as part of the payment record. We do not receive or store full card numbers, card security codes, or mobile money PINs.
+
 **Device and service information.** The browser stores information needed for sessions, preferences, progress, saved work, and offline functionality. Our hosting and infrastructure providers also process network requests and operational information needed to deliver and protect their services, which can include IP addresses, request times, browser information, and service logs.
 
 ## How we use information
 
-We use information to authenticate you, provide lessons and exercises, restore and synchronize learning progress, display achievements, respond to feedback, maintain the service, investigate abuse or failures, and support authorized teaching activities. We use Google identity information for the account and related features explained here, rather than to request unrelated access to your Google account.
+We use information to authenticate you, provide lessons and exercises, apply the plan you paid for, keep payment and tax records, restore and synchronize learning progress, display achievements, respond to feedback, maintain the service, investigate abuse or failures, and support authorized teaching activities. We use Google identity information for the account and related features explained here, rather than to request unrelated access to your Google account.
 
 We do not sell Google sign-in data or use it for targeted advertising. We do not request broader Google permissions simply because you use an AI tutor. If a future feature needs additional Google data or a materially different use of existing data, we will explain it and obtain the permission required for that feature before accessing it.
 
@@ -50,7 +52,7 @@ The account sign-in and AI tutoring integrations have different purposes. Basic 
 
 ## Providers and external links
 
-DarkWorld uses **Vercel** for website hosting and **Supabase** for authentication, database storage, and backend functions. Google and GitHub handle their respective sign-in flows. Groq and Google process optional AI requests as described above. Anthropic, or Google when Claude is unavailable, processes the aggregated staff analytics described above. These providers may process data outside your country. We may also disclose information when legally required or necessary to respond to a legitimate security incident.
+DarkWorld uses **Vercel** for website hosting and **Supabase** for authentication, database storage, and backend functions. **Paystack** processes card and mobile money payments. Google and GitHub handle their respective sign-in flows. Groq and Google process optional AI requests as described above. Anthropic, or Google when Claude is unavailable, processes the aggregated staff analytics described above. These providers may process data outside your country. We may also disclose information when legally required or necessary to respond to a legitimate security incident.
 
 External books, reference sites, and repositories have their own privacy practices. Following an external link takes you to that provider's service.
 
@@ -62,11 +64,17 @@ Signing out ends your active app session, but it should not be treated as a guar
 
 ## Retention, access, and deletion requests
 
-We retain account and learning records for providing and administering the service, subject to applicable requirements and legitimate operational needs. DarkWorld does not currently apply a published automatic deletion schedule to every category of data.
+We retain account and learning records for providing and administering the service, subject to applicable requirements and legitimate operational needs. Payment records are kept for as long as Ghanaian tax and accounting law requires, even after an account is deleted. DarkWorld does not currently apply a published automatic deletion schedule to every category of data.
 
-Contact **techguychris2007@gmail.com** to ask about access, correction, export, or deletion of your account information. We may need to verify account ownership before acting. Deleting browser data alone does not delete server records; revoking Google or GitHub access alone also does not delete your DarkWorld account. Provider logs, backups, and previously shared exports may have separate retention limits or processing schedules.
+You can delete your account yourself at any time from the **Profile** page. Deletion is immediate and permanent: it removes your account, learning progress, lab comments, ratings, and feedback. If you have a card subscription that still renews, it is cancelled first so you are not charged again. Payment records are kept for tax purposes without a link to your account.
+
+Contact **techguychris2007@gmail.com** to ask about access, correction, or export of your account information, or if you cannot delete your account yourself. We may need to verify account ownership before acting. Deleting browser data alone does not delete server records; revoking Google or GitHub access alone also does not delete your DarkWorld account. Provider logs, backups, and previously shared exports may have separate retention limits or processing schedules.
 
 You can revoke Google's permission through your [Google Account connections](https://myaccount.google.com/connections). You can manage GitHub authorization through your GitHub account settings. Revocation can prevent future sign-in using that provider; arrange another supported account-access method first if needed.
+
+## Your rights
+
+Under Ghana's Data Protection Act, 2012 (Act 843) and other laws that may apply to you, you can ask to access the personal information we hold about you, ask us to correct or delete it, and object to certain processing. Contact **techguychris2007@gmail.com**. If you are not satisfied with our response, you can complain to Ghana's **Data Protection Commission**.
 
 ## Security and changes
 

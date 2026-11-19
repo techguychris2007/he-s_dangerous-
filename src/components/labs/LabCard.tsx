@@ -12,6 +12,8 @@ import { labXpReward } from '../../data/levels';
 import '../common/workspace-header.css';
 import IsoBlock, { type IsoTone } from './IsoBlock';
 import './room-card.css';
+import { hasPlan, planForLab, useEntitlement } from '../../lib/billing';
+import { PlanBadge } from '../billing/PlanGate';
 
 const DEFENSIVE = new Set(['SOC', 'Forensics', 'Security+', 'Malware', 'Security Engineering']);
 const ANALYSIS = new Set(['Binary Analysis', 'Cloud', 'AI Security']);
@@ -31,6 +33,9 @@ export default memo(function LabCard({
 }) {
   const { flagCount: captured, isBookmarked: bookmarked } = useLabProgress(lab.scenario.id);
   const { toggleBookmark } = useProgressActions();
+  const required = planForLab(lab.slug);
+  const { plan, loading: planLoading } = useEntitlement();
+  const locked = required !== 'free' && !planLoading && !hasPlan(plan, required);
   const total = Math.max(lab.scenario.totalFlags, 1);
   const done = captured >= total;
   const pct = Math.min(100, Math.round((captured / total) * 100));
@@ -44,16 +49,17 @@ export default memo(function LabCard({
 
   if (variant === 'task') return <article className="task-lab-row">
     <span className="task-lab-icon" aria-hidden="true"><ModuleIcon icon={techIcon} className="h-5 w-5" /></span>
-    <div className="task-lab-content"><div className="task-lab-meta"><span>{lab.scenario.category}</span><span>·</span><span>{lab.scenario.difficulty}</span><span>·</span><span>+{xpReward} XP</span></div><Link to={labUrl} className="task-lab-title">{lab.scenario.title}</Link><p className="line-clamp-2">{lab.scenario.briefing}</p><div className="task-lab-status"><span>{status}</span><span>{Math.min(captured, total)} of {total} flags captured</span>{done && <span className="text-[var(--color-success)]">Completed ✓</span>}</div></div>
+    <div className="task-lab-content"><div className="task-lab-meta">{required !== 'free' && <PlanBadge plan={required} locked={locked} />}<span>{lab.scenario.category}</span><span>·</span><span>{lab.scenario.difficulty}</span><span>·</span><span>+{xpReward} XP</span></div><Link to={labUrl} className="task-lab-title">{lab.scenario.title}</Link><p className="line-clamp-2">{lab.scenario.briefing}</p><div className="task-lab-status"><span>{status}</span><span>{Math.min(captured, total)} of {total} flags captured</span>{done && <span className="text-[var(--color-success)]">Completed ✓</span>}</div></div>
     <div className="task-lab-actions"><Link to={labUrl}>{ctaLabel} →</Link><button onClick={() => toggleBookmark(lab.scenario.id)} aria-pressed={bookmarked} aria-label={`${bookmarked ? 'Remove bookmark from' : 'Bookmark'} ${lab.scenario.title}`} className={bookmarked ? 'text-[var(--color-gold-dim)]' : 'text-[var(--color-text-dim)]'}><IconBookmark className="h-4 w-4" filled={bookmarked} /></button></div>
   </article>;
 
   return (
-    <article className="dw-room-card group">
+    <article className="dw-room-card group" data-locked={locked}>
       <div className="dw-room-card__banner">
         <IsoBlock width={58} depth={11} tone={done ? 'done' : captured > 0 ? 'progress' : toneFor(lab.scenario.category)} crest={<ModuleIcon icon={techIcon} />} className="dw-room-card__emblem" />
         <span className="dw-room-card__cat"><ModuleIcon icon={techIcon} className="h-3.5 w-3.5" />{lab.scenario.category}</span>
         {(lab.scenario.webApplication || lab.scenario.directoryMap) && <span className="dw-room-card__tag">{lab.scenario.webApplication ? 'Website' : 'Map'}</span>}
+        {required !== 'free' && <span className="dw-room-card__plan"><PlanBadge plan={required} locked={locked} /></span>}
         {done && <span className="dw-room-card__tag dw-room-card__tag--done"><IconCheck className="h-3 w-3" />Complete</span>}
         <button
           onClick={(e) => { e.preventDefault(); toggleBookmark(lab.scenario.id); }}
@@ -88,7 +94,7 @@ export default memo(function LabCard({
       )}
 
       <Link to={labUrl} className="dw-room-card__cta" data-done={done}>
-        {done && <IconCheck className="h-4 w-4" />}{ctaLabel} →
+        {done && <IconCheck className="h-4 w-4" />}{locked ? `Unlock with ${required === 'max' ? 'Max' : 'Pro'}` : ctaLabel} →
       </Link>
     </article>
   );

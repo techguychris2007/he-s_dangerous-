@@ -7,6 +7,7 @@ import { useTheme } from '../../state/theme';
 import { useSyncStatus } from '../../state/syncStatus';
 import { IconMenu, IconSun, IconMoon, IconBell, IconCheck, IconFlag } from './icons';
 import InstallAppButton from './InstallAppButton';
+import PlanChip from '../billing/PlanChip';
 import LevelHud from '../common/LevelHud';
 
 /** completedLessons is keyed by lesson id, not slug — there's no direct id lookup in curriculum.ts,
@@ -35,6 +36,7 @@ const PAGE_TITLES: Record<string, string> = {
   security: 'Security',
   help: 'Help & FAQ',
   feedback: 'Feedback',
+  billing: 'Plan and billing',
   instructor: 'Instructor Dashboard',
   admin: 'Admin Dashboard',
 };
@@ -127,6 +129,7 @@ export default function TopBar({ onMenuClick, menuOpen = false }: { onMenuClick:
 
       <div className="dw-topbar-actions">
         <InstallAppButton />
+        <PlanChip />
         <LevelHud />
         {sync !== 'idle' && <span role="status" title={sync === 'local' ? 'Progress is saved on this device. Cloud sync will retry.' : 'Account progress sync'} className={`dw-topbar-sync ${sync === 'local' ? 'is-local' : ''}`}>{sync === 'local' ? 'Saved locally' : sync === 'loading' ? 'Loading…' : sync === 'saving' ? 'Saving…' : 'Synced'}</span>}
         <button

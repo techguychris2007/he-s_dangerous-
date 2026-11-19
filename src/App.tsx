@@ -12,6 +12,7 @@ import { setSyncStatus } from './state/syncStatus';
 import { enableOfflineCaching } from './state/pwa';
 import { startAnalytics } from './lib/analytics';
 import { loadOwnerContent, useOwnerContent } from './lib/ownerContent';
+import { PAID_PLANS_LIVE } from './lib/billing';
 
 // Keep sign-in independent of the academy shell and curriculum downloads.
 import LoginPage from './pages/LoginPage';
@@ -51,6 +52,8 @@ const LibraryPage = lazy(() => import('./pages/LibraryPage'));
 const BookReaderPage = lazy(() => import('./pages/BookReaderPage'));
 const InstructorDashboardPage = lazy(() => import('./pages/InstructorDashboardPage'));
 const AdminDashboardPage = lazy(() => import('./pages/AdminDashboardPage'));
+const PricingPage = lazy(() => import('./pages/PricingPage'));
+const BillingPage = lazy(() => import('./pages/BillingPage'));
 
 // ─── Shared route-level spinner ───────────────────────────────────────────────
 function PageLoader() {
@@ -255,6 +258,8 @@ function App() {
         <HashRouter>
           <Routes>
             <Route path="/welcome" element={<Suspense fallback={<FullScreenLoader />}><IntroPage /></Suspense>} />
+            {/* Pricing and Billing exist only once paid plans are switched on (src/lib/billing.ts). */}
+            <Route path="/pricing" element={PAID_PLANS_LIVE ? <Suspense fallback={<FullScreenLoader />}><PricingPage /></Suspense> : <Navigate to="/welcome" replace />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route
@@ -394,6 +399,7 @@ function App() {
               <Route path="/security" element={<Suspense fallback={<PageLoader />}><SecurityPage /></Suspense>} />
               <Route path="/help" element={<Suspense fallback={<PageLoader />}><HelpFaqPage /></Suspense>} />
               <Route path="/feedback" element={<Suspense fallback={<PageLoader />}><FeedbackPage /></Suspense>} />
+              <Route path="/billing" element={PAID_PLANS_LIVE ? <Suspense fallback={<PageLoader />}><BillingPage /></Suspense> : <Navigate to="/" replace />} />
               <Route
                 path="/instructor"
                 element={

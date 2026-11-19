@@ -23,6 +23,8 @@ export interface CurriculumLesson {
   labs: string[];
   /** Typed-answer questions for the end-of-lesson tasks (1–2 is ideal). */
   questions?: TypedQuestion[];
+  /** Set in the production build when the lesson body is paid content. */
+  locked?: boolean;
   quiz: (Omit<QuizQuestion, 'id'> | { question: string; options: string[]; answer: number; explanation?: string })[];
 }
 
@@ -31,7 +33,7 @@ export function curriculumModule(meta: Omit<ModuleMeta, 'lessons' | 'status'>, l
   return { ...meta, status: 'available', lessons: lessons.map((lesson) => withDepth(lesson)).map(lesson => ({
     id: lesson.id, slug: lesson.slug, title: lesson.title, summary: lesson.summary, minutes: lesson.minutes,
     objectives: lesson.outcomes, prerequisite: lesson.prerequisite,
-    questions: lesson.questions, keyTerms: lesson.keyTerms,
+    questions: lesson.questions, keyTerms: lesson.keyTerms, locked: lesson.locked,
     Content: () => createElement(CurriculumArticle, { lesson }),
     quiz: lesson.quiz.map((question, index) => 'prompt' in question
       ? { ...question, id: `${lesson.id}-q${index + 1}` }

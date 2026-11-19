@@ -15,6 +15,7 @@ import { useHandle } from '../state/useHandle';
 import { Link } from 'react-router-dom';
 import { visibleCertificatePaths, certificateStatus } from '../data/pathCertificates';
 import { useIsOwner } from '../lib/ownerAccess';
+import DeleteAccountCard from '../components/account/DeleteAccountCard';
 
 const POINTS: Record<string, number> = { Easy: 10, Medium: 20, Hard: 30 };
 
@@ -284,6 +285,8 @@ export default function ProfilePage() {
         stats — syncs to your account, so it follows you across devices as long as you're signed in. Your
         display name is taken straight from your account rather than stored separately.
       </div>
+
+      {!owner && <DeleteAccountCard />}
     </div>
   );
 }

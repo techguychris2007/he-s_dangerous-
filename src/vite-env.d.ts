@@ -13,6 +13,9 @@ interface ImportMetaEnv {
   /** "on" limits DarkWorld to laptops and desktops (src/components/layout/ComputerAccessGate.tsx).
    *  Anything else, the default, lets phones and tablets in. */
   readonly VITE_COMPUTER_ONLY?: string;
+  /** "on" turns on Pro/Max plans: the paywall, pricing and the paid-content split. Anything else
+   *  (the default) keeps every lesson and lab free and in the bundle (src/lib/billing.ts). */
+  readonly VITE_PAID_PLANS?: string;
 }
 
 interface ImportMeta {

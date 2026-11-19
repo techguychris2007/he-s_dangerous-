@@ -25,13 +25,49 @@ import { learningFrameFor } from '../labs/labTeaching';
 import { categoryIconKey } from '../data/labIcon';
 import { IconShield, IconTerminal } from '../components/layout/icons';
 import '../components/labs/lab-mission.css';
+import { planForLab, usePlanAccess } from '../lib/billing';
+import { PlanLoading, UpgradePanel } from '../components/billing/PlanGate';
+import { loadPaidLab } from '../lib/paidContent';
+import '../components/billing/billing.css';
 
 const DEFENSIVE_CATEGORIES = new Set(['SOC', 'Forensics', 'Security+', 'Malware', 'Security Engineering']);
 
 export default function LabPage() {
   const { labSlug } = useParams();
   const entry = findLab(labSlug);
-  return entry ? <LabMission key={entry.scenario.id} entry={entry} /> : <Navigate to="/labs" replace />;
+  return entry ? <LabPlanGate key={entry.scenario.id} entry={entry} /> : <Navigate to="/labs" replace />;
+}
+
+/** Pro and Max labs open only on a plan that includes them (see src/data/planTiers.ts). */
+function LabPlanGate({ entry }: { entry: LabEntry }) {
+  const required = planForLab(entry.slug);
+  const access = usePlanAccess(required);
+  if (access.loading) return <PlanLoading />;
+  if (!access.allowed && required !== 'free') return <UpgradePanel required={required} kind="lab" title={entry.scenario.title} backTo="/labs" backLabel="Back to labs" />;
+  if (entry.scenario.locked && required !== 'free') return <PaidLabLoader entry={entry} plan={required} />;
+  return <LabMission entry={entry} />;
+}
+
+/** In production a paid lab is only a catalogue stub; its scenario is downloaded for this account. */
+function PaidLabLoader({ entry, plan }: { entry: LabEntry; plan: 'pro' | 'max' }) {
+  const [full, setFull] = useState<LabEntry>();
+  const [error, setError] = useState('');
+  const [attempt, setAttempt] = useState(0);
+  useEffect(() => {
+    let active = true;
+    setError('');
+    loadPaidLab(entry.slug, plan)
+      .then(paid => {
+        if (!active) return;
+        if (paid.reference) labReference[paid.scenario.id] = paid.reference;
+        setFull({ slug: entry.slug, scenario: paid.scenario });
+      })
+      .catch(failure => { if (active) setError(failure instanceof Error ? failure.message : 'This lab could not be opened.'); });
+    return () => { active = false; };
+  }, [entry.slug, plan, attempt]);
+  if (error) return <div role="alert" className="dw-upgrade"><h1>{entry.scenario.title}</h1><p className="dw-upgrade__lead">{error}</p><button type="button" className="dw-billing-btn dw-billing-btn--primary" onClick={() => setAttempt(value => value + 1)}>Try again</button></div>;
+  if (!full) return <div role="status" className="dw-upgrade dw-upgrade--loading"><span className="dw-billing-spinner" aria-hidden="true" />Preparing your lab…</div>;
+  return <LabMission entry={full} />;
 }
 
 function LabMission({ entry }: { entry: LabEntry }) {
