@@ -1,5 +1,5 @@
 // The one price list for DarkWorld plans. Pure TypeScript with no runtime imports, so both the
-// Paystack edge functions (Deno) and the web app (src/lib/billing.ts) import this same file: the
+// Paystack edge functions (Deno) and the web app (src/features/billing/lib/billing.ts) import this same file: the
 // prices a learner sees are always the prices the server charges. The server never trusts an
 // amount sent by the browser; it looks the offer up here.
 //
@@ -7,8 +7,8 @@
 // pesewas = GHS × 100, the unit Paystack expects). The cedi amount is the dollar price at
 // GHS_PER_USD rounded to a whole cedi. Both are fixed numbers, not calculated at run time: a
 // Paystack subscription plan has a fixed cedi amount, so the charged price must not move by itself
-// when the exchange rate changes. scripts/check-billing.cjs checks the two stay within 1% at
-// GHS_PER_USD. To reprice, change both numbers (and the Paystack plans; see docs/billing-setup.md).
+// when the exchange rate changes. tests/check-billing.cjs checks the two stay within 1% at
+// GHS_PER_USD. To reprice, change both numbers (and the Paystack plans; see docs/operations/billing-setup.md).
 
 export type PaidPlan = 'pro' | 'max';
 export type PlanId = 'free' | PaidPlan;

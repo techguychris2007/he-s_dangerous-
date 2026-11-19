@@ -21,7 +21,7 @@ Prepared November 17, 2026 for the owners. This is a working checklist, not lega
 
 - [ ] Complete Paystack business verification (KYC) with the ORC documents, TIN and directors' IDs.
 - [ ] Turn on the **Card** and **Mobile Money** channels for GHS.
-- [ ] Follow `docs/billing-setup.md` to create the two monthly plans, set the secrets and register the webhook.
+- [ ] Follow `docs/operations/billing-setup.md` to create the two monthly plans, set the secrets and register the webhook.
 - [ ] Make one real low-value payment by card and one by mobile money, then refund them, before announcing paid plans.
 
 ## 4. Consumer and e-commerce disclosures

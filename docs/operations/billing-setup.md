@@ -7,11 +7,11 @@ DarkWorld sells Pro and Max through **Paystack**, which takes cards and Ghanaian
 | Piece | File |
 | --- | --- |
 | Prices and offers (one list for app and server) | `supabase/functions/_shared/billingPlans.ts` |
-| Which labs and modules each plan unlocks | `src/data/planTiers.ts` |
+| Which labs and modules each plan unlocks | `src/features/billing/data/planTiers.ts` |
 | Plan and payment tables, and the only functions that can change them | `supabase/migrations/0013_billing.sql` |
 | Starts a checkout or opens subscription management | `supabase/functions/paystack-checkout` |
 | Receives Paystack events and grants access | `supabase/functions/paystack-webhook` |
-| Pricing and Billing pages, gates on lessons and labs | `src/pages/PricingPage.tsx`, `src/pages/BillingPage.tsx`, `src/components/billing/` |
+| Pricing and Billing pages, gates on lessons and labs | `src/features/billing/pages/PricingPage.tsx`, `src/features/billing/pages/BillingPage.tsx`, `src/features/billing/components/` |
 
 - **Card, monthly:** a Paystack subscription that renews every month until cancelled.
 - **Card or mobile money, 1/3/12 months:** a one-time pass. Mobile money cannot renew automatically, so mobile money always buys a pass.
@@ -28,7 +28,7 @@ To launch paid plans: finish the Paystack setup below, test it, publish the paid
 
 With the switch on, the production build (`npm run build`) does not contain Pro or Max content. A build step (`scripts/vite-paid-content.mjs`) replaces each paid lab with a catalogue stub (title, category, difficulty, flag count) and removes each paid lesson's body, quiz and answers, keeping only its outline. `scripts/check-paid-build.cjs` then fails the build if any paid flag or lesson passage is found in `dist/`.
 
-The full content is published to the private `paid-content` Storage bucket by `npm run publish:paid-content`. Its access rule (`supabase/migrations/0014_paid_content.sql`) lets an account download a file only while its plan includes it, and lets the owner accounts download everything. The app downloads a paid lab or lesson when it is opened (`src/lib/paidContent.ts`).
+The full content is published to the private `paid-content` Storage bucket by `npm run publish:paid-content`. Its access rule (`supabase/migrations/0014_paid_content.sql`) lets an account download a file only while its plan includes it, and lets the owner accounts download everything. The app downloads a paid lab or lesson when it is opened (`src/features/billing/lib/paidContent.ts`).
 
 `npm run dev` still uses the full source, so local development is unchanged.
 
@@ -82,6 +82,6 @@ Edit `billingPlans.ts`. For monthly subscriptions, also create new Paystack plan
 
 ## Changing what is included
 
-Edit `src/data/planTiers.ts`. New labs are free until they are added to `PRO_LABS` or `MAX_LABS`. Run `npm run test:billing` afterwards, then republish the paid content (`npm run publish:paid-content`) before deploying, so newly paid items are in Storage when the build stops shipping them.
+Edit `src/features/billing/data/planTiers.ts`. New labs are free until they are added to `PRO_LABS` or `MAX_LABS`. Run `npm run test:billing` afterwards, then republish the paid content (`npm run publish:paid-content`) before deploying, so newly paid items are in Storage when the build stops shipping them.
 
-A lesson body that is a React component may only use the display components listed in `leafComponents()` in `scripts/paid-content.cjs` (CodeBlock, Callout, PracticeTasksCallout, CurriculumArticle) plus plain elements and hook-free components. `node scripts/check-paid-content.cjs` (part of `npm run test:platform`) checks every paid lesson renders identically after publishing.
+A lesson body that is a React component may only use the display components listed in `leafComponents()` in `scripts/paid-content.cjs` (CodeBlock, Callout, PracticeTasksCallout, CurriculumArticle) plus plain elements and hook-free components. `node tests/check-paid-content.cjs` (part of `npm run test:platform`) checks every paid lesson renders identically after publishing.

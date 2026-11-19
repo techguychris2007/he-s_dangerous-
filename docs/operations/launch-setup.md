@@ -37,8 +37,8 @@ bundle check and the other checks on every push to `main` and every pull request
 5. In Sentry → Project Settings → Security & Privacy, also turn on **Data Scrubber** and
    **Prevent Storing of IP Addresses**, a second layer behind the app's own scrubbing.
 
-What is removed before a report leaves the browser: `src/lib/monitoringScrub.ts`, tested by
-`scripts/check-monitoring.cjs`.
+What is removed before a report leaves the browser: `src/shared/lib/monitoringScrub.ts`, tested by
+`tests/check-monitoring.cjs`.
 
 ## 3. Analytics (SimpleAnalytics)
 

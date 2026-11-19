@@ -1,35 +1,57 @@
-# React + TypeScript + Vite
+# DarkWorld Academy
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Hands-on cybersecurity and software-engineering training in the browser: guided lessons, simulated
+hacking labs, SOC investigations in realistic SIEM consoles, and coding practice with real runtimes.
+Live at [darkworldacademy.tech](https://darkworldacademy.tech).
 
-Currently, two official plugins are available:
+## Quick start
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm ci
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+```bash
+cp .env.example .env.local   # then fill VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY
+```
+
+```bash
+npm run dev
+```
+
+## Project map
+
+| Path | What is there |
+| --- | --- |
+| `src/app/` | App shell: entry point, routes, layout, guards |
+| `src/features/` | One folder per product area: `labs`, `soc`, `curriculum`, `code-practice`, `library`, `progress`, `account`, `billing`, `admin`, `ai-tutor`, `offline`, `onboarding`, `marketing`, `support` |
+| `src/shared/` | Reusable UI, the character cast, Supabase client, monitoring, types |
+| `supabase/` | Database migrations, Edge Functions, SQL checks |
+| `tests/` | Verification suites (`npm run test:*`) |
+| `scripts/` | Build, publish and audit tooling |
+| `docs/` | Architecture, decisions, operations, legal, release notes |
+
+Start with **[docs/architecture/README.md](docs/architecture/README.md)** to see how everything fits together.
+
+## Everyday commands
+
+| Command | Does |
+| --- | --- |
+| `npm run dev` | Development server |
+| `npm run build` | Typecheck, production build, paid-content leak check |
+| `npm run lint` | oxlint |
+| `npm run test:architecture` | Checks the folder layout and import direction |
+| `npm run test:platform` | Architecture check plus the main platform suites (run in CI) |
+
+## Launch switches
+
+| Variable | Off (default) | On |
+| --- | --- | --- |
+| `VITE_PAID_PLANS` | Everything is free and in the bundle | Pro/Max content is served from the plan-gated bucket ([billing setup](docs/operations/billing-setup.md)) |
+| `VITE_COMPUTER_ONLY` | Phones, tablets and computers allowed | Laptops and desktops only |
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## DarkWorld contributors
 
