@@ -10,6 +10,7 @@ import {
   type AdminData, type AdminAccount, type AdminFeedback,
 } from '../lib/adminDashboard';
 import StatCard from '../components/common/StatCard';
+import AdminAnalystPanel from '../components/admin/AdminAnalystPanel';
 import { SkeletonBlock, SkeletonList } from '../components/common/Skeleton';
 import { IconUser, IconFlag, IconCheck, IconChart, IconMessage, IconLightning, IconRefresh, IconDownload } from '../components/layout/icons';
 
@@ -224,6 +225,7 @@ function OverviewTab({ data, learners }: { data: AdminData; learners: LearnerRow
         <Panel title="Signups per week"><ColumnChart points={weeks} label="New registered accounts per week, last 12 weeks" /></Panel>
         <Panel title="Daily active learners"><ColumnChart points={days} label="Learners with recorded activity per day, last 30 days" /></Panel>
       </div>
+      <LearningNow data={data} />
       <div className="grid lg:grid-cols-3 gap-4">
         <Panel title="Accounts">
           <dl className="grid grid-cols-2 gap-y-2 text-sm">
@@ -256,6 +258,51 @@ function OverviewTab({ data, learners }: { data: AdminData; learners: LearnerRow
         </Panel>
       </div>
     </>
+  );
+}
+
+function LearningNow({ data }: { data: AdminData }) {
+  const now = Date.now();
+  const today = localDay(new Date());
+  const members = data.accounts.filter((a) => !a.isAnonymous);
+  const activeToday = members.filter((a) => a.activityDates.includes(today)).length;
+  const recent = useMemo(() => {
+    const out: { at: number; lab: LabEntry | undefined; labId: string }[] = [];
+    for (const a of members) for (const [labId, at] of Object.entries(a.labCompletedAt)) {
+      if (now - Number(at) < DAY) out.push({ at: Number(at), lab: findLab(labId), labId });
+    }
+    return out.sort((x, y) => y.at - x.at);
+  }, [members, now]);
+  const byCategory = new Map<string, number>();
+  for (const r of recent) { const c = r.lab?.scenario.category ?? 'Other'; byCategory.set(c, (byCategory.get(c) ?? 0) + 1); }
+  return (
+    <Panel title="Learning right now · last 24 hours" className="mb-4">
+      <div className="grid md:grid-cols-[200px_1fr] gap-5">
+        <dl className="grid grid-cols-2 md:grid-cols-1 gap-3 text-sm">
+          <div><dt className="text-[var(--color-text-dim)] text-xs">Learners active today</dt><dd className="font-mono text-2xl font-bold text-[var(--color-heading)]">{activeToday}</dd></div>
+          <div><dt className="text-[var(--color-text-dim)] text-xs">Labs completed, 24 h</dt><dd className="font-mono text-2xl font-bold text-[var(--color-heading)]">{recent.length}</dd></div>
+        </dl>
+        <div className="min-w-0">
+          {recent.length === 0 ? <p className="text-sm text-[var(--color-text-dim)]">No lab completions in the last 24 hours.</p> : (
+            <>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {[...byCategory.entries()].sort((a, b) => b[1] - a[1]).map(([c, k]) => (
+                  <span key={c} className="rounded-full border border-[var(--color-border)] px-2.5 py-0.5 text-xs"><span className="text-[var(--color-heading)] font-semibold">{c}</span> <span className="font-mono text-[var(--color-text-dim)]">{k}</span></span>
+                ))}
+              </div>
+              <ol className="space-y-1.5 text-sm max-h-40 overflow-y-auto pr-1">
+                {recent.slice(0, 12).map((r, i) => (
+                  <li key={i} className="flex justify-between gap-3">
+                    {r.lab ? <Link to={`/lab/${r.lab.slug}`} className="truncate hover:text-[var(--color-accent)]">{r.lab.scenario.title}</Link> : <span className="truncate font-mono">{r.labId}</span>}
+                    <span className="shrink-0 font-mono text-xs text-[var(--color-text-dim)]">{relTime(r.at)}</span>
+                  </li>
+                ))}
+              </ol>
+            </>
+          )}
+        </div>
+      </div>
+    </Panel>
   );
 }
 
@@ -653,6 +700,7 @@ function FeedbackTab({ data }: { data: AdminData }) {
 
 const TABS = [
   { id: 'overview', label: 'Overview' },
+  { id: 'analyst', label: 'Analyst' },
   { id: 'users', label: 'Users' },
   { id: 'progress', label: 'Progress' },
   { id: 'content', label: 'Content' },
@@ -666,6 +714,7 @@ export default function AdminDashboardPage() {
   const [error, setError] = useState<AdminLoadError | null>(null);
   const [loading, setLoading] = useState(true);
   const [reloadKey, setReloadKey] = useState(0);
+  const [backgroundFailed, setBackgroundFailed] = useState(false);
   const [tab, setTab] = useState<TabId>(() => {
     try { const saved = sessionStorage.getItem('dw-admin-tab'); return (TABS.some((t) => t.id === saved) ? saved : 'overview') as TabId; } catch { return 'overview'; }
   });
@@ -674,11 +723,27 @@ export default function AdminDashboardPage() {
     let active = true;
     setLoading(true);
     fetchAdminData()
-      .then((result) => { if (active) { setData(result); setError(null); } })
+      .then((result) => { if (active) { setData(result); setError(null); setBackgroundFailed(false); } })
       .catch((e: unknown) => { if (active) setError(e instanceof AdminLoadError ? e : new AdminLoadError(String(e), 'network')); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [reloadKey]);
+
+  // Live: refresh quietly every minute while the tab is visible, keeping the current data on screen.
+  useEffect(() => {
+    if (!data) return;
+    let active = true;
+    const tick = () => {
+      if (document.visibilityState !== 'visible' || !navigator.onLine) return;
+      fetchAdminData()
+        .then((result) => { if (active) { setData(result); setBackgroundFailed(false); } })
+        .catch(() => { if (active) setBackgroundFailed(true); });
+    };
+    const timer = window.setInterval(tick, 60_000);
+    const onVisible = () => { if (document.visibilityState === 'visible' && Date.now() - data.loadedAt.getTime() > 60_000) tick(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => { active = false; window.clearInterval(timer); document.removeEventListener('visibilitychange', onVisible); };
+  }, [data]);
 
   const selectTab = (id: TabId) => {
     setTab(id);
@@ -694,7 +759,12 @@ export default function AdminDashboardPage() {
         <div>
           <div className="gold-eyebrow mb-2">// operations</div>
           <h1 className="text-3xl font-bold text-[var(--color-heading)]">Admin Dashboard</h1>
-          {data && <p className="mt-1 text-xs text-[var(--color-text-dim)]">Read-only · updated {data.loadedAt.toLocaleTimeString()}</p>}
+          {data && (
+            <p className="mt-1 flex items-center gap-1.5 text-xs text-[var(--color-text-dim)]">
+              <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${backgroundFailed ? 'bg-[var(--color-warn)]' : 'bg-[var(--color-success)] animate-pulse motion-reduce:animate-none'}`} />
+              {backgroundFailed ? 'Live refresh paused' : 'Live'} · read-only · updated {data.loadedAt.toLocaleTimeString()}
+            </p>
+          )}
         </div>
         <button type="button" className={smallButton} disabled={loading} onClick={() => setReloadKey((k) => k + 1)}>
           <IconRefresh className={`w-3.5 h-3.5 ${loading ? 'animate-spin motion-reduce:animate-none' : ''}`} />{loading ? 'Loading' : 'Refresh'}
@@ -719,7 +789,7 @@ export default function AdminDashboardPage() {
         </>
       )}
 
-      {error && !loading && (
+      {error && !loading && !data && (
         <section className="premium-card rounded-2xl p-8 mb-6" role="alert">
           <h2 className="text-lg font-bold text-[var(--color-heading)] mb-2">
             {error.kind === 'denied' ? 'Admin access required' : error.kind === 'missing' ? 'Admin data is not set up yet' : navigator.onLine ? 'Admin data is unavailable' : 'Connect to load admin data'}
@@ -736,6 +806,7 @@ export default function AdminDashboardPage() {
       {data && (
         <div id="admin-panel" role="tabpanel" aria-labelledby={`admin-tab-${tab}`}>
           {tab === 'overview' && <OverviewTab data={data} learners={learners} />}
+          <div hidden={tab !== 'analyst'}><AdminAnalystPanel data={data} /></div>
           {tab === 'users' && <UsersTab learners={learners} />}
           {tab === 'progress' && <ProgressTab data={data} />}
           {tab === 'content' && <ContentTab data={data} />}
