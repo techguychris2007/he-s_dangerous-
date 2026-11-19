@@ -2,7 +2,7 @@ import { useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from 'r
 import MarkdownText from '../common/MarkdownText';
 import type { AdminData } from '../../lib/adminDashboard';
 import { buildAnalystSnapshot, type AnalystSnapshot } from '../../lib/adminAnalystSnapshot';
-import { streamAnalyst, FULL_ANALYSIS_PROMPT, ANALYST_MODEL_LABEL, type AnalystTurn } from '../../lib/adminAnalyst';
+import { streamAnalyst, FULL_ANALYSIS_PROMPT, type AnalystTurn } from '../../lib/adminAnalyst';
 import { IconBrain, IconCopy, IconRefresh } from '../layout/icons';
 
 const QUICK_QUESTIONS = [
@@ -48,7 +48,7 @@ export default function AdminAnalystPanel({ data }: { data: AdminData }) {
     let partial = '';
     try {
       const answer = await streamAnalyst(base.snapshot, next, (text) => { partial = text; setStreaming(text); }, controller.signal);
-      setTurns([...next, { role: 'assistant', content: answer }]);
+      setTurns([...next, { role: 'assistant', content: answer.text, model: answer.model }]);
     } catch (e) {
       if (partial.trim()) {
         setTurns([...next, { role: 'assistant', content: partial + (controller.signal.aborted ? '\n\n_(Stopped.)_' : '\n\n_(Connection lost before the analysis finished.)_') }]);
@@ -93,10 +93,10 @@ export default function AdminAnalystPanel({ data }: { data: AdminData }) {
           <div className="flex gap-3 min-w-0">
             <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--color-navy)] text-[var(--color-gold)]"><IconBrain className="w-5 h-5" /></span>
             <div className="min-w-0">
-              <h2 className="text-base font-bold text-[var(--color-heading)]">Claude analyst</h2>
+              <h2 className="text-base font-bold text-[var(--color-heading)]">AI analyst</h2>
               <p className="text-sm text-[var(--color-text-dim)] max-w-2xl">
                 Reads the dashboard's numbers like a product analyst: who is learning, what they are learning now and why, where they drop off, and what to fix first.
-                It runs on {ANALYST_MODEL_LABEL} only when you ask.
+                It runs only when you ask, on Claude Opus 5.5 when an Anthropic key is set and on Gemini otherwise.
               </p>
             </div>
           </div>
@@ -144,6 +144,7 @@ export default function AdminAnalystPanel({ data }: { data: AdminData }) {
           ) : (
             <article key={i} className="premium-card rounded-2xl p-5 text-sm leading-relaxed text-[var(--color-text)] break-words">
               <MarkdownText text={turn.content} />
+              {turn.model && <p className="mt-4 text-[11px] font-mono text-[var(--color-text-dim)]">Answered by {turn.model}</p>}
             </article>
           ))}
           {busy && (
@@ -182,7 +183,7 @@ export default function AdminAnalystPanel({ data }: { data: AdminData }) {
 
       <details className="premium-card rounded-2xl p-5">
         <summary className="cursor-pointer text-sm font-bold text-[var(--color-heading)]">
-          What Claude sees <span className="font-normal text-[var(--color-text-dim)]">· about {Math.max(1, Math.round(JSON.stringify(snapshot).length / 4 / 1000))}k tokens{frozen ? `, frozen at ${frozen.at.toLocaleTimeString()}` : ''}</span>
+          What the analyst sees <span className="font-normal text-[var(--color-text-dim)]">· about {Math.max(1, Math.round(JSON.stringify(snapshot).length / 4 / 1000))}k tokens{frozen ? `, frozen at ${frozen.at.toLocaleTimeString()}` : ''}</span>
         </summary>
         <pre className="mt-3 max-h-[420px] overflow-auto rounded-lg bg-[var(--color-surface-2)] p-3 text-xs font-mono text-[var(--color-text)]">{snapshotText}</pre>
       </details>

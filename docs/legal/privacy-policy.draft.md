@@ -34,7 +34,7 @@ We do not sell Google sign-in data or use it for targeted advertising. We do not
 
 **Teaching administration.** An authorized instructor can view account and learning information for teaching and administration, including names, email addresses, account creation dates, progress, and quiz results. Access is intended to be restricted to authorized staff; this is separate from public leaderboard participation.
 
-**Staff analytics.** Authorized administrators can ask an AI analyst, provided by **Anthropic** (Claude), to summarize how the platform is used. It receives aggregated statistics, such as signup counts, completion and retention rates, and per-lesson and per-lab totals, along with the text of feedback and lab comments with email addresses and phone numbers removed. It does not receive names, email addresses, or account identifiers. The analysis is shown only to administrators.
+**Staff analytics.** Authorized administrators can ask an AI analyst, provided by **Anthropic** (Claude) or, when Claude is unavailable, **Google** (Gemini), to summarize how the platform is used. It receives aggregated statistics, such as signup counts, completion and retention rates, and per-lesson and per-lab totals, along with the text of feedback and lab comments with email addresses and phone numbers removed. It does not receive names, email addresses, or account identifiers. The analysis is shown only to administrators.
 
 **Ratings.** Learners can see aggregate lab ratings and difficulty feedback. Your individual rating remains associated with your account in the backend.
 
@@ -50,7 +50,7 @@ The account sign-in and AI tutoring integrations have different purposes. Basic 
 
 ## Providers and external links
 
-DarkWorld uses **Vercel** for website hosting and **Supabase** for authentication, database storage, and backend functions. Google and GitHub handle their respective sign-in flows. Groq and Google process optional AI requests as described above. Anthropic processes the aggregated staff analytics described above. These providers may process data outside your country. We may also disclose information when legally required or necessary to respond to a legitimate security incident.
+DarkWorld uses **Vercel** for website hosting and **Supabase** for authentication, database storage, and backend functions. Google and GitHub handle their respective sign-in flows. Groq and Google process optional AI requests as described above. Anthropic, or Google when Claude is unavailable, processes the aggregated staff analytics described above. These providers may process data outside your country. We may also disclose information when legally required or necessary to respond to a legitimate security incident.
 
 External books, reference sites, and repositories have their own privacy practices. Following an external link takes you to that provider's service.
 
