@@ -4,21 +4,30 @@
 //   supabase secrets set ANTHROPIC_API_KEY=...   (Claude, preferred)
 //   GEMINI_API_KEY (already used by the AI tutor) is the fallback while no Anthropic key is set.
 // Optional: ANALYST_PROVIDER=claude|gemini forces one provider; GEMINI_ANALYST_MODEL overrides the
-// Gemini model (default: the tutor's GEMINI_MODEL, else gemini-flash-latest, which the free tier covers).
+// Gemini model (default: the tutor's GEMINI_MODEL, else gemini-flash-latest, which the free tier covers);
+// GEMINI_ANALYST_FALLBACK_MODEL is tried when that model is overloaded (default gemini-flash-lite-latest).
 //
-// The Claude analyst behind the Admin Dashboard's "Analyst" tab. The browser sends an aggregate
+// Response format: a plain-text stream. Lines starting with \u0000 are control lines the browser strips:
+// "\u0000model:<id>" names the model that is answering, "\u0000error:<message>" reports a failure.
+// The response starts immediately and every request stops before the edge runtime's 150 s wall-clock
+// limit, keeping whatever was already written.
+//
+// The AI analyst behind the Admin Dashboard's "Analyst" tab. The browser sends an aggregate
 // snapshot of site data (src/lib/adminAnalystSnapshot.ts: counts, rates, trends and scrubbed feedback
 // text; no names, emails or user ids) plus the conversation so far, and gets the analysis back as a
 // plain-text stream.
 //
 // Access: the caller's own session is checked against public.admin_access() (migration 0015) before
-// anything is sent to Anthropic, so a leaked URL or a learner's token cannot spend the API quota.
+// anything is sent to Anthropic or Google, so a leaked URL or a learner's token cannot spend the API quota.
 
 import Anthropic from 'npm:@anthropic-ai/sdk@1.5.0';
 
 const CLAUDE_MODEL = 'claude-opus-5-5';
 // Same Gemini API, key and model as the AI tutor (_shared/llm.ts) unless GEMINI_ANALYST_MODEL is set.
 const GEMINI_MODEL = Deno.env.get('GEMINI_ANALYST_MODEL') ?? Deno.env.get('GEMINI_MODEL') ?? 'gemini-flash-latest';
+const GEMINI_FALLBACK_MODEL = Deno.env.get('GEMINI_ANALYST_FALLBACK_MODEL') ?? 'gemini-flash-lite-latest';
+/** Stop generating before Supabase's 150 s wall-clock limit kills the worker (HTTP 546). */
+const DEADLINE_MS = 135_000;
 const MAX_SNAPSHOT_CHARS = 300_000;
 const MAX_TURNS = 24;
 const MAX_TURN_CHARS = 40_000;
@@ -27,7 +36,7 @@ const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Expose-Headers': 'x-analyst-model, x-analyst-provider',
+  'Access-Control-Expose-Headers': 'x-analyst-provider',
 };
 
 function json(body: unknown, status = 200) {
@@ -117,8 +126,30 @@ function chooseProvider(): Provider | null {
 }
 
 const encoder = new TextEncoder();
+const LENGTH_NOTE = '\n\n_(The analysis reached its length limit. Ask a narrower follow-up for the rest.)_';
+const DEADLINE_NOTE = '\n\n_(Stopped at the time limit. Ask a narrower follow-up for the rest.)_';
+const DECLINED_NOTE = '\n\n_The analyst declined to answer this request. Try rephrasing the question._';
 
-function streamClaude(apiKey: string, snapshot: string, turns: Turn[]): ReadableStream<Uint8Array> {
+interface Sink {
+  text(chunk: string): void;
+  model(id: string): void;
+  error(message: string): void;
+  /** Whether any answer text has been sent yet. */
+  readonly wrote: boolean;
+}
+
+function makeSink(controller: ReadableStreamDefaultController<Uint8Array>): Sink {
+  let wrote = false;
+  return {
+    text(chunk) { if (chunk) { wrote = true; controller.enqueue(encoder.encode(chunk)); } },
+    model(id) { controller.enqueue(encoder.encode(`\u0000model:${id}\n`)); },
+    // After partial text, a failure is shown as a note so the text already written is kept.
+    error(message) { controller.enqueue(encoder.encode(wrote ? `\n\n_${message}_` : `\u0000error:${message}\n`)); },
+    get wrote() { return wrote; },
+  };
+}
+
+async function runClaude(apiKey: string, snapshot: string, turns: Turn[], out: Sink, deadline: AbortSignal) {
   const client = new Anthropic({ apiKey });
   const stream = client.beta.messages.stream({
     model: CLAUDE_MODEL,
@@ -135,97 +166,104 @@ function streamClaude(apiKey: string, snapshot: string, turns: Turn[]): Readable
     ],
     messages: turns,
   });
-
-  return new ReadableStream<Uint8Array>({
-    async start(controller) {
-      try {
-        for await (const event of stream) {
-          if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
-            controller.enqueue(encoder.encode(event.delta.text));
-          }
-        }
-        const final = await stream.finalMessage();
-        if (final.stop_reason === 'refusal') {
-          controller.enqueue(encoder.encode('\n\n_The analyst declined to answer this request. Try rephrasing the question._'));
-        } else if (final.stop_reason === 'max_tokens') {
-          controller.enqueue(encoder.encode('\n\n_(The analysis reached its length limit. Ask a narrower follow-up for the rest.)_'));
-        }
-      } catch (error) {
-        console.error('admin-analyst claude stream failed', error instanceof Anthropic.APIError ? `${error.status} ${error.message}` : error);
-        const message = error instanceof Anthropic.RateLimitError
-          ? 'The analyst is rate limited right now. Try again in a minute.'
-          : error instanceof Anthropic.AuthenticationError
-            ? 'The ANTHROPIC_API_KEY secret was rejected. Check the key.'
-            : error instanceof Anthropic.APIError && error.status === 400 && /credit|billing/i.test(error.message)
-              ? 'The Anthropic account has no credits left. Top up, or remove ANTHROPIC_API_KEY to use Gemini.'
-              : 'The analysis stopped because of a service error. Try again.';
-        controller.enqueue(encoder.encode(`\n\n_${message}_`));
-      } finally {
-        controller.close();
-      }
-    },
-    cancel() {
-      stream.abort();
-    },
-  });
+  const onDeadline = () => stream.abort();
+  deadline.addEventListener('abort', onDeadline);
+  out.model(CLAUDE_MODEL);
+  try {
+    for await (const event of stream) {
+      if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') out.text(event.delta.text);
+    }
+    const final = await stream.finalMessage();
+    if (final.stop_reason === 'refusal') out.text(DECLINED_NOTE);
+    else if (final.stop_reason === 'max_tokens') out.text(LENGTH_NOTE);
+  } catch (error) {
+    if (deadline.aborted) { if (out.wrote) out.text(DEADLINE_NOTE); else out.error('Claude took too long to answer. Try a narrower question.'); return; }
+    console.error('admin-analyst claude failed', error instanceof Anthropic.APIError ? `${error.status} ${error.message}` : error);
+    out.error(error instanceof Anthropic.RateLimitError
+      ? 'Claude is rate limited right now. Try again in a minute.'
+      : error instanceof Anthropic.AuthenticationError
+        ? 'The ANTHROPIC_API_KEY secret was rejected. Check the key.'
+        : error instanceof Anthropic.APIError && error.status === 400 && /credit|billing/i.test(error.message)
+          ? 'The Anthropic account has no credits left. Top up, or remove ANTHROPIC_API_KEY to use Gemini.'
+          : 'The analysis stopped because of a service error. Try again.');
+  } finally {
+    deadline.removeEventListener('abort', onDeadline);
+  }
 }
 
-/** Gemini over its REST streaming endpoint (server-sent events), plain fetch like the AI tutor. */
-async function streamGemini(apiKey: string, snapshot: string, turns: Turn[]): Promise<ReadableStream<Uint8Array> | Response> {
-  const upstream = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:streamGenerateContent?alt=sse`, {
-    method: 'POST',
-    signal: AbortSignal.timeout(180_000),
-    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: `${SYSTEM}\n\n<site_data>\n${snapshot}\n</site_data>` }] },
-      contents: turns.map((t) => ({ role: t.role === 'assistant' ? 'model' : 'user', parts: [{ text: t.content }] })),
-      generationConfig: { temperature: 0.3, maxOutputTokens: 16_384 },
-    }),
+type GeminiChunk = { candidates?: { content?: { parts?: { text?: string; thought?: boolean }[] }; finishReason?: string }[] };
+
+/** Gemini over its REST streaming endpoint (server-sent events). Overloaded or rate-limited models are
+ *  retried once and then replaced by the lighter fallback model. */
+async function runGemini(apiKey: string, snapshot: string, turns: Turn[], out: Sink, deadline: AbortSignal) {
+  const body = JSON.stringify({
+    systemInstruction: { parts: [{ text: `${SYSTEM}\n\n<site_data>\n${snapshot}\n</site_data>` }] },
+    contents: turns.map((t) => ({ role: t.role === 'assistant' ? 'model' : 'user', parts: [{ text: t.content }] })),
+    // A capped thinking budget and output keep a full report well inside the time limit.
+    generationConfig: { temperature: 0.3, maxOutputTokens: 8192, thinkingConfig: { thinkingBudget: 1024 } },
   });
-  if (!upstream.ok || !upstream.body) {
-    const detail = await upstream.text().catch(() => '');
-    console.error('admin-analyst gemini failed', upstream.status, detail.slice(0, 500));
-    if (upstream.status === 429) return json({ error: 'The Gemini free-tier limit was reached. Try again in a minute, or later today.' }, 429);
-    if (upstream.status === 400 || upstream.status === 403) return json({ error: 'The GEMINI_API_KEY secret was rejected, or this model is not available to the key.' }, 502);
-    return json({ error: 'The Gemini service is unavailable right now. Try again.' }, 502);
+  const plan = [GEMINI_MODEL, GEMINI_MODEL, GEMINI_FALLBACK_MODEL].filter((m, i, all) => i < 2 || m !== all[0]);
+  let lastStatus = 0;
+
+  for (const [i, model] of plan.entries()) {
+    if (deadline.aborted) break;
+    if (i > 0 && plan[i - 1] === model) await new Promise((r) => setTimeout(r, 1500));
+    if (deadline.aborted) break;
+    let upstream: Response;
+    try {
+      upstream = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`, {
+        method: 'POST',
+        signal: deadline,
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+        body,
+      });
+    } catch (error) {
+      if (deadline.aborted) break;
+      console.error('admin-analyst gemini fetch failed', model, error);
+      lastStatus = 502;
+      continue;
+    }
+    if (!upstream.ok || !upstream.body) {
+      lastStatus = upstream.status;
+      console.error('admin-analyst gemini failed', model, upstream.status, (await upstream.text().catch(() => '')).slice(0, 300));
+      if (upstream.status === 429 || upstream.status >= 500) continue;
+      out.error('The GEMINI_API_KEY secret was rejected, or this model is not available to the key.');
+      return;
+    }
+
+    out.model(model);
+    const reader = upstream.body.pipeThrough(new TextDecoderStream()).getReader();
+    let buffer = '';
+    let finish = '';
+    try {
+      for (;;) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += value;
+        let newline: number;
+        while ((newline = buffer.indexOf('\n')) >= 0) {
+          const line = buffer.slice(0, newline).trim();
+          buffer = buffer.slice(newline + 1);
+          if (!line.startsWith('data:')) continue;
+          const candidate = (JSON.parse(line.slice(5)) as GeminiChunk).candidates?.[0];
+          for (const part of candidate?.content?.parts ?? []) if (part.text && !part.thought) out.text(part.text);
+          if (candidate?.finishReason) finish = candidate.finishReason;
+        }
+      }
+      if (finish === 'MAX_TOKENS') out.text(LENGTH_NOTE);
+      else if (finish === 'SAFETY' || finish === 'PROHIBITED_CONTENT') out.text(DECLINED_NOTE);
+      else if (!out.wrote) out.error('Gemini returned an empty answer. Try again.');
+    } catch (error) {
+      if (deadline.aborted) { if (out.wrote) out.text(DEADLINE_NOTE); else out.error('Gemini took too long to answer. Try again or ask a narrower question.'); return; }
+      console.error('admin-analyst gemini stream failed', model, error);
+      out.error('The analysis stopped because of a service error. Try again.');
+    }
+    return;
   }
 
-  const reader = upstream.body.pipeThrough(new TextDecoderStream()).getReader();
-  return new ReadableStream<Uint8Array>({
-    async start(controller) {
-      let buffer = '';
-      let finish = '';
-      try {
-        for (;;) {
-          const { value, done } = await reader.read();
-          if (done) break;
-          buffer += value;
-          let newline: number;
-          while ((newline = buffer.indexOf('\n')) >= 0) {
-            const line = buffer.slice(0, newline).trim();
-            buffer = buffer.slice(newline + 1);
-            if (!line.startsWith('data:')) continue;
-            const chunk = JSON.parse(line.slice(5)) as { candidates?: { content?: { parts?: { text?: string; thought?: boolean }[] }; finishReason?: string }[] };
-            const candidate = chunk.candidates?.[0];
-            for (const part of candidate?.content?.parts ?? []) {
-              if (part.text && !part.thought) controller.enqueue(encoder.encode(part.text));
-            }
-            if (candidate?.finishReason) finish = candidate.finishReason;
-          }
-        }
-        if (finish === 'MAX_TOKENS') controller.enqueue(encoder.encode('\n\n_(The analysis reached its length limit. Ask a narrower follow-up for the rest.)_'));
-        else if (finish === 'SAFETY' || finish === 'PROHIBITED_CONTENT') controller.enqueue(encoder.encode('\n\n_The analyst declined to answer this request. Try rephrasing the question._'));
-      } catch (error) {
-        console.error('admin-analyst gemini stream failed', error);
-        controller.enqueue(encoder.encode('\n\n_The analysis stopped because of a service error. Try again._'));
-      } finally {
-        controller.close();
-      }
-    },
-    cancel() {
-      void reader.cancel();
-    },
-  });
+  if (deadline.aborted) out.error('Gemini took too long to answer. Try again or ask a narrower question.');
+  else if (lastStatus === 429) out.error('The Gemini free-tier limit was reached. Try again in a minute, or later today.');
+  else out.error('Gemini is overloaded right now (high demand on Google\'s side). Try again in a few minutes.');
 }
 
 Deno.serve(async (req: Request) => {
@@ -244,19 +282,24 @@ Deno.serve(async (req: Request) => {
     const snapshot = scrub(JSON.stringify(body.snapshot));
     if (snapshot.length > MAX_SNAPSHOT_CHARS) return json({ error: 'The data snapshot is too large.' }, 413);
 
-    const out = provider === 'claude'
-      ? streamClaude(Deno.env.get('ANTHROPIC_API_KEY')!, snapshot, turns)
-      : await streamGemini(Deno.env.get('GEMINI_API_KEY')!, snapshot, turns);
-    if (out instanceof Response) return out;
-
-    return new Response(out, {
-      headers: {
-        ...CORS,
-        'Content-Type': 'text/plain; charset=utf-8',
-        'Cache-Control': 'no-store',
-        'X-Analyst-Provider': provider,
-        'X-Analyst-Model': provider === 'claude' ? CLAUDE_MODEL : GEMINI_MODEL,
+    const deadline = AbortSignal.timeout(DEADLINE_MS);
+    const stream = new ReadableStream<Uint8Array>({
+      async start(controller) {
+        const sink = makeSink(controller);
+        try {
+          if (provider === 'claude') await runClaude(Deno.env.get('ANTHROPIC_API_KEY')!, snapshot, turns, sink, deadline);
+          else await runGemini(Deno.env.get('GEMINI_API_KEY')!, snapshot, turns, sink, deadline);
+        } catch (error) {
+          console.error('admin-analyst run failed', error);
+          sink.error('The analysis stopped because of a service error. Try again.');
+        } finally {
+          controller.close();
+        }
       },
+    });
+
+    return new Response(stream, {
+      headers: { ...CORS, 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store', 'X-Analyst-Provider': provider },
     });
   } catch (error) {
     console.error('admin-analyst failed', error);

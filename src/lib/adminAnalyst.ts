@@ -40,13 +40,26 @@ export async function streamAnalyst(
     throw new Error(detail?.error || `The analyst request failed (${response.status}).`);
   }
 
-  const model = modelLabel(response.headers.get('X-Analyst-Model'));
+  // The stream carries control lines starting with \u0000: "model:<id>" and "error:<message>".
+  let raw = '';
+  let model = modelLabel(null);
   let text = '';
   const reader = response.body!.pipeThrough(new TextDecoderStream()).getReader();
   for (;;) {
     const { value, done } = await reader.read();
     if (done) break;
-    text += value;
+    raw += value;
+    const failures: string[] = [];
+    text = raw
+      // oxlint-disable-next-line no-control-regex -- \u0000 marks the function's control lines
+      .replace(/\u0000(model|error):([^\n]*)\n/g, (_m, kind: string, body: string) => {
+        if (kind === 'model') model = modelLabel(body);
+        else failures.push(body);
+        return '';
+      })
+      // oxlint-disable-next-line no-control-regex -- drop a control line that is still arriving
+      .replace(/\u0000[^\n]*$/, '');
+    if (failures.length) throw new Error(failures[0]);
     onText(text);
   }
   if (!text.trim()) throw new Error('The analyst returned an empty response. Try again.');

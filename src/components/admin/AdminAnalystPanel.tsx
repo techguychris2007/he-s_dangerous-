@@ -54,6 +54,7 @@ export default function AdminAnalystPanel({ data }: { data: AdminData }) {
         setTurns([...next, { role: 'assistant', content: partial + (controller.signal.aborted ? '\n\n_(Stopped.)_' : '\n\n_(Connection lost before the analysis finished.)_') }]);
       } else {
         setTurns(turns);
+        if (!turns.length) setFrozen(null);
         setDraft(q);
         if (!controller.signal.aborted) setError(e instanceof Error ? e.message : 'The analyst request failed.');
       }
