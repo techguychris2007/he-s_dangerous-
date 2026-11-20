@@ -4,7 +4,7 @@ import { MODULES, ROADMAP, findModule } from '../data/curriculum';
 import { useProgress } from '../../progress/state/progressStore';
 import { useLabsData, retryLabsData } from '../../labs/state/useLabsData';
 import { ACHIEVEMENTS } from '../../progress/data/achievements';
-import { IconBook, IconFlask, IconFlag, IconArrowRight, ModuleIcon } from '../../../shared/components/layout/icons';
+import { IconBook, IconFlask, IconFlag, ModuleIcon } from '../../../shared/components/layout/icons';
 import IsoBlock, { type IsoTone } from '../../../shared/components/IsoBlock';
 import type { RoadmapTrack } from '../../../shared/types/domain';
 import CharacterAvatar from '../../../shared/characters/CharacterAvatar';
@@ -15,7 +15,8 @@ import { categoryIconKey } from '../../labs/data/labIcon';
 import { OWNER_TRACKS, useIsOwner } from '../../account/lib/ownerAccess';
 
 const TOTAL_LESSONS = MODULES.reduce((n, m) => n + m.lessons.length, 0);
-const MODULE_PREVIEW = 9;
+/** Skills shown before "Show all": enough to see what you're working on without a wall of rows. */
+const SKILL_PREVIEW = 6;
 
 const PATHS: { track: RoadmapTrack; label: string; title: string; icon: string; guide: CharacterId; tone: IsoTone }[] = [
   { track: 'presecurity', label: 'Start here', title: 'Pre-security', icon: 'network', guide: 'byte', tone: 'idle' },
@@ -25,11 +26,15 @@ const PATHS: { track: RoadmapTrack; label: string; title: string; icon: string; 
   { track: 'software', label: 'Build & ship', title: 'Software engineering', icon: 'engineering', guide: 'cipher', tone: 'analysis' },
 ];
 
+/** Sort key for the skills list: in progress (0), not started (1), finished (2). */
+function skillRank({ done, total }: { done: number; total: number }): number {
+  if (total > 0 && done >= total) return 2;
+  return done > 0 ? 0 : 1;
+}
+
 export default function HomePage() {
   const progress = useProgress();
-  const [moduleSearch, setModuleSearch] = useState('');
-  const [showAllModules, setShowAllModules] = useState(false);
-  const visibleModules = MODULES.filter(mod => (mod.title + ' ' + mod.description).toLowerCase().includes(moduleSearch.trim().toLowerCase()));
+  const [showAllSkills, setShowAllSkills] = useState(false);
   const labsData = useLabsData();
   const labsLoaded = !!labsData;
   const totalLabs = labsData?.LABS.length ?? 0;
@@ -72,7 +77,9 @@ export default function HomePage() {
         const catLabs = labsData?.labsForCategory(category) ?? [];
         const done = catLabs.filter((l) => (progress.labFlags[l.scenario.id]?.length ?? 0) >= l.scenario.totalFlags).length;
         return { category, done, total: catLabs.length };
-      }),
+      })
+        // What you're working on first, then what you haven't started, then what you've finished.
+        .sort((a, b) => skillRank(a) - skillRank(b) || b.done / Math.max(b.total, 1) - a.done / Math.max(a.total, 1)),
     [progress.labFlags, labsData],
   );
 
@@ -132,7 +139,7 @@ export default function HomePage() {
     return { ...path, done, total: lessons.length };
   }), [progress.completedLessons, owner]);
 
-  const shownModules = showAllModules || moduleSearch.trim() ? visibleModules : visibleModules.slice(0, MODULE_PREVIEW);
+  const shownSkills = showAllSkills ? skillProgress : skillProgress.slice(0, SKILL_PREVIEW);
   const numbers = [
     { label: 'Lessons completed', icon: <IconBook className="h-4 w-4" />, value: completedLessonCount, total: TOTAL_LESSONS },
     { label: 'Rooms cleared', icon: <IconFlask className="h-4 w-4" />, value: labsDone, total: labsLoaded ? totalLabs : 0 },
@@ -152,7 +159,7 @@ export default function HomePage() {
           <section className="dw-dash__section" aria-labelledby="dw-tracks-title">
             <div className="dw-dash__head">
               <div><p>Your journey</p><h2 id="dw-tracks-title">Learning paths</h2></div>
-              <Link to="/my-learning">My learning →</Link>
+              <Link to="/roadmap">View roadmap →</Link>
             </div>
             <div className="dw-tracks">
               {paths.map((path) => {
@@ -181,8 +188,8 @@ export default function HomePage() {
             </div>
             <div className="dw-skills">
               {!labsLoaded
-                ? Array.from({ length: 8 }, (_, index) => <div key={index} className="dw-skill--ghost" />)
-                : skillProgress.map(({ category, done, total }) => (
+                ? Array.from({ length: SKILL_PREVIEW }, (_, index) => <div key={index} className="dw-skill--ghost" />)
+                : shownSkills.map(({ category, done, total }) => (
                   <Link key={category} to={`/labs?category=${encodeURIComponent(category)}`} className="dw-skill" data-done={total > 0 && done === total}>
                     <span className="dw-skill__icon"><ModuleIcon icon={categoryIconKey(category)} className="h-4 w-4" /></span>
                     <strong>{category}</strong>
@@ -191,36 +198,15 @@ export default function HomePage() {
                   </Link>
                 ))}
             </div>
+            {labsLoaded && skillProgress.length > SKILL_PREVIEW && (
+              <button type="button" className="dw-more" aria-expanded={showAllSkills} onClick={() => setShowAllSkills((v) => !v)}>
+                {showAllSkills ? 'Show fewer skills' : `Show all ${skillProgress.length} skills`}
+              </button>
+            )}
           </section>
 
           <AchievementShelf achievements={unlockedAchievements} total={ACHIEVEMENTS.length} />
 
-          <section className="dw-dash__section" aria-labelledby="dw-courses-title">
-            <div className="dw-dash__head">
-              <div><p>Course collection</p><h2 id="dw-courses-title">{visibleModules.length} modules to explore</h2></div>
-              <input type="search" aria-label="Search learning modules" placeholder="Find a subject…" value={moduleSearch} onChange={(event) => setModuleSearch(event.target.value)} className="dw-search" />
-            </div>
-            {visibleModules.length === 0 && <p className="text-sm text-[var(--color-text-dim)]">No modules match your search. Try another subject.</p>}
-            <div className="dw-courses">
-              {shownModules.map((mod) => {
-                const done = mod.lessons.filter((l) => progress.isLessonComplete(l.id)).length;
-                const lessonCount = mod.lessons.length;
-                return (
-                  <Link key={mod.id} to={`/module/${mod.slug}`} className="dw-course" data-done={lessonCount > 0 && done === lessonCount}>
-                    <header><span><ModuleIcon icon={mod.icon} className="h-4 w-4" /></span><small>{lessonCount} lessons</small></header>
-                    <strong>{mod.title}</strong>
-                    <p>{mod.description}</p>
-                    <footer><i><b style={{ width: `${lessonCount ? (100 * done) / lessonCount : 0}%` }} /></i>{done}/{lessonCount}</footer>
-                  </Link>
-                );
-              })}
-            </div>
-            {!moduleSearch.trim() && visibleModules.length > MODULE_PREVIEW && (
-              <button type="button" className="dw-more" onClick={() => setShowAllModules((v) => !v)}>
-                {showAllModules ? 'Show fewer modules' : `Show all ${visibleModules.length} modules`}
-              </button>
-            )}
-          </section>
         </div>
 
         <aside className="dw-dash__side" aria-label="Today and this week">
@@ -239,12 +225,6 @@ export default function HomePage() {
               ))}
             </dl>
           </section>
-          <Link to="/roadmap" className="dw-roadmap-cta">
-            <small>Full curriculum</small>
-            <strong>Explore the roadmap</strong>
-            <p>All {MODULES.length} modules{labsLoaded ? ` and ${totalLabs} rooms` : ''} — from Linux fundamentals through Active Directory, cloud, malware analysis and binary exploitation.</p>
-            <b>View roadmap <IconArrowRight className="h-4 w-4" /></b>
-          </Link>
         </aside>
       </div>
     </div>

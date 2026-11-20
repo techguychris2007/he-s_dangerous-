@@ -55,9 +55,10 @@ export default function LearningNavigation({ onMenuClick, menuOpen = false }: { 
   }, []);
   return <header className={`learning-navigation${onMenuClick ? ' learning-navigation--with-sidebar' : ''}${overview ? ' learning-navigation--overview' : ''}${compact ? ' learning-navigation--compact' : ''}`}>
     <>{onMenuClick && <button type="button" className="learning-navigation__control learning-navigation__sidebar-toggle" aria-label="Open sidebar" aria-controls="platform-navigation" aria-expanded={menuOpen} onClick={onMenuClick}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>}</><Link to="/" className="learning-navigation__brand" aria-label="DarkWorld overview"><Logo className="h-11 w-11"/><span>DarkWorld<small>CYBERSECURITY ACADEMY</small></span></Link>
+    <p className="learning-navigation__title">{title}</p>
     <nav aria-label="Platform navigation" data-tour="tabs">{DESTINATIONS.filter(item => owner || !isOwnerOnlyPath(item.href)).map(({ href, title, icon: Icon, matches }) => <Link key={href} to={href} data-tour={`tab-${title.toLowerCase()}`} className={`learning-navigation__link${matches(pathname) ? ' is-current' : ''}`} aria-current={matches(pathname) ? 'page' : undefined}><span className="learning-navigation__symbol" aria-hidden="true"><Icon /></span><span>{title}</span></Link>)}</nav>
     <div className="learning-navigation__tools" data-tour="tools">
-      <AcademySearch compact />
+      <AcademySearch adaptive />
       <InstallAppButton navigation />
       {!overview && <button type="button" className="learning-navigation__dig" onClick={() => window.dispatchEvent(new CustomEvent('darkworld:research-term', { detail: '' }))} aria-label="Ask dig, your learning assistant"><DigAvatar size={compact ? 28 : 43}/><span>dig</span></button>}
       <LevelHud />

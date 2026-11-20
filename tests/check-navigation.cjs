@@ -48,6 +48,12 @@ for (const step of tour.TOUR_STEPS) {
     assert.ok(declared, 'Tour target is not marked in LearningNavigation: ' + name);
   }
 }
+// On desktop the sidebar is the only menu (the top tabs are hidden), so every menu target the tour
+// points at must exist there too.
+const sidebarSource = fs.readFileSync(require('node:path').join(__dirname, '../src/app/layout/Sidebar.tsx'), 'utf8');
+for (const name of tour.TOUR_STEPS.flatMap(step => [...(step.target ?? '').matchAll(/data-tour="(tabs|tab-[a-z]+)"/g)].map(match => match[1]))) {
+  assert.ok(sidebarSource.includes(`data-tour="${name}"`) || sidebarSource.includes(`'${name}')`), 'Tour target is missing from the desktop sidebar: ' + name);
+}
 for (const tab of tour.TOUR_STEPS.filter(step => step.target?.includes('data-tour="tab-'))) {
   const title = tab.target.match(/tab-([a-z]+)/)[1];
   assert.ok(new RegExp(`title: '${title}'`, 'i').test(navigationSource), 'Tour points at a tab that does not exist: ' + title);
@@ -88,6 +94,13 @@ assert.ok(corner.arrowLeft <= card.width - 24, 'The arrow never leaves the card'
 assert.equal(tour.placeTourCard({ top: 700, left: 600, width: 60, height: 50 }, card, desk).mode, 'above', 'No room below: go above');
 assert.deepEqual(tour.placeTourCard({ top: 300, left: 600, width: 60, height: 50 }, { width: 400, height: 500 }, { width: 1366, height: 700 }), { mode: 'sheet', edge: 'bottom' }, 'No room either side: dock as a sheet');
 assert.deepEqual(tour.placeTourCard(tab, card, { width: 375, height: 812 }), { mode: 'sheet', edge: 'bottom' }, 'Phones use a bottom sheet away from a top element');
+const rail = tour.placeTourCard({ top: 74, left: 8, width: 237, height: 680 }, card, desk);
+assert.equal(rail.mode, 'right', 'A tall element in the left-hand menu gets the card beside it');
+assert.equal(rail.left, 8 + 237 + 14);
+assert.ok(rail.top >= 16 && rail.top + card.height <= desk.height - 16, 'A card beside the menu stays on screen');
+assert.ok(rail.arrowTop >= 24 && rail.arrowTop <= card.height - 24, 'Its arrow stays within the card');
+assert.equal(tour.placeTourCard({ top: 320, left: 8, width: 237, height: 44 }, card, desk).mode, 'right', 'A sidebar link gets the card beside it');
+assert.equal(tour.placeTourCard({ top: 20, left: 600, width: 60, height: 50 }, card, desk).mode, 'below', 'Top-bar elements keep the card below them');
 assert.deepEqual(tour.placeTourCard({ top: 740, left: 300, width: 54, height: 54 }, card, { width: 375, height: 812 }), { mode: 'sheet', edge: 'top' }, 'A sheet moves to the top for an element near the bottom');
 
 // After a deploy, an old tab reloads once for a missing chunk, and never loops.

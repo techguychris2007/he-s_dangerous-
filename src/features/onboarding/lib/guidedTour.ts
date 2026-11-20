@@ -24,7 +24,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
   },
   {
     id: 'tabs', guide: 'byte', target: '[data-tour="tabs"]', title: 'Your way around',
-    body: 'These tabs reach every part of the academy. Overview is your base: your next room, streak and XP are always here.',
+    body: 'This menu reaches every part of the academy. Overview is your base: your next room, streak and XP are always here.',
   },
   {
     id: 'learn', guide: 'sentinel', target: '[data-tour="tab-learn"]', title: 'Start in Learn',
@@ -96,17 +96,27 @@ export interface TourRect { top: number; left: number; width: number; height: nu
 export type TourPlacement =
   | { mode: 'center' }
   | { mode: 'sheet'; edge: 'top' | 'bottom' }
-  | { mode: 'below' | 'above'; top: number; left: number; arrowLeft: number };
+  | { mode: 'below' | 'above'; top: number; left: number; arrowLeft: number }
+  | { mode: 'right'; top: number; left: number; arrowTop: number };
 
 /** Narrower than this, the card docks to the screen edge like a bottom sheet instead of floating. */
 export const TOUR_SHEET_BELOW = 640;
 
-/** Where the card goes for a spotlighted element: under it when there is room, otherwise above it,
- *  kept inside the viewport. Small screens use a docked sheet on the edge away from the element. */
+/** Where the card goes for a spotlighted element: beside it in the left-hand menu, otherwise under it
+ *  when there is room, else above it, kept inside the viewport. Small screens use a docked sheet on the edge away from the element. */
 export function placeTourCard(target: TourRect | null, card: { width: number; height: number }, viewport: { width: number; height: number }, gap = 14, margin = 16): TourPlacement {
   if (!target) return { mode: 'center' };
   const targetMiddle = target.top + target.height / 2;
   if (viewport.width < TOUR_SHEET_BELOW) return { mode: 'sheet', edge: targetMiddle > viewport.height / 2 ? 'top' : 'bottom' };
+  // Elements in the left-hand menu (the desktop sidebar) get the card beside them, so it never
+  // covers the rest of the menu and a tall element still leaves room.
+  const inLeftRail = target.left <= 32 && target.left + target.width <= viewport.width * 0.3;
+  const rightLeft = target.left + target.width + gap;
+  if (inLeftRail && rightLeft + card.width <= viewport.width - margin) {
+    const top = Math.min(Math.max(targetMiddle - card.height / 2, margin), Math.max(margin, viewport.height - card.height - margin));
+    const arrowTop = Math.min(Math.max(targetMiddle - top, 24), card.height - 24);
+    return { mode: 'right', top, left: rightLeft, arrowTop };
+  }
   const below = target.top + target.height + gap;
   const above = target.top - gap - card.height;
   const fitsBelow = below + card.height <= viewport.height - margin;

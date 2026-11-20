@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../../account/state/authStore';
 import { MODULES, ROADMAP } from '../../curriculum/data/curriculum';
@@ -64,6 +65,9 @@ function HeroScene() {
   );
 }
 
+const COUNT_WORDS = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight'];
+const countWord = (n: number) => COUNT_WORDS[n] ?? String(n);
+
 export default function IntroPage() {
   const owner = useIsOwner();
   const auth = useAuth();
@@ -77,6 +81,9 @@ export default function IntroPage() {
     document.getElementById(id)?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
   };
 
+  // Owner-only paths stay hidden from everyone else, so the copy and grid count what this visitor sees.
+  const visiblePaths = PATHS.filter((p) => owner || !OWNER_TRACKS.has(p.track));
+
   return (
     <main className="dw-entry ln">
       <header className="ln-nav">
@@ -87,7 +94,7 @@ export default function IntroPage() {
             <a href="#paths" onClick={jump('paths')}>Learning paths</a>
             <a href="#levels" onClick={jump('levels')}>Level up</a>
             {PAID_PLANS_LIVE && <Link to="/pricing">Pricing</Link>}
-            <Link to="/login">Sign in</Link>
+            <Link to="/login" className="ln-nav__signin">Sign in</Link>
             <Link to="/login?mode=signup" className="ln-btn ln-btn--primary">Join for free <IconArrowRight className="h-4 w-4" /></Link>
           </nav>
         </div>
@@ -130,9 +137,9 @@ export default function IntroPage() {
 
       <section id="paths" className="ln-band" aria-labelledby="paths-title">
         <div className="ln-wrap">
-          <div className="ln-head ln-head--light"><p className="ln-kicker"><span />Learning paths</p><h2 id="paths-title">Choose your side. Clear the map.</h2><p>Five paths, each a roadmap of modules lit tile by tile as you progress. Start with pre-security if you are new.</p></div>
-          <div className="ln-paths">
-            {PATHS.filter((p) => owner || !OWNER_TRACKS.has(p.track)).map((p) => (
+          <div className="ln-head ln-head--light"><p className="ln-kicker"><span />Learning paths</p><h2 id="paths-title">Choose your side. Clear the map.</h2><p>{countWord(visiblePaths.length)} paths, each a roadmap of modules lit tile by tile as you progress. Start with pre-security if you are new.</p></div>
+          <div className="ln-paths" style={{ '--ln-paths': visiblePaths.length } as CSSProperties}>
+            {visiblePaths.map((p) => (
               <Link key={p.track} to="/login?mode=signup" className="ln-path">
                 <div className="ln-path__top">
                   <IsoBlock width={74} depth={14} tone={p.tone} crest={<ModuleIcon icon={p.icon} />} />
@@ -164,7 +171,7 @@ export default function IntroPage() {
           </article>
           <article className="ln-card">
             <span className="ln-card__label">Leagues</span>
-            <ul className="ln-leagues">{LEAGUES.map((l) => <li key={l.name} style={{ '--tone': l.color } as React.CSSProperties}><IconShieldCheck className="h-4 w-4" />{l.name}</li>)}</ul>
+            <ul className="ln-leagues">{LEAGUES.map((l) => <li key={l.name} style={{ '--tone': l.color } as CSSProperties}><IconShieldCheck className="h-4 w-4" />{l.name}</li>)}</ul>
           </article>
           <article className="ln-card">
             <span className="ln-card__label">Daily Op</span>

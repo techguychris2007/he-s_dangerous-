@@ -7,7 +7,6 @@ import { isAdmin } from '../../features/admin/lib/adminConfig';
 import Logo from '../../shared/components/layout/Logo';
 import { OperatorAvatar } from '../../shared/characters/CharacterAvatar';
 import { useHandle } from '../../features/account/state/useHandle';
-import AcademySearch from './AcademySearch';
 import { visibleLearningPaths } from './navigation';
 import { useIsOwner } from '../../features/account/lib/ownerAccess';
 import { IconDashboard, IconFlask, IconChart, IconMap, IconCheck, IconCalendar, IconTrophy, IconBook, IconMegaphone, IconUser, IconShieldCheck, IconHelp, IconMail, IconCode, IconGear, IconRoute, IconLayers, IconCertificate } from '../../shared/components/layout/icons';
@@ -55,18 +54,18 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const completed = currentModule?.lessons.filter(lesson => progress.isLessonComplete(lesson.id)).length ?? 0;
   const percent = currentModule?.lessons.length ? Math.round(completed / currentModule.lessons.length * 100) : 0;
   const activeTrack = new URLSearchParams(location.search).get('track') ?? 'presecurity';
-  function link(to: string, label: string, Icon: NavIcon) {
-    return <NavLink key={to} to={to} end={to === '/'} onClick={onNavigate} className={({ isActive }) => 'dw-nav-link' + (isActive ? ' is-active' : '')}><Icon className="dw-nav-icon"/><span>{label}</span></NavLink>;
+  /** `tour` marks the link for the guided tour (src/shared/tour), which points at the sidebar on desktop. */
+  function link(to: string, label: string, Icon: NavIcon, tour?: string) {
+    return <NavLink key={to} to={to} end={to === '/'} onClick={onNavigate} data-tour={tour} className={({ isActive }) => 'dw-nav-link' + (isActive ? ' is-active' : '')}><Icon className="dw-nav-icon"/><span>{label}</span></NavLink>;
   }
   const owner = useIsOwner();
   return <aside className="dw-sidebar">
     <div className="dw-sidebar-header">
       <NavLink to="/" onClick={onNavigate} className="dw-sidebar-brand" aria-label="DarkWorld overview"><Logo className="h-11 w-11 shrink-0"/><span><strong>DarkWorld</strong><small>CYBER ACADEMY</small></span></NavLink>
-      <AcademySearch onNavigate={onNavigate}/>
     </div>
     <div className="dw-sidebar-scroll">
-      <nav aria-label="Academy navigation">
-        <div className="dw-nav-section dw-nav-workspace">{link('/', 'Overview', IconDashboard)}{link('/my-learning', 'My learning', IconRoute)}</div>
+      <nav aria-label="Academy navigation" data-tour="tabs">
+        <div className="dw-nav-section dw-nav-workspace">{link('/', 'Overview', IconDashboard)}{link('/my-learning', 'My learning', IconRoute, 'tab-learn')}</div>
         <div className="dw-nav-section"><p className="dw-nav-label">Learn</p>
           <details className="dw-nav-disclosure" open={location.pathname === '/roadmap'}>
             <summary><IconMap className="dw-nav-icon"/><span>Learning paths</span><span className="dw-nav-chevron" aria-hidden="true">⌄</span></summary>
@@ -75,7 +74,7 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           {owner && link('/ml-portal', 'Machine learning', IconChart)}
         </div>
         <div className="dw-nav-section"><p className="dw-nav-label">Practice</p>
-          {link('/labs', 'Rooms', IconFlask)}{link('/soc-portal', 'SOC casebooks', IconShieldCheck)}{link('/code-portal', 'Coding practice', IconCode)}{owner && link('/build-portal', 'Build projects', IconLayers)}
+          {link('/labs', 'Rooms', IconFlask, 'tab-practice')}{link('/soc-portal', 'SOC casebooks', IconShieldCheck)}{link('/code-portal', 'Coding practice', IconCode)}{owner && link('/build-portal', 'Build projects', IconLayers)}
         </div>
         <div className="dw-nav-section"><p className="dw-nav-label">Reference</p>{link('/library', 'Library', IconBook)}{link('/resources', 'Resources', IconBook)}</div>
         <details className="dw-nav-disclosure dw-nav-activity" open={activityLinks.some(([to]) => location.pathname === to)}><summary><IconTrophy className="dw-nav-icon"/><span>Activity & community</span><span className="dw-nav-chevron" aria-hidden="true">⌄</span></summary><div className="dw-nav-sublist">{activityLinks.map(([to, label, Icon]) => link(to, label, Icon))}</div></details>

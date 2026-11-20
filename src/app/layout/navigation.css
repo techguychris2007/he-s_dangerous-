@@ -14,16 +14,17 @@
   box-shadow: none;
   font-size: 13px;
 }
-.dw-sidebar-header { padding: 24px 20px 18px; }
+/* Same height and divider as the desktop top bar (64px), so the two read as one frame. */
+.dw-sidebar-header { display: flex; align-items: center; height: 64px; flex-shrink: 0; padding: 0 20px; border-bottom: 1px solid var(--chrome-line-strong); }
 .dw-navigation-close { position: absolute; right: 12px; top: 20px; z-index: 40; display: grid; place-items: center; width: 28px; height: 28px; color: var(--chrome-text); background: var(--chrome-raise); border: 1px solid var(--chrome-line-strong); border-radius: 6px; cursor: pointer; }
 .dw-navigation-close svg { width: 16px; height: 16px; }
-.dw-sidebar-brand { display: flex; align-items: center; gap: 11px; margin-bottom: 24px; color: var(--chrome-ink); text-decoration: none; }
-.dw-sidebar-brand strong { display: block; font-size: 21px; font-weight: 700; letter-spacing: -.45px; line-height: 1.15; }
-.dw-sidebar-brand small { display: block; margin-top: 5px; color: var(--chrome-muted); font-size: 9px; font-weight: 500; letter-spacing: 2.4px; }
-.dw-sidebar-scroll { min-height: 0; flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 4px 14px 20px; scrollbar-gutter: stable; scrollbar-width: thin; scrollbar-color: var(--chrome-line-strong) transparent; }
+.dw-sidebar-brand { display: flex; align-items: center; gap: 11px; color: var(--chrome-ink); text-decoration: none; }
+.dw-sidebar-brand strong { display: block; font-size: 19px; font-weight: 700; letter-spacing: -.45px; line-height: 1.15; }
+.dw-sidebar-brand small { display: block; margin-top: 3px; color: var(--chrome-muted); font-size: 9.5px; font-weight: 500; letter-spacing: 2.4px; }
+.dw-sidebar-scroll { min-height: 0; flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 16px 14px 20px; scrollbar-gutter: stable; scrollbar-width: thin; scrollbar-color: var(--chrome-line-strong) transparent; }
 .dw-nav-section { margin-bottom: 19px; }
 .dw-nav-workspace { padding-bottom: 13px; border-bottom: 1px solid var(--chrome-line); }
-.dw-nav-label { margin: 0 12px 8px; color: var(--chrome-muted); font-size: 9px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; }
+.dw-nav-label { margin: 0 12px 6px; color: var(--chrome-muted); font-size: 10.5px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; }
 .dw-nav-link,
 .dw-nav-disclosure > summary { display: flex; align-items: center; gap: 11px; min-height: 40px; padding: 10px 12px; border-radius: 7px; line-height: 1.4; color: var(--chrome-text); font-weight: 500; text-decoration: none; cursor: pointer; transition: background-color .15s, color .15s; }
 .dw-nav-link:hover, .dw-nav-disclosure > summary:hover { background: var(--chrome-hover); color: var(--chrome-ink); }
@@ -36,7 +37,7 @@
 .dw-nav-chevron { margin-left: auto; color: var(--chrome-muted); font-size: 17px; line-height: 1; transition: transform .15s; }
 .dw-nav-disclosure[open] > summary .dw-nav-chevron { transform: rotate(180deg); }
 .dw-nav-sublist { margin: 4px 9px 8px 20px; padding-left: 11px; border-left: 1px solid var(--chrome-line-strong); }
-.dw-nav-path { display: block; padding: 8px 10px; border-radius: 5px; color: var(--chrome-text); font-size: 12px; text-decoration: none; }
+.dw-nav-path { display: block; padding: 8px 10px; border-radius: 5px; color: var(--chrome-text); font-size: 13px; text-decoration: none; }
 .dw-nav-path:hover { color: var(--chrome-ink); background: var(--chrome-hover); }
 .dw-nav-path.is-active { color: var(--chrome-highlight); background: var(--chrome-raise); font-weight: 600; }
 .dw-nav-sublist .dw-nav-link { padding-left: 9px; font-size: 12px; }

@@ -25,8 +25,9 @@ const shortcut = () => (window.matchMedia('(any-pointer: fine)').matches ? (/Mac
 /** An element counts only when it is actually drawn: hidden tabs and closed panels have no boxes. */
 function findTarget(selector: string | undefined): HTMLElement | null {
   if (!selector) return null;
-  const element = document.querySelector<HTMLElement>(selector);
-  return element && element.getClientRects().length > 0 ? element : null;
+  // The same control can exist twice (the desktop sidebar and the top tabs on smaller screens);
+  // point at whichever one is on screen.
+  return [...document.querySelectorAll<HTMLElement>(selector)].find(element => element.getClientRects().length > 0) ?? null;
 }
 
 /** Another dialog on screen (the cyber-name welcome, search, a lab modal) owns the moment. */
@@ -195,6 +196,7 @@ function Tour({ steps, handle, onFinish }: { steps: TourStep[]; handle: string; 
         tabIndex={-1}
       >
         {(placement?.mode === 'below' || placement?.mode === 'above') && <span className={`dw-tour__arrow is-${placement.mode}`} style={{ left: placement.arrowLeft }} aria-hidden="true" />}
+        {placement?.mode === 'right' && <span className="dw-tour__arrow is-right" style={{ top: placement.arrowTop }} aria-hidden="true" />}
         <p className="sr-only" aria-live="polite">{`Step ${index + 1} of ${steps.length}: ${title}`}</p>
         <header className="dw-tour__head">
           <Guide guide={step.guide} />
@@ -230,7 +232,7 @@ function Tour({ steps, handle, onFinish }: { steps: TourStep[]; handle: string; 
 }
 
 function cardStyle(placement: TourPlacement | null): CSSProperties | undefined {
-  if (placement?.mode === 'below' || placement?.mode === 'above') return { top: placement.top, left: placement.left };
+  if (placement?.mode === 'below' || placement?.mode === 'above' || placement?.mode === 'right') return { top: placement.top, left: placement.left };
   return undefined;
 }
 
