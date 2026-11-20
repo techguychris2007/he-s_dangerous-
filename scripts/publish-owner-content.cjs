@@ -1,5 +1,5 @@
 // Publishes the owner-only content (machine learning, C# & .NET, software engineering) to the private
-// `owner-content` Supabase Storage bucket. None of it is in the app bundle; see src/lib/ownerContent.ts.
+// `owner-content` Supabase Storage bucket. None of it is in the app bundle; see src/features/account/lib/ownerContent.ts.
 //
 //   node scripts/publish-owner-content.cjs --dry-run            build the files only
 //   node scripts/publish-owner-content.cjs --project-ref <ref>  build and upload with the Supabase CLI
@@ -21,12 +21,12 @@ const dryRun = args.includes('--dry-run');
 const root = path.join(__dirname, '..');
 
 function buildBundle() {
-  const { SE_MODULE_SOURCES, SE_ROADMAP } = require('../src/data/softwareEngineeringCurriculum.ts');
-  const { DN_MODULE_SOURCES, DN_ROADMAP } = require('../src/data/dotnetCurriculum.ts');
-  const { CSHARP_TASKS } = require('../src/labs/csharpTasks/index.ts');
-  const { ML_TASKS } = require('../src/labs/mlTasks/index.ts');
-  const { SE_TASKS } = require('../src/labs/pythonTasks/softwareEngineering/index.ts');
-  const { ML_LESSONS } = require('../src/data/mlLessons/index.ts');
+  const { SE_MODULE_SOURCES, SE_ROADMAP } = require('../src/features/curriculum/data/softwareEngineeringCurriculum.ts');
+  const { DN_MODULE_SOURCES, DN_ROADMAP } = require('../src/features/curriculum/data/dotnetCurriculum.ts');
+  const { CSHARP_TASKS } = require('../src/features/code-practice/tasks/csharpTasks/index.ts');
+  const { ML_TASKS } = require('../src/features/code-practice/tasks/mlTasks/index.ts');
+  const { SE_TASKS } = require('../src/features/code-practice/tasks/pythonTasks/softwareEngineering/index.ts');
+  const { ML_LESSONS } = require('../src/features/curriculum/data/mlLessons/index.ts');
   return {
     curriculum: { modules: [...SE_MODULE_SOURCES, ...DN_MODULE_SOURCES], roadmap: [...SE_ROADMAP, ...DN_ROADMAP] },
     tasks: { csharp: CSHARP_TASKS, ml: ML_TASKS, sePython: SE_TASKS },
@@ -35,10 +35,10 @@ function buildBundle() {
 }
 
 function buildProjects() {
-  const { SE_TASK_INDEX } = require('../src/labs/seTasks/taskIndex.ts');
+  const { SE_TASK_INDEX } = require('../src/features/code-practice/tasks/seTasks/taskIndex.ts');
   const files = new Map();
   const walk = dir => { for (const entry of fs.readdirSync(dir, { withFileTypes: true })) { const full = path.join(dir, entry.name); if (entry.isDirectory()) walk(full); else if (entry.name.endsWith('.ts')) files.set(entry.name.replace(/\.ts$/, ''), full); } };
-  for (const language of ['python', 'javascript', 'cpp', 'csharp', 'typescript']) walk(path.join(root, 'src/labs/seTasks', language));
+  for (const language of ['python', 'javascript', 'cpp', 'csharp', 'typescript']) walk(path.join(root, 'src/features/code-practice/tasks/seTasks', language));
   const projects = {};
   for (const meta of SE_TASK_INDEX) {
     const file = files.get(meta.id);

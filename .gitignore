@@ -42,3 +42,7 @@ src/assets/banners/generated/
 *.bak
 .vercel
 .env*
+
+# Editor and agent workspaces
+/.antigravity/
+*.code-workspace

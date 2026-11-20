@@ -1,5 +1,5 @@
 // Builds the in-browser TypeScript/React runtime into public/ts-runtime/:
-//   typescript.js  the real TypeScript compiler (minified), loaded once per session by src/lib/tsWorker.ts
+//   typescript.js  the real TypeScript compiler (minified), loaded once per session by src/features/code-practice/runtimes/tsWorker.ts
 //   types.json     a virtual file system of .d.ts files: the ES/DOM libs, React's types and the test kit's
 //   testkit.js     the Vitest-compatible subset, for TypeScript targets run in a Worker (no DOM)
 //   react-kit.js   React 19 (development build) + react-dom + test kit + Testing Library subset, for the

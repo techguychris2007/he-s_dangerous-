@@ -1,0 +1,98 @@
+import { useEffect, useRef } from 'react';
+import Editor from '@monaco-editor/react';
+import type { editor as MonacoEditorNs } from 'monaco-editor';
+import type { ProjectFile } from '../tasks/projectTypes';
+import { javascriptDefaults, configureTypeScriptEditor } from '../runtimes/monacoLoader';
+import { EDITOR_OPTIONS, THEME, defineEditorTheme } from './editorTheme';
+
+interface MonacoProjectEditorProps {
+  /** The files to load when this component MOUNTS. Deliberately not re-read after mount — the parent
+   *  (ProjectConsole) is expected to force a remount (via a `key` covering task id + a reset counter)
+   *  rather than pass updated files in-place, so this component never has to reconcile "did the user
+   *  type this, or did a reset just overwrite it" itself. Simpler and much harder to get subtly wrong
+   *  than a fully-controlled multi-model editor would be. */
+  initialFiles: ProjectFile[];
+  activePath: string;
+  onFileChange: (path: string, content: string) => void;
+  disabled?: boolean;
+}
+
+/** Multi-file Monaco editor: one real model per file (Monaco's own multi-model API, not N separate
+ *  editor instances), switched via `activePath` while preserving cursor/scroll/undo per file. */
+export default function MonacoProjectEditor({ initialFiles, activePath, onFileChange, disabled }: MonacoProjectEditorProps) {
+  const editorRef = useRef<MonacoEditorNs.IStandaloneCodeEditor | null>(null);
+  const modelsRef = useRef<Map<string, MonacoEditorNs.ITextModel>>(new Map());
+  const viewStatesRef = useRef<Map<string, MonacoEditorNs.ICodeEditorViewState | null>>(new Map());
+  const editableRef = useRef<Map<string, boolean>>(new Map());
+  // Unique per mount (not just per task) so a rapid unmount/remount during a task-key change can never
+  // collide on a Monaco model URI, which throws "model already exists" if reused while still alive.
+  const instanceIdRef = useRef(`${Date.now()}-${Math.random().toString(36).slice(2)}`);
+
+  const switchTo = (path: string) => {
+    const editor = editorRef.current;
+    const model = modelsRef.current.get(path);
+    if (!editor || !model) return;
+    const prevPath = [...modelsRef.current.entries()].find(([, m]) => m === editor.getModel())?.[0];
+    if (prevPath) viewStatesRef.current.set(prevPath, editor.saveViewState());
+    editor.setModel(model);
+    editor.updateOptions({ readOnly: !editableRef.current.get(path) });
+    const saved = viewStatesRef.current.get(path);
+    if (saved) editor.restoreViewState(saved);
+    editor.focus();
+  };
+
+  useEffect(() => {
+    // Switch models whenever the active tab changes (mount handles the first one in onMount below).
+    if (editorRef.current) switchTo(activePath);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activePath]);
+
+  useEffect(() => {
+    // Dispose every model this instance created — skipping this leaks memory across a browsing
+    // session and is exactly what causes a later "model already exists" error if a URI got reused.
+    // The Map's identity never changes after this ref is created, so capturing it here (rather than
+    // reading modelsRef.current again inside the cleanup) is just to satisfy the lint rule, not to
+    // work around any real staleness.
+    const models = modelsRef.current;
+    return () => {
+      for (const model of models.values()) model.dispose();
+      models.clear();
+    };
+  }, []);
+
+  return (
+    <Editor
+      theme={THEME}
+      beforeMount={defineEditorTheme}
+      loading={<div className="grid h-full place-items-center font-mono text-xs text-[var(--chrome-muted)]">Loading editor&hellip;</div>}
+      options={{
+        ...EDITOR_OPTIONS,
+        fontSize: 14,
+        lineHeight: 22,
+        readOnly: disabled,
+        tabSize: ['python', 'csharp'].includes(initialFiles.find((f) => f.path === activePath)?.language ?? '') ? 4 : 2,
+      }}
+      onMount={(editor, monaco) => {
+        editorRef.current = editor;
+        monaco.editor.setTheme(THEME);
+
+        // JS/TS diagnostics would otherwise red-squiggle every reference to a global the test harness
+        // provides (check/checkText/require/etc.) that isn't declared anywhere in the file itself.
+        javascriptDefaults.setDiagnosticsOptions({ noSemanticValidation: true, noSyntaxValidation: false });
+        const typed = initialFiles.some((f) => f.language === 'typescript');
+        if (typed) void configureTypeScriptEditor().catch(() => {});
+
+        for (const file of initialFiles) {
+          editableRef.current.set(file.path, file.editable);
+          // TypeScript projects use file:/// URIs so imports of 'react' resolve to the type packages
+          // configureTypeScriptEditor registers under file:///node_modules.
+          const uri = monaco.Uri.parse(typed ? `file:///dw-${instanceIdRef.current}/${file.path}` : `inmemory://dw/${instanceIdRef.current}/${file.path}`);
+          const model = monaco.editor.createModel(file.content, file.language, uri);
+          model.onDidChangeContent(() => onFileChange(file.path, model.getValue()));
+          modelsRef.current.set(file.path, model);
+        }
+        switchTo(activePath);
+      }}
+    />
+  );
+}

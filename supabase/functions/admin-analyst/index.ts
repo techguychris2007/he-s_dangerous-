@@ -13,7 +13,7 @@
 // limit, keeping whatever was already written.
 //
 // The AI analyst behind the Admin Dashboard's "Analyst" tab. The browser sends an aggregate
-// snapshot of site data (src/lib/adminAnalystSnapshot.ts: counts, rates, trends and scrubbed feedback
+// snapshot of site data (src/features/admin/lib/adminAnalystSnapshot.ts: counts, rates, trends and scrubbed feedback
 // text; no names, emails or user ids) plus the conversation so far, and gets the analysis back as a
 // plain-text stream.
 //

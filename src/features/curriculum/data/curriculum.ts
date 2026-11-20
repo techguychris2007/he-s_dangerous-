@@ -1,0 +1,1048 @@
+import { lazy } from 'react';
+import type { ModuleMeta, RoadmapStage } from '../../../shared/types/domain';
+import { KALI_OFFENSIVE_MODULES, KALI_OFFENSIVE_ROADMAP } from './kaliFoundationsCurriculum';
+import { curriculumModule } from '../content/curriculumDefinition';
+import { modernNetworkingLessons } from '../content/kali-foundations/modern-networking';
+import { modernLinuxLessons, modernWebLessons } from '../content/kali-foundations/modern-systems-web';
+import { exploitationBinaryLessons } from '../content/exploitation-foundations/binary';
+import { exploitationNetworkLessons, exploitationEngineeringLessons, exploitationCryptoLessons } from '../content/exploitation-foundations/network-security';
+import { cloudFoundation } from '../content/cloud/cloudContinuation';
+import { COLLECTION_EXTENSIONS, MODERN_DATABASE_MODULE } from './modernCollectionCurriculum';
+import { ADVANCED_OFFENSIVE_MODULES, ADVANCED_OFFENSIVE_ROADMAP } from './advancedOffensiveCurriculum';
+import { PRE_SECURITY_MODULES, PRE_SECURITY_ROADMAP } from './preSecurityCurriculum';
+import { DEFENSIVE_MODULES, DEFENSIVE_ROADMAP } from './defensiveCurriculum';
+import { watchOwnerSession } from '../../account/lib/ownerSession';
+
+const OsiTcpIp = lazy(() => import('../content/networking/01-osi-tcpip'));
+const IpSubnetting = lazy(() => import('../content/networking/02-ip-subnetting'));
+const TcpUdpHandshake = lazy(() => import('../content/networking/03-tcp-udp-handshake'));
+const PortsServices = lazy(() => import('../content/networking/04-ports-services'));
+const DnsHttpTraffic = lazy(() => import('../content/networking/05-dns-http-traffic'));
+const Ipv6FundamentalsAndTransition = lazy(() => import('../content/networking/06-ipv6-fundamentals-and-transition'));
+const NetworkSegmentationVlansAndFirewalls = lazy(() => import('../content/networking/07-network-segmentation-vlans-and-firewalls'));
+const RoutingFundamentalsAndAttacks = lazy(() => import('../content/networking/08-routing-fundamentals-and-attacks'));
+
+const FilesystemNavigation = lazy(() => import('../content/linux/01-filesystem-navigation'));
+const UsersPermissions = lazy(() => import('../content/linux/02-users-permissions'));
+const ProcessesNetworkingCli = lazy(() => import('../content/linux/03-processes-networking-cli'));
+const BashScripting = lazy(() => import('../content/linux/04-bash-scripting'));
+const AttackOpsManagement = lazy(() => import('../content/linux/05-attack-ops-management'));
+const LinuxLoggingAndAuditing = lazy(() => import('../content/linux/06-linux-logging-and-auditing'));
+const KernelExploitationAndPrivescDeepDive = lazy(() => import('../content/linux/07-kernel-exploitation-and-privesc-deep-dive'));
+const LinuxHardeningAndDefenseInDepth = lazy(() => import('../content/linux/08-linux-hardening-and-defense-in-depth'));
+
+const PassiveReconOsint = lazy(() => import('../content/recon/01-passive-recon-osint'));
+const ActiveScanningNmap = lazy(() => import('../content/recon/02-active-scanning-nmap'));
+const ServiceEnumeration = lazy(() => import('../content/recon/03-service-enumeration'));
+const CredentialAttacks = lazy(() => import('../content/recon/04-credential-attacks'));
+const EnumerationMethodology = lazy(() => import('../content/recon/05-enumeration-methodology'));
+const WebReconAndSubdomainEnumerationAtScale = lazy(() => import('../content/recon/06-web-recon-and-subdomain-enumeration-at-scale'));
+const CloudAssetDiscoveryAndAttackSurfaceMapping = lazy(() => import('../content/recon/07-cloud-asset-discovery-and-attack-surface-mapping'));
+const ReconAutomationAndReporting = lazy(() => import('../content/recon/08-recon-automation-and-reporting'));
+
+const PythonRefresher = lazy(() => import('../content/python/01-python-refresher'));
+const PortScanner = lazy(() => import('../content/python/02-port-scanner'));
+const ReconAutomation = lazy(() => import('../content/python/03-recon-automation'));
+const BruteforcersExploits = lazy(() => import('../content/python/04-bruteforcers-exploits'));
+const PacketSniffing = lazy(() => import('../content/python/05-packet-sniffing'));
+
+const OwaspTop10 = lazy(() => import('../content/webapp/01-owasp-top-10'));
+const SqlInjection = lazy(() => import('../content/webapp/02-sql-injection'));
+const XssSessionAttacks = lazy(() => import('../content/webapp/03-xss-session-attacks'));
+const IdorBusinessLogic = lazy(() => import('../content/webapp/04-idor-business-logic'));
+const SsrfXxeDeserialization = lazy(() => import('../content/webapp/05-ssrf-xxe-deserialization'));
+
+const RedteamVsPentest = lazy(() => import('../content/redteam/01-redteam-vs-pentest'));
+const InternalNetworkAttacks = lazy(() => import('../content/redteam/02-internal-network-attacks'));
+const ActiveDirectoryFundamentals = lazy(() => import('../content/redteam/03-active-directory-fundamentals'));
+const KerberosAdPrivesc = lazy(() => import('../content/redteam/04-kerberos-ad-privesc'));
+const C2AndPersistence = lazy(() => import('../content/redteam/05-c2-and-persistence'));
+
+const HowBugBountyWorks = lazy(() => import('../content/bugbounty/01-how-bug-bounty-works'));
+const ReconAtScale = lazy(() => import('../content/bugbounty/02-recon-at-scale'));
+const WritingReports = lazy(() => import('../content/bugbounty/03-writing-reports'));
+const SkillsAndRoadmap = lazy(() => import('../content/bugbounty/04-skills-and-roadmap'));
+const BusinessLogicChaining = lazy(() => import('../content/bugbounty/05-business-logic-chaining'));
+
+const ApiSecurityFundamentals = lazy(() => import('../content/api-security/01-api-security-fundamentals'));
+const BolaBflaMassAssignment = lazy(() => import('../content/api-security/02-bola-bfla-mass-assignment'));
+const JwtAttacks = lazy(() => import('../content/api-security/03-jwt-attacks'));
+const GraphqlAttacks = lazy(() => import('../content/api-security/04-graphql-attacks'));
+
+const CryptoAttacksFieldGuide = lazy(() => import('../content/crypto-attacks/01-crypto-attacks-field-guide'));
+const PaddingOracleAttacks = lazy(() => import('../content/crypto-attacks/02-padding-oracle-attacks'));
+const EcbAndHashLengthExtension = lazy(() => import('../content/crypto-attacks/03-ecb-and-hash-length-extension'));
+const HashCrackingStrategy = lazy(() => import('../content/crypto-attacks/04-hash-cracking-strategy'));
+
+const SocFundamentals = lazy(() => import('../content/soc/01-soc-fundamentals'));
+const ThreatHuntingDetection = lazy(() => import('../content/soc/02-threat-hunting-detection'));
+const AttackCoverageMapping = lazy(() => import('../content/soc/03-attack-coverage-mapping'));
+const C2Detection = lazy(() => import('../content/soc/04-c2-detection'));
+
+const WhatIsASiem = lazy(() => import('../content/soc-siem/01-what-is-a-siem'));
+const CorrelationRules = lazy(() => import('../content/soc-siem/02-correlation-rules'));
+const RealSiemPlatformsCompared = lazy(() => import('../content/soc-siem/03-real-siem-platforms-compared'));
+const LogOnboardingAndVolume = lazy(() => import('../content/soc-siem/04-log-onboarding-and-volume'));
+
+const WritingTuningDetectionRules = lazy(() => import('../content/soc-detection/01-writing-tuning-detection-rules'));
+const Ueba = lazy(() => import('../content/soc-detection/02-ueba'));
+const ThreatIntelIntegration = lazy(() => import('../content/soc-detection/03-threat-intel-integration'));
+const SigmaRules = lazy(() => import('../content/soc-detection/04-sigma-rules'));
+
+const IncidentInvestigationMethodology = lazy(() => import('../content/soc-ir/01-incident-investigation-methodology'));
+const SoarAutomation = lazy(() => import('../content/soc-ir/02-soar-automation'));
+const ComplianceReporting = lazy(() => import('../content/soc-ir/03-compliance-reporting'));
+const LandmarkIncidentCaseStudies = lazy(() => import('../content/soc-ir/04-landmark-incident-case-studies'));
+
+const ForensicsFundamentals = lazy(() => import('../content/forensics/01-forensics-fundamentals'));
+const MemoryArtifactAnalysis = lazy(() => import('../content/forensics/02-memory-artifact-analysis'));
+const LogsAndNetworkArtifacts = lazy(() => import('../content/forensics/03-logs-and-network-artifacts'));
+const DiskForensicsAndFileSystemAnalysis = lazy(() => import('../content/forensics/04-disk-forensics-and-file-system-analysis'));
+const MemoryForensicsWithVolatility = lazy(() => import('../content/forensics/05-memory-forensics-with-volatility'));
+const ForensicReportingLegalAndCaseStudies = lazy(() => import('../content/forensics/06-forensic-reporting-legal-and-case-studies'));
+
+const CloudSecurityFundamentals = lazy(() => import('../content/cloud/01-cloud-security-fundamentals'));
+const IamAndMisconfiguration = lazy(() => import('../content/cloud/02-iam-and-misconfiguration'));
+const ContainersAndIacSecrets = lazy(() => import('../content/cloud/03-containers-and-iac-secrets'));
+const IdentityFederationAndCrossAccountAttacks = lazy(() => import('../content/cloud/04-identity-federation-and-cross-account-attacks'));
+const CloudNativeDetectionAndLogging = lazy(() => import('../content/cloud/05-cloud-native-detection-and-logging'));
+const CspmAndClosingCaseStudies = lazy(() => import('../content/cloud/06-cspm-and-closing-case-studies'));
+
+const GrcFundamentals = lazy(() => import('../content/securityplus/01-grc-fundamentals'));
+const CryptographyFundamentals = lazy(() => import('../content/securityplus/02-cryptography-fundamentals'));
+const IamDeepDive = lazy(() => import('../content/securityplus/03-iam-deep-dive'));
+const SecurityArchitecture = lazy(() => import('../content/securityplus/04-security-architecture'));
+const IncidentResponseBcdr = lazy(() => import('../content/securityplus/05-incident-response-bcdr'));
+
+const BinaryFormatsStaticAnalysis = lazy(() => import('../content/binaryanalysis/01-binary-formats-static-analysis'));
+const AssemblyStackCrashCourse = lazy(() => import('../content/binaryanalysis/02-assembly-stack-crash-course'));
+const DebuggingWithGdb = lazy(() => import('../content/binaryanalysis/03-debugging-with-gdb'));
+const BufferOverflowFundamentals = lazy(() => import('../content/binaryanalysis/04-buffer-overflow-fundamentals'));
+const IntroExploitDevelopment = lazy(() => import('../content/binaryanalysis/05-intro-exploit-development'));
+
+const StaticMalwareAnalysis = lazy(() => import('../content/malware/01-static-malware-analysis'));
+const DynamicAnalysisSandboxing = lazy(() => import('../content/malware/02-dynamic-analysis-sandboxing'));
+const PersistenceMechanisms = lazy(() => import('../content/malware/03-persistence-mechanisms'));
+const NetworkIndicatorsC2 = lazy(() => import('../content/malware/04-network-indicators-c2'));
+const AntiAnalysisEvasion = lazy(() => import('../content/malware/05-anti-analysis-evasion'));
+
+const SyntaxAndDataStructures = lazy(() => import('../content/code-python-fundamentals/01-syntax-and-data-structures'));
+const FunctionsAndErrorHandling = lazy(() => import('../content/code-python-fundamentals/02-functions-and-error-handling'));
+const StringsAndTextProcessing = lazy(() => import('../content/code-python-fundamentals/03-strings-and-text-processing'));
+
+const OopBasics = lazy(() => import('../content/code-python-oop/01-oop-basics'));
+const InheritanceAndPolymorphism = lazy(() => import('../content/code-python-oop/02-inheritance-and-polymorphism'));
+const AdvancedOop = lazy(() => import('../content/code-python-oop/03-advanced-oop'));
+
+const DecoratorsAndClosures = lazy(() => import('../content/code-python-advanced/01-decorators-and-closures'));
+const GeneratorsAndContextManagers = lazy(() => import('../content/code-python-advanced/02-generators-and-context-managers'));
+const RegexConcurrencyAndCaching = lazy(() => import('../content/code-python-advanced/03-regex-concurrency-and-caching'));
+
+const PythonFilesAndSerialization = lazy(() => import('../content/code-python-practice/01-files-and-serialization'));
+const PythonProjectsAndCli = lazy(() => import('../content/code-python-practice/02-projects-cli-and-environments'));
+const PythonTestingAndTypes = lazy(() => import('../content/code-python-practice/03-testing-debugging-and-types'));
+const ComplexityAndHashing = lazy(() => import('../content/programming-algorithms/01-complexity-arrays-and-hashing'));
+const LinearAndTreeStructures = lazy(() => import('../content/programming-algorithms/02-linear-structures-and-trees'));
+const GraphsAndAlgorithms = lazy(() => import('../content/programming-algorithms/03-graphs-search-and-dynamic-programming'));
+const SoftwareDesignAndTesting = lazy(() => import('../content/programming-engineering/01-design-testing-and-refactoring'));
+const DatabasesAndTransactions = lazy(() => import('../content/programming-engineering/02-databases-and-transactions'));
+const SystemsAndNetworking = lazy(() => import('../content/programming-engineering/03-systems-networking-and-apis'));
+const ProductionReliability = lazy(() => import('../content/programming-engineering/04-production-reliability-and-delivery'));
+
+const MobileAppArchitectureAndAttackSurface = lazy(() => import('../content/mobile/01-mobile-app-architecture-and-attack-surface'));
+const StaticAnalysisOfAndroidApps = lazy(() => import('../content/mobile/02-static-analysis-of-android-apps'));
+const DynamicAnalysisAndInstrumentation = lazy(() => import('../content/mobile/03-dynamic-analysis-and-instrumentation'));
+const InsecureDataStorageAndCommunication = lazy(() => import('../content/mobile/04-insecure-data-storage-and-communication'));
+const IosFundamentalsAndMobileApiBackends = lazy(() => import('../content/mobile/05-ios-fundamentals-and-mobile-api-backends'));
+const MobileMalwareAndBankingTrojans = lazy(() => import('../content/mobile/06-mobile-malware-and-banking-trojans'));
+const MobileDeviceManagementAndEnterpriseSecurity = lazy(() => import('../content/mobile/07-mobile-device-management-and-enterprise-security'));
+const MobilePentestMethodologyAndReporting = lazy(() => import('../content/mobile/08-mobile-pentest-methodology-and-reporting'));
+
+const Fundamentals80211AndAttackSurface = lazy(() => import('../content/wireless/01-802-11-fundamentals-and-attack-surface'));
+const EncryptionAndHandshakeCapture = lazy(() => import('../content/wireless/02-encryption-and-handshake-capture'));
+const CrackingHandshakesAndWpa3 = lazy(() => import('../content/wireless/03-cracking-handshakes-and-wpa3'));
+const RogueApsAndEvilTwinAttacks = lazy(() => import('../content/wireless/04-rogue-aps-and-evil-twin-attacks'));
+const BluetoothAndBleSecurity = lazy(() => import('../content/wireless/05-bluetooth-and-ble-security'));
+const EnterpriseWireless8021xEapRadius = lazy(() => import('../content/wireless/06-enterprise-wireless-802-1x-eap-radius'));
+const WirelessIdsAndDefensiveMonitoring = lazy(() => import('../content/wireless/07-wireless-ids-and-defensive-monitoring'));
+const CellularSecurityFundamentalsAndSynthesis = lazy(() => import('../content/wireless/08-cellular-security-fundamentals-and-synthesis'));
+
+const IotArchitectureAndAttackSurface = lazy(() => import('../content/iot/01-iot-architecture-and-attack-surface'));
+const FirmwareExtractionAndStaticAnalysis = lazy(() => import('../content/iot/02-firmware-extraction-and-static-analysis'));
+const HardwareHackingUartJtagSpi = lazy(() => import('../content/iot/03-hardware-hacking-uart-jtag-spi'));
+const EmbeddedWebInterfacesAndCommonVulns = lazy(() => import('../content/iot/04-embedded-web-interfaces-and-common-vulns'));
+const IotBotnetsMiraiAndBeyond = lazy(() => import('../content/iot/05-iot-botnets-mirai-and-beyond'));
+const IotProtocolsZigbeeZwaveMqtt = lazy(() => import('../content/iot/06-iot-protocols-zigbee-zwave-mqtt'));
+const IndustrialControlSystemsAndScadaSecurity = lazy(() => import('../content/iot/07-industrial-control-systems-and-scada-security'));
+const IotTestingMethodologyAndCompliance = lazy(() => import('../content/iot/08-iot-testing-methodology-and-compliance'));
+
+const AiSecurityFundamentalsOwaspLlmTop10 = lazy(() => import('../content/ai-security/01-ai-security-fundamentals-owasp-llm-top-10'));
+const PromptInjectionAndJailbreaking = lazy(() => import('../content/ai-security/02-prompt-injection-and-jailbreaking'));
+const InsecureOutputHandlingAndExcessiveAgency = lazy(() => import('../content/ai-security/03-insecure-output-handling-and-excessive-agency'));
+const TrainingDataPoisoningModelTheftSupplyChain = lazy(() => import('../content/ai-security/04-training-data-poisoning-model-theft-supply-chain'));
+const SensitiveInfoDisclosureRagSecurityCaseStudies = lazy(() => import('../content/ai-security/05-sensitive-info-disclosure-rag-security-case-studies'));
+const AdversarialMachineLearningEvasion = lazy(() => import('../content/ai-security/06-adversarial-machine-learning-evasion'));
+const AiGovernanceRedTeamingSafetyEvaluation = lazy(() => import('../content/ai-security/07-ai-governance-red-teaming-safety-evaluation'));
+const SecuringAiAgentsMultiAgentSystems = lazy(() => import('../content/ai-security/08-securing-ai-agents-multi-agent-systems'));
+
+const SecurityEconomics = lazy(() => import('../content/secengineering/01-security-economics'));
+const SecureDesignPrinciples = lazy(() => import('../content/secengineering/02-secure-design-principles'));
+const ThreatModeling = lazy(() => import('../content/secengineering/03-threat-modeling'));
+const CryptographicEngineeringPitfalls = lazy(() => import('../content/secengineering/04-cryptographic-engineering-pitfalls'));
+const WhySystemsFailCaseStudies = lazy(() => import('../content/secengineering/05-why-systems-fail-case-studies'));
+
+export const MODULES: ModuleMeta[] = [
+  {
+    id: 'networking',
+    slug: 'networking',
+    title: 'Networking Fundamentals',
+    subtitle: 'OSI, TCP/IP, subnetting, ports & protocols',
+    description:
+      'The mental model every other module builds on: how packets move, how addressing works, and what protocols you must know cold before you ever touch nmap.',
+    status: 'available',
+    sourceBooks: ['CompTIA Security+ Get Certified Get Ahead', 'Cybersecurity Essentials'],
+    icon: 'network',
+    lessons: [
+      { id: 'net-1', slug: 'osi-tcpip', title: 'How Networks Actually Work: OSI & TCP/IP', summary: 'Layers, encapsulation, and where every attack category lives.', minutes: 12, Content: OsiTcpIp },
+      { id: 'net-2', slug: 'ip-subnetting', title: 'IP Addressing & Subnetting', summary: 'CIDR notation, fast subnet math, and RFC1918 ranges.', minutes: 14, Content: IpSubnetting },
+      { id: 'net-3', slug: 'tcp-udp-handshake', title: 'TCP, UDP, and the Three-Way Handshake', summary: 'Why nmap scan types behave the way they do.', minutes: 10, Content: TcpUdpHandshake },
+      { id: 'net-4', slug: 'ports-services', title: 'Ports, Services & Protocols You Must Know', summary: 'The port list every pentester has memorized.', minutes: 13, Content: PortsServices },
+      { id: 'net-5', slug: 'dns-http-traffic', title: 'DNS, HTTP/HTTPS & Traffic Basics', summary: 'Zone transfers, HTTP methods/status codes, and TLS in brief.', minutes: 12, Content: DnsHttpTraffic },
+      { id: 'net-6', slug: 'ipv6-fundamentals-and-transition', title: 'IPv6 Fundamentals & Transition Mechanisms', summary: 'Address structure, SLAAC/NDP trust gaps, and transition-era firewall blind spots.', minutes: 13, Content: Ipv6FundamentalsAndTransition },
+      { id: 'net-7', slug: 'network-segmentation-vlans-and-firewalls', title: 'Network Segmentation, VLANs & Firewalls', summary: 'VLAN hopping, stateful vs. stateless filtering, and default-deny vs. default-allow.', minutes: 13, Content: NetworkSegmentationVlansAndFirewalls },
+      {
+        id: 'net-8', slug: 'routing-fundamentals-and-attacks', title: 'Routing Fundamentals & Common Routing Attacks', summary: 'ARP spoofing, rogue DHCP, and the 2018 MyEtherWallet BGP hijack.', minutes: 13, Content: RoutingFundamentalsAndAttacks,
+        quiz: [
+          { id: 'q1', prompt: 'Which layer of the OSI model do TCP and UDP operate at?', choices: ['Layer 3 (Network)', 'Layer 4 (Transport)', 'Layer 7 (Application)', 'Layer 2 (Data Link)'], correctIndex: 1, explanation: 'TCP and UDP are transport-layer protocols — ports live here.' },
+          { id: 'q2', prompt: 'A /27 subnet provides how many usable host addresses?', choices: ['14', '30', '62', '126'], correctIndex: 1, explanation: '/27 = 255.255.255.224, giving 2^5 - 2 = 30 usable hosts.' },
+          { id: 'q3', prompt: 'Why is IPv6\'s SLAAC/Router Advertisement mechanism vulnerable to the same class of attack as ARP spoofing?', choices: ['They use completely unrelated, unrelated mechanisms', 'Both rely on unauthenticated local announcements that devices trust implicitly, letting an attacker redirect traffic by impersonating the gateway/router', 'IPv6 does not support any form of local network attack', 'SLAAC requires a password by default'], correctIndex: 1, explanation: 'Router Advertisements are no more authenticated than ARP replies by default — an attacker can send rogue RAs to redirect traffic exactly like ARP spoofing.' },
+          { id: 'q4', prompt: 'A misconfigured DNS server allowing AXFR to anyone exposes what?', choices: ['Only the MX record', 'The entire zone file (all records)', 'Nothing, AXFR is always safe', 'Only NS records'], correctIndex: 1, explanation: 'AXFR transfers the whole zone — every record type for every host in that zone.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'linux',
+    slug: 'linux',
+    title: 'Linux Basics for Hackers',
+    subtitle: 'Filesystem, permissions, processes, bash, and attack ops',
+    description:
+      'Practical Linux fluency for offensive work: navigation, permissions and SUID/sudo misconfigurations, process/network commands, and bash automation.',
+    status: 'available',
+    sourceBooks: ['Linux Basics for Hackers'],
+    icon: 'terminal',
+    lessons: [
+      { id: 'lin-1', slug: 'filesystem-navigation', title: 'Getting Comfortable: Filesystem & Navigation', summary: 'The directory hierarchy and commands you\'ll type hundreds of times a day.', minutes: 11, Content: FilesystemNavigation },
+      { id: 'lin-2', slug: 'users-permissions', title: 'Users, Groups & Permissions', summary: 'chmod, SUID/SGID/sticky bits, and reading sudoers correctly.', minutes: 15, Content: UsersPermissions },
+      { id: 'lin-3', slug: 'processes-networking-cli', title: 'Package Mgmt, Processes & Networking Commands', summary: 'ps, netstat/ss, netcat, and the redirection glue that ties it together.', minutes: 13, Content: ProcessesNetworkingCli },
+      { id: 'lin-4', slug: 'bash-scripting', title: 'Bash Scripting for Automation', summary: 'Loops, functions, and parsing tool output at scale.', minutes: 14, Content: BashScripting },
+      { id: 'lin-5', slug: 'attack-ops-management', title: 'Managing Users & Services for Attack Ops', summary: 'systemd, cron privesc paths, listeners, and log awareness.', minutes: 13, Content: AttackOpsManagement },
+      { id: 'lin-6', slug: 'linux-logging-and-auditing', title: 'Linux Logging & Auditing', summary: 'syslog/journald, auditd rules, and why a missing bash_history is itself a signal.', minutes: 12, Content: LinuxLoggingAndAuditing },
+      { id: 'lin-7', slug: 'kernel-exploitation-and-privesc-deep-dive', title: 'Linux Kernel Exploitation & Privilege Escalation Deep Dive', summary: 'Dirty COW, Dirty Pipe, and why kernel exploits are a distinct, higher-risk category.', minutes: 13, Content: KernelExploitationAndPrivescDeepDive },
+      {
+        id: 'lin-8', slug: 'linux-hardening-and-defense-in-depth', title: 'Linux Hardening & Defense-in-Depth', summary: 'SELinux/AppArmor mandatory access control, and kernel hardening sysctls.', minutes: 13, Content: LinuxHardeningAndDefenseInDepth,
+        quiz: [
+          { id: 'q1', prompt: 'A SUID binary owned by root is dangerous because:', choices: ['It always deletes files', 'It runs with the file owner\'s (root) privileges regardless of who executes it', 'It disables logging', 'It only affects the /tmp directory'], correctIndex: 1, explanation: 'SUID makes the binary execute with the owner\'s privileges — if that owner is root, careless binaries become privesc paths.' },
+          { id: 'q2', prompt: 'chmod 754 on a file grants which permission set?', choices: ['rwxr-xr--', 'rwxrwxrwx', 'rw-r--r--', 'rwxr--r--'], correctIndex: 0, explanation: '7=rwx (owner), 5=r-x (group), 4=r-- (other) => rwxr-xr--.' },
+          { id: 'q3', prompt: 'Why can SELinux/AppArmor still confine a process even after it has been fully compromised and escalated to root?', choices: ['They cannot — root always bypasses every control', 'They enforce a mandatory access control policy independent of standard Unix ownership/permissions, which even root does not automatically bypass', 'They only work on non-root processes', 'They replace the need for permissions entirely'], correctIndex: 1, explanation: 'MAC frameworks add a policy-enforced layer on top of standard discretionary permissions — a compromised root process is still confined to its defined policy.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'recon',
+    slug: 'recon',
+    title: 'Reconnaissance & Enumeration',
+    subtitle: 'OSINT, nmap, service enumeration, and credential attacks',
+    description:
+      'The methodology used on every real engagement: passive recon, active scanning, per-service enumeration, and credential attacks — assembled into one repeatable loop.',
+    status: 'available',
+    sourceBooks: ['The Web Application Hacker\'s Handbook', 'Red Team Field Manual (RTFM)', 'The Hacker Playbook 3'],
+    icon: 'radar',
+    lessons: [
+      { id: 'rec-1', slug: 'passive-recon-osint', title: 'Passive Recon & OSINT Fundamentals', summary: 'WHOIS, certificate transparency, dorking — before you send a single packet.', minutes: 12, Content: PassiveReconOsint },
+      { id: 'rec-2', slug: 'active-scanning-nmap', title: 'Active Scanning with Nmap', summary: 'The scan workflow and flags you\'ll use on every engagement.', minutes: 15, Content: ActiveScanningNmap },
+      { id: 'rec-3', slug: 'service-enumeration', title: 'Service Enumeration: HTTP, FTP, SSH, SMB', summary: 'Turn open ports into safe, scoped service hypotheses by reading banners, versions, defaults, and evidence before attempting access.', minutes: 16, Content: ServiceEnumeration },
+      { id: 'rec-4', slug: 'credential-attacks', title: 'Credential Attacks: Wordlists & Brute Forcing', summary: 'rockyou, hydra, spraying, and knowing when to stop.', minutes: 13, Content: CredentialAttacks },
+      { id: 'rec-5', slug: 'enumeration-methodology', title: 'Putting It Together: The Enumeration Methodology', summary: 'Recon -> foothold -> privesc -> report, as one repeatable loop.', minutes: 10, Content: EnumerationMethodology },
+      { id: 'rec-6', slug: 'web-recon-and-subdomain-enumeration-at-scale', title: 'Web Reconnaissance & Subdomain Enumeration at Scale', summary: 'Certificate transparency, DNS permutation, and screenshot-based triage across thousands of hosts.', minutes: 13, Content: WebReconAndSubdomainEnumerationAtScale },
+      { id: 'rec-7', slug: 'cloud-asset-discovery-and-attack-surface-mapping', title: 'Cloud Asset Discovery & Attack Surface Mapping', summary: 'Bucket name-guessing, leaked cloud credentials on GitHub, and anonymous S3 access checks.', minutes: 13, Content: CloudAssetDiscoveryAndAttackSurfaceMapping },
+      {
+        id: 'rec-8', slug: 'recon-automation-and-reporting', title: 'Recon Automation & Reporting', summary: 'Chaining this module\'s techniques into one pipeline, and subdomain-takeover reporting.', minutes: 13, Content: ReconAutomationAndReporting,
+        quiz: [
+          { id: 'q1', prompt: 'Why check robots.txt during web enumeration?', choices: ['It always contains the admin password', 'It lists paths admins didn\'t want search engines indexing — often sensitive', 'It is required for HTTPS to work', 'It lists open ports'], correctIndex: 1, explanation: 'robots.txt is a voluntary disclosure of paths considered worth hiding from crawlers — frequently useful recon.' },
+          { id: 'q2', prompt: 'Why does cloud storage bucket discovery require a fundamentally different technique than DNS-based subdomain enumeration?', choices: ['It does not — they use the exact same technique', 'A bucket needs no DNS record to be reachable, so it must be found by guessing plausible NAMES against a predictable cloud-provider URL pattern, not by enumerating DNS', 'Cloud buckets cannot be discovered at all', 'DNS enumeration always finds every cloud resource automatically'], correctIndex: 1, explanation: 'Cloud storage buckets are reachable at a predictable URL based purely on their name, with no DNS record required — discovery is closer to a namespace dictionary attack than DNS enumeration.' },
+          { id: 'q3', prompt: 'Why is a subdomain takeover (a CNAME pointing at a deprovisioned cloud resource) considered a high-priority recon finding?', choices: ['It has no real security impact', 'Re-claiming the same resource name under an attacker\'s account grants control of content served under the target\'s own trusted domain, with very little further work required', 'It can only be exploited by the original resource owner', 'It only affects DNS resolution speed'], correctIndex: 1, explanation: 'An unclaimed cloud resource still referenced by a target\'s DNS record can be re-registered by an attacker, who then serves content under the victim\'s own trusted domain name.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'python',
+    slug: 'python',
+    title: 'Python & Black Hat Python',
+    subtitle: 'Scanners, recon automation, and exploit tooling',
+    description:
+      'The Python skillset behind almost every custom offensive tool: sockets and scanning, HTTP automation with threading, and writing brute-forcers and exploit PoCs.',
+    status: 'available',
+    sourceBooks: ['Black Hat Python (2nd Edition)'],
+    icon: 'python',
+    lessons: [
+      { id: 'py-1', slug: 'python-refresher', title: 'Python Fundamentals for Security Work', summary: 'The subset of Python you need fluent to write tools fast.', minutes: 11, Content: PythonRefresher },
+      { id: 'py-2', slug: 'port-scanner', title: 'Building a TCP Port Scanner from Scratch', summary: 'Use sockets, connect_ex, timeouts, and ThreadPoolExecutor to build a bounded scanner that separates closed ports from failed checks.', minutes: 14, Content: PortScanner },
+      { id: 'py-3', slug: 'recon-automation', title: 'Automating Recon with Requests & Threading', summary: 'Directory brute-forcing and HTML parsing at scale.', minutes: 13, Content: ReconAutomation },
+      { id: 'py-4', slug: 'bruteforcers-exploits', title: 'Writing Brute-Forcers & Simple Exploit PoCs', summary: 'HTTP/SSH brute-forcers and the shape of a real exploit script.', minutes: 13, Content: BruteforcersExploits },
+      {
+        id: 'py-5', slug: 'packet-sniffing', title: 'Building a Simple Network Sniffer & Packet Parser', summary: 'Raw sockets, struct-based header parsing, and catching cleartext credentials with scapy.', minutes: 13, Content: PacketSniffing,
+        quiz: [
+          { id: 'q1', prompt: 'Why does opening a raw socket for sniffing require root/administrator privileges?', choices: ['Raw sockets are always encrypted', 'Reading traffic not addressed to your own process is a privileged capability by design', 'It only works on port 80', 'Python requires root for all networking'], correctIndex: 1, explanation: 'The OS restricts raw packet capture because it lets a program see traffic meant for other processes/hosts on the segment.' },
+          { id: 'q2', prompt: 'What does socket.inet_ntoa() do when parsing a raw IP header?', choices: ['Encrypts the address', 'Converts 4 packed bytes into a human-readable dotted-quad string', 'Resolves a hostname to an IP', 'Validates the checksum'], correctIndex: 1, explanation: 'Raw address fields are packed bytes, not strings — inet_ntoa() converts them into the familiar "10.10.10.5" form.' },
+          { id: 'q3', prompt: 'Why is HTTP Basic Auth over plain HTTP considered equivalent to sending a cleartext password?', choices: ['Basic Auth uses strong encryption', 'The credentials are only base64-encoded, which is trivially reversible, not encrypted', 'Basic Auth is only used for testing', 'It requires a VPN'], correctIndex: 1, explanation: 'base64 is an encoding, not encryption — base64.b64decode() reverses it instantly, which is why HTTPS (encrypting the whole connection) is the real fix.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'webapp',
+    slug: 'webapp',
+    title: 'Web Application Hacking',
+    subtitle: 'OWASP Top 10, SQLi, XSS, IDOR, SSRF & business logic',
+    description:
+      'The classic Web Application Hacker\'s Handbook curriculum, brought current with the OWASP Top 10: injection, XSS/session attacks, access control flaws, and SSRF/XXE — every technique practiced hands-on with curl.',
+    status: 'available',
+    sourceBooks: ['The Web Application Hacker\'s Handbook', 'PortSwigger Web Security Academy'],
+    icon: 'web',
+    lessons: [
+      { id: 'web-1', slug: 'owasp-top-10', title: 'The OWASP Top 10: A Working Map', summary: 'The category system that structures every web app test.', minutes: 11, Content: OwaspTop10 },
+      { id: 'web-2', slug: 'sql-injection', title: 'Injection Deep Dive: SQL Injection', summary: 'Detect SQL injection carefully, then understand UNION-based extraction, blind techniques, impact proof, and safe reporting limits.', minutes: 15, Content: SqlInjection },
+      { id: 'web-3', slug: 'xss-session-attacks', title: 'XSS & Session Attacks', summary: 'Understand reflected, stored, and DOM XSS, how cookies and sessions are affected, and why CSRF is a different browser-trust issue.', minutes: 14, Content: XssSessionAttacks },
+      { id: 'web-4', slug: 'idor-business-logic', title: 'Authentication, IDOR & Business Logic Flaws', summary: 'The highest effort-to-payout category in bug bounty.', minutes: 13, Content: IdorBusinessLogic },
+      {
+        id: 'web-5', slug: 'ssrf-xxe-deserialization', title: 'SSRF, XXE & Insecure Deserialization', summary: 'Advanced categories: the server acting on your behalf.', minutes: 13, Content: SsrfXxeDeserialization,
+        quiz: [
+          { id: 'q1', prompt: 'Which technique confirms SQL injection most reliably?', choices: ['Checking the page loads at all', 'Comparing responses to AND 1=1 vs AND 1=2', 'Checking the HTTP status code is 200', 'Checking cookies are set'], correctIndex: 1, explanation: 'A different response between an always-true and always-false condition strongly confirms the parameter reaches a SQL query.' },
+          { id: 'q2', prompt: 'What distinguishes IDOR from injection-based vulnerabilities?', choices: ['IDOR requires a special payload', 'IDOR requires no payload — just changing an ID the server fails to authorize', 'IDOR only affects admins', 'IDOR cannot be tested with curl'], correctIndex: 1, explanation: 'IDOR is purely an authorization failure — no injection or special encoding needed, just a different valid ID.' },
+          { id: 'q3', prompt: 'Why is SSRF especially dangerous on cloud-hosted applications?', choices: ['It always crashes the server', 'The server can often reach the cloud metadata endpoint, leaking credentials', 'It only affects on-premise servers', 'It requires physical access'], correctIndex: 1, explanation: 'Cloud metadata endpoints (like 169.254.169.254) can leak IAM credentials when reached via a vulnerable server-side request.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'redteam',
+    slug: 'redteam',
+    title: 'Red Teaming & Active Directory',
+    subtitle: 'Internal attacks, lateral movement, and AD privilege escalation',
+    description:
+      'The Hacker Playbook 3\'s core territory: red team methodology and OPSEC, internal network attacks, Active Directory enumeration, and Kerberos-based privilege escalation to Domain Admin.',
+    status: 'available',
+    sourceBooks: ['The Hacker Playbook 3'],
+    icon: 'shield',
+    lessons: [
+      { id: 'rt-1', slug: 'redteam-vs-pentest', title: 'Red Team vs. Pentest: Methodology & OPSEC', summary: 'Learn how red-team engagements are scoped around objectives, operating rules, telemetry expectations, stop conditions, and cleanup discipline.', minutes: 11, Content: RedteamVsPentest },
+      { id: 'rt-2', slug: 'internal-network-attacks', title: 'Internal Network Attacks & Lateral Movement', summary: 'Understand internal movement through credential reuse, pass-the-hash, pivoting, segmentation boundaries, and evidence that proves lateral access.', minutes: 13, Content: InternalNetworkAttacks },
+      { id: 'rt-3', slug: 'active-directory-fundamentals', title: 'Active Directory Fundamentals & Enumeration', summary: 'Domains, OUs, groups, and BloodHound attack-path mapping.', minutes: 14, Content: ActiveDirectoryFundamentals },
+      { id: 'rt-4', slug: 'kerberos-ad-privesc', title: 'Kerberos Attacks & AD Privilege Escalation', summary: 'Kerberoasting, AS-REP Roasting, and the path to Domain Admin.', minutes: 14, Content: KerberosAdPrivesc },
+      {
+        id: 'rt-5', slug: 'c2-and-persistence', title: 'Command & Control Frameworks & Post-Exploitation Persistence', summary: 'Beacon/listener architecture, malleable C2 profiles, and the standard Windows persistence toolkit.', minutes: 12, Content: C2AndPersistence,
+        quiz: [
+          { id: 'q1', prompt: 'What is "jitter" in the context of a C2 beacon?', choices: ['The encryption algorithm used for C2 traffic', 'A random variance around the beacon\'s check-in interval, so callbacks don\'t land at a perfectly regular cadence', 'A type of persistence mechanism', 'The name of a specific C2 framework'], correctIndex: 1, explanation: 'Jitter randomizes the check-in timing so beacon traffic doesn\'t stand out as a perfectly regular heartbeat.' },
+          { id: 'q2', prompt: 'Why is a WMI event subscription considered a "quiet" persistence mechanism?', choices: ['It requires Domain Admin to create', 'It doesn\'t appear in the places defenders check first, like Task Scheduler or Services', 'It only works on Linux', 'It is not actually persistence at all'], correctIndex: 1, explanation: 'WMI event subscriptions don\'t show up in Task Scheduler or the Services list, which is exactly why MITRE ATT&CK tracks it as its own distinct technique.' },
+          { id: 'q3', prompt: 'What does a tool like Autoruns give a blue team defending against persistence?', choices: ['A way to decrypt C2 traffic', 'A single-pass enumeration of every auto-start location, diffable against a known-good baseline', 'A way to patch Kerberos', 'A list of open network ports only'], correctIndex: 1, explanation: 'Autoruns enumerates every auto-start location (Run keys, Scheduled Tasks, Services, WMI subscriptions) so new/unsigned entries stand out against a baseline.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'bugbounty',
+    slug: 'bugbounty',
+    title: 'Bug Bounty Methodology',
+    subtitle: 'Recon at scale, report writing, and where the payouts are',
+    description:
+      'The mindset and workflow from Real-World Bug Hunting and Bug Bounty Bootcamp: how programs work, recon automation at scale, writing reports that get triaged fast, and a prioritized 6-month roadmap.',
+    status: 'available',
+    sourceBooks: ['Real-World Bug Hunting', 'Bug Bounty Bootcamp'],
+    icon: 'bounty',
+    lessons: [
+      { id: 'bb-1', slug: 'how-bug-bounty-works', title: 'How Bug Bounty Hunting Actually Works', summary: 'Platforms, public vs. private programs, and researcher economics.', minutes: 10, Content: HowBugBountyWorks },
+      { id: 'bb-2', slug: 'recon-at-scale', title: 'Recon at Scale: Subdomains, Assets & Automation', summary: 'Subdomain enumeration, JS analysis, and prioritizing targets.', minutes: 13, Content: ReconAtScale },
+      { id: 'bb-3', slug: 'writing-reports', title: 'Reading & Writing High-Quality Reports', summary: 'The report structure that gets fast, well-paid triage.', minutes: 12, Content: WritingReports },
+      { id: 'bb-4', slug: 'skills-and-roadmap', title: 'Prioritization: Where the Real Bounties Are', summary: 'A ranked skill list and a realistic 6-month plan.', minutes: 10, Content: SkillsAndRoadmap },
+      {
+        id: 'bb-5', slug: 'business-logic-chaining', title: 'Business Logic Flaws & Chaining Low-Severity Bugs', summary: 'The bugs scanners never catch, and why two "Low" findings can be worth more than one Medium.', minutes: 11, Content: BusinessLogicChaining,
+        quiz: [
+          { id: 'q1', prompt: 'What makes a bug a "business logic flaw" rather than a technical vulnerability?', choices: ['It always involves SQL', 'The code works as written, but the workflow itself is missing a rule it should enforce', 'It only affects mobile apps', 'It is always a false positive'], correctIndex: 1, explanation: 'Business logic flaws have no injection or broken escaping — the workflow simply never checks a rule it was supposed to.' },
+          { id: 'q2', prompt: 'Why can chaining two "Low" severity findings sometimes be worth more than one "Medium"?', choices: ['Triagers always average severity scores', 'Combined, they can enable an impact (e.g. full account takeover) that neither bug achieves alone', 'Bug bounty programs pay per report regardless of severity', 'It is a reporting technicality with no real impact difference'], correctIndex: 1, explanation: 'Real-world impact often comes from combining bugs — an info leak plus a missing ownership check can chain into account takeover.' },
+          { id: 'q3', prompt: 'What is the single highest-leverage question to ask when testing a multi-step workflow?', choices: ['What does the CSS look like?', 'What does the server actually verify, versus what the client just chooses not to show?', 'How many total steps does the flow have?', 'What browser is being used?'], correctIndex: 1, explanation: 'Business logic bugs live almost entirely in the gap between client-side UI restrictions and what the backend actually enforces.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'api-security',
+    slug: 'api-security',
+    title: 'API Security',
+    subtitle: 'REST & GraphQL: BOLA, BFLA, JWT attacks & introspection abuse',
+    description:
+      'Modern apps are mostly APIs underneath their UI. This module covers the distinct attack surface that creates — REST vs. GraphQL, the OWASP API Security Top 10, BOLA/BFLA and mass assignment, JSON Web Token forgery, and GraphQL-specific introspection/batching/depth abuse.',
+    status: 'available',
+    sourceBooks: ['OWASP API Security Top 10', 'Real-World Bug Hunting'],
+    icon: 'key',
+    lessons: [
+      { id: 'api-1', slug: 'api-security-fundamentals', title: 'API Security Fundamentals: REST, GraphQL & Where the Vulnerabilities Live', summary: 'Why APIs are a distinct testing surface, and the OWASP API Security Top 10 mapped to what you already know.', minutes: 12, Content: ApiSecurityFundamentals },
+      { id: 'api-2', slug: 'bola-bfla-mass-assignment', title: 'Broken Object & Function Level Authorization at Scale', summary: 'API-native IDOR and its cousins: BOLA, BFLA, mass assignment, and excessive data exposure.', minutes: 13, Content: BolaBflaMassAssignment },
+      { id: 'api-3', slug: 'jwt-attacks', title: 'Attacking JSON Web Tokens: alg=none, Weak Secrets & kid Injection', summary: 'Forging tokens by exploiting how JWT libraries verify — or fail to verify — their own signatures.', minutes: 13, Content: JwtAttacks },
+      {
+        id: 'api-4', slug: 'graphql-attacks', title: 'GraphQL-Specific Attacks: Introspection, Batching & Depth Limits', summary: 'Schema-leaking introspection, batching past rate limits, and resource-exhaustion queries.', minutes: 12, Content: GraphqlAttacks,
+        quiz: [
+          { id: 'q1', prompt: 'What does a successful GraphQL introspection query hand an attacker?', choices: ['The database\'s root password', 'A complete map of the schema — every type, query, mutation, and field name', 'Direct filesystem access to the server', 'The server\'s TLS private key'], correctIndex: 1, explanation: 'Introspection is meant for internal developer tooling — left enabled in production, it hands over the entire schema to anyone who asks.' },
+          { id: 'q2', prompt: 'How does batching a GraphQL request defeat a per-request rate limiter?', choices: ['It doesn\'t — GraphQL has no batching feature', 'Many queries execute inside ONE HTTP request, so a limiter counting requests massively undercounts the real number of operations', 'It encrypts the request body so the limiter can\'t inspect it', 'It requires a privileged API key the limiter always exempts'], correctIndex: 1, explanation: 'A limiter capped at "5 requests per minute" only sees one request if thousands of queries are batched into it — the exact technique behind the OTP-bypass lab.' },
+          { id: 'q3', prompt: 'What is BOLA, and how do you test for it directly?', choices: ['Broken Object Level Authorization — request another user\'s object id with your own valid token and see if it\'s still returned', 'A GraphQL-only bug that never appears in REST APIs', 'A denial-of-service technique unrelated to authorization', 'A type of SQL injection specific to APIs'], correctIndex: 0, explanation: 'BOLA is IDOR at the API layer — the server checks that you\'re authenticated but not that the object actually belongs to you.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'crypto-attacks',
+    slug: 'crypto-attacks',
+    title: 'Applied Cryptography Attacks',
+    subtitle: 'Padding oracles, ECB leakage, hash length extension & cracking strategy',
+    description:
+      'Real crypto findings almost never break the math — they break the implementation. This module covers the four implementation-failure patterns behind nearly every real-world crypto bug: padding oracle attacks, ECB mode detection, hash length extension, and a genuine cracking-strategy workflow.',
+    status: 'available',
+    sourceBooks: ['Serious Cryptography', 'The Web Application Hacker\'s Handbook'],
+    icon: 'lock',
+    lessons: [
+      { id: 'crypto-1', slug: 'crypto-attacks-field-guide', title: 'Applied Cryptography Attacks: A Pentester\'s Field Guide', summary: 'The four implementation-failure patterns behind almost every real crypto finding, and identifying what you\'re looking at.', minutes: 11, Content: CryptoAttacksFieldGuide },
+      { id: 'crypto-2', slug: 'padding-oracle-attacks', title: 'Padding Oracle Attacks Against CBC-Mode Encryption', summary: 'Recovering plaintext byte by byte using nothing but a server\'s valid/invalid padding responses.', minutes: 13, Content: PaddingOracleAttacks },
+      { id: 'crypto-3', slug: 'ecb-and-hash-length-extension', title: 'ECB Mode Detection & Exploitation, Hash Length Extension Attacks', summary: 'Spotting ECB\'s block-repetition tell, and forging signatures on naive hash(secret+message) schemes.', minutes: 13, Content: EcbAndHashLengthExtension },
+      {
+        id: 'crypto-4', slug: 'hash-cracking-strategy', title: 'Cracking Strategy: Identifying Hash Types & Choosing the Right Attack', summary: 'Fast vs. slow hashes, salting, and a realistic triage workflow instead of brute-forcing everything by default.', minutes: 12, Content: HashCrackingStrategy,
+        quiz: [
+          { id: 'q1', prompt: 'Why does a padding oracle attack succeed without ever learning the encryption key?', choices: ['It exploits a math flaw in AES itself', 'It uses the server\'s valid/invalid padding responses as a yes/no oracle, recovering plaintext one byte at a time via CBC\'s block-XOR chaining', 'It brute-forces the full AES-256 keyspace directly', 'It only works against RSA, never AES'], correctIndex: 1, explanation: 'The cipher is never broken — the server\'s own distinguishable error responses leak one bit of information per guess, enough to reconstruct the plaintext.' },
+          { id: 'q2', prompt: 'What is the unmistakable tell that a cipher is running in ECB mode?', choices: ['The ciphertext is always shorter than the plaintext', 'Identical plaintext blocks always produce identical ciphertext blocks, visible as repeated ciphertext chunks', 'The server returns a 500 error on every request', 'The encryption key is stored in a cookie'], correctIndex: 1, explanation: 'ECB encrypts each block independently with no chaining, so identical input blocks always map to identical output blocks — the classic "encrypted penguin" demonstration.' },
+          { id: 'q3', prompt: 'Why does switching a signature scheme from a bare hash (e.g. SHA256(key+message)) to real HMAC defeat length-extension attacks?', choices: ['HMAC is simply a longer hash output', 'HMAC\'s construction specifically prevents computing a valid continuation of the internal hash state without knowing the key', 'HMAC doesn\'t use SHA-256 internally', 'It doesn\'t — HMAC is equally vulnerable to length extension'], correctIndex: 1, explanation: 'Length extension exploits the Merkle-Damgard internal-state-resumption property directly — HMAC\'s nested construction specifically breaks that resumption.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'soc',
+    slug: 'soc',
+    title: 'SOC Fundamentals & Threat Hunting',
+    subtitle: 'Alert triage, log correlation, proactive threat hunting, and ATT&CK coverage mapping',
+    description:
+      'The defensive counterpart to everything else in this course: how a Security Operations Center triages alerts, correlates logs into a timeline, proactively hunts for compromise that never triggered a rule, and systematically maps detection coverage against MITRE ATT&CK.',
+    status: 'available',
+    sourceBooks: ['Blue Team Handbook', 'The Practice of Network Security Monitoring'],
+    icon: 'soc',
+    lessons: [
+      { id: 'soc-1', slug: 'soc-fundamentals', title: 'SOC Fundamentals: Alerts, Triage & the Analyst Workflow', summary: 'The alert lifecycle from telemetry to documented incident.', minutes: 12, Content: SocFundamentals },
+      {
+        id: 'soc-2', slug: 'threat-hunting-detection', title: 'Threat Hunting: Proactive Detection Beyond Alerts', summary: 'Hunting hypotheses, IOC sweeping, and closing the loop with new detections.', minutes: 13, Content: ThreatHuntingDetection,
+        quiz: [
+          { id: 'q1', prompt: 'What distinguishes threat hunting from standard alert-driven SOC work?', choices: ['Hunting only happens after a breach is confirmed', 'Hunting proactively searches for compromise that never triggered any alert', 'Hunting requires no log access', 'There is no real difference'], correctIndex: 1, explanation: 'Threat hunting works from a hypothesis, searching data that alerts never flagged, rather than waiting for a rule to fire.' },
+          { id: 'q2', prompt: 'Why is a raw IP address (instead of a domain) in a C2 beacon URL a notable indicator?', choices: ['IPs are always malicious', 'Attackers often skip DNS specifically to avoid domain-based blocklists', 'It means the traffic is encrypted', 'It has no significance'], correctIndex: 1, explanation: 'Using a raw IP avoids domain reputation/blocklist checks that many defenses rely on.' },
+        ],
+      },
+      {
+        id: 'soc-3', slug: 'attack-coverage-mapping', title: 'MITRE ATT&CK Coverage Mapping in Practice', summary: 'Turning ATT&CK from an alert-labeling vocabulary into a systematic detection-coverage audit.', minutes: 12, Content: AttackCoverageMapping,
+        quiz: [
+          { id: 'q1', prompt: 'What is the main purpose of an ATT&CK coverage map?', choices: ['To label individual alerts with a technique ID', 'To identify which attack stages currently have no working detection at all', 'To replace correlation rules entirely', 'To score individual employees on security awareness'], correctIndex: 1, explanation: 'A coverage map surfaces systemic detection gaps across the full attack lifecycle, not just labels for single alerts.' },
+        ],
+      },
+      {
+        id: 'soc-4', slug: 'c2-detection', title: 'Detecting C2: Beaconing, DNS Tunneling & LOLBin Abuse', summary: 'Recognizing beacon jitter patterns, DNS-tunneled exfiltration, and living-off-the-land binary abuse.', minutes: 13, Content: C2Detection,
+        quiz: [
+          { id: 'q1', prompt: 'Why is a single C2 beacon request nearly impossible to flag on its own?', choices: ['Beacon traffic is always unencrypted', 'It looks like ordinary HTTPS traffic — the giveaway is the regular timing across many requests, not any one request', 'Firewalls cannot see HTTPS traffic at all', 'Beacons never use HTTPS'], correctIndex: 1, explanation: 'A single check-in is indistinguishable from normal traffic; the near-exact repeating interval across many requests is what exposes it.' },
+          { id: 'q2', prompt: 'What makes a flood of DNS TXT queries to one domain a tunneling indicator?', choices: ['TXT records are always malicious', 'Normal traffic uses a handful of TXT lookups (SPF/DKIM); dozens of long, high-entropy-looking labels is abnormal volume and shape', 'DNS cannot carry TXT records at all', 'TXT queries are automatically blocked by every firewall'], correctIndex: 1, explanation: 'The tell is volume plus shape — many long, encoded-looking subdomain labels, far beyond the handful of legitimate TXT lookups normal traffic generates.' },
+          { id: 'q3', prompt: 'Why is certutil.exe -urlcache -split -f considered a LOLBin abuse indicator?', choices: ['certutil.exe is malware and should never run', 'It repurposes a legitimate, signed certificate tool\'s undocumented file-download mode, blending in with normal admin activity', 'The flags are required for all certificate operations', 'This command only exists on Linux'], correctIndex: 1, explanation: 'certutil.exe is legitimate and runs constantly for real certificate work — the specific flag combination invoking its file-download capability is what turns routine activity into a detection.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'soc-siem',
+    slug: 'soc-siem-platforms',
+    title: 'SIEM Platforms & Log Management',
+    subtitle: 'Log collection, normalization, correlation rules, real SIEM platforms compared, and running one at scale',
+    description:
+      'How a SIEM actually works under the hood — collecting and normalizing logs from every source into one schema, writing and tuning the correlation rules that turn raw events into alerts, how Splunk, Microsoft Sentinel, IBM QRadar, Elastic Security, and Chronicle each implement these same fundamentals, and the operational reality of onboarding sources, keeping parsers working, and managing data volume once it is all running in production.',
+    status: 'available',
+    sourceBooks: ['Blue Team Handbook', 'The Practice of Network Security Monitoring'],
+    icon: 'soc',
+    lessons: [
+      { id: 'soc-siem-1', slug: 'what-is-a-siem', title: 'What Is a SIEM? Log Collection, Normalization & Centralization', summary: 'The three foundational SIEM capabilities everything else in this module builds on.', minutes: 11, Content: WhatIsASiem },
+      { id: 'soc-siem-2', slug: 'correlation-rules', title: 'Correlation Rules: From Raw Events to Actionable Alerts', summary: 'Writing threshold and multi-stage rules, then tuning them against real false positives.', minutes: 13, Content: CorrelationRules },
+      { id: 'soc-siem-3', slug: 'real-siem-platforms-compared', title: 'Real SIEM Platforms Compared: Splunk, Sentinel, QRadar, Elastic & Chronicle', summary: 'The query languages and interface conventions of five widely-deployed SIEM platforms.', minutes: 14, Content: RealSiemPlatformsCompared },
+      {
+        id: 'soc-siem-4', slug: 'log-onboarding-and-volume', title: 'Log Source Onboarding & Managing Data Volume at Scale', summary: 'Onboarding workflow, silent parser breakage, and the data-volume-vs-cost tradeoff every real SIEM runs into.', minutes: 12, Content: LogOnboardingAndVolume,
+        quiz: [
+          { id: 'q1', prompt: 'What does IBM QRadar call a correlated finding, scored by a Magnitude value?', choices: ['An Incident', 'An Offense', 'A Case', 'A Ticket'], correctIndex: 1, explanation: 'QRadar organizes correlated findings as Offenses, each carrying a Magnitude score for at-a-glance prioritization.' },
+          { id: 'q2', prompt: 'Why is a silently broken log parser especially dangerous compared to a source that stops sending data entirely?', choices: ['It is not dangerous -- broken parsers are always obvious', 'The log still arrives and looks "collected," but a mismapped field silently stops correlation rules keyed on it from matching -- with no error or alert', 'Broken parsers always crash the SIEM immediately', 'Parsers cannot break once configured'], correctIndex: 1, explanation: 'A source going fully silent is at least detectable via volume monitoring; a parser silently mismapping a field degrades detection coverage with no obvious signal at all.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'soc-detection',
+    slug: 'soc-detection-engineering',
+    title: 'Detection Engineering & UEBA',
+    subtitle: 'Writing and tuning detection rules, behavioral baselining, threat intelligence, and vendor-neutral detection-as-code',
+    description:
+      'Four complementary approaches to generating real findings: hand-written rules mapped to specific ATT&CK techniques, User & Entity Behavior Analytics that catches deviation from a learned baseline with no rule required, external threat intelligence feeds that flag infrastructure someone else already confirmed is malicious, and Sigma, the open format that lets a detection be written once and compiled to any SIEM.',
+    status: 'available',
+    sourceBooks: ['Blue Team Handbook', 'The Practice of Network Security Monitoring'],
+    icon: 'soc',
+    lessons: [
+      { id: 'soc-detection-1', slug: 'writing-tuning-detection-rules', title: 'Writing and Tuning Detection Rules', summary: 'The detection lifecycle from hypothesis through backtesting to production tuning.', minutes: 13, Content: WritingTuningDetectionRules },
+      { id: 'soc-detection-2', slug: 'ueba', title: 'User & Entity Behavior Analytics (UEBA)', summary: 'Baselining normal behavior to catch novel attacker activity no rule was ever written for.', minutes: 12, Content: Ueba },
+      { id: 'soc-detection-3', slug: 'threat-intel-integration', title: 'Threat Intelligence Integration & IOC Matching', summary: 'Consuming external IOC feeds (IPs, domains, hashes) and matching them against your own environment.', minutes: 12, Content: ThreatIntelIntegration },
+      {
+        id: 'soc-detection-4', slug: 'sigma-rules', title: 'Sigma Rules: Vendor-Neutral Detection-as-Code', summary: 'Writing one detection rule and compiling it to Splunk SPL, Sentinel KQL, and Elastic EQL alike.', minutes: 13, Content: SigmaRules,
+        quiz: [
+          { id: 'q1', prompt: 'Why can UEBA catch attacker behavior that a written detection rule misses?', choices: ['UEBA only works on cloud platforms', 'UEBA flags deviation from a learned baseline, requiring no pre-written rule for a specific technique', 'UEBA replaces the need for any log collection', 'UEBA only analyzes network traffic'], correctIndex: 1, explanation: 'UEBA learns what normal looks like for a specific user/entity and flags deviation directly, catching genuinely novel behavior no rule was written for.' },
+          { id: 'q2', prompt: 'What problem does Sigma actually solve?', choices: ['It replaces the need for a SIEM entirely', 'It lets one detection be written in a vendor-neutral format and compiled to whichever platform runs it', 'It is a replacement for STIX/TAXII threat intel feeds', 'It only works with Splunk'], correctIndex: 1, explanation: 'Sigma describes detection logic independently of any query language, then a backend compiles it into platform-specific syntax (SPL, KQL, EQL, etc.).' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'soc-ir',
+    slug: 'soc-incident-response',
+    title: 'Incident Response, SOAR & Compliance',
+    subtitle: 'Investigation methodology, automated response playbooks, and compliance reporting',
+    description:
+      'What happens after a detection is confirmed real: building a timeline and scoping the true blast radius, automating response with SOAR playbooks so containment happens in seconds instead of waiting on a human, and generating the compliance reports PCI-DSS, HIPAA, and SOC 2 all require.',
+    status: 'available',
+    sourceBooks: ['Blue Team Handbook', 'The Practice of Network Security Monitoring'],
+    icon: 'soc',
+    lessons: [
+      { id: 'soc-ir-1', slug: 'incident-investigation-methodology', title: 'Incident Investigation Methodology', summary: 'Building a timeline, scoping the full blast radius, and root-cause analysis.', minutes: 13, Content: IncidentInvestigationMethodology },
+      { id: 'soc-ir-2', slug: 'soar-automation', title: 'SOAR: Security Orchestration, Automation & Response', summary: 'Automated playbooks that respond in seconds instead of the ~22-minute manual average.', minutes: 12, Content: SoarAutomation },
+      { id: 'soc-ir-3', slug: 'compliance-reporting', title: 'Compliance Reporting (PCI-DSS, HIPAA, SOC 2, ISO 27001)', summary: 'Generating audit-ready evidence that log review is actually happening, not just theoretically enabled.', minutes: 11, Content: ComplianceReporting },
+      {
+        id: 'soc-ir-4', slug: 'landmark-incident-case-studies', title: 'Landmark Incident Case Studies: Target & the Bangladesh Bank SWIFT Heist', summary: 'Two real breaches showing what happens when a detection is correct but the response around it still fails.', minutes: 13, Content: LandmarkIncidentCaseStudies,
+        quiz: [
+          { id: 'q1', prompt: 'What actually failed in the 2013 Target breach, given that FireEye correctly flagged the malware twice?', choices: ['The detection technology itself was faulty', 'The correct alerts were never escalated in time, buried in a high-volume queue', 'No detection system was in place at all', 'The malware was undetectable by design'], correctIndex: 1, explanation: 'The alerts were correct and timely — the failure was downstream: triage/escalation and a reportedly disabled auto-quarantine feature.' },
+          { id: 'q2', prompt: 'What specifically caused one fraudulent SWIFT transfer to be frozen in the 2016 Bangladesh Bank heist?', choices: ['An intrusion detection system alert', 'A misspelled beneficiary name ("Fandation" instead of "Foundation") triggered manual review', 'A firewall rule blocked the transfer', 'The transfer amount exceeded a hard limit'], correctIndex: 1, explanation: 'A routing bank compliance officer noticed the misspelling and froze the transfer for manual review — a human catching an anomaly, not a technical control.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'forensics',
+    slug: 'forensics',
+    title: 'Digital Forensics',
+    subtitle: 'Timeline analysis, memory artifacts, and evidence recovery',
+    description:
+      'Reconstructing what happened on a compromised system after the fact: filesystem timeline analysis, memory strings analysis for C2 indicators, and recovering deleted-file artifacts — the DFIR skillset.',
+    status: 'available',
+    sourceBooks: ['The Art of Memory Forensics', 'Practical Malware Analysis'],
+    icon: 'forensics',
+    lessons: [
+      { id: 'for-1', slug: 'forensics-fundamentals', title: 'Digital Forensics Fundamentals', summary: 'Chain of custody, the three artifact categories, and timeline analysis.', minutes: 12, Content: ForensicsFundamentals },
+      { id: 'for-2', slug: 'memory-artifact-analysis', title: 'Memory & Artifact Analysis', summary: 'Strings extraction, C2 beacon indicators, and deleted-file recovery.', minutes: 13, Content: MemoryArtifactAnalysis },
+      { id: 'for-3', slug: 'logs-and-network-artifacts', title: 'Windows Event Logs, Browser History & Web Shell Artifacts', summary: 'Security Event IDs, USB device history, and finding what an attacker left behind.', minutes: 13, Content: LogsAndNetworkArtifacts },
+      { id: 'for-4', slug: 'disk-forensics-and-file-system-analysis', title: 'Disk Forensics & File System Analysis', summary: 'NTFS\'s $MFT structure, why "deleted" doesn\'t mean erased, and file carving with foremost.', minutes: 13, Content: DiskForensicsAndFileSystemAnalysis },
+      { id: 'for-5', slug: 'memory-forensics-with-volatility', title: 'Memory Forensics Deep Dive with Volatility', summary: 'Process-tree analysis, malfind injection detection, and extracting credentials from RAM.', minutes: 13, Content: MemoryForensicsWithVolatility },
+      {
+        id: 'for-6', slug: 'forensic-reporting-legal-and-case-studies', title: 'Forensic Reporting, Legal Considerations & Closing Case Studies', summary: 'Defensible chain of custody, expert-witness writing, the BTK Killer and Silk Road cases.', minutes: 13, Content: ForensicReportingLegalAndCaseStudies,
+        quiz: [
+          { id: 'q1', prompt: 'What logon type in a Windows Security Event Log is most associated with pass-the-hash / lateral movement?', choices: ['Type 2 (Interactive)', 'Type 3 (Network)', 'Type 10 (RemoteInteractive)', 'There is no meaningful difference between logon types'], correctIndex: 1, explanation: 'Type 3 (Network) logons are what pass-the-hash and most lateral movement techniques produce — a privileged account showing only Type 3 bursts is a strong indicator.' },
+          { id: 'q2', prompt: 'Why does deleting a file rarely actually erase its underlying data?', choices: ['Deletion always overwrites the data immediately', 'The file system typically just marks the space as available for reuse, leaving the actual data blocks intact until something else overwrites them', 'Deleted files are moved to an encrypted archive automatically', 'This is only true for very old file systems'], correctIndex: 1, explanation: 'On nearly every mainstream file system, deletion frees the space for reuse without immediately overwriting the underlying data — full recovery is often possible until that space is reused.' },
+          { id: 'q3', prompt: 'Why did investigators seize the Ross Ulbricht (Silk Road) laptop while it was still powered on and unlocked, rather than shutting it down first?', choices: ['To save battery life', 'To preserve the live memory and active session state, avoiding the need to break disk encryption and preventing the loss of evidence that only exists in RAM', 'Shutting down was not technically possible', 'It had no effect on the investigation either way'], correctIndex: 1, explanation: 'This is the order-of-volatility principle in a real, high-stakes application — powering down would have lost the live session and any RAM-resident evidence permanently, and risked triggering disk encryption.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cloud',
+    slug: 'cloud',
+    title: 'Cloud Security',
+    subtitle: 'S3 misconfigurations, IAM, and metadata-service SSRF',
+    description:
+      'The misconfiguration patterns responsible for most real-world cloud breaches: public object storage, overly permissive IAM, and SSRF-to-instance-metadata credential theft.',
+    status: 'available',
+    sourceBooks: ['Cloud security fundamentals (AWS/Azure/GCP shared responsibility model)'],
+    icon: 'cloud',
+    lessons: [
+      { id: 'cloud-1', slug: 'cloud-security-fundamentals', title: 'Cloud Security Fundamentals', summary: 'Shared responsibility, public buckets, and the instance metadata service.', minutes: 12, Content: CloudSecurityFundamentals },
+      { id: 'cloud-2', slug: 'iam-and-misconfiguration', title: 'IAM & Common Cloud Misconfigurations', summary: 'Least privilege, instance roles, and the cloud misconfiguration checklist.', minutes: 12, Content: IamAndMisconfiguration },
+      {
+        id: 'cloud-3', slug: 'containers-and-iac-secrets', title: 'Container, Kubernetes & Infrastructure-as-Code Security', summary: 'Exposed Docker/Kubernetes APIs, Terraform state secrets, and serverless least privilege.', minutes: 13, Content: ContainersAndIacSecrets,
+      },
+      { id: 'cloud-4', slug: 'identity-federation-and-cross-account-attacks', title: 'Multi-Cloud Identity Federation & Cross-Account Attacks', summary: 'AssumeRole trust policies, the Rhino Security Labs IAM privesc research, and the Storm-0558 Azure breach.', minutes: 13, Content: IdentityFederationAndCrossAccountAttacks },
+      { id: 'cloud-5', slug: 'cloud-native-detection-and-logging', title: 'Cloud-Native Detection & Logging', summary: 'CloudTrail control-plane events, GuardDuty findings, and the retention gap that defeats investigations.', minutes: 13, Content: CloudNativeDetectionAndLogging },
+      {
+        id: 'cloud-6', slug: 'cspm-and-closing-case-studies', title: 'Cloud Security Posture Management & Closing Case Studies', summary: 'Automating this module\'s checklist, triage prioritization, and the Verizon/NICE 14-million-record exposure.', minutes: 13, Content: CspmAndClosingCaseStudies,
+        quiz: [
+          { id: 'q1', prompt: 'Why does an unauthenticated Docker API on a host lead to full host compromise, not just "container access"?', choices: ['It does not — access is limited to containers only', 'A new container can be started with the host filesystem mounted inside it', 'Docker containers always run as a separate physical machine', 'The Docker API cannot create new containers'], correctIndex: 1, explanation: 'Starting a container with the host\'s root filesystem bind-mounted inside it gives read/write access to the real host, not just container-scoped access.' },
+          { id: 'q2', prompt: 'Are Kubernetes Secrets encrypted by default?', choices: ['Yes, always encrypted at rest and in transit', 'No — they are only base64-encoded, which is trivially reversible', 'Only if the cluster has more than one node', 'Kubernetes does not support storing secrets'], correctIndex: 1, explanation: 'Kubernetes Secrets are base64-encoded, not encrypted — the same false-sense-of-security mistake as treating HTTP Basic Auth as protection.' },
+          { id: 'q3', prompt: 'Why is an IAM trust policy scoped to another account\'s "root" principal a scoping mistake?', choices: ['It is not a mistake — this is the recommended configuration', 'It grants trust to EVERY identity in that other account, not just one specific intended role or user', 'Root principals cannot assume roles at all', 'It only affects billing, not access'], correctIndex: 1, explanation: 'A trust policy scoped to an account\'s root principal effectively trusts every identity in that account, far broader than intended in most real cross-account access designs.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'securityplus',
+    slug: 'securityplus',
+    title: 'Security+ Deep Dive',
+    subtitle: 'Governance, risk, cryptography, IAM, architecture & incident response',
+    description:
+      'The CompTIA Security+ domain knowledge sitting above every technical module in this course: risk math, cryptographic foundations, IAM models, resilient architecture, and the formal incident response process.',
+    status: 'available',
+    sourceBooks: ['CompTIA Security+ Get Certified Get Ahead'],
+    icon: 'lock',
+    lessons: [
+      { id: 'secplus-1', slug: 'grc-fundamentals', title: 'Governance, Risk & Compliance Fundamentals', summary: 'Policy hierarchy, risk math (SLE/ARO/ALE), and the major compliance frameworks.', minutes: 13, Content: GrcFundamentals },
+      { id: 'secplus-2', slug: 'cryptography-fundamentals', title: 'Cryptography Fundamentals', summary: 'Symmetric vs. asymmetric, hashing, PKI, and common cryptographic attacks.', minutes: 13, Content: CryptographyFundamentals },
+      { id: 'secplus-3', slug: 'iam-deep-dive', title: 'Identity & Access Management Deep Dive', summary: 'MFA factors, DAC/MAC/RBAC/ABAC, federation protocols, and PAM.', minutes: 13, Content: IamDeepDive },
+      { id: 'secplus-4', slug: 'security-architecture', title: 'Security Architecture & Resilience', summary: 'Defense in depth, zero trust, HA/redundancy, and backup strategy.', minutes: 12, Content: SecurityArchitecture },
+      {
+        id: 'secplus-5', slug: 'incident-response-bcdr', title: 'Incident Response & Business Continuity', summary: 'The six-phase IR lifecycle, evidence handling, and BCP/DRP.', minutes: 13, Content: IncidentResponseBcdr,
+        quiz: [
+          { id: 'q1', prompt: 'ALE (Annualized Loss Expectancy) is calculated as:', choices: ['Asset Value x Exposure Factor', 'SLE x ARO', 'RTO x RPO', 'Asset Value / ARO'], correctIndex: 1, explanation: 'ALE = Single Loss Expectancy x Annualized Rate of Occurrence.' },
+          { id: 'q2', prompt: 'Which access control model ties permissions to a job role rather than an individual?', choices: ['DAC', 'MAC', 'RBAC', 'ABAC'], correctIndex: 2, explanation: 'RBAC (Role-Based Access Control) assigns access based on job role.' },
+          { id: 'q3', prompt: 'In the order of volatility, which should be collected FIRST?', choices: ['Disk', 'Archival backups', 'RAM/running processes', 'Physical topology documentation'], correctIndex: 2, explanation: 'RAM contents are far more volatile (lost on power-off) than disk or backups.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'binaryanalysis',
+    slug: 'binaryanalysis',
+    title: 'Binary Analysis & Reverse Engineering',
+    subtitle: 'Static/dynamic analysis, assembly, GDB, and exploit development',
+    description:
+      'From "what is this file" to a working understanding of the exploit development process: binary formats, x86 assembly and the stack, debugging with GDB, buffer overflow mechanics, and a minimal exploit skeleton.',
+    status: 'available',
+    sourceBooks: ['Practical Binary Analysis', 'Hacking: The Art of Exploitation'],
+    icon: 'binary',
+    lessons: [
+      { id: 'bin-1', slug: 'binary-formats-static-analysis', title: 'Binary Formats & Static Analysis Fundamentals', summary: 'Read ELF and PE structure with file, strings, objdump, and entropy clues so static triage has evidence rather than guesses.', minutes: 12, Content: BinaryFormatsStaticAnalysis },
+      { id: 'bin-2', slug: 'assembly-stack-crash-course', title: 'x86 Assembly & the Stack: A Crash Course', summary: 'Registers, stack frames, and reading disassembly patterns.', minutes: 14, Content: AssemblyStackCrashCourse },
+      { id: 'bin-3', slug: 'debugging-with-gdb', title: 'Dynamic Analysis: Debugging with GDB', summary: 'Use breakpoints, watchpoints, registers, stack views, and live memory inspection to explain exactly why a binary changed behavior.', minutes: 13, Content: DebuggingWithGdb },
+      { id: 'bin-4', slug: 'buffer-overflow-fundamentals', title: 'Buffer Overflow Fundamentals', summary: 'The classic stack-smashing vulnerability, and the mitigations built against it.', minutes: 14, Content: BufferOverflowFundamentals },
+      {
+        id: 'bin-5', slug: 'intro-exploit-development', title: 'Introduction to Exploit Development', summary: 'The full workflow, shellcode, bad characters, and a minimal Python exploit.', minutes: 13, Content: IntroExploitDevelopment,
+        quiz: [
+          { id: 'q1', prompt: 'What does the "file" command tell you about an unknown binary?', choices: ['Nothing useful', 'Format, architecture, and linking type — without ever executing it', 'Only the file size', 'The exact vulnerability present'], correctIndex: 1, explanation: 'file identifies format/architecture/linking safely via static inspection.' },
+          { id: 'q2', prompt: 'A stack canary defends against buffer overflows by:', choices: ['Encrypting the stack', 'Placing a random value before the return address that is checked before returning', 'Making the stack executable', 'Randomizing memory addresses'], correctIndex: 1, explanation: 'If an overflow corrupts the canary, the mismatch is detected before the corrupted return address is used.' },
+          { id: 'q3', prompt: 'Why does a NOP sled improve exploit reliability?', choices: ['It encrypts the payload', 'Execution landing anywhere in the sled slides forward into the real shellcode', 'It disables ASLR', 'It is required by the CPU'], correctIndex: 1, explanation: 'A NOP sled forgives small addressing inaccuracy by letting execution "slide" into the payload.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'malware',
+    slug: 'malware',
+    title: 'Practical Malware Analysis',
+    subtitle: 'Static/dynamic malware triage, persistence, C2, and evasion',
+    description:
+      'The malware analyst workflow: static triage and import-table analysis, safe dynamic detonation in a sandbox, persistence mechanism hunting, C2 traffic analysis, and the anti-analysis techniques built against all of it.',
+    status: 'available',
+    sourceBooks: ['Practical Malware Analysis'],
+    icon: 'bug',
+    lessons: [
+      { id: 'mal-1', slug: 'static-malware-analysis', title: 'Static Malware Analysis Fundamentals', summary: 'Triage order, PE header red flags, entropy, imports, and YARA rules.', minutes: 13, Content: StaticMalwareAnalysis },
+      { id: 'mal-2', slug: 'dynamic-analysis-sandboxing', title: 'Dynamic Analysis & Sandboxing', summary: 'Detonate malware safely in a controlled lab, monitor process, file, registry, and network behavior, and decode suspicious PowerShell carefully.', minutes: 13, Content: DynamicAnalysisSandboxing },
+      { id: 'mal-3', slug: 'persistence-mechanisms', title: 'Persistence Mechanisms', summary: 'Windows and Linux persistence, the investigator\'s systematic checklist.', minutes: 12, Content: PersistenceMechanisms },
+      { id: 'mal-4', slug: 'network-indicators-c2', title: 'Network Indicators & C2 Communication Analysis', summary: 'C2 architectures, reading beacons, encoding layers, and IOC extraction.', minutes: 13, Content: NetworkIndicatorsC2 },
+      {
+        id: 'mal-5', slug: 'anti-analysis-evasion', title: 'Anti-Analysis & Evasion Techniques', summary: 'Packing, anti-debugging, anti-VM checks, and string encryption.', minutes: 13, Content: AntiAnalysisEvasion,
+        quiz: [
+          { id: 'q1', prompt: 'Seeing WriteProcessMemory + CreateRemoteThread in a sample\'s imports suggests:', choices: ['It is a text editor', 'Process injection capability', 'It only reads files', 'It is definitely benign'], correctIndex: 1, explanation: 'That specific API combination is a hallmark of process injection.' },
+          { id: 'q2', prompt: 'Why do malware sandboxes try to look "lived-in" (fake documents, browser history)?', choices: ['For fun', 'To defeat anti-sandbox checks that look for signs of a real user', 'To speed up analysis', 'It is required by law'], correctIndex: 1, explanation: 'Malware often checks for realistic user activity before revealing its real behavior — sandboxes fake this to defeat the check.' },
+          { id: 'q3', prompt: 'A registry Run key and a disguised Scheduled Task both serve what purpose?', choices: ['Encryption', 'Persistence across reboots', 'Network communication', 'Process injection'], correctIndex: 1, explanation: 'Both are classic Windows persistence mechanisms ensuring code runs again after a restart.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'secengineering',
+    slug: 'secengineering',
+    title: 'Security Engineering',
+    subtitle: 'Economics, design principles, threat modeling & why systems fail',
+    description:
+      'A systems-level view tying the entire course together: why misaligned incentives cause insecure systems, the design principles that hold up under real-world pressure, structured threat modeling, cryptographic engineering pitfalls, and the recurring root-cause patterns behind real breaches.',
+    status: 'available',
+    sourceBooks: ['Security Engineering — Ross Anderson'],
+    icon: 'engineering',
+    lessons: [
+      { id: 'se-1', slug: 'security-economics', title: 'Security Economics: Why Systems Actually Fail', summary: 'Misaligned incentives, the lemons market problem, and externalities.', minutes: 12, Content: SecurityEconomics },
+      { id: 'se-2', slug: 'secure-design-principles', title: 'Secure Design Principles', summary: 'Least privilege, fail-secure vs. fail-open, complete mediation, secure defaults.', minutes: 13, Content: SecureDesignPrinciples },
+      { id: 'se-3', slug: 'threat-modeling', title: 'Threat Modeling', summary: 'STRIDE, data flow diagrams, DREAD scoring, and attack trees.', minutes: 13, Content: ThreatModeling },
+      { id: 'se-4', slug: 'cryptographic-engineering-pitfalls', title: 'Cryptographic Engineering Pitfalls', summary: 'Key management, IV/nonce reuse, padding oracles, and side channels.', minutes: 13, Content: CryptographicEngineeringPitfalls },
+      {
+        id: 'se-5', slug: 'why-systems-fail-case-studies', title: 'Why Security Systems Actually Fail: Recurring Patterns', summary: 'The five patterns synthesizing this entire course\'s incidents and labs.', minutes: 12, Content: WhySystemsFailCaseStudies,
+        quiz: [
+          { id: 'q1', prompt: 'STRIDE\'s "Repudiation" category is primarily addressed by:', choices: ['Encryption', 'Audit logging that can prove who did what', 'Firewalls', 'Least privilege'], correctIndex: 1, explanation: 'Repudiation is about the inability to prove an action occurred — audit logs are the direct countermeasure.' },
+          { id: 'q2', prompt: 'Why is nonce reuse catastrophic in AES-GCM specifically?', choices: ['It slows down encryption', 'It can let an attacker recover plaintext XOR and forge the authentication tag', 'It only affects RSA', 'It has no real impact'], correctIndex: 1, explanation: 'AES-GCM security depends entirely on never reusing a nonce with the same key.' },
+          { id: 'q3', prompt: 'According to security economics, insecure systems are usually shipped because:', choices: ['Engineers do not understand security', 'Whoever controls the ship decision often does not bear the cost of a failure', 'Security is impossible to achieve', 'Regulations forbid secure design'], correctIndex: 1, explanation: 'Misaligned incentives — not lack of care — is the recurring root cause security economics studies.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'code-python-fundamentals',
+    slug: 'code-python-fundamentals',
+    title: 'Code Portal: Python Fundamentals',
+    subtitle: 'Syntax, data structures, functions, errors, and text processing — from zero',
+    description:
+      'The Code Portal\'s general-purpose programming track, starting from scratch: variables and core data ' +
+      'structures, functions and defensive error handling, and the string/regex processing every security ' +
+      'script eventually needs. Every lesson links straight into runnable practice tasks in the Code Portal.',
+    status: 'available',
+    sourceBooks: ['Python Crash Course'],
+    icon: 'code',
+    lessons: [
+      { id: 'cpy-1', slug: 'syntax-and-data-structures', title: 'Python Syntax & Data Structures, From Zero', summary: 'Variables, lists, dicts, sets, and control flow.', minutes: 14, Content: SyntaxAndDataStructures },
+      { id: 'cpy-2', slug: 'functions-and-error-handling', title: 'Functions, Exceptions & Defensive Scripting', summary: 'Writing functions and handling bad input without crashing.', minutes: 12, Content: FunctionsAndErrorHandling },
+      { id: 'cpy-3', slug: 'strings-and-text-processing', title: 'Strings, Text Processing & the re Module', summary: 'Use string methods, slicing, and regular expressions to extract security data from logs without losing malformed or suspicious records.', minutes: 13, Content: StringsAndTextProcessing },
+    ],
+  },
+  {
+    id: 'code-python-oop',
+    slug: 'code-python-oop',
+    title: 'Code Portal: Python OOP',
+    subtitle: 'Classes, inheritance, polymorphism, dunder methods, and dataclasses',
+    description:
+      'Object-oriented Python from first principles through the advanced features real security tooling ' +
+      'actually uses: encapsulation, inheritance vs. composition, polymorphism, dunder methods, abstract base ' +
+      'classes, and dataclasses.',
+    status: 'available',
+    sourceBooks: ['Fluent Python'],
+    icon: 'code',
+    lessons: [
+      { id: 'cpy-4', slug: 'oop-basics', title: 'OOP Basics: Classes, Objects & Encapsulation', summary: 'Your first classes, and controlling access to internal state.', minutes: 13, Content: OopBasics },
+      { id: 'cpy-5', slug: 'inheritance-and-polymorphism', title: 'Inheritance, Polymorphism & Composition', summary: 'Sharing behavior across classes, and when not to.', minutes: 13, Content: InheritanceAndPolymorphism },
+      { id: 'cpy-6', slug: 'advanced-oop', title: 'Advanced OOP: Dunder Methods, Dataclasses & Abstract Classes', summary: 'Making your classes behave like real Python objects.', minutes: 14, Content: AdvancedOop },
+    ],
+  },
+  {
+    id: 'code-python-advanced',
+    slug: 'code-python-advanced',
+    title: 'Code Portal: Advanced Python',
+    subtitle: 'Decorators, generators, context managers, regex, and concurrency',
+    description:
+      'The features that separate working Python from genuinely efficient, expressive Python: closures and ' +
+      'decorators, generators and iterators, custom context managers, advanced regex, asyncio concurrency, ' +
+      'and caching.',
+    status: 'available',
+    sourceBooks: ['Fluent Python'],
+    icon: 'code',
+    lessons: [
+      { id: 'cpy-7', slug: 'decorators-and-closures', title: 'Closures & Decorators', summary: 'Use decorators to wrap functions with logging, authorization, timing, or validation while keeping behavior testable and understandable.', minutes: 14, Content: DecoratorsAndClosures },
+      { id: 'cpy-8', slug: 'generators-and-context-managers', title: 'Generators, Iterators & Context Managers', summary: 'Use generators and context managers for lazy processing and guaranteed cleanup of files, sockets, locks, and other security-relevant resources.', minutes: 13, Content: GeneratorsAndContextManagers },
+      { id: 'cpy-9', slug: 'regex-concurrency-and-caching', title: 'Advanced Regex, Concurrency & Caching', summary: 'Apply advanced regex, asyncio.gather, and lru_cache while understanding concurrency limits, cache correctness, and error handling.', minutes: 14, Content: RegexConcurrencyAndCaching },
+    ],
+  },
+  {
+    id: 'code-python-practice',
+    slug: 'code-python-practice',
+    title: 'Code Portal: Building Python Programs',
+    subtitle: 'Files, structured data, modules, command-line tools, tests, and type hints',
+    description: 'Move from short examples to maintainable Python programs: read and write files safely, validate JSON and CSV, organize packages, configure environments, build command-line interfaces, test behavior, and use static typing to make contracts clearer.',
+    status: 'available',
+    sourceBooks: ['Python Crash Course', 'Automate the Boring Stuff with Python'],
+    icon: 'code',
+    lessons: [
+      { id: 'cpy-10', slug: 'files-and-serialization', title: 'Files, Paths, JSON & CSV', summary: 'Use pathlib and context managers, choose text encodings, validate structured data, and write files atomically.', minutes: 20, Content: PythonFilesAndSerialization },
+      { id: 'cpy-11', slug: 'projects-cli-and-environments', title: 'Modules, Environments & Command-Line Programs', summary: 'Turn scripts into reproducible projects with imports, virtual environments, argparse, configuration, and safe entry points.', minutes: 20, Content: PythonProjectsAndCli },
+      { id: 'cpy-12', slug: 'testing-debugging-and-types', title: 'Testing, Debugging & Type Hints', summary: 'Build reliable tests, inspect failures, design testable functions, and express data contracts with modern type annotations.', minutes: 22, Content: PythonTestingAndTypes },
+    ],
+  },
+  {
+    id: 'programming-algorithms',
+    slug: 'programming-algorithms',
+    title: 'Programming: Data Structures & Algorithms',
+    subtitle: 'Reason about correctness, runtime, memory, and useful abstractions',
+    description: 'Learn why common data structures behave as they do, how to choose them from a workload, and how to implement and test searches, sorts, traversals, and dynamic programs instead of memorizing recipes.',
+    status: 'available',
+    sourceBooks: ['Open Source Society University Computer Science', 'TheAlgorithms/Python', 'Coding Interview University'],
+    icon: 'code',
+    lessons: [
+      { id: 'prog-algo-1', slug: 'complexity-arrays-and-hashing', title: 'Big-O, Arrays & Hash Tables', summary: 'Measure how work grows, understand Python list costs, and use hash maps and sets deliberately.', minutes: 24, Content: ComplexityAndHashing },
+      { id: 'prog-algo-2', slug: 'linear-structures-and-trees', title: 'Stacks, Queues, Linked Structures & Trees', summary: 'Choose linear structures for access patterns, then understand binary search trees, heaps, and traversal.', minutes: 24, Content: LinearAndTreeStructures },
+      { id: 'prog-algo-3', slug: 'graphs-search-and-dynamic-programming', title: 'Graphs, Search, Sorting & Dynamic Programming', summary: 'Model relationships as graphs and learn BFS, DFS, shortest paths, sorting, recursion, and memoization.', minutes: 28, Content: GraphsAndAlgorithms },
+    ],
+  },
+  {
+    id: 'programming-engineering',
+    slug: 'programming-engineering',
+    title: 'Programming: Software & Systems Engineering',
+    subtitle: 'Design, databases, networks, and production reliability',
+    description: 'Connect programming fundamentals to real services: make code easier to change, preserve data correctness, understand processes and HTTP, and build observable systems that handle failure and controlled delivery.',
+    status: 'available',
+    sourceBooks: ['Open Source Society University Computer Science', 'System Design Primer', 'OWASP Cheat Sheet Series'],
+    icon: 'code',
+    lessons: [
+      { id: 'prog-eng-1', slug: 'design-testing-and-refactoring', title: 'Design, Testing & Refactoring', summary: 'Separate responsibilities, define interfaces, use composition, and improve code without changing behavior.', minutes: 22, Content: SoftwareDesignAndTesting },
+      { id: 'prog-eng-2', slug: 'databases-and-transactions', title: 'SQL, Transactions & Data Access', summary: 'Understand relational data, parameterized queries, constraints, transactions, indexes, and consistency.', minutes: 24, Content: DatabasesAndTransactions },
+      { id: 'prog-eng-3', slug: 'systems-networking-and-apis', title: 'Processes, Networking & HTTP APIs', summary: 'Trace a request through processes, sockets, DNS, TCP, TLS, HTTP, and an application boundary.', minutes: 24, Content: SystemsAndNetworking },
+      { id: 'prog-eng-4', slug: 'production-reliability-and-delivery', title: 'Production Reliability, Queues & Delivery', summary: 'Design for timeouts, retries, idempotency, bounded work, caching, observability, containers, and CI.', minutes: 24, Content: ProductionReliability },
+    ],
+  },
+  {
+    id: 'mobile',
+    slug: 'mobile',
+    title: 'Mobile Security',
+    subtitle: 'Android & iOS static/dynamic analysis, insecure storage, and API backends',
+    description:
+      'The mobile-native attack surface: Android/iOS app architecture, unpacking and decompiling APKs/IPAs, ' +
+      'dynamic instrumentation with Frida to bypass certificate pinning, insecure local storage and cleartext ' +
+      'communication, and how it all ties back to the API backend every mobile app ultimately depends on.',
+    status: 'available',
+    sourceBooks: ['The Mobile Application Hacker\'s Handbook', 'OWASP Mobile Application Security Testing Guide (MASTG)'],
+    icon: 'mobile',
+    lessons: [
+      { id: 'mob-1', slug: 'mobile-app-architecture-and-attack-surface', title: 'Mobile App Architecture & the Attack Surface', summary: 'APK/IPA structure, sandboxing, exported components, and the OWASP Mobile Top 10.', minutes: 12, Content: MobileAppArchitectureAndAttackSurface },
+      { id: 'mob-2', slug: 'static-analysis-of-android-apps', title: 'Static Analysis of Android Apps', summary: 'Unpacking with apktool/jadx, manifest review, and hunting hardcoded secrets.', minutes: 13, Content: StaticAnalysisOfAndroidApps },
+      { id: 'mob-3', slug: 'dynamic-analysis-and-instrumentation', title: 'Dynamic Analysis & Instrumentation', summary: 'Intercepting traffic with Burp and bypassing certificate pinning with Frida.', minutes: 13, Content: DynamicAnalysisAndInstrumentation },
+      { id: 'mob-4', slug: 'insecure-data-storage-and-communication', title: 'Insecure Data Storage & Communication', summary: 'Plaintext local storage, cleartext traffic, and WebView JavaScript bridge risks.', minutes: 13, Content: InsecureDataStorageAndCommunication },
+      { id: 'mob-5', slug: 'ios-fundamentals-and-mobile-api-backends', title: 'iOS Security Fundamentals & Mobile API Backends', summary: 'IPA analysis, App Transport Security, Keychain, and closing the loop with API security testing.', minutes: 13, Content: IosFundamentalsAndMobileApiBackends },
+      { id: 'mob-6', slug: 'mobile-malware-and-banking-trojans', title: 'Mobile Malware & Banking Trojans', summary: 'Accessibility Service abuse, overlay attacks, and the TeaBot/Anatsa case study.', minutes: 13, Content: MobileMalwareAndBankingTrojans },
+      { id: 'mob-7', slug: 'mobile-device-management-and-enterprise-security', title: 'Mobile Device Management (MDM) & Enterprise Security', summary: 'Work-profile isolation, root detection bypass, and where MDM provides real value.', minutes: 12, Content: MobileDeviceManagementAndEnterpriseSecurity },
+      {
+        id: 'mob-8', slug: 'mobile-pentest-methodology-and-reporting', title: 'Mobile Penetration Testing Methodology & Reporting', summary: 'The OWASP MASVS/MASTG checklist, assessment ordering, and writing up findings.', minutes: 13, Content: MobilePentestMethodologyAndReporting,
+        quiz: [
+          { id: 'q1', prompt: 'Why is a "secret" API key found hardcoded inside a decompiled mobile app not actually secret anymore?', choices: ['It isn\'t a real risk — decompiling apps is illegal', 'The app is distributed to every user\'s device, so anyone can extract the key via static analysis', 'Hardcoded keys are automatically encrypted by the app store', 'Only iOS apps have this problem'], correctIndex: 1, explanation: 'Once a secret ships inside a client binary distributed to every user, it is effectively public — extractable with the exact static analysis workflow this module covers.' },
+          { id: 'q2', prompt: 'Why does Android\'s Accessibility Service enable such effective banking trojans?', choices: ['It only works on rooted devices', 'It legitimately allows reading on-screen text and injecting taps across every app, which malware abuses to draw fake login overlays and steal credentials', 'It requires server-side compromise of the bank', 'It was deprecated and no longer works'], correctIndex: 1, explanation: 'Accessibility Service is a legitimate, powerful capability — banking trojans like TeaBot abuse the exact same permission a screen reader uses, to read screens and inject taps on the user\'s behalf.' },
+          { id: 'q3', prompt: 'Why can\'t a jailbreak/root detection check ever be a fully reliable security boundary?', choices: ['It always works perfectly on all devices', 'It is a client-side check running on a device the attacker already has full control over, so its return value can be hooked and overridden with Frida', 'Jailbreak detection is illegal to bypass', 'It only matters for iOS, not Android'], correctIndex: 1, explanation: 'Once a device is rooted/jailbroken, any client-side check — including the check for root/jailbreak itself — is just a function whose result can be intercepted and forced to lie.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'wireless',
+    slug: 'wireless',
+    title: 'Wireless & Wi-Fi Hacking',
+    subtitle: '802.11 fundamentals, WPA2/WPA3 cracking, evil twins, and Bluetooth/BLE',
+    description:
+      'The radio-frequency attack surface: 802.11 frame types and monitor mode, capturing and cracking WPA2 ' +
+      'handshakes, why WPA3\'s SAE handshake closes that door, rogue access points and evil twin attacks that ' +
+      'sidestep cryptography entirely, and the adjacent Bluetooth/BLE attack surface most devices also carry.',
+    status: 'available',
+    sourceBooks: ['Hacking Exposed Wireless', 'Red Team Field Manual (RTFM)'],
+    icon: 'wifi',
+    lessons: [
+      { id: 'wl-1', slug: '802-11-fundamentals-and-attack-surface', title: '802.11 Fundamentals & the Wireless Attack Surface', summary: 'Frame types, monitor mode, and why unauthenticated management frames matter.', minutes: 12, Content: Fundamentals80211AndAttackSurface },
+      { id: 'wl-2', slug: 'encryption-and-handshake-capture', title: 'WPA2 Encryption & Handshake Capture', summary: 'The 4-way handshake, deauth-and-capture, and the quieter PMKID technique.', minutes: 13, Content: EncryptionAndHandshakeCapture },
+      { id: 'wl-3', slug: 'cracking-handshakes-and-wpa3', title: 'Cracking Captured Handshakes & WPA3', summary: 'Dictionary/mask attacks with hashcat, and why WPA3-SAE breaks the offline-cracking model.', minutes: 13, Content: CrackingHandshakesAndWpa3 },
+      { id: 'wl-4', slug: 'rogue-aps-and-evil-twin-attacks', title: 'Rogue Access Points & Evil Twin Attacks', summary: 'Cloning trusted SSIDs, the KARMA attack, and captive portal credential phishing.', minutes: 12, Content: RogueApsAndEvilTwinAttacks },
+      { id: 'wl-5', slug: 'bluetooth-and-ble-security', title: 'Bluetooth & BLE Security Basics', summary: 'Pairing trust models, GATT enumeration, and the BlueBorne case study.', minutes: 13, Content: BluetoothAndBleSecurity },
+      { id: 'wl-6', slug: 'enterprise-wireless-802-1x-eap-radius', title: 'Enterprise Wireless: 802.1X/EAP & RADIUS Security', summary: 'Supplicant/authenticator/RADIUS, EAP method strength, and rogue-RADIUS credential theft.', minutes: 13, Content: EnterpriseWireless8021xEapRadius },
+      { id: 'wl-7', slug: 'wireless-ids-and-defensive-monitoring', title: 'Wireless IDS/IPS & Defensive Monitoring', summary: 'Kismet, deauth-rate alerting, and how a WIDS detects this module\'s own attacks.', minutes: 12, Content: WirelessIdsAndDefensiveMonitoring },
+      {
+        id: 'wl-8', slug: 'cellular-security-fundamentals-and-synthesis', title: '5G/Cellular Security Fundamentals & Closing Synthesis', summary: 'IMSI catchers, SS7/Diameter, 5G downgrade attacks, and the module\'s throughline.', minutes: 13, Content: CellularSecurityFundamentalsAndSynthesis,
+        quiz: [
+          { id: 'q1', prompt: 'Why are 802.11 management frames (like deauthentication) exploitable by an attacker with no knowledge of the network password?', choices: ['They are encrypted, but with a weak cipher', 'They were unauthenticated and unencrypted in the original standard and WPA2, so anyone can forge them', 'They require physical access to the AP', 'Only WEP networks have this issue'], correctIndex: 1, explanation: 'Management frames being unauthenticated in 802.11/WPA2 is the root cause behind deauth attacks and evil twin attacks alike.' },
+          { id: 'q2', prompt: 'In an enterprise 802.1X/EAP deployment, what does the access point (the "authenticator") actually verify about the client\'s credentials?', choices: ['It independently validates them against Active Directory itself', 'Nothing directly — it relays the exchange to a RADIUS server and simply honors whatever accept/reject decision comes back', 'It only checks the device\'s MAC address', 'It requires no credential exchange at all'], correctIndex: 1, explanation: 'The AP is just an authenticator that forwards the conversation to a trusted RADIUS server — the actual identity check happens at the RADIUS/AD backend, not the AP itself.' },
+          { id: 'q3', prompt: 'What do 802.11 evil twins, rogue RADIUS servers, and cellular IMSI catchers all fundamentally exploit?', choices: ['A single shared cryptographic flaw across all three', 'A device\'s willingness to trust whichever nearby transmitter broadcasts a familiar identity, with no cryptographic way to verify which physical source is genuine', 'They exploit completely unrelated vulnerabilities with no common pattern', 'Weak passwords in every case'], correctIndex: 1, explanation: 'The module\'s closing synthesis: Wi-Fi SSIDs, RADIUS servers, and cellular tower identities are all broadcast identities a device trusts by default, with no built-in way to verify which physical transmitter is actually behind them.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'iot',
+    slug: 'iot',
+    title: 'IoT & Embedded Security',
+    subtitle: 'Firmware analysis, UART/JTAG hardware hacking, embedded web UIs, and the Mirai botnet',
+    description:
+      'The physically-accessible attack surface: extracting and statically analyzing firmware with binwalk, ' +
+      'hardware debug interfaces (UART/JTAG/SPI flash) that often hand over a root shell to anyone holding ' +
+      'the device, recurring embedded web-UI vulnerability patterns, and the Mirai botnet\'s full lifecycle ' +
+      'as a case study in what happens when these findings repeat across an entire industry at scale.',
+    status: 'available',
+    sourceBooks: ['The Hardware Hacking Handbook', 'Practical IoT Hacking'],
+    icon: 'chip',
+    lessons: [
+      { id: 'iot-1', slug: 'iot-architecture-and-attack-surface', title: 'IoT Architecture & the Embedded Attack Surface', summary: 'The four-layer model, embedded Linux vs. RTOS, and the OWASP IoT Top 10.', minutes: 12, Content: IotArchitectureAndAttackSurface },
+      { id: 'iot-2', slug: 'firmware-extraction-and-static-analysis', title: 'Firmware Extraction & Static Analysis', summary: 'binwalk, SquashFS extraction, and hunting hardcoded credentials in /etc/shadow.', minutes: 13, Content: FirmwareExtractionAndStaticAnalysis },
+      { id: 'iot-3', slug: 'hardware-hacking-uart-jtag-spi', title: 'Hardware Hacking Fundamentals: UART, JTAG & SPI', summary: 'Serial console root shells, JTAG debug access, and dumping SPI flash directly.', minutes: 13, Content: HardwareHackingUartJtagSpi },
+      { id: 'iot-4', slug: 'embedded-web-interfaces-and-common-vulns', title: 'Embedded Web Interfaces & Common IoT Vulnerabilities', summary: 'Default credentials, command injection in diagnostic tools, and insecure OTA updates.', minutes: 12, Content: EmbeddedWebInterfacesAndCommonVulns },
+      { id: 'iot-5', slug: 'iot-botnets-mirai-and-beyond', title: 'IoT Botnets & the Broader Ecosystem: Mirai and Beyond', summary: 'Mirai\'s full attack chain, its source leak, the botnets that followed, and the regulation it triggered.', minutes: 13, Content: IotBotnetsMiraiAndBeyond },
+      { id: 'iot-6', slug: 'iot-protocols-zigbee-zwave-mqtt', title: 'IoT Communication Protocols: Zigbee, Z-Wave & MQTT Security', summary: 'The default Trust Center link key, Z-Wave S2 downgrades, and wide-open MQTT brokers.', minutes: 13, Content: IotProtocolsZigbeeZwaveMqtt },
+      { id: 'iot-7', slug: 'industrial-control-systems-and-scada-security', title: 'Industrial Control Systems & SCADA Security', summary: 'OT\'s inverted CIA priorities, unauthenticated Modbus, the Purdue Model, and Stuxnet.', minutes: 13, Content: IndustrialControlSystemsAndScadaSecurity },
+      {
+        id: 'iot-8', slug: 'iot-testing-methodology-and-compliance', title: 'IoT Security Testing Methodology & Regulatory Compliance', summary: 'The OWASP FSTM nine-stage framework, and mapping findings to SB-327/PSTI/CRA.', minutes: 13, Content: IotTestingMethodologyAndCompliance,
+        quiz: [
+          { id: 'q1', prompt: 'Why was Mirai able to compromise hundreds of thousands of devices using only around 60 credential pairs?', choices: ['It exploited a single zero-day vulnerability', 'Many IoT vendors shipped devices with hardcoded default credentials that users had no way to change', 'It used a novel cryptographic attack', 'It required physical access to each device'], correctIndex: 1, explanation: 'Mirai\'s success came from I1 (weak/hardcoded credentials) repeated across an entire industry, not from any single sophisticated exploit.' },
+          { id: 'q2', prompt: 'Why does JTAG access effectively bypass every software-level security control on a device?', choices: ['JTAG requires the same password as the web UI', 'JTAG halts the CPU directly and allows raw memory read/write, with no OS-level access control running while the CPU is halted', 'JTAG only works over the network', 'It doesn\'t — JTAG is fully sandboxed by the OS'], correctIndex: 1, explanation: 'JTAG operates below the software layer entirely — with the CPU halted via the debug interface, there is no running OS to enforce any access control at all.' },
+          { id: 'q3', prompt: 'Why does ICS/SCADA security typically prioritize Availability above Confidentiality, unlike most IT systems?', choices: ['Confidentiality does not matter for industrial systems', 'An unplanned outage in a system controlling a physical process (like water treatment) can have direct physical/safety consequences, making patching and downtime a much higher-stakes decision', 'ICS systems are never connected to networks at all', 'This is a documentation error — the priorities are actually identical to IT'], correctIndex: 1, explanation: 'OT environments reorder the CIA triad because an availability failure in a system controlling a physical process can cause real-world physical harm, unlike most IT systems.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'ai-security',
+    slug: 'ai-security',
+    title: 'AI & LLM Security',
+    subtitle: 'Prompt injection, jailbreaking, insecure output handling, and the OWASP Top 10 for LLMs',
+    description:
+      'Natural language as a new, largely unsolved attack surface: prompt injection and jailbreaking, ' +
+      'insecure output handling and excessive agency in AI agents, training data poisoning and model-supply-' +
+      'chain risks (malicious pickle files, model theft), and sensitive information disclosure through ' +
+      'memorized training data, careless human input, and unscoped RAG retrieval — grounded throughout in ' +
+      'real, publicly documented incidents.',
+    status: 'available',
+    sourceBooks: ['OWASP Top 10 for Large Language Model Applications', 'NIST AI Risk Management Framework'],
+    icon: 'brain',
+    lessons: [
+      { id: 'ai-1', slug: 'ai-security-fundamentals-owasp-llm-top-10', title: 'AI/LLM Security Fundamentals & the OWASP Top 10 for LLMs', summary: 'Why natural language is a genuinely new untrusted input channel, and the OWASP LLM Top 10 as a working map.', minutes: 12, Content: AiSecurityFundamentalsOwaspLlmTop10 },
+      { id: 'ai-2', slug: 'prompt-injection-and-jailbreaking', title: 'Prompt Injection & Jailbreaking', summary: 'Direct and indirect prompt injection, jailbreak techniques, and the Chevrolet chatbot incident.', minutes: 13, Content: PromptInjectionAndJailbreaking },
+      { id: 'ai-3', slug: 'insecure-output-handling-and-excessive-agency', title: 'Insecure Output Handling & Excessive Agency', summary: 'LLM-mediated XSS/SSRF, agentic tool misuse, and the Air Canada chatbot liability ruling.', minutes: 13, Content: InsecureOutputHandlingAndExcessiveAgency },
+      { id: 'ai-4', slug: 'training-data-poisoning-model-theft-supply-chain', title: 'Training Data Poisoning, Model Theft & Supply Chain', summary: 'Backdoor triggers, malicious pickle model files, and model extraction via repeated queries.', minutes: 13, Content: TrainingDataPoisoningModelTheftSupplyChain },
+      { id: 'ai-5', slug: 'sensitive-info-disclosure-rag-security-case-studies', title: 'Sensitive Information Disclosure, RAG Security & Case Studies', summary: 'Training data memorization, the Samsung ChatGPT incident, and cross-tenant RAG data leakage.', minutes: 13, Content: SensitiveInfoDisclosureRagSecurityCaseStudies },
+      { id: 'ai-6', slug: 'adversarial-machine-learning-evasion', title: 'Adversarial Machine Learning: Evasion & Adversarial Examples', summary: 'Gradient-based evasion attacks, the physical-world stop-sign study, and malware-classifier evasion.', minutes: 13, Content: AdversarialMachineLearningEvasion },
+      { id: 'ai-7', slug: 'ai-governance-red-teaming-safety-evaluation', title: 'AI Governance, Red Teaming & Safety Evaluation', summary: 'AI red teaming methodology, the NIST AI RMF, and the EU AI Act.', minutes: 13, Content: AiGovernanceRedTeamingSafetyEvaluation },
+      {
+        id: 'ai-8', slug: 'securing-ai-agents-multi-agent-systems', title: 'Securing AI Agents & Multi-Agent Systems in Production', summary: 'Agent-to-agent trust, MCP/tool-calling risks, and this module\'s closing synthesis.', minutes: 13, Content: SecuringAiAgentsMultiAgentSystems,
+        quiz: [
+          { id: 'q1', prompt: 'Why can\'t an LLM reliably distinguish a developer\'s system prompt from an attacker\'s injected instruction?', choices: ['LLMs are not trained on any instructions at all', 'Both are just concatenated text handed to the model with no cryptographic separation marking one as more authoritative', 'System prompts are always encrypted', 'This is only a problem for older models'], correctIndex: 1, explanation: 'This is the root cause behind prompt injection: system prompt, retrieved context, and user input are all just text with no enforced trust boundary between them.' },
+          { id: 'q2', prompt: 'How does a classic adversarial example (like the stop-sign sticker attack) differ from a prompt injection attack?', choices: ['They are the same technique with a different name', 'An adversarial example exploits the mathematical structure of a model\'s decision boundary with a crafted input perturbation, rather than exploiting the model\'s natural-language instruction-following', 'Adversarial examples only work on LLMs', 'Adversarial examples require no computation to create'], correctIndex: 1, explanation: 'Adversarial examples are a gradient-based mathematical attack against any classifier\'s decision boundary — a distinct, older attack class from prompt injection\'s language-based instruction override.' },
+          { id: 'q3', prompt: 'In a multi-agent AI system, why is one agent trusting another agent\'s output a security risk?', choices: ['It is not a risk — agent-to-agent communication is inherently safe', 'An upstream agent may have already been successfully prompt-injected, and that injection can propagate silently to every downstream agent that trusts its output as legitimate', 'Agents cannot communicate with each other at all', 'This only matters if the agents are made by different companies'], correctIndex: 1, explanation: 'This is the module\'s compounding excessive-agency risk: a downstream agent trusting another agent\'s output as inherently authoritative lets an upstream injection propagate through the entire chain.' },
+        ],
+      },
+    ],
+  },
+];
+
+// Continuation modules follow the existing curriculum without renumbering existing lessons.
+MODULES.push(...ADVANCED_OFFENSIVE_MODULES);
+MODULES.splice(MODULES.findIndex(module => module.slug === 'webapp') + 1, 0, MODERN_DATABASE_MODULE);
+MODULES.push(...KALI_OFFENSIVE_MODULES);
+MODULES.unshift(...PRE_SECURITY_MODULES);
+MODULES.push(...DEFENSIVE_MODULES);
+
+// Extend the established modules without changing existing routes or progress IDs.
+for (const addition of [
+  ...COLLECTION_EXTENSIONS,
+  { slug: 'networking', lessons: modernNetworkingLessons, sources: ['IETF protocol specifications', 'Nmap / iproute2 / nftables manuals'] },
+  { slug: 'linux', lessons: modernLinuxLessons, sources: ['Linux kernel and permissions manuals', 'OpenSSH manuals'] },
+  { slug: 'webapp', lessons: modernWebLessons, sources: ['OWASP guidance', 'IETF OAuth and JWT security guidance', 'MDN browser documentation'] },
+  { slug: 'binaryanalysis', lessons: exploitationBinaryLessons, sources: ['Hacking: The Art of Exploitation (historical concepts)', 'Current GCC / Clang / GDB documentation'] },
+  { slug: 'networking', lessons: exploitationNetworkLessons, sources: ['Socket API and Python documentation'] },
+  { slug: 'secengineering', lessons: exploitationEngineeringLessons, sources: ['Linux object/path resolution contracts'] },
+  { slug: 'crypto-attacks', lessons: exploitationCryptoLessons, sources: ['OWASP password storage', 'Current cryptography APIs', 'NIST cryptographic standards'] },
+]) {
+  const module = MODULES.find(item => item.slug === addition.slug);
+  if (module) {
+    module.lessons.push(...curriculumModule(module, addition.lessons).lessons);
+    module.sourceBooks.push(...addition.sources);
+  }
+}
+
+const cloudModule = MODULES.find(module => module.slug === 'cloud');
+if (cloudModule) {
+  cloudModule.subtitle = 'Cloud foundations, IAM, storage, workloads and investigations';
+  cloudModule.description = 'Learn cloud accounts and APIs, then study IAM policies, storage permissions, workload credentials, network paths, audit events and secret lifecycle with concrete examples and practice.';
+  const first = cloudModule.lessons.find(lesson => lesson.id === 'cloud-1');
+  if (first) Object.assign(first, {
+    summary: cloudFoundation.summary, minutes: cloudFoundation.minutes,
+    prerequisite: cloudFoundation.prerequisite, objectives: cloudFoundation.outcomes,
+    quiz: curriculumModule(cloudModule, [cloudFoundation]).lessons[0].quiz,
+  });
+  const order = ['cloud-1', ...Array.from({ length: 9 }, (_, i) => 'cloud-modern-' + (i + 1)), 'cloud-2', 'cloud-3', 'cloud-4', 'cloud-5', 'cloud-6'];
+  cloudModule.lessons.sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
+}
+
+// Prerequisite C semantics precede assembly; diagnostic depth follows its core lesson.
+const binaryTeachingOrder = ['binary-depth-1', 'binary-depth-2', 'bin-1', 'bin-2', 'bin-3', 'binary-depth-3', 'bin-4', 'binary-depth-4', 'bin-5', 'binary-depth-5'];
+MODULES.find(module => module.slug === 'binaryanalysis')?.lessons.sort((a, b) => {
+  const rank = (id: string) => { const index = binaryTeachingOrder.indexOf(id); return index < 0 ? binaryTeachingOrder.length : index; };
+  return rank(a.id) - rank(b.id);
+});
+
+export const ROADMAP: RoadmapStage[] = [
+  ...PRE_SECURITY_ROADMAP,
+  { title: 'Networking Fundamentals', status: 'available', moduleSlug: 'networking', sourceBooks: ['Cybersecurity Essentials', 'Security+ Get Certified Get Ahead'], track: 'security' },
+  { title: 'Linux Basics for Hackers', status: 'available', moduleSlug: 'linux', sourceBooks: ['Linux Basics for Hackers'], track: 'security' },
+  { title: 'Reconnaissance & Enumeration', status: 'available', moduleSlug: 'recon', sourceBooks: ['RTFM', 'The Hacker Playbook 3'], track: 'security' },
+  { title: 'Python & Black Hat Python', status: 'available', moduleSlug: 'python', sourceBooks: ['Black Hat Python'], track: 'security' },
+  { title: 'Web Application Hacking', status: 'available', moduleSlug: 'webapp', sourceBooks: ['The Web Application Hacker\'s Handbook', 'PortSwigger Web Security Academy'], track: 'security' },
+  { title: MODERN_DATABASE_MODULE.title, status: MODERN_DATABASE_MODULE.status, moduleSlug: MODERN_DATABASE_MODULE.slug, sourceBooks: MODERN_DATABASE_MODULE.sourceBooks, track: 'security' },
+  { title: 'Red Teaming & Active Directory', status: 'available', moduleSlug: 'redteam', sourceBooks: ['The Hacker Playbook 3'], track: 'security' },
+  { title: 'Bug Bounty Methodology', status: 'available', moduleSlug: 'bugbounty', sourceBooks: ['Real-World Bug Hunting', 'Bug Bounty Bootcamp'], track: 'security' },
+  { title: 'API Security', status: 'available', moduleSlug: 'api-security', sourceBooks: ['OWASP API Security Top 10', 'Real-World Bug Hunting'], track: 'security' },
+  { title: 'Applied Cryptography Attacks', status: 'available', moduleSlug: 'crypto-attacks', sourceBooks: ['Serious Cryptography', 'The Web Application Hacker\'s Handbook'], track: 'security' },
+  { title: 'Cloud Security', status: 'available', moduleSlug: 'cloud', sourceBooks: ['Cloud security fundamentals'], track: 'security' },
+  { title: 'Security+ Deep Dive', status: 'available', moduleSlug: 'securityplus', sourceBooks: ['CompTIA Security+ Get Certified Get Ahead'], track: 'security' },
+  { title: 'Binary Analysis & Reverse Engineering', status: 'available', moduleSlug: 'binaryanalysis', sourceBooks: ['Practical Binary Analysis', 'Hacking: The Art of Exploitation'], track: 'security' },
+  { title: 'Practical Malware Analysis', status: 'available', moduleSlug: 'malware', sourceBooks: ['Practical Malware Analysis'], track: 'security' },
+  { title: 'Security Engineering', status: 'available', moduleSlug: 'secengineering', sourceBooks: ['Security Engineering — Ross Anderson'], track: 'security' },
+  { title: 'Mobile Security', status: 'available', moduleSlug: 'mobile', sourceBooks: ['The Mobile Application Hacker\'s Handbook', 'OWASP MASTG'], track: 'security' },
+  { title: 'Wireless & Wi-Fi Hacking', status: 'available', moduleSlug: 'wireless', sourceBooks: ['Hacking Exposed Wireless', 'RTFM'], track: 'security' },
+  { title: 'IoT & Embedded Security', status: 'available', moduleSlug: 'iot', sourceBooks: ['The Hardware Hacking Handbook', 'Practical IoT Hacking'], track: 'security' },
+  { title: 'AI & LLM Security', status: 'available', moduleSlug: 'ai-security', sourceBooks: ['OWASP Top 10 for LLM Applications', 'NIST AI RMF'], track: 'security' },
+  ...ADVANCED_OFFENSIVE_ROADMAP,
+  ...KALI_OFFENSIVE_ROADMAP,
+  { title: 'Hands-On Pentest & Analysis Labs', status: 'available', href: '/labs', sourceBooks: ['Applied practice across every module above'], track: 'security' },
+  ...DEFENSIVE_ROADMAP,
+
+  { title: 'Code Portal: Python Fundamentals', status: 'available', moduleSlug: 'code-python-fundamentals', sourceBooks: ['Python Crash Course'], track: 'programming' },
+  { title: 'Code Portal: Python OOP', status: 'available', moduleSlug: 'code-python-oop', sourceBooks: ['Fluent Python'], track: 'programming' },
+  { title: 'Code Portal: Advanced Python', status: 'available', moduleSlug: 'code-python-advanced', sourceBooks: ['Fluent Python'], track: 'programming' },
+  { title: 'Building Python Programs', status: 'available', moduleSlug: 'code-python-practice', sourceBooks: ['Python Crash Course', 'Automate the Boring Stuff with Python'], track: 'programming' },
+  { title: 'Data Structures & Algorithms', status: 'available', moduleSlug: 'programming-algorithms', sourceBooks: ['OSSU Computer Science', 'TheAlgorithms/Python'], track: 'programming' },
+  { title: 'Software & Systems Engineering', status: 'available', moduleSlug: 'programming-engineering', sourceBooks: ['System Design Primer', 'OWASP Cheat Sheet Series'], track: 'programming' },
+  { title: 'Code Portal: C++ & JavaScript Practice', status: 'available', href: '/code-portal', sourceBooks: ['Code Portal practice tasks'], track: 'programming' },
+
+  { title: 'Foundations: Python, NumPy, Pandas & Math', status: 'available', href: '/ml-lesson/python-basics', sourceBooks: ['GCI World Pre-Lecture & Sessions 2-4'], track: 'ml' },
+  { title: 'Data Handling & Feature Engineering', status: 'available', href: '/ml-lesson/missing-data', sourceBooks: ['GCI World Session 8'], track: 'ml' },
+  { title: 'Regression', status: 'available', href: '/ml-lesson/supervised-learning', sourceBooks: ['GCI World Session 5'], track: 'ml' },
+  { title: 'Classification', status: 'available', href: '/ml-lesson/knn', sourceBooks: ['GCI World Session 5 & 8'], track: 'ml' },
+  { title: 'Model Evaluation', status: 'available', href: '/ml-lesson/model-evaluation', sourceBooks: ['GCI World Session 6'], track: 'ml' },
+  { title: 'Unsupervised Learning', status: 'available', href: '/ml-lesson/unsupervised-learning', sourceBooks: ['GCI World Session 11'], track: 'ml' },
+  { title: 'Neural Networks & Deep Learning', status: 'available', href: '/ml-lesson/perceptron', sourceBooks: ['Extension curriculum'], track: 'ml' },
+  { title: 'Natural Language Processing', status: 'available', href: '/ml-lesson/text-preprocessing', sourceBooks: ['Extension curriculum'], track: 'ml' },
+  { title: 'Time Series', status: 'available', href: '/ml-lesson/time-series', sourceBooks: ['GCI World Session 12'], track: 'ml' },
+  { title: 'Data Engineering & MLOps', status: 'available', href: '/ml-lesson/sql-databases', sourceBooks: ['GCI World Session 10 & extension'], track: 'ml' },
+];
+
+const ALL_MODULES = [...MODULES];
+const ALL_ROADMAP = [...ROADMAP];
+const OWNER_MODULE_SLUGS = new Set<string>();
+const OWNER_ROADMAP_TRACKS = new Set(['software', 'dotnet', 'ml']);
+
+/** The software engineering and C# & .NET modules are not part of the app bundle: they arrive from
+ *  the private owner-content bucket (src/features/account/lib/ownerContent.ts) and are added here, after the
+ *  programming path, once an owner account has downloaded them. */
+export function registerOwnerCurriculum(modules: ModuleMeta[], stages: RoadmapStage[]) {
+  for (const module of modules) {
+    if (OWNER_MODULE_SLUGS.has(module.slug)) continue;
+    OWNER_MODULE_SLUGS.add(module.slug);
+    ALL_MODULES.push(module);
+  }
+  const known = new Set(ALL_ROADMAP.map(stage => stage.moduleSlug ?? stage.href));
+  const fresh = stages.filter(stage => !known.has(stage.moduleSlug ?? stage.href));
+  const anchor = ALL_ROADMAP.findIndex(stage => stage.moduleSlug === 'programming-engineering');
+  ALL_ROADMAP.splice(anchor < 0 ? ALL_ROADMAP.length : anchor + 1, 0, ...fresh);
+  const owner = ownerCurriculum ?? false;
+  ownerCurriculum = undefined;
+  applyCurriculumAccess(owner);
+}
+let ownerCurriculum: boolean | undefined;
+
+/** Machine learning, C# & .NET and software engineering are visible only to the owner accounts
+ *  (see src/features/account/lib/ownerAccess.ts). Applied with the signed-in account before pages render, so every
+ *  list, count and lookup built on MODULES / ROADMAP leaves those tracks out for everyone else. */
+export function applyCurriculumAccess(owner: boolean) {
+  if (ownerCurriculum === owner) return;
+  ownerCurriculum = owner;
+  MODULES.splice(0, MODULES.length, ...(owner ? ALL_MODULES : ALL_MODULES.filter(module => !OWNER_MODULE_SLUGS.has(module.slug))));
+  ROADMAP.splice(0, ROADMAP.length, ...(owner ? ALL_ROADMAP : ALL_ROADMAP.filter(stage => !OWNER_ROADMAP_TRACKS.has(stage.track))));
+}
+watchOwnerSession(applyCurriculumAccess);
+
+export function findModule(slug?: string) {
+  return MODULES.find((m) => m.slug === slug);
+}
+
+export function findLesson(moduleSlug?: string, lessonSlug?: string) {
+  const mod = findModule(moduleSlug);
+  if (!mod) return undefined;
+  const lesson = mod.lessons.find((l) => l.slug === lessonSlug);
+  if (!lesson) return undefined;
+  return { module: mod, lesson };
+}

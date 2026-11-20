@@ -1,63 +1,63 @@
-import InstallPrompt from '../src/components/layout/InstallPrompt';
+import InstallPrompt from '../src/features/offline/components/InstallPrompt';
 // Development-only, in-memory learner fixture. This entry is not part of the production build.
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
-import '../src/index.css';
-import { applyInitialTheme } from '../src/state/theme';
+import '../src/app/styles/index.css';
+import { applyInitialTheme } from '../src/shared/state/theme';
 
 applyInitialTheme();
-import { AuthContext } from '../src/state/authStore';
-import { ProgressContext, type ProgressApi, type ProgressState } from '../src/state/progressStore';
-import AppLayout from '../src/components/layout/AppLayout';
-import HomePage from '../src/pages/HomePage';
-import RoadmapPage from '../src/pages/RoadmapPage';
-import ModulePage from '../src/pages/ModulePage';
-import LessonPage from '../src/pages/LessonPage';
-import LabPage from '../src/pages/LabPage';
-import LabsIndexPage from '../src/pages/LabsIndexPage';
-import SiemLabPage from '../src/pages/SiemLabPage';
-import ProfilePage from '../src/pages/ProfilePage';
-import MyLearningPage from '../src/pages/MyLearningPage';
-import ResourcesPage from '../src/pages/ResourcesPage';
-import LibraryPage from '../src/pages/LibraryPage';
-import MyTasksPage from '../src/pages/MyTasksPage';
-import ProgressPage from '../src/pages/ProgressPage';
-import '../src/academy-system.css';
+import { AuthContext } from '../src/features/account/state/authStore';
+import { ProgressContext, type ProgressApi, type ProgressState } from '../src/features/progress/state/progressStore';
+import AppLayout from '../src/app/layout/AppLayout';
+import HomePage from '../src/features/curriculum/pages/HomePage';
+import RoadmapPage from '../src/features/curriculum/pages/RoadmapPage';
+import ModulePage from '../src/features/curriculum/pages/ModulePage';
+import LessonPage from '../src/features/curriculum/pages/LessonPage';
+import LabPage from '../src/features/labs/pages/LabPage';
+import LabsIndexPage from '../src/features/labs/pages/LabsIndexPage';
+import SiemLabPage from '../src/features/soc/pages/SiemLabPage';
+import ProfilePage from '../src/features/account/pages/ProfilePage';
+import MyLearningPage from '../src/features/curriculum/pages/MyLearningPage';
+import ResourcesPage from '../src/features/library/pages/ResourcesPage';
+import LibraryPage from '../src/features/library/pages/LibraryPage';
+import MyTasksPage from '../src/features/labs/pages/MyTasksPage';
+import ProgressPage from '../src/features/progress/pages/ProgressPage';
+import '../src/app/styles/academy-system.css';
 
-import CodePortalPage from '../src/pages/CodePortalPage';
+import CodePortalPage from '../src/features/code-practice/pages/CodePortalPage';
 
-import CodeTaskPage from '../src/pages/CodeTaskPage';
+import CodeTaskPage from '../src/features/code-practice/pages/CodeTaskPage';
 
-import MlPortalPage from '../src/pages/MlPortalPage';
+import MlPortalPage from '../src/features/curriculum/pages/MlPortalPage';
 
-import MlLessonPage from '../src/pages/MlLessonPage';
+import MlLessonPage from '../src/features/curriculum/pages/MlLessonPage';
 
-import SocPortalPage from '../src/pages/SocPortalPage';
+import SocPortalPage from '../src/features/soc/pages/SocPortalPage';
 
-import BuildPortalPage from '../src/pages/BuildPortalPage';
+import BuildPortalPage from '../src/features/code-practice/pages/BuildPortalPage';
 
-import ProjectTaskPage from '../src/pages/ProjectTaskPage';
+import ProjectTaskPage from '../src/features/code-practice/pages/ProjectTaskPage';
 
-import BookReaderPage from '../src/pages/BookReaderPage';
+import BookReaderPage from '../src/features/library/pages/BookReaderPage';
 
-import LeaderboardPage from '../src/pages/LeaderboardPage';
+import LeaderboardPage from '../src/features/progress/pages/LeaderboardPage';
 
-import SchedulePage from '../src/pages/SchedulePage';
+import SchedulePage from '../src/features/curriculum/pages/SchedulePage';
 
-import AnnouncementsPage from '../src/pages/AnnouncementsPage';
+import AnnouncementsPage from '../src/features/support/pages/AnnouncementsPage';
 
-import SecurityPage from '../src/pages/SecurityPage';
+import SecurityPage from '../src/features/support/pages/SecurityPage';
 
-import HelpFaqPage from '../src/pages/HelpFaqPage';
+import HelpFaqPage from '../src/features/support/pages/HelpFaqPage';
 
-import FeedbackPage from '../src/pages/FeedbackPage';
+import FeedbackPage from '../src/features/support/pages/FeedbackPage';
 
-import IntroPage from '../src/pages/IntroPage';
+import IntroPage from '../src/features/marketing/pages/IntroPage';
 
-import LoginPage from '../src/pages/LoginPage';
+import LoginPage from '../src/features/account/pages/LoginPage';
 
-import ResetPasswordPage from '../src/pages/ResetPasswordPage';
+import ResetPasswordPage from '../src/features/account/pages/ResetPasswordPage';
 
 export function Preview() {
   const [state, setState] = useState<ProgressState>({ completedLessons: {}, labFlags: {}, quizScores: {}, learnerName: 'Preview Learner', bookmarkedLabs: {}, labCompletedAt: {}, completedCodeTasks: {}, activityDates: [], codeTaskAttempts: {}, codeTaskHintsUsed: {}, codeTaskSolutionRevealed: {}, leaderboardOptIn: false, lastUserId: 'local-preview' });

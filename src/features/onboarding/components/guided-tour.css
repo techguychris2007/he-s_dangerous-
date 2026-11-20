@@ -1,0 +1,95 @@
+/* First-visit guided tour (GuidedTour.tsx). Above the completion notice (80) and the cyber-name welcome
+   (70); native <dialog>s such as search sit in the browser's top layer, and the tour waits for them. */
+.dw-tour { position: fixed; inset: 0; z-index: 90; font-family: var(--font-sans, Inter, system-ui, sans-serif); }
+
+/* Catches clicks so the page behind stays put. Dims the screen only for the centred steps; when an
+   element is spotlighted, the spotlight's own shadow does the dimming. */
+.dw-tour__shade { position: absolute; inset: 0; background: transparent; }
+.dw-tour__shade.is-dim { background: color-mix(in srgb, var(--color-navy, #0b1022) 72%, transparent); backdrop-filter: blur(3px); }
+
+.dw-tour__spotlight {
+  position: fixed; border-radius: 14px; pointer-events: none;
+  border: 2px solid var(--chrome-highlight, var(--color-accent));
+  box-shadow: 0 0 0 9999px color-mix(in srgb, var(--color-navy, #0b1022) 70%, transparent), 0 0 0 6px color-mix(in srgb, var(--chrome-highlight, var(--color-accent)) 22%, transparent);
+  transition: top .32s cubic-bezier(.2, .8, .2, 1), left .32s cubic-bezier(.2, .8, .2, 1), width .32s cubic-bezier(.2, .8, .2, 1), height .32s cubic-bezier(.2, .8, .2, 1);
+}
+
+.dw-tour__card {
+  position: fixed; width: min(400px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow-y: auto;
+  padding: 18px 20px 16px; border-radius: 18px;
+  border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text);
+  box-shadow: 0 28px 70px -24px rgba(5, 8, 20, .7), 0 0 0 1px color-mix(in srgb, var(--color-accent) 12%, transparent);
+  animation: dw-tour-in .26s ease-out both;
+}
+.dw-tour__card:focus { outline: none; }
+.dw-tour__card.is-measuring { visibility: hidden; top: 0; left: 0; }
+.dw-tour__card.is-center { top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(460px, calc(100vw - 32px)); padding: 24px 24px 18px; }
+.dw-tour__card.is-below, .dw-tour__card.is-above, .dw-tour__card.is-right { overflow: visible; transition: top .32s cubic-bezier(.2, .8, .2, 1), left .32s cubic-bezier(.2, .8, .2, 1); } /* visible: the arrow sits just outside the card */
+.dw-tour__card.is-sheet { left: 12px; right: 12px; width: auto; max-height: min(70dvh, calc(100dvh - 24px)); }
+.dw-tour__card.is-sheet.is-bottom { bottom: max(12px, env(safe-area-inset-bottom)); }
+.dw-tour__card.is-sheet.is-top { top: max(12px, env(safe-area-inset-top)); }
+
+/* Arrow joining the card to the spotlighted element. */
+.dw-tour__arrow { position: absolute; width: 14px; height: 14px; margin-left: -7px; background: var(--color-surface); border: 1px solid var(--color-border); transform: rotate(45deg); }
+.dw-tour__arrow.is-below { top: -8px; border-right: 0; border-bottom: 0; }
+.dw-tour__arrow.is-above { bottom: -8px; border-left: 0; border-top: 0; }
+.dw-tour__arrow.is-right { left: -8px; margin-left: 0; margin-top: -7px; border-top: 0; border-right: 0; }
+
+.dw-tour__head { display: flex; align-items: center; gap: 12px; }
+.dw-tour__guide { flex: none; line-height: 0; filter: drop-shadow(0 8px 14px rgba(5, 8, 20, .35)); }
+.dw-tour__guide .dw-avatar { border-radius: 16px; }
+.dw-tour__who { min-width: 0; flex: 1; }
+.dw-tour__who strong { display: block; font-size: 14px; font-weight: 700; color: var(--color-heading); }
+.dw-tour__who small { display: block; margin-top: 1px; font-size: 12px; color: var(--color-text-dim); }
+.dw-tour__count { flex: none; font-size: 11.5px; font-weight: 600; letter-spacing: .06em; color: var(--color-text-dim); font-variant-numeric: tabular-nums; }
+.dw-tour__close { flex: none; display: grid; place-items: center; width: 32px; height: 32px; margin-right: -6px; border-radius: 9px; color: var(--color-text-dim); background: transparent; border: 0; cursor: pointer; }
+.dw-tour__close svg { width: 16px; height: 16px; }
+.dw-tour__close:hover { color: var(--color-heading); background: var(--color-surface-2); }
+
+.dw-tour__crew { display: flex; justify-content: center; margin: 16px 0 2px; }
+.dw-tour__crew .dw-avatar { border-radius: 14px; box-shadow: 0 0 0 3px var(--color-surface), 0 10px 18px -8px rgba(5, 8, 20, .5); }
+.dw-tour__crew .dw-avatar + .dw-avatar { margin-left: -8px; }
+
+.dw-tour__title { margin: 14px 0 0; font-family: var(--font-display); font-size: 19px; font-weight: 700; line-height: 1.25; letter-spacing: -.01em; color: var(--color-heading); }
+.dw-tour__card.is-center .dw-tour__title { font-size: 22px; text-align: center; }
+.dw-tour__body { margin: 8px 0 0; font-size: 14px; line-height: 1.6; color: var(--color-text); }
+.dw-tour__card.is-center .dw-tour__body { text-align: center; }
+
+.dw-tour__foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 18px; }
+.dw-tour__dots { display: flex; gap: 5px; margin: 0; padding: 0; list-style: none; }
+.dw-tour__dots li { width: 6px; height: 6px; border-radius: 3px; background: color-mix(in srgb, var(--color-text-dim) 35%, transparent); transition: width .2s, background .2s; }
+.dw-tour__dots li.is-done { background: color-mix(in srgb, var(--color-accent) 55%, transparent); }
+.dw-tour__dots li.is-current { width: 18px; background: var(--color-accent); }
+.dw-tour__actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+/* Centred steps (welcome, finish): dots centred under the text, buttons side by side beneath. */
+.dw-tour__card.is-center .dw-tour__foot { flex-direction: column-reverse; align-items: stretch; gap: 14px; }
+.dw-tour__card.is-center .dw-tour__dots { justify-content: center; }
+.dw-tour__card.is-center .dw-tour__actions { flex-wrap: nowrap; justify-content: stretch; }
+.dw-tour__card.is-center .dw-tour__actions .dw-tour__button { flex: 1 1 auto; white-space: nowrap; }
+
+.dw-tour__button { min-height: 38px; padding: 8px 15px; border-radius: 10px; font-size: 13px; font-weight: 650; line-height: 1.2; cursor: pointer; border: 1px solid transparent; transition: background .15s, border-color .15s, color .15s; }
+.dw-tour__button.is-primary { color: #fff; background: var(--color-accent); border-color: var(--color-accent); }
+.dw-tour__button.is-primary:hover { background: var(--color-accent-dim); border-color: var(--color-accent-dim); }
+.dw-tour__button.is-quiet { color: var(--color-text); background: transparent; border-color: var(--color-border); }
+.dw-tour__button.is-quiet:hover { color: var(--color-heading); background: var(--color-surface-2); }
+.dw-tour__button:focus-visible, .dw-tour__close:focus-visible { outline: 2px solid var(--chrome-highlight, var(--color-accent)); outline-offset: 2px; }
+
+@keyframes dw-tour-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.dw-tour__card.is-center { animation-name: dw-tour-in-center; }
+@keyframes dw-tour-in-center { from { opacity: 0; transform: translate(-50%, calc(-50% + 8px)) scale(.98); } to { opacity: 1; transform: translate(-50%, -50%); } }
+
+@media (max-width: 639px) {
+  .dw-tour__card { padding: 16px 16px 14px; }
+  .dw-tour__card.is-center { padding: 20px 18px 16px; }
+  .dw-tour__foot { flex-direction: column-reverse; align-items: stretch; gap: 14px; }
+  .dw-tour__dots { justify-content: center; }
+  .dw-tour__actions { justify-content: stretch; }
+  .dw-tour__actions .dw-tour__button { flex: 1; }
+  /* Phones: the centred steps stack their buttons full width, main action on top. */
+  .dw-tour__card.is-center .dw-tour__actions { flex-direction: column-reverse; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dw-tour__card, .dw-tour__card.is-center { animation: none; }
+  .dw-tour__spotlight, .dw-tour__card.is-below, .dw-tour__card.is-above, .dw-tour__dots li { transition: none; }
+}

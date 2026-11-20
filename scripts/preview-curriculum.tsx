@@ -1,13 +1,13 @@
 // Isolated development review; no authentication changes, account data or saved progress writes.
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import '../src/index.css';
-import { ADVANCED_OFFENSIVE_MODULES, ADVANCED_LESSONS } from '../src/data/advancedOffensiveCurriculum';
-import { advancedOffensiveCampaigns } from '../src/labs/scenarios/advanced-offensive-campaigns';
-import LessonArticle from '../src/content/advanced-offensive/LessonArticle';
+import '../src/app/styles/index.css';
+import { ADVANCED_OFFENSIVE_MODULES, ADVANCED_LESSONS } from '../src/features/curriculum/data/advancedOffensiveCurriculum';
+import { advancedOffensiveCampaigns } from '../src/features/labs/scenarios/advanced-offensive-campaigns';
+import LessonArticle from '../src/features/curriculum/content/advanced-offensive/LessonArticle';
 import EngagementOverview from '../src/components/labs/EngagementOverview';
-import Terminal from '../src/components/terminal/Terminal';
-import '../src/academy-system.css';
+import Terminal from '../src/features/labs/components/terminal/Terminal';
+import '../src/app/styles/academy-system.css';
 
 export function Preview() {
   const [lessonIndex, setLessonIndex] = useState(0);

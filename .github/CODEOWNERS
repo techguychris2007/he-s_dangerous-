@@ -1,0 +1,13 @@
+# Review routing by directory, the same idea as Google's OWNERS files.
+# GitHub requests a review from the listed owners when a pull request touches a matching path; the
+# last matching rule wins. Add co-owners per feature as the team grows, for example:
+#   /src/features/soc/   @techguychris2007 @<benedict-github-handle>
+
+*                              @techguychris2007
+
+# Money, access control and the database need the owner's review.
+/src/features/billing/         @techguychris2007
+/src/features/account/         @techguychris2007
+/src/features/admin/           @techguychris2007
+/supabase/                     @techguychris2007
+/docs/legal/                   @techguychris2007

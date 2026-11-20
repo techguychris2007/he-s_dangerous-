@@ -4,15 +4,18 @@
 interface ImportMetaEnv {
   readonly VITE_SUPABASE_URL: string;
   readonly VITE_SUPABASE_ANON_KEY: string;
-  /** Sentry project DSN; error reporting stays off when unset (src/lib/monitoring.ts). */
+  /** Sentry project DSN; error reporting stays off when unset (src/shared/lib/monitoring.ts). */
   readonly VITE_SENTRY_DSN?: string;
   /** Set at build time from Vercel's commit SHA (vite.config.ts). */
   readonly VITE_APP_RELEASE?: string;
-  /** SimpleAnalytics hostname to report as; analytics stays off when unset (src/lib/analytics.ts). */
+  /** SimpleAnalytics hostname to report as; analytics stays off when unset (src/shared/lib/analytics.ts). */
   readonly VITE_ANALYTICS_HOSTNAME?: string;
-  /** "on" limits DarkWorld to laptops and desktops (src/components/layout/ComputerAccessGate.tsx).
+  /** "on" limits DarkWorld to laptops and desktops (src/app/guards/ComputerAccessGate.tsx).
    *  Anything else, the default, lets phones and tablets in. */
   readonly VITE_COMPUTER_ONLY?: string;
+  /** "on" turns on Pro/Max plans: the paywall, pricing and the paid-content split. Anything else
+   *  (the default) keeps every lesson and lab free and in the bundle (src/features/billing/lib/billing.ts). */
+  readonly VITE_PAID_PLANS?: string;
 }
 
 interface ImportMeta {

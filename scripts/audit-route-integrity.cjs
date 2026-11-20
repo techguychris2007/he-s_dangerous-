@@ -4,11 +4,11 @@ require.extensions['.jpg'] = () => null;
 require.extensions['.png'] = () => null;
 require.extensions['.svg'] = () => null;
 
-const { MODULES } = require('../src/data/curriculum.ts');
-const { LABS, findLab } = require('../src/data/labs.ts');
-const { LESSON_LABS } = require('../src/data/lessonLabs.ts');
-const { SIEM_LABS } = require('../src/labs/siemScenarios.ts');
-const { PYTHON_TASKS } = require('../src/labs/pythonTasks/index.ts');
+const { MODULES } = require('../src/features/curriculum/data/curriculum.ts');
+const { LABS, findLab } = require('../src/features/labs/data/labs.ts');
+const { LESSON_LABS } = require('../src/features/curriculum/data/lessonLabs.ts');
+const { SIEM_LABS } = require('../src/features/soc/engine/siemScenarios.ts');
+const { PYTHON_TASKS } = require('../src/features/code-practice/tasks/pythonTasks/index.ts');
 
 const duplicateKeys = [];
 const scenarioIds = new Set();

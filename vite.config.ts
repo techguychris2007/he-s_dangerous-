@@ -1,13 +1,20 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import { fileURLToPath } from 'node:url'
+import paidContent from './scripts/vite-paid-content.mjs'
+
+const root = fileURLToPath(new URL('.', import.meta.url)).replace(/\/$/, '')
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   // Tags error reports with the deployed commit, so a report points at the exact code that failed.
   define: { 'import.meta.env.VITE_APP_RELEASE': JSON.stringify(process.env.VERCEL_GIT_COMMIT_SHA ?? '') },
   plugins: [
+    // Once paid plans are switched on (VITE_PAID_PLANS=on, src/features/billing/lib/billing.ts), production builds
+    // ship Pro and Max labs and lessons only as outlines; until then everything stays in the bundle.
+    paidContent({ root, enabled: loadEnv(mode, root, 'VITE_').VITE_PAID_PLANS === 'on' }),
     react(),
     tailwindcss(),
     VitePWA({
@@ -111,4 +118,4 @@ export default defineConfig({
       },
     }),
   ],
-})
+}))

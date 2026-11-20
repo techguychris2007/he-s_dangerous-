@@ -1,0 +1,75 @@
+import { useSyncExternalStore } from 'react';
+import { registerSW } from 'virtual:pwa-register';
+
+interface InstallEvent extends Event {
+  prompt(): Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
+type PwaState = { installable: boolean; installed: boolean; offlineReady: boolean; updateAvailable: boolean; error: string };
+let state: PwaState = { installable: false, installed: false, offlineReady: false, updateAvailable: false, error: '' };
+const listeners = new Set<() => void>();
+let deferred: InstallEvent | null = null;
+let started = false;
+let update: ((reload?: boolean) => Promise<void>) | undefined;
+function patch(value: Partial<PwaState>) { state = { ...state, ...value }; listeners.forEach(listener => listener()); }
+const subscribe = (listener: () => void) => { listeners.add(listener); return () => { listeners.delete(listener); }; };
+export function usePwa() { return useSyncExternalStore(subscribe, () => state); }
+export function openAppInstall() { window.dispatchEvent(new Event('darkworld:app-settings')); }
+export async function installApp(): Promise<void> {
+  const event = deferred;
+  if (!event) return;
+  deferred = null;
+  patch({ installable: false, error: '' });
+  try { await event.prompt(); await event.userChoice; }
+  catch { patch({ error: 'The browser could not open installation. Use the install option in its menu, or try again in Chrome or Edge.' }); }
+}
+export async function applyAppUpdate() {
+  try { await update?.(true); }
+  catch { patch({ error: 'The update could not be applied. Finish your work, reconnect, and reload DarkWorld.' }); }
+}
+export function startPwa() {
+  if (started) return;
+  started = true;
+  const display = matchMedia('(display-mode: standalone)');
+  patch({ installed: display.matches });
+  display.addEventListener('change', () => patch({ installed: display.matches }));
+  window.addEventListener('beforeinstallprompt', event => { event.preventDefault(); deferred = event as InstallEvent; patch({ installable: true }); });
+  window.addEventListener('appinstalled', () => { deferred = null; patch({ installed: true, installable: false }); });
+  if (import.meta.env.DEV) {
+    // A worker left by an earlier `vite preview` on this port would keep serving that old build over
+    // the dev server. Only the registration goes; offline library caches stay.
+    void navigator.serviceWorker?.getRegistrations().then(registrations => {
+      if (registrations.length) void Promise.all(registrations.map(r => r.unregister())).then(() => location.reload());
+    });
+    return;
+  }
+}
+
+let registered = false;
+/** The worker that saves DarkWorld for offline use runs only for the owner accounts (see
+ *  src/features/account/lib/ownerSession.ts). Called once sign-in has resolved. For anyone else, an existing worker
+ *  is removed with the app copy it saved (and any owner-content copy), so the app needs the network
+ *  like any website; updates then arrive on the next load. Offline book and Python downloads stay. */
+export function enableOfflineCaching(owner: boolean) {
+  if (import.meta.env.DEV) return;
+  if (!owner) {
+    registered = false;
+    patch({ offlineReady: false, updateAvailable: false });
+    update = undefined;
+    void navigator.serviceWorker?.getRegistrations().then(registrations => Promise.all(registrations.map(registration => registration.unregister()))).catch(() => {});
+    const storage = globalThis.caches;
+    void storage?.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('workbox-precache') || key === 'darkworld-owner-content').map(key => storage.delete(key)))).catch(() => {});
+    return;
+  }
+  if (registered) return;
+  registered = true;
+  update = registerSW({
+    immediate: true,
+    onNeedRefresh: () => patch({ updateAvailable: true }),
+    onOfflineReady: () => patch({ offlineReady: true, error: '' }),
+    onRegisteredSW: (_url, registration) => {
+      if (registration?.active) void caches.match(new URL('index.html', import.meta.env.BASE_URL.startsWith('/') ? location.origin + import.meta.env.BASE_URL : location.href).href, { ignoreSearch: true }).then(response => patch({ offlineReady: Boolean(response) })).catch(() => {});
+    },
+    onRegisterError: () => patch({ error: 'Offline storage could not start. Reconnect and reload DarkWorld; also check that this browser allows site storage.' }),
+  });
+}
