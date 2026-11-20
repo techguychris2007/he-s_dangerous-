@@ -10,24 +10,10 @@
 // Owner accounts cannot be deleted here.
 
 import { BILLING_CORS, env, paystack, reply } from '../_shared/paystack.ts';
+import { verifiedUser } from '../_shared/auth.ts';
 
-const OWNER_EMAILS = new Set(['techguychris2007@gmail.com', 'christopherbondam@gmail.com']);
-
-interface Caller { id: string; email: string | null }
-
-function caller(req: Request): Caller | null {
-  const token = req.headers.get('Authorization')?.replace(/^Bearer\s+/i, '');
-  const payload = token?.split('.')[1];
-  if (!payload) return null;
-  try {
-    const claims = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
-    if (claims.role !== 'authenticated' || typeof claims.sub !== 'string') return null;
-    if (claims.exp && claims.exp * 1000 <= Date.now()) return null;
-    return { id: claims.sub, email: typeof claims.email === 'string' && claims.email ? claims.email.toLowerCase() : null };
-  } catch {
-    return null;
-  }
-}
+/** Owner and admin accounts (see admin_access() in supabase/migrations/0015_admin_dashboard.sql). */
+const OWNER_EMAILS = new Set(['techguychris2007@gmail.com', 'christopherbondam@gmail.com', 'adjeibenedict010@gmail.com']);
 
 function serviceHeaders() {
   const key = env('SUPABASE_SERVICE_ROLE_KEY');
@@ -69,7 +55,7 @@ Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: BILLING_CORS });
   if (req.method !== 'POST') return reply({ error: 'Method not allowed.' }, 405);
 
-  const user = caller(req);
+  const user = await verifiedUser(req).catch(() => null);
   if (!user) return reply({ error: 'Sign in again, then try deleting your account.' }, 401);
   if (user.email && OWNER_EMAILS.has(user.email)) return reply({ error: 'Owner accounts cannot be deleted from the app.' }, 403);
 

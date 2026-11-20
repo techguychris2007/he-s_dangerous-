@@ -2,7 +2,8 @@
 //   supabase functions deploy paystack-checkout
 // Starts a Paystack checkout for the signed-in learner, or opens Paystack's page for managing an
 // existing card subscription. Deployed with verify_jwt on, so the gateway has already checked the
-// session token; the role claim is still checked so the public anon key alone is refused.
+// session token; the caller is also confirmed with Supabase Auth (_shared/auth.ts), so the public
+// anon key alone, or a forged token, is refused.
 //
 // The browser only names an offer. The price, the plan and the length of access all come from
 // supabase/functions/_shared/billingPlans.ts, and the plan is granted only by the webhook after
@@ -10,6 +11,7 @@
 
 import { findPass, MONTHLY_AMOUNT, SUBSCRIPTION_DAYS, type PaidPlan } from '../_shared/billingPlans.ts';
 import { BILLING_CORS, codeForPlan, entitlementFor, env, hasRenewingSubscription, paystack, reply } from '../_shared/paystack.ts';
+import { verifiedUser } from '../_shared/auth.ts';
 
 type Method = 'card' | 'mobile_money';
 
@@ -20,22 +22,6 @@ interface Body {
   method?: Method;
   /** The site origin to return to after paying; must be on the allow-list. */
   origin?: string;
-}
-
-interface Caller { id: string; email: string }
-
-function caller(req: Request): Caller | null {
-  const token = req.headers.get('Authorization')?.replace(/^Bearer\s+/i, '');
-  const payload = token?.split('.')[1];
-  if (!payload) return null;
-  try {
-    const claims = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
-    if (claims.role !== 'authenticated' || claims.is_anonymous || typeof claims.sub !== 'string' || typeof claims.email !== 'string' || !claims.email) return null;
-    if (claims.exp && claims.exp * 1000 <= Date.now()) return null;
-    return { id: claims.sub, email: claims.email };
-  } catch {
-    return null;
-  }
 }
 
 function returnUrl(origin: string | undefined): string {
@@ -49,7 +35,9 @@ Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: BILLING_CORS });
   if (req.method !== 'POST') return reply({ error: 'Method not allowed.' }, 405);
 
-  const user = caller(req);
+  const verified = await verifiedUser(req).catch(() => null);
+  // Guests and accounts without an email cannot pay: Paystack needs an email to send the receipt to.
+  const user = verified && !verified.isAnonymous && verified.email ? { id: verified.id, email: verified.email } : null;
   if (!user) return reply({ error: 'Sign in with a registered account to manage your plan.' }, 401);
 
   try {
