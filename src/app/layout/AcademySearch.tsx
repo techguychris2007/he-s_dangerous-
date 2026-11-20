@@ -2,7 +2,7 @@ import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../features/account/state/authStore';
-import { isInstructor } from '../../features/admin/lib/instructorConfig';
+import { isAdmin } from '../../features/admin/lib/adminConfig';
 import { searchAcademy } from './navigation';
 import './navigation.css';
 
@@ -15,7 +15,7 @@ export default function AcademySearch({ compact = false, onNavigate }: { compact
   const listId = useId();
   const auth = useAuth();
   const navigate = useNavigate();
-  const results = searchAcademy(query, isInstructor(auth.user));
+  const results = searchAcademy(query, isAdmin(auth.user));
   const show = () => { setQuery(''); setActive(0); setOpen(true); };
   useEffect(() => {
     const shortcut = (event: KeyboardEvent) => {

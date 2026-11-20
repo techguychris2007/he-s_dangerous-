@@ -5,7 +5,6 @@ import InstallPrompt from '../features/offline/components/InstallPrompt';
 import { ProgressContext, useProgressState, useProgress } from '../features/progress/state/progressStore';
 import { AuthContext, useAuthState, useAuth } from '../features/account/state/authStore';
 import { pullProgress, pushProgressWithRetry } from '../features/progress/lib/progressSync';
-import { isInstructor } from '../features/admin/lib/instructorConfig';
 import { isAdmin } from '../features/admin/lib/adminConfig';
 import { isOwnerEmail, setOwnerSession, useIsOwner } from '../features/account/lib/ownerAccess';
 import { setSyncStatus } from '../features/progress/state/syncStatus';
@@ -50,7 +49,6 @@ const MlPortalPage = lazy(() => import('../features/curriculum/pages/MlPortalPag
 const MlLessonPage = lazy(() => import('../features/curriculum/pages/MlLessonPage'));
 const LibraryPage = lazy(() => import('../features/library/pages/LibraryPage'));
 const BookReaderPage = lazy(() => import('../features/library/pages/BookReaderPage'));
-const InstructorDashboardPage = lazy(() => import('../features/admin/pages/InstructorDashboardPage'));
 const AdminDashboardPage = lazy(() => import('../features/admin/pages/AdminDashboardPage'));
 const PricingPage = lazy(() => import('../features/billing/pages/PricingPage'));
 const BillingPage = lazy(() => import('../features/billing/pages/BillingPage'));
@@ -86,17 +84,6 @@ function OwnerContentNotice({ message }: { message: string }) {
     <strong>Machine learning, C# and software engineering content is unavailable.</strong> {message}{' '}
     <button type="button" onClick={() => void loadOwnerContent()} style={{ color: 'var(--color-accent)', fontWeight: 650 }}>Try again</button>
   </div>;
-}
-
-/** Route-level gate for the Instructor Dashboard — purely a UX nicety (redirects a non-instructor
- *  straight back to the dashboard instead of showing a broken page). The actual access control is
- *  server-side: instructor_dashboard_progress() rejects any caller whose email doesn't match, so
- *  this check being bypassed somehow still can't leak any data. */
-function RequireInstructor({ children }: { children: React.ReactNode }) {
-  const auth = useAuth();
-  if (auth.loading) return <FullScreenLoader />;
-  if (!isInstructor(auth.user)) return <Navigate to="/" replace />;
-  return <>{children}</>;
 }
 
 /** Route-level gate for the Admin Dashboard. UX only: admin_access() in
@@ -400,16 +387,7 @@ function App() {
               <Route path="/help" element={<Suspense fallback={<PageLoader />}><HelpFaqPage /></Suspense>} />
               <Route path="/feedback" element={<Suspense fallback={<PageLoader />}><FeedbackPage /></Suspense>} />
               <Route path="/billing" element={PAID_PLANS_LIVE ? <Suspense fallback={<PageLoader />}><BillingPage /></Suspense> : <Navigate to="/" replace />} />
-              <Route
-                path="/instructor"
-                element={
-                  <RequireInstructor>
-                    <Suspense fallback={<PageLoader />}>
-                      <InstructorDashboardPage />
-                    </Suspense>
-                  </RequireInstructor>
-                }
-              />
+              <Route path="/instructor" element={<Navigate to="/admin" replace />} />
               <Route
                 path="/admin"
                 element={

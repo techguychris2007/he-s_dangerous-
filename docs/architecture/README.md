@@ -25,7 +25,7 @@ identity, storage and a few server-side functions. Vercel serves the static buil
    ┌──────────────────────── Supabase (rbkqqwmqdzgnpnhkwomg) ───────────┐   ┌────── Vercel ──────┐
    │ Auth: email, Google, GitHub                                       │   │ dist/ (Vite build) │
    │ Postgres + row-level security: progress, leaderboard, feedback,   │   │ public/ (books,    │
-   │   ratings, comments, instructor & admin views, billing, access    │   │  runtimes, legal)  │
+   │   ratings, comments, admin views, billing, access                 │   │  runtimes, legal)  │
    │ Storage: owner-content (private), paid-content (plan-gated)       │   └────────────────────┘
    │ Edge Functions (Deno): ai-tutor, ai-lab-tutor, admin-analyst,     │
    │   paystack-checkout, paystack-webhook, delete-account             │──▶ Groq · Gemini · Anthropic
@@ -50,7 +50,7 @@ identity, storage and a few server-side functions. Vercel serves the static buil
 ├── supabase/
 │   ├── migrations/         0001 … 0015, applied in order; the only way the database schema changes
 │   ├── functions/          one folder per Edge Function, plus _shared/ (CORS, LLM, Paystack, prices)
-│   └── tests/              SQL checks run against a database (anonymous access, instructor views)
+│   └── tests/              SQL checks run against a database (anonymous access)
 ├── tests/                  node verification suites (check-*.cjs), run by `npm run test:*` and CI
 ├── scripts/                build, publish and audit tooling (paid/owner content, banners, policy pages)
 ├── tools/                  separately built runtimes (C# runner, TypeScript runtime) and the restructure codemod
@@ -114,7 +114,7 @@ Sizes are TypeScript files and lines at the time of the restructure.
 | `progress` | 30 / 3k | XP, levels, streaks, weekly missions, achievements, leaderboard, certificates, cloud sync of progress | `/progress`, `/leaderboard`, `/certificates` |
 | `account` | 10 / 1k | Sign-in, password reset, profile, account deletion, owner access and owner-only content | `/login`, `/reset-password`, `/profile` |
 | `billing` | 8 / 1k | Plan tiers, pricing, checkout, entitlements, paid-content unlock | `/pricing`, `/billing` |
-| `admin` | 9 / 2k | Instructor dashboard and the operator dashboard with its AI analyst | `/instructor`, `/admin` |
+| `admin` | 6 / 2k | The operator dashboard with its AI analyst (`/instructor` redirects here) | `/admin` |
 | `ai-tutor` | 3 / 0.4k | Streaming chat window and the tutor API client shared by labs and the reader | — |
 | `offline` | 10 / 0.4k | Installable PWA (owner accounts only), offline runtime and workspace preparation | — |
 | `onboarding` | 2 / 0.4k | Guided tour | — |

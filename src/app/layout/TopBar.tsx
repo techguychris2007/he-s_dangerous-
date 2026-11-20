@@ -37,7 +37,6 @@ const PAGE_TITLES: Record<string, string> = {
   help: 'Help & FAQ',
   feedback: 'Feedback',
   billing: 'Plan and billing',
-  instructor: 'Instructor Dashboard',
   admin: 'Admin Dashboard',
 };
 

@@ -16,7 +16,7 @@ const POINTS: { title: string; body: string }[] = [
   },
   {
     title: 'Two deliberately narrow exceptions to "only you can see your data"',
-    body: 'An opt-in leaderboard (off by default) can show your name and score to other learners — nothing else, and never unless you turn it on yourself. Separately, one specific instructor account can view cohort-wide progress for teaching purposes, enforced by a server-side check on the caller\'s identity, not a setting the app\'s frontend controls.',
+    body: 'An opt-in leaderboard (off by default) can show your name and score to other learners — nothing else, and never unless you turn it on yourself. Separately, the academy\'s single admin account can view cohort-wide progress to run the platform, enforced by a server-side check on the caller\'s identity, not a setting the app\'s frontend controls.',
   },
   {
     title: 'Services used by the platform',

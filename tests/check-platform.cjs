@@ -8,7 +8,6 @@ const { DEFENSIVE_MODULES, DEFENSIVE_MILESTONES } = require('../src/features/cur
 const { labsForLesson } = require('../src/features/curriculum/data/lessonLabs.ts');
 const { LABS } = require('../src/features/labs/data/labs.ts');
 const { SIEM_LABS } = require('../src/features/soc/engine/siemScenarios.ts');
-const { isInstructor } = require('../src/features/admin/lib/instructorConfig.ts');
 const unique = (values, name) => assert.equal(new Set(values).size, values.length, `${name} must be unique`);
 unique(MODULES.map(module => module.id), 'Module IDs');
 unique(MODULES.map(module => module.slug), 'Module routes');
@@ -42,12 +41,4 @@ for (const milestone of DEFENSIVE_MILESTONES) {
   for (const slug of previous) assert.ok(milestone.requiredModuleSlugs.includes(slug), 'Career progression must retain prior prerequisites');
   previous = milestone.requiredModuleSlugs;
 }
-const instructor = { email: 'techguychris2007@gmail.com', email_confirmed_at: '2026-10-05', is_anonymous: false, app_metadata: { darkworld_username: 'chrisb', darkworld_role: 'instructor' } };
-assert.equal(isInstructor(instructor), true);
-assert.equal(isInstructor(null), false);
-assert.equal(isInstructor({ ...instructor, email: 'learner@example.test' }), false);
-assert.equal(isInstructor({ ...instructor, email_confirmed_at: undefined }), false);
-assert.equal(isInstructor({ ...instructor, is_anonymous: true }), false);
-assert.equal(isInstructor({ ...instructor, app_metadata: {}, user_metadata: instructor.app_metadata }), false, 'Editable metadata must never grant instructor access');
-assert.equal(isInstructor({ ...instructor, app_metadata: { ...instructor.app_metadata, darkworld_username: 'someone-else' } }), false);
-console.log(`Platform integrity passed: ${MODULES.length} modules, ${LABS.length} terminal labs, ${DEFENSIVE_MILESTONES.length} career milestones; instructor authorization checks passed.`);
+console.log(`Platform integrity passed: ${MODULES.length} modules, ${LABS.length} terminal labs, ${DEFENSIVE_MILESTONES.length} career milestones`);

@@ -3,7 +3,6 @@ import { NavLink, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { findModule } from '../../features/curriculum/data/curriculum';
 import { useProgress } from '../../features/progress/state/progressStore';
 import { useAuth } from '../../features/account/state/authStore';
-import { isInstructor } from '../../features/admin/lib/instructorConfig';
 import { isAdmin } from '../../features/admin/lib/adminConfig';
 import Logo from '../../shared/components/layout/Logo';
 import { OperatorAvatar } from '../../shared/characters/CharacterAvatar';
@@ -11,7 +10,7 @@ import { useHandle } from '../../features/account/state/useHandle';
 import AcademySearch from './AcademySearch';
 import { visibleLearningPaths } from './navigation';
 import { useIsOwner } from '../../features/account/lib/ownerAccess';
-import { IconDashboard, IconFlask, IconChart, IconMap, IconCheck, IconCalendar, IconTrophy, IconBook, IconMegaphone, IconUser, IconShieldCheck, IconHelp, IconMail, IconCode, IconCrown, IconGear, IconRoute, IconLayers, IconCertificate } from '../../shared/components/layout/icons';
+import { IconDashboard, IconFlask, IconChart, IconMap, IconCheck, IconCalendar, IconTrophy, IconBook, IconMegaphone, IconUser, IconShieldCheck, IconHelp, IconMail, IconCode, IconGear, IconRoute, IconLayers, IconCertificate } from '../../shared/components/layout/icons';
 import './navigation.css';
 
 type NavIcon = ComponentType<{ className?: string }>;
@@ -80,7 +79,7 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         </div>
         <div className="dw-nav-section"><p className="dw-nav-label">Reference</p>{link('/library', 'Library', IconBook)}{link('/resources', 'Resources', IconBook)}</div>
         <details className="dw-nav-disclosure dw-nav-activity" open={activityLinks.some(([to]) => location.pathname === to)}><summary><IconTrophy className="dw-nav-icon"/><span>Activity & community</span><span className="dw-nav-chevron" aria-hidden="true">⌄</span></summary><div className="dw-nav-sublist">{activityLinks.map(([to, label, Icon]) => link(to, label, Icon))}</div></details>
-        {(isInstructor(auth.user) || isAdmin(auth.user)) && <div className="dw-nav-section"><p className="dw-nav-label">Staff</p>{isAdmin(auth.user) && link('/admin', 'Admin dashboard', IconGear)}{isInstructor(auth.user) && link('/instructor', 'Instructor dashboard', IconCrown)}</div>}
+        {isAdmin(auth.user) && <div className="dw-nav-section"><p className="dw-nav-label">Staff</p>{link('/admin', 'Admin dashboard', IconGear)}</div>}
       </nav>
       {currentModule && <section className="dw-nav-module" aria-label="Current module">
         <p className="dw-nav-label">Currently learning</p><NavLink to={'/module/' + currentModule.slug} onClick={onNavigate} className="dw-nav-module-title">{currentModule.title}</NavLink>

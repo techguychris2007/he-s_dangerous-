@@ -40,7 +40,7 @@ export const ACADEMY_DESTINATIONS: AcademyDestination[] = [
   { title: 'Security', to: '/security', group: 'Account', description: 'Account security settings' },
   { title: 'Help & FAQ', to: '/help', group: 'Support', description: 'Answers and platform guidance' },
   { title: 'Feedback', to: '/feedback', group: 'Support', description: 'Share feedback with the academy' },
-  { title: 'Instructor dashboard', to: '/instructor', group: 'Staff', description: 'Authorized instructor workspace', staff: true },
+  { title: 'Admin dashboard', to: '/admin', group: 'Staff', description: 'Learners, analytics and platform health', staff: true },
 ];
 /** Learning paths this account can see (owner-only tracks are hidden from everyone else). */
 export const visibleLearningPaths = () => LEARNING_PATHS.filter(path => isOwnerSession() || !OWNER_TRACKS.has(path.track as RoadmapTrack));
