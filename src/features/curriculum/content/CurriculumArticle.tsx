@@ -44,7 +44,7 @@ export default function CurriculumArticle({ lesson }: { lesson: CurriculumLesson
         </section>
       )}
       <section className="my-8 rounded-2xl border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/5 p-5 sm:p-6">
-        <p className="!mt-0 text-xs font-bold uppercase tracking-[0.15em] text-[var(--color-accent)]">Applied practice</p>
+        <p className="!mt-0 text-xs font-semibold text-[var(--color-accent)]">Applied practice</p>
         <h2 className="!mt-2">Practice exercise</h2>
         <p>{lesson.exercise.scenario}</p><p><strong>Your task:</strong> {lesson.exercise.task}</p>
         <details className="mt-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4">

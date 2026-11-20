@@ -128,7 +128,7 @@ export default function FeedbackPage() {
         </button>
       </form>
 
-      <h2 className="text-sm font-bold text-[var(--color-heading)] uppercase tracking-wide mb-3">Your submissions</h2>
+      <h2 className="text-sm font-semibold text-[var(--color-heading)] mb-3">Your submissions</h2>
       {historyLoading ? (
         <SkeletonList count={2} />
       ) : !history ? (

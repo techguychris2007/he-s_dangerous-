@@ -5,6 +5,11 @@
   --font-sans: "Ubuntu", "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-display: "Ubuntu", "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
 
+  /* Tighter corners than Tailwind's defaults: large soft radii read as template cards. */
+  --radius-xl: 0.625rem;
+  --radius-2xl: 0.75rem;
+  --radius-3xl: 0.875rem;
+
   /* Type scale extensions: fills gaps below Tailwind's default `xs` (12px) step and standardizes
      code-panel sizing. Before this, the codebase had drifted into arbitrary `text-[10px]`,
      `text-[11px]`, and `text-[13px]`/`text-[0.85rem]` values scattered across ~30 files with no
@@ -80,7 +85,7 @@
      `shadow-*` utilities in Tailwind v4 — color-mix references var(--color-accent)/var(--color-heading)
      so they correctly track whichever theme (light/dark) is active, not a fixed color baked in here. */
   --shadow-card: 0 1px 2px 0 color-mix(in srgb, var(--color-heading) 6%, transparent), 0 1px 1px 0 color-mix(in srgb, var(--color-heading) 4%, transparent);
-  --shadow-glow-accent: 0 12px 40px -14px color-mix(in srgb, var(--color-accent) 55%, transparent), 0 2px 8px -2px color-mix(in srgb, var(--color-accent) 25%, transparent);
+  --shadow-glow-accent: 0 8px 24px -16px color-mix(in srgb, var(--color-heading) 40%, transparent), 0 1px 3px 0 color-mix(in srgb, var(--color-heading) 12%, transparent);
 }
 
 :root[data-theme="dark"] {
@@ -217,15 +222,11 @@ body {
 }
 
 .premium-card-hover:hover {
-  transform: translateY(-2px);
   border-color: color-mix(in srgb, var(--color-accent) 42%, var(--color-border));
-  box-shadow: 0 24px 65px -38px color-mix(in srgb, var(--color-accent) 60%, transparent);
 }
 
 .surface-glass {
-  background: color-mix(in srgb, var(--color-surface) 86%, transparent);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  background: var(--color-surface);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -293,21 +294,30 @@ body {
    inside <main>, keyed by pathname (see AppLayout). Deliberately quicker than `.reveal` above
    (that one's a one-time cinematic entrance for hero/login content; this one repeats on every single
    navigation, so it needs to read as "snappy," not "cinematic"). */
+/* Route change: the new page settles in from a few pixels below. Only opacity and transform are
+   animated, and the animation leaves no transform behind, so fixed-position children are unaffected
+   once it ends. */
 @keyframes page-transition-in {
-  from {
-    opacity: 0.7;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
 }
 .page-transition {
-  animation: page-transition-in 0.16s ease-out;
+  animation: page-transition-in 0.22s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
+
+/* Lazy route loading: a thin bar along the top of the content area instead of a centred spinner.
+   It waits 150ms before showing, so fast loads never flash it. */
+.dw-route-loading { position: relative; min-height: 60vh; }
+.dw-route-loading__bar { position: absolute; inset: 0 0 auto; height: 2px; overflow: hidden; opacity: 0; animation: route-bar-show 0s linear 0.15s forwards; }
+.dw-route-loading__bar::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 40%; background: var(--color-accent); animation: route-bar-slide 1.1s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+.dw-route-loading__text { padding: 2rem 1.5rem; font-size: 0.875rem; color: var(--color-text-dim); opacity: 0; animation: route-bar-show 0s linear 0.6s forwards; }
+@keyframes route-bar-show { to { opacity: 1; } }
+@keyframes route-bar-slide { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
 @media (prefers-reduced-motion: reduce) {
   .page-transition {
     animation: none;
   }
+  .dw-route-loading__bar::before { animation: none; width: 100%; opacity: 0.5; }
 }
 
 * {
@@ -338,11 +348,8 @@ main h1, main h2, main h3, .page-title {
 }
 
 .gold-eyebrow {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  font-size: 0.85rem;
+  font-weight: 600;
   color: var(--color-gold-dim);
 }
 
@@ -389,11 +396,8 @@ main h1, main h2, main h3, .page-title {
 }
 
 .pill {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
+  font-size: 0.75rem;
+  font-weight: 600;
   padding: 0.2rem 0.55rem;
   border-radius: 0.35rem;
   display: inline-flex;

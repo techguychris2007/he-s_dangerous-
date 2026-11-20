@@ -1,6 +1,6 @@
 import type { TypedQuestion } from '../../../../shared/types/domain';
 
-/** Pre-security and Kali workstation lessons. */
+/** Foundations and Kali workstation lessons. */
 export const PRE_SECURITY_QUESTIONS: Record<string, TypedQuestion[]> = {
   'pre-intro-1': [
     { prompt: 'Which CIA goal is broken when ransomware stops a hospital from opening patient records?', answer: 'availability' },

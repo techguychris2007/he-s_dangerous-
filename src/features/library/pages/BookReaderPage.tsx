@@ -200,7 +200,7 @@ export default function BookReaderPage() {
                 <div className="w-14 h-14 rounded-2xl bg-[var(--color-accent)]/20 border border-[var(--color-accent)]/30 flex items-center justify-center mb-4">
                   <IconBook className="w-7 h-7 text-[var(--color-accent-dim)]" />
                 </div>
-                <div className="text-xs uppercase tracking-[0.16em] text-white/50 mb-2">Availability</div>
+                <div className="text-xs text-white/50 mb-2">Availability</div>
                 <p className="text-sm text-white/75 leading-6">
                   {book.accessNote ?? 'This resource opens on its official website. No local PDF is included; an internet connection is required.'}
                 </p>
@@ -216,7 +216,7 @@ export default function BookReaderPage() {
               <p className="text-sm sm:text-base text-[var(--color-text-dim)] leading-7 mb-5">{book.description}</p>
               {book.readingGuide && <p className="text-sm text-[var(--color-text-dim)] leading-7 mb-5"><strong className="text-[var(--color-heading)]">Suggested reading: </strong>{book.readingGuide}</p>}
               <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg)] p-5">
-                <div className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--color-text-dim)] mb-2">Caching policy</div>
+                <div className="text-xs font-semibold text-[var(--color-text-dim)] mb-2">Caching policy</div>
                 <p className="text-sm text-[var(--color-text-dim)] leading-6">
                   {book.accessNote ?? 'This resource is linked rather than mirrored. Open the official project or author page to read it and check its current usage terms. External pages and downloads are not saved by DarkWorld’s offline control.'}
                 </p>
@@ -243,7 +243,7 @@ export default function BookReaderPage() {
 
             <aside className="space-y-4">
               <div className="premium-card rounded-3xl p-5">
-                <div className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--color-text-dim)] mb-3">Reader status</div>
+                <div className="text-xs font-semibold text-[var(--color-text-dim)] mb-3">Reader status</div>
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-2xl bg-[var(--color-warn)]/15 border border-[var(--color-warn)]/30 flex items-center justify-center">
                     <IconExternal className="w-5 h-5 text-[var(--color-warn)]" />
@@ -255,7 +255,7 @@ export default function BookReaderPage() {
                 </div>
               </div>
               <div className="premium-card rounded-3xl p-5">
-                <div className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--color-text-dim)] mb-3">Roadmap position</div>
+                <div className="text-xs font-semibold text-[var(--color-text-dim)] mb-3">Roadmap position</div>
                 <p className="text-sm text-[var(--color-text-dim)] leading-6">
                   {book.stage ? `${book.stage}, resource #${book.order}.` : `Programming shelf, book #${book.order}.`} Return here after reading to continue the sequence.
                 </p>
@@ -484,7 +484,7 @@ export default function BookReaderPage() {
 
         {/* Read-aloud controls */}
         <div className="max-w-6xl mx-auto flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-[var(--color-border)]">
-          <span className="text-xs font-semibold text-[var(--color-text-dim)] uppercase tracking-wide">Read aloud</span>
+          <span className="text-xs font-semibold text-[var(--color-text-dim)]">Read aloud</span>
           <select
             value={voiceURI}
             onChange={(e) => setVoiceURI(e.target.value)}
@@ -611,7 +611,7 @@ export default function BookReaderPage() {
           <div className="max-w-6xl mx-auto">
             <div className="flex items-center gap-2 mb-2">
               <IconFlask className="w-4 h-4 text-[var(--color-accent)]" />
-              <span className="text-xs font-bold text-[var(--color-heading)] uppercase tracking-wide">
+              <span className="text-xs font-semibold text-[var(--color-heading)]">
                 Real-world labs for this book
               </span>
             </div>

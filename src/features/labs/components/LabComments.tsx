@@ -70,7 +70,7 @@ export default function LabComments({ labId }: { labId: string }) {
     <div className="mt-6 pt-6 border-t border-[var(--color-border)]">
       <div className="flex items-center gap-2 mb-3">
         <IconMessage className="w-4 h-4 text-[var(--color-accent)]" />
-        <h2 className="text-sm font-bold text-[var(--color-heading)] uppercase tracking-wide">
+        <h2 className="text-sm font-semibold text-[var(--color-heading)]">
           Discussion{comments && comments.length > 0 ? ` (${comments.length})` : ''}
         </h2>
       </div>

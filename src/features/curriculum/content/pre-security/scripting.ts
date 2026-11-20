@@ -11,7 +11,7 @@ const sources = {
 /** A quiz item with the correct option placed at `position`, so answers are not always first. */
 const q = (question: string, correct: string, wrong: string[], position: number) => ({ question, options: [...wrong.slice(0, position), correct, ...wrong.slice(position)], answer: position });
 
-/** Pre-security module "How the Web Works": general web concepts, no single tool. */
+/** Foundations module "How the Web Works": general web concepts, no single tool. */
 export const beginnerScriptingLessons: CurriculumLesson[] = [
   {
     id: 'pre-script-1', slug: 'python-logic-and-functions', title: 'Requests and Responses', summary: 'Follow what happens between typing an address and seeing a page: URLs, HTTP requests, responses, status codes and HTTPS.', minutes: 20,

@@ -37,7 +37,7 @@
 .dw-room-card__tag {
   display: inline-flex; align-items: center; gap: 4px;
   padding: 3px 9px; border-radius: 999px;
-  font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em;
+  font-size: 10px; font-weight: 800;
   color: white; border: 1px solid color-mix(in srgb, white 30%, transparent);
 }
 .dw-room-card__tag--done { color: var(--color-navy); background: var(--color-success); border-color: transparent; }

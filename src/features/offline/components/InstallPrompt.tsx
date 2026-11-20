@@ -30,7 +30,7 @@ export default function InstallPrompt() {
   const firefox = /Firefox/.test(navigator.userAgent);
   return <>
     <dialog ref={dialog} className="dw-app-dialog" aria-labelledby="dw-app-title" onCancel={() => setOpen(false)} onClose={() => setOpen(false)} onClick={event => { if (event.target === event.currentTarget) setOpen(false); }}>
-      <header><Logo className="h-12 w-12"/><div><p>YOUR DESKTOP WORKSPACE</p><h2 id="dw-app-title">DarkWorld, ready when you are.</h2></div><button type="button" aria-label={owner ? 'Close app and offline settings' : 'Close app settings'} onClick={() => setOpen(false)}>×</button></header>
+      <header><Logo className="h-12 w-12"/><div><p>Your desktop workspace</p><h2 id="dw-app-title">DarkWorld, ready when you are.</h2></div><button type="button" aria-label={owner ? 'Close app and offline settings' : 'Close app settings'} onClick={() => setOpen(false)}>×</button></header>
       <div className="dw-app-content">
         <section className="dw-app-install-section"><h3>{pwa.installed ? 'You’re using the desktop app' : 'Install DarkWorld'}</h3><p>Keep DarkWorld in its own window and open it from your desktop or app launcher. Installation is handled by your browser; no separate installer is needed.</p>
           {pwa.installable && <button type="button" className="dw-app-primary" disabled={busy} onClick={async () => { setBusy(true); try { await installApp(); } finally { setBusy(false); } }}>{busy ? 'Opening installer…' : 'Install desktop app'}</button>}

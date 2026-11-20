@@ -49,8 +49,8 @@ export default function StepChecklist({ steps, title = 'Guided Steps', autoCheck
         <h2
           className={
             prominent
-              ? 'text-sm font-bold uppercase tracking-wider text-[var(--color-heading)] flex items-center gap-2'
-              : 'text-xs font-semibold uppercase tracking-wide text-[var(--color-heading)]'
+              ? 'text-sm font-semibold text-[var(--color-heading)] flex items-center gap-2'
+              : 'text-sm font-semibold text-[var(--color-heading)]'
           }
         >
           {prominent && <span className="w-1 h-3.5 rounded-full bg-[var(--color-accent)]" aria-hidden />}

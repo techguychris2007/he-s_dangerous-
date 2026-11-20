@@ -53,12 +53,12 @@ const AdminDashboardPage = lazy(() => import('../features/admin/pages/AdminDashb
 const PricingPage = lazy(() => import('../features/billing/pages/PricingPage'));
 const BillingPage = lazy(() => import('../features/billing/pages/BillingPage'));
 
-// ─── Shared route-level spinner ───────────────────────────────────────────────
+// ─── Shared route-level loading bar ───────────────────────────────────────────
 function PageLoader() {
   return (
-    <div role="status" aria-live="polite" className="min-h-[60vh] w-full flex flex-col gap-4 items-center justify-center">
-      <div aria-hidden="true" className="w-6 h-6 rounded-full border-2 border-[#c9a15f] border-t-transparent animate-spin motion-reduce:animate-none" />
-      <p className="text-sm text-[var(--color-text-dim)]">Loading your workspace…</p>
+    <div role="status" aria-live="polite" className="dw-route-loading">
+      <span className="dw-route-loading__bar" aria-hidden="true" />
+      <p className="dw-route-loading__text">Loading…</p>
     </div>
   );
 }

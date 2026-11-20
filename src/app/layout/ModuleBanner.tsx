@@ -57,7 +57,7 @@ const BANNERS: Record<string, BannerConfig> = {
   'code-python-advanced': { from: '#0f172a', to: '#4c5fd5', pattern: 'grid' },
   // Same no-photo-asset-yet situation as the Code Portal modules above — a distinct gradient per
   // module rather than falling through to Linux's banner.
-  // Software Engineering track: one crest-indigo family, varied pattern per module.
+  // Software Engineering track: one copper family, varied pattern per module.
   'se-programming-basics': { from: '#0d1d24', to: '#2f8fa8', pattern: 'dots' },
   'se-programs-oop': { from: '#12122c', to: '#6a55d5', pattern: 'scan' },
   'se-foundations': { from: '#10142c', to: '#4c5fd5', pattern: 'circuit' },
@@ -129,7 +129,7 @@ export default function ModuleBanner({ icon, moduleId, className }: { icon: stri
       </svg>
       <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-white/5" />
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className="w-16 h-16 rounded-3xl border border-white/20 bg-white/[0.12] backdrop-blur-md flex items-center justify-center text-white shadow-[0_20px_50px_-24px_rgba(0,0,0,0.65)]">
+        <span className="w-16 h-16 rounded-xl border border-white/25 bg-black/25 flex items-center justify-center text-white">
           <ModuleIcon icon={icon} className="w-7 h-7" />
         </span>
       </div>

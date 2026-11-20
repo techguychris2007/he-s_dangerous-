@@ -66,7 +66,7 @@ export const computingLessons: CurriculumLesson[] = [
     minutes: 17,
     prerequisite: 'Know what a file path, command, and lab flag are.',
     outcomes: ['Describe why labs are isolated', 'Know when a dataset is synthetic', 'Prepare notes that distinguish practice from production'],
-    introduction: 'Cybersecurity tools can be powerful, noisy, and easy to misuse. Pre-security training gives you a safe workspace where the goal is understanding, not touching real systems.',
+    introduction: 'Cybersecurity tools can be powerful, noisy, and easy to misuse. Foundations training gives you a safe workspace where the goal is understanding, not touching real systems.',
     sections: [
       { title: 'Isolation Is a Feature', paragraphs: ['A lab may simulate hosts, packets, HTTP requests, and forensic evidence. That is deliberate. It lets you learn the decision process without scanning or modifying systems outside the platform.', 'Later, real pentest labs may include browser targets and visual Active Directory maps. The same rule applies: interact only with the platform target and keep your evidence tied to the provided scope.'] },
       { title: 'Synthetic Does Not Mean Useless', paragraphs: ['A small synthetic packet capture can teach display filters, DNS answers, HTTP requests, and TLS limits more cleanly than a giant real capture. The point is to learn the mental model first, then add messiness.', 'When a lab says "training fixture," report it as a training fixture. Honesty about evidence source is part of professional skill.'] },

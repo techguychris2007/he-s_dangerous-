@@ -7,7 +7,7 @@
 .dw-pcard__emblem { flex-shrink: 0; margin: -4px 0 -10px; transition: transform .18s ease; }
 .dw-pcard:hover .dw-pcard__emblem { transform: translateY(-4px); }
 .dw-pcard__kicker { display: grid; min-width: 0; }
-.dw-pcard__kicker small { font-size: .64rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--chrome-muted); }
+.dw-pcard__kicker small { font-size: .64rem; font-weight: 700; color: var(--chrome-muted); }
 .dw-pcard__kicker span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .82rem; font-weight: 700; color: var(--chrome-highlight); }
 .dw-pcard__level { flex-shrink: 0; margin-left: auto; padding: .18rem .55rem; border: 1px solid var(--chrome-line-strong); border-radius: 99px; font-size: .68rem; font-weight: 700; color: var(--chrome-text); }
 .dw-pcard__level[data-level='Easy'] { color: #6ee7b7; border-color: color-mix(in srgb, #6ee7b7 40%, transparent); }

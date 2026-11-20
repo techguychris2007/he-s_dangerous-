@@ -112,7 +112,7 @@ export default function AdminAnalystPanel({ data }: { data: AdminData }) {
             <button type="button" className={buttonPrimary} onClick={() => void ask(FULL_ANALYSIS_PROMPT)}>
               <IconBrain className="w-4 h-4" />Run full analysis
             </button>
-            <p className="mt-4 mb-2 text-xs font-bold uppercase tracking-wide text-[var(--color-text-dim)]">Or ask about one thing</p>
+            <p className="mt-4 mb-2 text-xs font-semibold text-[var(--color-text-dim)]">Or ask about one thing</p>
             <div className="flex flex-wrap gap-2">
               {QUICK_QUESTIONS.map((q) => (
                 <button key={q} type="button" onClick={() => void ask(q)} className="rounded-full border border-[var(--color-border)] px-3 py-1.5 text-xs text-[var(--color-text)] hover:border-[var(--color-accent)] hover:text-[var(--color-heading)] text-left">

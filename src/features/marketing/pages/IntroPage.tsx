@@ -18,7 +18,7 @@ import { PAID_PLANS_LIVE } from '../../billing/lib/billing';
 import { COMPUTER_ONLY } from '../../../app/guards/ComputerAccessGate';
 
 const PATHS: { track: RoadmapTrack; title: string; label: string; body: string; icon: string; tone: IsoTone; guide: CharacterId }[] = [
-  { track: 'presecurity', label: 'Start here', title: 'Pre-security', body: 'Computers, networks, Linux and the tools every lab uses — from zero.', icon: 'terminal', tone: 'progress', guide: 'byte' },
+  { track: 'presecurity', label: 'Start here', title: 'Foundations', body: 'Computers, networks, Linux and the tools every lab uses — from zero.', icon: 'terminal', tone: 'progress', guide: 'byte' },
   { track: 'security', label: 'Red team', title: 'Offensive security', body: 'Recon, web, Active Directory and cloud attacks against controlled targets.', icon: 'crosshair', tone: 'offense', guide: 'vex' },
   { track: 'defensive', label: 'Blue team', title: 'Defensive security', body: 'Triage alerts, query telemetry and work story-driven incident casebooks.', icon: 'shield', tone: 'defense', guide: 'sentinel' },
   { track: 'programming', label: 'Build tools', title: 'Programming', body: 'Python, JavaScript and C++ with auto-graded challenges in the browser.', icon: 'code', tone: 'analysis', guide: 'cipher' },
@@ -26,9 +26,9 @@ const PATHS: { track: RoadmapTrack; title: string; label: string; body: string; 
 ];
 
 const STEPS = [
-  { title: 'Learn the concept', body: 'Room-style lessons with worked examples, diagrams and code you can run.', icon: <IconBook />, tone: 'progress' as IsoTone },
+  { title: 'Learn the concept', body: 'Short lessons with worked examples, diagrams and code you can run.', icon: <IconBook />, tone: 'progress' as IsoTone },
   { title: 'Hack the lab', body: 'Real terminals, live websites, SIEM consoles and directory maps — all sandboxed.', icon: <IconTerminal />, tone: 'offense' as IsoTone },
-  { title: 'Capture the flag', body: 'Submit flags and typed answers to clear the room and earn XP.', icon: <IconFlag />, tone: 'done' as IsoTone },
+  { title: 'Capture the flag', body: 'Submit flags and typed answers to clear the lab and earn XP.', icon: <IconFlag />, tone: 'done' as IsoTone },
 ];
 
 const CREW: CharacterId[] = ['sentinel', 'ledger', 'beacon', 'vex', 'cipher', 'byte'];
@@ -57,9 +57,9 @@ function HeroScene() {
         </span>
       ))}
       <img className="ln-scene__sentinel" src={`${import.meta.env.BASE_URL}characters/sentinel-full.webp`} alt="" decoding="async" />
-      <div className="ln-chip ln-chip--xp"><IconLightning className="h-4 w-4" /><b>+60 XP</b><span>Room cleared</span></div>
+      <div className="ln-chip ln-chip--xp"><IconLightning className="h-4 w-4" /><b>+60 XP</b><span>Lab cleared</span></div>
       <div className="ln-chip ln-chip--flag"><IconFlag className="h-4 w-4" /><code>flag&#123;first_blood&#125;</code></div>
-      <div className="ln-chip ln-chip--rank"><span className="ln-chip__rank">0x3</span><span><b>Packet Sniffer</b><small>Level 9 · Gold league</small></span></div>
+      <div className="ln-chip ln-chip--rank"><span className="ln-chip__rank">III</span><span><b>Packet Sniffer</b><small>Level 9 · Gateway league</small></span></div>
       <div className="ln-chip ln-chip--streak"><IconTrophy className="h-4 w-4" /><b>7-day streak</b></div>
     </div>
   );
@@ -103,15 +103,15 @@ export default function IntroPage() {
       <section className="ln-hero" aria-labelledby="entry-title">
         <div className="ln-wrap ln-hero__inner">
           <div className="ln-hero__copy">
-            <p className="ln-kicker"><span />Hands-on cybersecurity training</p>
+            <p className="ln-kicker">Hands-on cybersecurity training</p>
             <h1 id="entry-title">Learn security<br />by <em>doing it.</em></h1>
-            <p className="ln-lead">Hands-on rooms, in-browser terminals and story-driven investigations. Learn a concept, work the lab, capture the flag, and level up from Initiate to Operator.</p>
+            <p className="ln-lead">Hands-on labs, in-browser terminals and story-driven investigations. Learn a concept, work the lab, capture the flag, and level up from Initiate to Operator.</p>
             <div className="ln-actions">
               <Link to="/login?mode=signup" className="ln-btn ln-btn--primary ln-btn--lg">Start learning free <IconArrowRight className="h-4 w-4" /></Link>
               <a href="#paths" onClick={jump('paths')} className="ln-btn ln-btn--ghost ln-btn--lg">Explore paths</a>
             </div>
             <dl className="ln-stats">
-              <div><dt>Hands-on rooms</dt><dd>{rooms ?? '600+'}</dd></div>
+              <div><dt>Hands-on labs</dt><dd>{rooms ?? '600+'}</dd></div>
               <div><dt>Lessons</dt><dd>{lessons}</dd></div>
               <div><dt>Modules</dt><dd>{MODULES.length}</dd></div>
               <div><dt>Casebook episodes</dt><dd>38</dd></div>
@@ -122,7 +122,7 @@ export default function IntroPage() {
       </section>
 
       <section id="how" className="ln-section ln-wrap" aria-labelledby="how-title">
-        <div className="ln-head"><p className="ln-kicker ln-kicker--ink"><span />How it works</p><h2 id="how-title">Every room is a mission.</h2><p>Read, hack, prove. The same loop takes you from your first terminal to a full incident investigation.</p></div>
+        <div className="ln-head"><p className="ln-kicker ln-kicker--ink">How it works</p><h2 id="how-title">Every lab is a real task.</h2><p>Read, hack, prove. The same loop takes you from your first terminal to a full incident investigation.</p></div>
         <ol className="ln-steps">
           {STEPS.map((s, i) => (
             <li key={s.title}>
@@ -137,7 +137,7 @@ export default function IntroPage() {
 
       <section id="paths" className="ln-band" aria-labelledby="paths-title">
         <div className="ln-wrap">
-          <div className="ln-head ln-head--light"><p className="ln-kicker"><span />Learning paths</p><h2 id="paths-title">Choose your side. Clear the map.</h2><p>{countWord(visiblePaths.length)} paths, each a roadmap of modules lit tile by tile as you progress. Start with pre-security if you are new.</p></div>
+          <div className="ln-head ln-head--light"><p className="ln-kicker">Learning paths</p><h2 id="paths-title">Choose your side. Clear the map.</h2><p>{countWord(visiblePaths.length)} paths, each a roadmap of modules lit tile by tile as you progress. Start with Foundations if you are new.</p></div>
           <div className="ln-paths" style={{ '--ln-paths': visiblePaths.length } as CSSProperties}>
             {visiblePaths.map((p) => (
               <Link key={p.track} to="/login?mode=signup" className="ln-path">
@@ -156,18 +156,18 @@ export default function IntroPage() {
       </section>
 
       <section id="levels" className="ln-section ln-wrap" aria-labelledby="levels-title">
-        <div className="ln-head"><p className="ln-kicker ln-kicker--ink"><span />Level up</p><h2 id="levels-title">Progress you can see.</h2><p>Every flag, answer and solved challenge earns XP. Climb hexadecimal ranks, keep your streak alive and rise through the leagues.</p></div>
+        <div className="ln-head"><p className="ln-kicker ln-kicker--ink">Level up</p><h2 id="levels-title">Progress you can see.</h2><p>Every flag, answer and solved challenge earns XP. Climb thirteen ranks, keep your streak going and move up through the leagues.</p></div>
         <div className="ln-game">
           <article className="ln-card ln-card--rank">
             <span className="ln-card__label">Your rank</span>
-            <div className="ln-rank"><span className="ln-rank__hex">0x5</span><div><b>Root Seeker</b><small>Level 17 · 4,180 XP</small></div></div>
+            <div className="ln-rank"><span className="ln-rank__hex">V</span><div><b>Root Seeker</b><small>Level 17 · 4,180 XP</small></div></div>
             <div className="ln-xp"><i style={{ width: '68%' }} /></div>
             <small className="ln-card__note">320 XP to level 18</small>
           </article>
           <article className="ln-card">
             <span className="ln-card__label">Daily streak</span>
             <div className="ln-week">{['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => <span key={i} data-on={i < 5}>{i < 5 ? <IconCheck className="h-3.5 w-3.5" /> : d}</span>)}</div>
-            <small className="ln-card__note">Streak freezes protect a missed day.</small>
+            <small className="ln-card__note">Rest days cover a missed day.</small>
           </article>
           <article className="ln-card">
             <span className="ln-card__label">Leagues</span>
@@ -181,7 +181,7 @@ export default function IntroPage() {
       </section>
 
       <section className="ln-section ln-wrap" aria-labelledby="crew-title">
-        <div className="ln-head"><p className="ln-kicker ln-kicker--ink"><span />Meet the crew</p><h2 id="crew-title">Guides on both sides of the fight.</h2><p>Breach Unit teaches you to attack with permission. Bastion teaches you to detect and respond. They walk with you through every room.</p></div>
+        <div className="ln-head"><p className="ln-kicker ln-kicker--ink">Meet the crew</p><h2 id="crew-title">Guides on both sides of the fight.</h2><p>Breach Unit teaches you to attack with permission. Bastion teaches you to detect and respond. They walk with you through every lab.</p></div>
         <div className="ln-crew">
           {CREW.map((id) => (
             <article key={id} className="ln-crew__card" data-crew={CHARACTERS[id].crew}>
@@ -196,7 +196,7 @@ export default function IntroPage() {
 
       <section id="contributors" className="ln-section ln-wrap" aria-labelledby="contributors-title">
         <div className="ln-head">
-          <p className="ln-kicker ln-kicker--ink"><span />The people behind DarkWorld</p>
+          <p className="ln-kicker ln-kicker--ink">The people behind DarkWorld</p>
           <h2 id="contributors-title">Built together.</h2>
           <p>DarkWorld grew from friendship, a shared idea and the commitment to make it real. Benedict Adjei and Bondam Christopher Kweku founded and built this platform together.</p>
         </div>
@@ -222,7 +222,7 @@ export default function IntroPage() {
       <section className="ln-cta ln-wrap" aria-labelledby="cta-title">
         <div className="ln-cta__art" aria-hidden="true"><IsoBlock width={120} depth={26} tone="done" glow crest={<IconFlag />} /></div>
         <div>
-          <h2 id="cta-title">Your first room takes ten minutes.</h2>
+          <h2 id="cta-title">Your first lab takes ten minutes.</h2>
           <p>Free to begin. {COMPUTER_ONLY ? 'Built for laptops and desktops.' : 'Works on phones, tablets and computers.'} Your progress, XP and streak save automatically.</p>
         </div>
         <Link to="/login?mode=signup" className="ln-btn ln-btn--primary ln-btn--lg">Create your account <IconArrowRight className="h-4 w-4" /></Link>

@@ -114,8 +114,8 @@ export default function LessonTasks({ lesson, labSlugs }: { lesson: LessonMeta; 
       <header className="lt__head">
         <IsoBlock width={74} depth={14} tone={allDone ? 'done' : done > 0 ? 'progress' : 'idle'} glow={allDone} crest={<IconTrophy />} className="lt__trophy" />
         <div className="lt__head-copy">
-          <p>Room tasks</p>
-          <h3>{allDone ? 'Room complete' : labTasks.some((t) => t.kind === 'terminal') ? 'Answer the questions and capture the flags' : labTasks.length ? 'Answer the questions and clear the labs' : 'Answer the questions'}</h3>
+          <p>Lesson tasks</p>
+          <h3>{allDone ? 'Lesson complete' : labTasks.some((t) => t.kind === 'terminal') ? 'Answer the questions and capture the flags' : labTasks.length ? 'Answer the questions and clear the labs' : 'Answer the questions'}</h3>
           <div className="lt__pips" aria-label={`${done} of ${total} tasks completed`}>
             {itemStates.map((ok, i) => <span key={i} data-done={ok} />)}
             <b aria-live="polite">{done}/{total}</b>

@@ -31,7 +31,7 @@ export default function SiemWorkspace({ scenario, children }: { scenario: SiemLa
     <section ref={workspace} aria-label="Investigation workspace" className="siem-workspace flex h-full min-h-0 min-w-0 flex-col overflow-y-auto overscroll-contain rounded-2xl border border-[var(--chrome-line)] bg-[var(--chrome-bg)] shadow-xl">
       <header className="shrink-0 flex flex-wrap items-center justify-between gap-3 border-b border-[var(--chrome-line)] px-4 py-4 sm:px-5">
         <div className="min-w-0">
-          <div className="mb-1 flex items-center gap-2 text-2xs font-semibold uppercase tracking-[0.18em] text-[var(--chrome-highlight)]">
+          <div className="mb-1 flex items-center gap-2 text-xs font-semibold text-[var(--chrome-highlight)]">
             <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-[var(--color-gold)]" /> Security operations
           </div>
           <h2 className="text-sm font-semibold text-[var(--chrome-ink)]">Investigation workspace</h2>
@@ -49,7 +49,7 @@ export default function SiemWorkspace({ scenario, children }: { scenario: SiemLa
           { label: 'Environment', value: 'Simulation' },
         ].map((stat) => (
           <div key={stat.label} className="bg-[var(--chrome-bg)] px-4 py-3 sm:px-5">
-            <dt className="text-2xs font-medium uppercase tracking-wider text-[var(--chrome-muted)]">{stat.label}</dt>
+            <dt className="text-xs font-medium text-[var(--chrome-muted)]">{stat.label}</dt>
             <dd className="mt-1 text-sm font-semibold tabular-nums text-[var(--chrome-ink)]">{stat.value}</dd>
           </div>
         ))}

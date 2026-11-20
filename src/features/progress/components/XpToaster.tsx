@@ -77,7 +77,7 @@ export default function XpToaster() {
         return (
           <div key={t.id} className="dw-xp-toast dw-xp-toast--level">
             <span className="dw-xp-toast__eyebrow">
-              {t.kind === 'room' ? 'Room complete' : t.rankUp ? 'Promotion' : 'Level up'} · +{t.gained} XP
+              {t.kind === 'room' ? 'Lab complete' : t.rankUp ? 'Promotion' : 'Level up'} · +{t.gained} XP
             </span>
             <span className="dw-xp-toast__title">
               {t.kind === 'room' ? t.title : t.rankUp ? <><b>{t.level.rank.code}</b>{t.level.rank.title}</> : `Level ${t.level.level}`}

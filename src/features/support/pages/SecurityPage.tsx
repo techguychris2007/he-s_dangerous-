@@ -42,7 +42,7 @@ export default function SecurityPage() {
       </div>
 
       <div className="rounded-xl border border-[var(--color-warn)]/40 bg-[var(--color-warn)]/5 p-5">
-        <div className="text-xs font-bold tracking-wide mb-1.5 text-[var(--color-warn)]">RESPONSIBLE USE</div>
+        <div className="text-xs font-bold tracking-wide mb-1.5 text-[var(--color-warn)]">Responsible use</div>
         <p className="text-sm text-[var(--color-text)] leading-relaxed">
           Every technique, tool, and command taught in this course is for authorized security testing,
           defensive work, CTF practice, and your own lab environments only. Never run these techniques

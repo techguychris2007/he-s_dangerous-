@@ -24,12 +24,12 @@ export interface League {
 /** Leaderboard leagues, keyed on the same lab points the cross-account leaderboard ranks by (see
  *  computeLabPoints) so a learner's league always agrees with their position on the board. */
 export const LEAGUES: League[] = [
-  { name: 'Bronze', min: 0, color: 'var(--color-warn)' },
-  { name: 'Silver', min: 50, color: 'var(--color-text-dim)' },
-  { name: 'Gold', min: 150, color: 'var(--color-gold)' },
-  { name: 'Platinum', min: 400, color: 'var(--color-heading)' },
-  { name: 'Diamond', min: 1000, color: 'var(--color-accent)' },
-  { name: 'Obsidian', min: 2500, color: 'var(--color-accent-2)' },
+  { name: 'Signal', min: 0, color: 'var(--color-warn)' },
+  { name: 'Relay', min: 50, color: 'var(--color-text-dim)' },
+  { name: 'Gateway', min: 150, color: 'var(--color-gold)' },
+  { name: 'Backbone', min: 400, color: 'var(--color-heading)' },
+  { name: 'Core', min: 1000, color: 'var(--color-accent)' },
+  { name: 'Blackout', min: 2500, color: 'var(--color-accent-2)' },
 ];
 
 export function leagueFor(points: number): { league: League; next: League | null } {
@@ -45,7 +45,7 @@ export function xpForLevel(level: number): number {
 }
 
 export interface Rank {
-  /** Hex rank code shown beside the title, e.g. "0x4". */
+  /** Roman-numeral tier shown beside the title, e.g. "IV". */
   code: string;
   title: string;
 }
@@ -57,10 +57,12 @@ const RANK_TITLES = [
   'Red Operator', 'Zero-Day Artisan', 'Ghost in the Wire', 'Kernel Architect', 'Phantom', 'DarkWorld Legend',
 ];
 
+const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII'];
+
 export function rankForLevel(level: number): Rank {
   // A new rank every four levels until the final one at level 49.
   const index = Math.min(RANK_TITLES.length - 1, Math.floor((level - 1) / RANK_STEP));
-  return { code: `0x${(index + 1).toString(16).toUpperCase()}`, title: RANK_TITLES[index] };
+  return { code: ROMAN[index], title: RANK_TITLES[index] };
 }
 
 export interface LevelInfo {

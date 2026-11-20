@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import LearningNavigation from './LearningNavigation';
+import ConnectionNotice from './ConnectionNotice';
 import { isLearningWorkspace } from './learningWorkspace';
 import Companion from '../../features/progress/components/companion/Companion';
 import XpToaster from '../../features/progress/components/XpToaster';
@@ -77,7 +78,7 @@ export default function AppLayout() {
         role={!desktop && mobileOpen ? 'dialog' : undefined}
         aria-modal={!desktop && mobileOpen ? true : undefined}
         aria-label="Platform navigation"
-        className={`fixed lg:static inset-y-0 left-0 z-30 transition-transform lg:translate-x-0 ${
+        className={`fixed lg:static inset-y-0 left-0 z-30 transition-transform duration-[260ms] ease-[cubic-bezier(0.2,0.7,0.2,1)] motion-reduce:transition-none lg:translate-x-0 ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -85,10 +86,11 @@ export default function AppLayout() {
         <Sidebar onNavigate={() => setMobileOpen(false)} />
       </div>}
       {!learning && mobileOpen && (
-        <div aria-hidden className="fixed inset-0 bg-black/40 backdrop-blur-xs z-20 lg:hidden" onClick={() => setMobileOpen(false)} />
+        <div aria-hidden className="dw-drawer-scrim fixed inset-0 bg-black/45 z-20 lg:hidden" onClick={() => setMobileOpen(false)} />
       )}
       <div inert={!learning && mobileOpen && !desktop} className="flex-1 flex flex-col min-w-0">
         <LearningNavigation menuOpen={mobileOpen} onMenuClick={!learning ? () => setMobileOpen(o => !o) : undefined}/>
+        <ConnectionNotice />
         <main id="main-content" tabIndex={-1} className={`flex-1 min-h-0 ${fixedWorkspace ? 'overflow-hidden' : 'overflow-y-auto'}`}>
           {/* h-full passes main's height through to pages like LabPage/CodeTaskPage that render
               their own `h-full flex` workspace layout and need a definite height to fill. */}

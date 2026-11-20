@@ -5,13 +5,13 @@ import type { LabNarrative, LabScenario } from './types';
  *  and the real event/technique it reconstructs — so a lab reads as an investigation, not a checklist.
  *  All environments are simulated and isolated; "based on" means a training reconstruction, never live. */
 export const LAB_NARRATIVES: Record<string, LabNarrative> = {
-  // ── Pre-security: first contact with each tool ────────────────────────────────────────────────
+  // ── Foundations: first contact with each tool ────────────────────────────────────────────────
   'pre-lab-orientation': {
     role: 'New analyst on your first day in the DarkWorld training range',
-    scene: 'Your mentor drops a folder on your desk and says: "Before you touch a real target, prove you can work a room calmly. Read the brief, look before you type, and bring me the one piece of evidence that proves you were here."',
+    scene: 'Your mentor drops a folder on your desk and says: "Before you touch a real target, prove you can work a lab calmly. Read the brief, look before you type, and bring me the one piece of evidence that proves you were here."',
     stakes: 'Every habit you build now — read first, act second, record what you find — is the difference between a tidy investigation and a mess no one can reproduce later.',
     realBasis: 'The read–try–observe–record loop every professional analyst and tester uses on real engagements.',
-    mission: 'Learn the room, then capture the training flag without guessing.',
+    mission: 'Learn the lab, then capture the training flag without guessing.',
   },
 
   // ── Foundations: Linux, Network ──────────────────────────────────────────────────────────────

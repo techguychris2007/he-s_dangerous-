@@ -76,7 +76,7 @@ assert.equal(tour.readTourRecord({ getItem: () => { throw new Error('blocked'); 
 assert.equal(tour.readTourRecord(undefined, 'user-1'), 'skipped');
 assert.equal(tour.fillTourText('Ready, {handle}? Press {shortcut}.', { handle: 'NullWarden', shortcut: 'Ctrl K' }), 'Ready, NullWarden? Press Ctrl K.');
 const searchStep = tour.TOUR_STEPS.find(step => step.id === 'search');
-assert.equal(tour.fillTourText(searchStep.body, { handle: '', shortcut: '' }), 'Search jumps straight to any lesson, room or page.', 'Touch devices get no keyboard shortcut sentence');
+assert.equal(tour.fillTourText(searchStep.body, { handle: '', shortcut: '' }), 'Search jumps straight to any lesson, lab or page.', 'Touch devices get no keyboard shortcut sentence');
 assert.ok(tour.fillTourText(searchStep.body, { handle: '', shortcut: 'Ctrl K' }).endsWith('Press Ctrl K from anywhere in the academy.'));
 
 const desk = { width: 1366, height: 820 };

@@ -72,7 +72,7 @@ export default function SocPortalPage() {
       >
         <img src={`${import.meta.env.BASE_URL}characters/sentinel-full.webp`} alt="" aria-hidden="true" className="portal-masthead__guide" decoding="async" />
         <div className="relative max-w-5xl mx-auto px-6 sm:px-8 py-10">
-          <div className="text-[var(--color-accent-dim)] font-mono text-xs tracking-[0.2em] uppercase mb-3">
+          <div className="text-[var(--color-accent-dim)] font-mono text-xs mb-3">
             Blue Team &middot; Detection &amp; Response
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-3">SOC Portal</h1>
@@ -89,15 +89,15 @@ export default function SocPortalPage() {
           <div className="flex flex-wrap gap-4">
             <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
               <div className="text-lg font-bold text-white">{lessonsDone}/{totalLessons}</div>
-              <div className="text-2xs text-white/60 uppercase tracking-wide">Lessons complete</div>
+              <div className="text-xs text-white/60">Lessons complete</div>
             </div>
             <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
               <div className="text-lg font-bold text-white">{labsDone}/{allLabsDone.length}</div>
-              <div className="text-2xs text-white/60 uppercase tracking-wide">Labs solved</div>
+              <div className="text-xs text-white/60">Labs solved</div>
             </div>
             <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
               <div className="text-lg font-bold text-white">{flagsCaptured}/{totalFlags}</div>
-              <div className="text-2xs text-white/60 uppercase tracking-wide">Flags captured</div>
+              <div className="text-xs text-white/60">Flags captured</div>
             </div>
           </div>
         </div>
@@ -170,7 +170,7 @@ export default function SocPortalPage() {
           <div>
             <div className="dw-section-head">
               <div><p className="dw-catalog-eyebrow dw-catalog-eyebrow--ink"><IconTerminal className="mr-1 inline h-3.5 w-3.5" />Hands-on</p><h2>Terminal investigations</h2><p className="dw-section-sub">Investigate records with terminal tools, document findings, and complete the guided assessment and verification phases.</p></div>
-              <span>{terminalLabs.length} rooms</span>
+              <span>{terminalLabs.length} labs</span>
             </div>
             <div className="grid sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
               {terminalLabs.map((lab) => (

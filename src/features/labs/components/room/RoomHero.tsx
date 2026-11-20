@@ -91,7 +91,7 @@ const RoomHero = forwardRef<HTMLButtonElement, RoomHeroProps>(function RoomHero(
           <button ref={primaryRef} type="button" className="dw-room-hero__primary" onClick={onPrimary}>{primaryLabel} →</button>
           {onToggleSave && (
             <button type="button" onClick={onToggleSave} aria-pressed={saved}>
-              <IconBookmark className="w-4 h-4" filled={saved} />{saved ? 'Saved' : 'Save room'}
+              <IconBookmark className="w-4 h-4" filled={saved} />{saved ? 'Saved' : 'Save lab'}
             </button>
           )}
           <button type="button" onClick={() => void copyLink()}><IconCopy className="w-4 h-4" />{copied ? 'Link copied' : 'Copy link'}</button>

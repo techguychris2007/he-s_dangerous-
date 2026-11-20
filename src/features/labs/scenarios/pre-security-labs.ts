@@ -4,7 +4,7 @@ import type { LabScenario } from '../engine/types';
 export const preSecurityLabs: LabScenario[] = [
   {
     id: 'pre-lab-orientation',
-    title: 'Pre-Security Lab Orientation',
+    title: 'Foundations Lab Orientation',
     difficulty: 'Easy',
     category: 'Linux',
     briefing: 'Learn how DarkWorld labs behave before a real offensive challenge asks you to move quickly. You will read objectives, inspect files, search evidence, and capture a flag from a harmless training folder. ' +

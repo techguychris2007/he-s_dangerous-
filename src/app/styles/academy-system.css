@@ -6,7 +6,7 @@ body { background: var(--color-bg); color: var(--color-text); }
 h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; }
 h1 { letter-spacing: -.035em; }
 
-.academy-eyebrow, .reader-eyebrow { color: var(--color-accent-dim); letter-spacing: .12em; }
+.academy-eyebrow, .reader-eyebrow { color: var(--color-accent-dim); letter-spacing: 0; text-transform: none; }
 .academy-hero { background: var(--color-surface); color: var(--color-heading); border-color: var(--color-border); border-radius: 12px; }
 .academy-path-art { display: none; }
 .academy-hero-copy > p, .academy-hero-stats span { color: var(--color-text-dim); }

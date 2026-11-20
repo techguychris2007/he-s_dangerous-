@@ -209,7 +209,7 @@ export default function LibraryPage() {
       >
         <span className="portal-masthead__crew" aria-hidden="true"><CharacterAvatar id="ledger" size={168} decorative /></span>
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
-          <div className="text-[var(--color-accent-dim)] font-mono text-xs tracking-[0.2em] uppercase mb-2 sm:mb-3">
+          <div className="text-[var(--color-accent-dim)] font-mono text-xs mb-2 sm:mb-3">
             Free, Legally Open Books
           </div>
           <h1 className="text-3xl sm:text-5xl font-black tracking-[-0.05em] text-white mb-2 sm:mb-3">Library</h1>
@@ -222,19 +222,19 @@ export default function LibraryPage() {
           <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl">
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
               <div className="text-2xl font-black text-white">{books.length}</div>
-              <div className="text-2xs uppercase tracking-[0.16em] text-white/55">This shelf</div>
+              <div className="text-xs text-white/55">This shelf</div>
             </div>
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
               <div className="text-2xl font-black text-white">{cachedBooks}</div>
-              <div className="text-2xs uppercase tracking-[0.16em] text-white/55">In-library PDFs</div>
+              <div className="text-xs text-white/55">In-library PDFs</div>
             </div>
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
               <div className="text-2xl font-black text-white">{savedOfflineCount}</div>
-              <div className="text-2xs uppercase tracking-[0.16em] text-white/55">Saved on device</div>
+              <div className="text-xs text-white/55">Saved on device</div>
             </div>
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
               <div className="text-2xl font-black text-white">{externalBooks}</div>
-              <div className="text-2xs uppercase tracking-[0.16em] text-white/55">Official sources</div>
+              <div className="text-xs text-white/55">Official sources</div>
             </div>
           </div>
 

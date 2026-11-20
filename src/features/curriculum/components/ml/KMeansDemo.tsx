@@ -76,7 +76,7 @@ export default function KMeansDemo() {
               onClick={() => setCsv(SAMPLE)}
               className="px-3 py-2 rounded-lg text-xs font-semibold text-[var(--color-text-dim)] hover:text-[var(--color-heading)] hover:bg-[var(--color-surface-2)] transition-colors"
             >
-              Load sample data
+              Use the example points
             </button>
           </div>
           {error && <p className="text-xs text-[var(--color-danger)] mt-2">{error}</p>}

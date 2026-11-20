@@ -44,7 +44,7 @@ export default memo(function LabCard({
   const labUrl = `/lab/${lab.slug}`;
   const techIcon = getLabIconKey(lab);
   const status = done ? 'Complete' : captured > 0 ? 'In progress' : 'Not started';
-  const ctaLabel = variant === 'task' ? (done ? 'Review task' : captured > 0 ? 'Continue task' : 'Start task') : done ? 'Review room' : captured > 0 ? 'Continue room' : 'Enter room';
+  const ctaLabel = variant === 'task' ? (done ? 'Review task' : captured > 0 ? 'Continue task' : 'Start task') : done ? 'Review lab' : captured > 0 ? 'Continue lab' : 'Open lab';
   const minutes = ({ Easy: 20, Medium: 35, Hard: 55 } as Record<string, number>)[lab.scenario.difficulty] ?? 30;
 
   if (variant === 'task') return <article className="task-lab-row">
@@ -63,8 +63,8 @@ export default memo(function LabCard({
         {done && <span className="dw-room-card__tag dw-room-card__tag--done"><IconCheck className="h-3 w-3" />Complete</span>}
         <button
           onClick={(e) => { e.preventDefault(); toggleBookmark(lab.scenario.id); }}
-          title={bookmarked ? 'Remove bookmark' : 'Bookmark this room'}
-          aria-label={bookmarked ? 'Remove bookmark' : 'Bookmark this room'}
+          title={bookmarked ? 'Remove bookmark' : 'Bookmark this lab'}
+          aria-label={bookmarked ? 'Remove bookmark' : 'Bookmark this lab'}
           aria-pressed={bookmarked}
           className="dw-room-card__save"
           data-on={bookmarked}

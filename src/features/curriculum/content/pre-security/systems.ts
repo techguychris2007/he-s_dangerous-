@@ -11,7 +11,7 @@ const sources = {
 /** A quiz item with the correct option placed at `position`, so answers are not always first. */
 const q = (question: string, correct: string, wrong: string[], position: number) => ({ question, options: [...wrong.slice(0, position), correct, ...wrong.slice(position)], answer: position });
 
-/** Pre-security module "Computers & Operating Systems": general concepts, no single tool. */
+/** Foundations module "Computers & Operating Systems": general concepts, no single tool. */
 export const beginnerSystemLessons: CurriculumLesson[] = [
   {
     id: 'pre-system-1', slug: 'linux-navigation-and-streams', title: 'What an Operating System Does', summary: 'Understand the layers between hardware and the apps you use, and why the operating system is the part attackers most want to control.', minutes: 20,

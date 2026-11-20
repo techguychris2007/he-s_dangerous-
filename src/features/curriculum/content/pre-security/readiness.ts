@@ -3,7 +3,7 @@ import { primarySources, type CurriculumLesson } from '../curriculumDefinition';
 /** A quiz item with the correct option placed at `position`, so answers are not always first. */
 const q = (question: string, correct: string, wrong: string[], position: number) => ({ question, options: [...wrong.slice(0, position), correct, ...wrong.slice(position)], answer: position });
 
-/** Pre-security capstone: general professional habits, no single tool. */
+/** Foundations capstone: general professional habits, no single tool. */
 export const readinessLessons: CurriculumLesson[] = [
   {
     id: 'pre-ready-1', slug: 'first-lab-observe-explain-repeat', title: 'Thinking Like a Security Professional', summary: 'Practise the habit behind every security job: start with a question, gather evidence, claim only what it supports, and stay inside your authorisation.', minutes: 20,
@@ -64,7 +64,7 @@ export const readinessLessons: CurriculumLesson[] = [
     ],
   },
   {
-    id: 'pre-ready-3', slug: 'offensive-lab-readiness-capstone', title: 'Pre-Security Capstone: Putting It Together', summary: 'Work one realistic incident through every module of this path, check your readiness, and choose the path you want to follow next.', minutes: 25,
+    id: 'pre-ready-3', slug: 'offensive-lab-readiness-capstone', title: 'Foundations Capstone: Putting It Together', summary: 'Work one realistic incident through every module of this path, check your readiness, and choose the path you want to follow next.', minutes: 25,
     prerequisite: 'Complete every earlier module in the pre-security path.',
     outcomes: ['Apply concepts from every pre-security module to one scenario', 'Check your readiness against the path\'s core skills', 'Choose a next path based on the work you enjoyed'],
     introduction: 'Real incidents do not arrive sorted by topic. A single compromise can involve a weak password, a web application flaw, a privileged account, network traffic, logs and a response plan, all at once. This capstone walks one scenario through everything you have learned, then helps you decide where to go next.',

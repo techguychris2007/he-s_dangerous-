@@ -6,7 +6,7 @@
   var(--chrome-bg); }
 .dw-phero::before { content: ""; position: absolute; inset: 0; z-index: -1; opacity: .35; background-image: linear-gradient(var(--chrome-line) 1px, transparent 1px), linear-gradient(90deg, var(--chrome-line) 1px, transparent 1px); background-size: 44px 44px; mask-image: radial-gradient(80% 90% at 70% 50%, #000, transparent 75%); }
 .dw-phero__inner { display: grid; grid-template-columns: minmax(0, 1fr) minmax(360px, 520px); align-items: center; gap: 2rem 3rem; max-width: 80rem; margin: 0 auto; padding: 2.5rem clamp(1.25rem, 3vw, 2rem) 2.25rem; }
-.dw-phero__eyebrow { display: flex; align-items: center; gap: .55rem; margin: 0 0 .7rem; font-size: .72rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--chrome-highlight); }
+.dw-phero__eyebrow { display: flex; align-items: center; gap: .55rem; margin: 0 0 .7rem; font-size: .72rem; font-weight: 700; color: var(--chrome-highlight); }
 .dw-phero__eyebrow span { width: 22px; height: 2px; border-radius: 2px; background: var(--color-gold); }
 .dw-phero h1 { margin: 0; font-family: var(--font-display); font-size: clamp(2.1rem, 4vw, 3rem); font-weight: 700; letter-spacing: -.03em; line-height: 1.05; color: var(--chrome-ink); }
 .dw-phero__lede { max-width: 40rem; margin-top: .9rem; font-size: 1rem; line-height: 1.7; color: var(--chrome-text); }
@@ -17,7 +17,7 @@
 .dw-phero__actions .is-primary:hover { border-color: transparent; filter: brightness(1.08); }
 .dw-phero__stats { display: flex; flex-wrap: wrap; gap: .6rem; margin: 1.5rem 0 0; }
 .dw-phero__stats div { min-width: 7.5rem; padding: .6rem .85rem; border: 1px solid var(--chrome-line); border-radius: 10px; background: color-mix(in srgb, var(--chrome-raise) 75%, transparent); }
-.dw-phero__stats dt { font-size: .64rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--chrome-muted); }
+.dw-phero__stats dt { font-size: .64rem; font-weight: 700; color: var(--chrome-muted); }
 .dw-phero__stats dd { margin: .2rem 0 0; font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; color: var(--chrome-ink); }
 .dw-phero__stats dd small { font-size: .8rem; font-weight: 500; color: var(--chrome-muted); }
 .dw-phero__guide { display: flex; align-items: center; gap: .75rem; max-width: 34rem; margin-top: 1.25rem; }

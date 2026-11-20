@@ -19,7 +19,7 @@ const TOTAL_LESSONS = MODULES.reduce((n, m) => n + m.lessons.length, 0);
 const SKILL_PREVIEW = 6;
 
 const PATHS: { track: RoadmapTrack; label: string; title: string; icon: string; guide: CharacterId; tone: IsoTone }[] = [
-  { track: 'presecurity', label: 'Start here', title: 'Pre-security', icon: 'network', guide: 'byte', tone: 'idle' },
+  { track: 'presecurity', label: 'Start here', title: 'Foundations', icon: 'network', guide: 'byte', tone: 'idle' },
   { track: 'security', label: 'Assess & discover', title: 'Offensive security', icon: 'crosshair', guide: 'vex', tone: 'offense' },
   { track: 'defensive', label: 'Investigate & protect', title: 'Defensive security', icon: 'soc', guide: 'sentinel', tone: 'defense' },
   { track: 'programming', label: 'Automate', title: 'Programming', icon: 'python', guide: 'cipher', tone: 'analysis' },
@@ -112,11 +112,11 @@ export default function HomePage() {
         title: inProgressLab.scenario.title,
         detail: `${progress.labFlags[inProgressLab.scenario.id]?.length ?? 0} of ${inProgressLab.scenario.totalFlags} flags · ${inProgressLab.scenario.difficulty}`,
         to: '/lab/' + inProgressLab.slug,
-        label: 'Resume room',
+        label: 'Resume lab',
         percent: (100 * (progress.labFlags[inProgressLab.scenario.id]?.length ?? 0)) / inProgressLab.scenario.totalFlags,
         guide: guideForArea(inProgressLab.scenario.category),
         icon: categoryIconKey(inProgressLab.scenario.category),
-        kind: 'Room',
+        kind: 'Lab',
       }
     : nextLesson && nextModule
       ? {
@@ -129,7 +129,7 @@ export default function HomePage() {
           icon: nextModule.icon,
           kind: 'Lesson',
         }
-      : { title: 'Put your knowledge to work', detail: 'Choose a practical challenge from the lab catalog.', to: '/labs', label: 'Explore labs', percent: 0, guide: 'vex', icon: 'flag', kind: 'Rooms' };
+      : { title: 'Put your knowledge to work', detail: 'Choose a practical challenge from the lab catalog.', to: '/labs', label: 'Explore labs', percent: 0, guide: 'vex', icon: 'flag', kind: 'Labs' };
 
   const owner = useIsOwner();
   const paths = useMemo(() => PATHS.filter((path) => owner || !OWNER_TRACKS.has(path.track)).map((path) => {
@@ -142,7 +142,7 @@ export default function HomePage() {
   const shownSkills = showAllSkills ? skillProgress : skillProgress.slice(0, SKILL_PREVIEW);
   const numbers = [
     { label: 'Lessons completed', icon: <IconBook className="h-4 w-4" />, value: completedLessonCount, total: TOTAL_LESSONS },
-    { label: 'Rooms cleared', icon: <IconFlask className="h-4 w-4" />, value: labsDone, total: labsLoaded ? totalLabs : 0 },
+    { label: 'Labs cleared', icon: <IconFlask className="h-4 w-4" />, value: labsDone, total: labsLoaded ? totalLabs : 0 },
     { label: 'Flags captured', icon: <IconFlag className="h-4 w-4" />, value: capturedFlags, total: labsLoaded ? totalFlags : 0 },
   ];
 
@@ -183,8 +183,8 @@ export default function HomePage() {
 
           <section className="dw-dash__section" aria-labelledby="dw-skills-title">
             <div className="dw-dash__head">
-              <div><p>Room districts</p><h2 id="dw-skills-title">Skills</h2></div>
-              <Link to="/labs">All rooms →</Link>
+              <div><p>By topic</p><h2 id="dw-skills-title">Skills</h2></div>
+              <Link to="/labs">All labs →</Link>
             </div>
             <div className="dw-skills">
               {!labsLoaded

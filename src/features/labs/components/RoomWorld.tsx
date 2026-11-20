@@ -18,7 +18,7 @@ const TILE = 104;
 const MIN_SCALE = 0.62; // below this the map scrolls sideways instead of shrinking further
 
 /** The room catalog as an isometric world: one district per category, built taller the more rooms
- *  it holds, lit green when cleared and indigo while in progress. Selecting a district filters.
+ *  it holds, lit green when cleared and copper while in progress. Selecting a district filters.
  *  The map scales to fit its column; labels sit on their own layer so tiles never hide them. */
 export default function RoomWorld({ districts, selected, onSelect }: { districts: District[]; selected: string; onSelect: (category: string) => void }) {
   const rows = Math.ceil(districts.length / COLS);

@@ -61,7 +61,7 @@ function CurrentPathTab({ track }: { track: RoadmapTrack }) {
   const lessonsDone = stageInfo.reduce((sum, s) => sum + s.doneLessons, 0);
 
 
-  const trackName: Record<string, string> = { presecurity: 'Pre-security', security: 'Offensive security', defensive: 'Defensive security', programming: 'Programming', software: 'Software engineering' };
+  const trackName: Record<string, string> = { presecurity: 'Foundations', security: 'Offensive security', defensive: 'Defensive security', programming: 'Programming', software: 'Software engineering' };
   const trackGuide: Record<string, CharacterId> = { presecurity: 'byte', security: 'vex', defensive: 'sentinel', programming: 'cipher', software: 'cipher' };
 
   return (
@@ -69,7 +69,7 @@ function CurrentPathTab({ track }: { track: RoadmapTrack }) {
       {allDone && (
         <div className="rounded-xl border border-[var(--color-success)]/30 bg-[var(--color-success)]/10 px-4 py-3 mb-6 text-sm text-[var(--color-success)] font-semibold">
           You've completed the lessons on this path. Revisit any module below, or head to the{' '}
-          <Link to="/labs" className="underline">rooms</Link>{' '}
+          <Link to="/labs" className="underline">labs</Link>{' '}
           for more practice.
         </div>
       )}
@@ -200,7 +200,7 @@ export default function MyLearningPage() {
   const [tab, setTab] = useState<TabId>('current');
   const [params, setParams] = useSearchParams();
   const owner = useIsOwner();
-  const paths = ([['presecurity', 'Pre-security'], ['security', 'Offensive security'], ['defensive', 'Defensive security'], ['programming', 'Programming'], ['software', 'Software engineering']] as const).filter(([id]) => owner || !OWNER_TRACKS.has(id));
+  const paths = ([['presecurity', 'Foundations'], ['security', 'Offensive security'], ['defensive', 'Defensive security'], ['programming', 'Programming'], ['software', 'Software engineering']] as const).filter(([id]) => owner || !OWNER_TRACKS.has(id));
   const track = paths.find(([id]) => id === params.get('track'))?.[0] ?? 'presecurity';
   const progress = useProgress();
   const modules = ROADMAP.filter(stage => stage.track === track).map(stage => findModule(stage.moduleSlug)).filter(mod => mod !== undefined);

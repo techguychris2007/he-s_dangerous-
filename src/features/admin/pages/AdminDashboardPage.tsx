@@ -19,7 +19,7 @@ import { IconUser, IconFlag, IconCheck, IconChart, IconMessage, IconLightning, I
 const DAY = 86_400_000;
 const TOTAL_LESSONS = () => MODULES.reduce((sum, m) => sum + m.lessons.length, 0);
 const TRACK_LABELS: Record<RoadmapTrack, string> = {
-  presecurity: 'Pre-security', security: 'Offensive', defensive: 'Defensive', programming: 'Programming',
+  presecurity: 'Foundations', security: 'Offensive', defensive: 'Defensive', programming: 'Programming',
   software: 'Software engineering', dotnet: 'C# & .NET', ml: 'Machine learning',
 };
 
@@ -83,7 +83,7 @@ function Panel({ title, action, children, className = '' }: { title: string; act
   return (
     <section className={`premium-card rounded-2xl p-5 min-w-0 ${className}`}>
       <div className="flex items-center justify-between gap-3 mb-4">
-        <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--color-heading)]">{title}</h2>
+        <h2 className="text-sm font-semibold text-[var(--color-heading)]">{title}</h2>
         {action}
       </div>
       {children}
@@ -662,7 +662,7 @@ function FeedbackTab({ data }: { data: AdminData }) {
             {feedback.map((f) => (
               <li key={f.id} className="rounded-xl border border-[var(--color-border)] p-3.5">
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[var(--color-text-dim)] mb-1.5">
-                  <span className={`rounded px-1.5 py-0.5 font-bold uppercase tracking-wide ${f.category === 'bug' ? 'text-[var(--color-danger)]' : 'text-[var(--color-gold)]'}`}>{f.category}</span>
+                  <span className={`rounded px-1.5 py-0.5 font-semibold ${f.category === 'bug' ? 'text-[var(--color-danger)]' : 'text-[var(--color-gold)]'}`}>{f.category}</span>
                   <span className="truncate">{f.email ?? 'deleted account'}</span>
                   {f.pagePath && <span className="font-mono truncate">{f.pagePath}</span>}
                   <time className="ml-auto font-mono" dateTime={f.createdAt}>{new Date(f.createdAt).toLocaleString()}</time>

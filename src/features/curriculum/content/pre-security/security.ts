@@ -8,7 +8,7 @@ const sources = {
 /** A quiz item with the correct option placed at `position`, so answers are not always first. */
 const q = (question: string, correct: string, wrong: string[], position: number) => ({ question, options: [...wrong.slice(0, position), correct, ...wrong.slice(position)], answer: position });
 
-/** Pre-security module "Logs, Evidence & Incident Basics": general concepts, no single tool. */
+/** Foundations module "Logs, Evidence & Incident Basics": general concepts, no single tool. */
 export const beginnerSecurityLessons: CurriculumLesson[] = [
   {
     id: 'pre-security-1', slug: 'risk-threats-and-security-controls', title: 'Logs: What Systems Record', summary: 'Learn what logs are, which events matter most, and why time, consistency and central collection decide whether logs can answer questions later.', minutes: 20,

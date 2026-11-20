@@ -67,7 +67,7 @@ function NarrativeBanner({
                 {narrative.emoji}
               </span>
             )}
-            <span className="text-xs font-mono uppercase tracking-[0.18em] text-white/60">
+            <span className="text-xs font-mono text-white/60">
               Case File — {narrative.victim}
             </span>
           </div>
@@ -85,7 +85,7 @@ function NarrativeBanner({
         <p className="text-xs text-[var(--color-text)] leading-relaxed mb-3">{narrative.scene}</p>
 
         <div className="rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/5 px-3 py-2.5 mb-3">
-          <div className="text-2xs font-mono uppercase tracking-wide text-[var(--color-accent)] mb-1">
+          <div className="text-xs font-mono text-[var(--color-accent)] mb-1">
             🕵️ Your Mission
           </div>
           <p className="text-xs text-[var(--color-text)] leading-relaxed">{narrative.mission}</p>
@@ -239,7 +239,7 @@ export default function SiemLabPage() {
       <section className="flex flex-1 min-w-0 min-h-0 flex-col gap-3 overflow-hidden bg-[var(--color-bg)] p-2 sm:p-4 lg:p-5" aria-label="Investigation workspace">
         <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 premium-card rounded-2xl px-3 py-2">
           <div className="min-w-0">
-            <p className="text-2xs font-bold uppercase tracking-widest text-[var(--color-accent-dim)]">{isOsint ? 'OSINT workspace' : 'SIEM investigation'}</p>
+            <p className="text-xs font-semibold text-[var(--color-accent-dim)]">{isOsint ? 'OSINT workspace' : 'SIEM investigation'}</p>
             <p className="truncate text-xs text-[var(--color-text-dim)]">{TOOL_LABEL[scenario.tool]} · {scenario.totalFlags} proof points</p>
           </div>
           <span className={`rounded-full px-3 py-1 text-xs font-semibold ${done ? 'bg-[var(--color-success)]/10 text-[var(--color-success)]' : 'bg-[var(--color-accent)]/10 text-[var(--color-accent-dim)]'}`}>{done ? siemScenario?.investigation ? 'Training complete' : 'Case closed' : 'Case active'}</span>

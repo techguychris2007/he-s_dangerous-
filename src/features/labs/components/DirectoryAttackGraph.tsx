@@ -15,8 +15,8 @@ export default function DirectoryAttackGraph({ map, snapshot }: { map: Directory
   return (
     <section aria-label="Live directory attack graph" className="min-w-0 overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[#101a25] text-[#d9e4ef] shadow-lg">
       <header className="flex flex-wrap items-start justify-between gap-3 border-b border-[#263444] p-4">
-        <div><p className="text-2xs font-bold uppercase tracking-[.2em] text-[#91a4b7]">Directory relationship map</p><h2 className="mt-1 text-base font-bold tracking-tight text-white">{map.domain}</h2></div>
-        <span className="rounded-full border border-[#345044] bg-[#173127] px-2.5 py-1 text-2xs font-semibold uppercase tracking-wider text-[#8bd8b0]">Live evidence</span>
+        <div><p className="text-xs font-semibold text-[#91a4b7]">Directory relationship map</p><h2 className="mt-1 text-base font-bold tracking-tight text-white">{map.domain}</h2></div>
+        <span className="rounded-full border border-[#345044] bg-[#173127] px-2.5 py-1 text-xs font-semibold text-[#8bd8b0]">Live evidence</span>
       </header>
       <div className="overflow-x-auto">
         <svg viewBox="0 0 610 300" role="img" aria-label="Known directory topology. Use the node buttons and relationship table below for complete accessible details." className="h-auto w-full min-w-[430px]">

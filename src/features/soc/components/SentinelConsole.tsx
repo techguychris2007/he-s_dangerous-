@@ -87,7 +87,7 @@ export default function SentinelConsole({
 
           {/* KQL editor */}
           <div className="px-3 py-3 border-b border-black/10 shrink-0">
-            <div className="text-xs font-semibold text-[#605e5c] uppercase tracking-wide mb-1.5">{compact ? 'Search case evidence' : 'New Query 1*'}</div>
+            <div className="text-xs font-semibold text-[#605e5c] mb-1.5">{compact ? 'Search case evidence' : 'New Query 1*'}</div>
             <textarea
               aria-label="Investigation query"
               value={query}
@@ -117,7 +117,7 @@ export default function SentinelConsole({
           <div className="flex-1 min-h-0 overflow-auto">
             <table className={`w-full text-sm ${compact ? 'table-fixed min-w-[600px]' : ''}`}>
               {compact && <colgroup><col style={{ width: 180 }} /><col style={{ width: 125 }} /><col /></colgroup>}
-              <thead className="sticky top-0 bg-[#faf9f8] text-[#605e5c] text-xs font-semibold uppercase tracking-wide border-b border-black/10">
+              <thead className="sticky top-0 bg-[#faf9f8] text-[#605e5c] text-xs font-semibold border-b border-black/10">
                 <tr>
                   <th className="text-left px-3 py-2 whitespace-nowrap">TimeGenerated</th>
                   <th className="text-left px-3 py-2">OperationName</th>

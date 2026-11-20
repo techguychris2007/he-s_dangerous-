@@ -1,7 +1,7 @@
 .dw-mission-launch{height:100%;overflow:auto;padding:32px clamp(20px,4vw,64px);color:var(--color-heading);background:var(--color-bg)}
 .dw-mission-back{font-size:13px;color:var(--color-text-dim)}
 .dw-mission-intro,.dw-mission-preflight{max-width:1000px;margin:24px auto;border:1px solid var(--color-border);background:var(--color-surface);border-radius:12px;padding:clamp(24px,4vw,44px)}
-.dw-mission-eyebrow{display:block;font-size:10px;font-weight:750;letter-spacing:.13em;text-transform:uppercase;color:#526880}
+.dw-mission-eyebrow{display:block;font-size:10px;font-weight:750;color:#526880}
 .dw-mission-intro h1{max-width:760px;font-size:clamp(28px,3.2vw,44px);font-weight:750;letter-spacing:-.04em;line-height:1.12;margin:14px 0 20px}
 .dw-mission-meta{display:flex;align-items:center;flex-wrap:wrap;gap:18px;font-size:12px;color:var(--color-text-dim)}
 .dw-mission-intro>p,.dw-mission-preflight p{max-width:76ch;font-size:15px;line-height:1.85;white-space:pre-line;margin:24px 0;color:var(--color-text-dim)}
@@ -59,26 +59,26 @@
 .dw-mission-hint h4{margin-top:0!important;color:var(--color-gold-dim)!important}
 .dw-mission-hint--exact pre{margin:8px 0 10px}
 .dw-mission-case{display:grid;gap:2px}
-.dw-mission-case>span,.dw-learning-scene>span{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--color-accent)}
+.dw-mission-case>span,.dw-learning-scene>span{font-size:10px;font-weight:800;color:var(--color-accent)}
 .dw-mission-case>p{margin:4px 0 14px}
 .dw-mission-case__mission{padding:13px 14px;border-left:3px solid var(--color-accent);background:var(--color-surface-2);border-radius:5px}
 .dw-learning-scene{padding:14px;border:1px solid var(--color-border);border-left:3px solid var(--color-accent);border-radius:6px;background:var(--color-surface-2);margin-bottom:18px}
 .dw-learning-scene p{margin:6px 0 0}
 .dw-learning-question{font-weight:650;color:var(--color-heading)!important}
 .dw-learning-decision{margin:18px 0;padding:14px;border:1px solid color-mix(in srgb,var(--color-accent) 38%,var(--color-border));border-radius:6px;background:color-mix(in srgb,var(--color-accent) 7%,var(--color-surface))}
-.dw-learning-decision>strong{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent);margin-bottom:5px}
+.dw-learning-decision>strong{display:block;font-size:11px;color:var(--color-accent);margin-bottom:5px}
 .dw-learning-decision p{margin:0}
 .dw-command-method{margin:16px 0!important;padding:12px 14px;border:1px solid var(--color-border);border-radius:6px;background:var(--color-surface-2);color:var(--color-heading)!important}
 .dw-command-method summary{font-weight:700;cursor:pointer}
 .dw-command-method p{font-size:13px;margin:10px 0 0;color:var(--color-text-dim)}
 .dw-case-file{max-width:1000px;margin:24px auto;border:1px solid var(--color-border);border-radius:12px;background:var(--color-surface);overflow:hidden}
 .dw-case-file__heading{padding:22px 26px 16px;border-bottom:1px solid var(--color-border)}
-.dw-case-file__heading>span{font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent)}
+.dw-case-file__heading>span{font-size:10px;font-weight:800;color:var(--color-accent)}
 .dw-case-file__heading h2{font:700 20px/1.3 var(--font-display);margin:5px 0 0;color:var(--color-heading)}
 .dw-case-file__grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
 .dw-case-file__grid>div{padding:20px 26px;border-bottom:1px solid var(--color-border)}
 .dw-case-file__grid>div:nth-child(odd){border-right:1px solid var(--color-border)}
-.dw-case-file h3{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-dim);margin:0 0 7px}
+.dw-case-file h3{font-size:11px;color:var(--color-text-dim);margin:0 0 7px}
 .dw-case-file p{font-size:14px;line-height:1.7;color:var(--color-text);margin:0}
 .dw-case-file__mission{padding:17px 26px;background:var(--color-surface-2);color:var(--color-heading)!important}
 .dw-mission-guide p.dw-mission-note{font-size:13px;color:var(--color-text-dim)}

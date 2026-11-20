@@ -51,7 +51,7 @@
   animation: dw-handle-in 260ms ease-out both;
 }
 .dw-handle-dialog:focus { outline: none; }
-.dw-handle-dialog__eyebrow { margin: 0; font-size: .72rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--color-success); }
+.dw-handle-dialog__eyebrow { margin: 0; font-size: .72rem; font-weight: 600; color: var(--color-success); }
 .dw-handle-dialog h2 { margin: 0; font-size: 1rem; font-weight: 600; color: var(--color-text-dim); }
 .dw-handle-dialog h2 span { display: block; margin-top: .2rem; font-size: 1.6rem; font-weight: 800; letter-spacing: -.02em; color: var(--color-heading); font-family: var(--font-display); }
 .dw-handle-dialog .dw-speaker { text-align: left; }

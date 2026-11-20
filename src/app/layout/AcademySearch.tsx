@@ -50,7 +50,7 @@ export default function AcademySearch({ compact = false, adaptive = false, onNav
     </button>
     {createPortal(<dialog ref={dialog} className="dw-search-dialog" aria-labelledby={listId + '-title'} onCancel={() => setOpen(false)} onClose={() => setOpen(false)} onClick={event => { if (event.target === event.currentTarget) setOpen(false); }} onKeyDown={event => { if (event.key === 'Escape') event.stopPropagation(); }}>
       <div className="dw-search-box">
-        <header><div><p>QUICK NAVIGATION</p><h2 id={listId + '-title'}>Where would you like to go?</h2></div><button type="button" className="dw-search-close" aria-label="Close academy search" onClick={() => setOpen(false)}>Esc</button></header>
+        <header><div><p>Quick navigation</p><h2 id={listId + '-title'}>Where would you like to go?</h2></div><button type="button" className="dw-search-close" aria-label="Close academy search" onClick={() => setOpen(false)}>Esc</button></header>
         <input ref={input} type="search" role="combobox" autoComplete="off" aria-label="Search pages, modules and lessons" aria-expanded={true} aria-controls={listId} aria-autocomplete="list" aria-activedescendant={results[active] ? listId + '-' + active : undefined} placeholder="Try networking, Python, or SOC…" value={query} onChange={event => { setQuery(event.target.value); setActive(0); }} onKeyDown={event => {
           if (event.key === 'ArrowDown') { event.preventDefault(); setActive(current => Math.max(0, Math.min(current + 1, results.length - 1))); }
           if (event.key === 'ArrowUp') { event.preventDefault(); setActive(current => Math.max(current - 1, 0)); }

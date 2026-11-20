@@ -1,5 +1,5 @@
 /* Navy chrome: sidebar + portal bar. Colours come from the --chrome-* tokens in index.css so the
-   frame stays dark in both themes and its highlights track the crest-indigo accent. */
+   frame stays dark in both themes and its highlights track the copper accent. */
 .dw-sidebar,
 .academy-shell #platform-navigation aside.dw-sidebar {
   width: 264px;
@@ -24,7 +24,7 @@
 .dw-sidebar-scroll { min-height: 0; flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 16px 14px 20px; scrollbar-gutter: stable; scrollbar-width: thin; scrollbar-color: var(--chrome-line-strong) transparent; }
 .dw-nav-section { margin-bottom: 19px; }
 .dw-nav-workspace { padding-bottom: 13px; border-bottom: 1px solid var(--chrome-line); }
-.dw-nav-label { margin: 0 12px 6px; color: var(--chrome-muted); font-size: 10.5px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; }
+.dw-nav-label { margin: 0 12px 6px; color: var(--chrome-muted); font-size: 12px; font-weight: 600; }
 .dw-nav-link,
 .dw-nav-disclosure > summary { display: flex; align-items: center; gap: 11px; min-height: 40px; padding: 10px 12px; border-radius: 7px; line-height: 1.4; color: var(--chrome-text); font-weight: 500; text-decoration: none; cursor: pointer; transition: background-color .15s, color .15s; }
 .dw-nav-link:hover, .dw-nav-disclosure > summary:hover { background: var(--chrome-hover); color: var(--chrome-ink); }
@@ -69,7 +69,7 @@
 .dw-account-name small { display: block; color: var(--chrome-muted); margin-top: 2px; font-size: 10.5px; }
 .dw-account-menu > summary:hover, .dw-account-menu[open] > summary { background: var(--chrome-hover); }
 .dw-account-popover { position: absolute; bottom: calc(100% + 16px); left: -6px; right: -6px; padding: 8px; background: var(--chrome-raise); border: 1px solid var(--chrome-line-strong); border-radius: 10px; box-shadow: 0 12px 40px #0006; z-index: 10; }
-.dw-account-popover > p { padding: 7px 12px; color: var(--chrome-muted); font-size: 10px; letter-spacing: 1.5px; }
+.dw-account-popover > p { padding: 7px 12px; color: var(--chrome-muted); font-size: 12px; font-weight: 600; }
 .dw-sign-out { width: 100%; border-top: 1px solid var(--chrome-line-strong); border-radius: 0 0 5px 5px; margin-top: 7px; justify-content: space-between; font-size: 12px; }
 .dw-sidebar :is(a, button, summary):focus-visible,
 .dw-navigation-close:focus-visible { outline: 2px solid var(--chrome-highlight); outline-offset: 2px; }
@@ -81,7 +81,7 @@
 
 /* Command palette (light content surface, follows the page theme). */
 .dw-search-dialog { position: fixed; inset: 12vh 0 auto; margin: 0 auto; padding: 0; width: min(640px, calc(100vw - 40px)); max-height: 76vh; overflow: auto; background: var(--color-surface); color: var(--color-text); border: 1px solid var(--color-border); border-radius: 12px; box-shadow: 0 30px 100px #0005; overscroll-behavior: contain; }
-.dw-search-dialog::backdrop { background: color-mix(in srgb, var(--chrome-bg) 70%, transparent); backdrop-filter: blur(4px); }
+.dw-search-dialog::backdrop { background: color-mix(in srgb, var(--chrome-bg) 72%, transparent); }
 .dw-search-box { padding: 22px; }
 .dw-search-box header { display: flex; align-items: flex-start; justify-content: space-between; gap: 15px; margin-bottom: 18px; }
 .dw-search-box header p { color: var(--color-text-dim); font-size: 9px; font-weight: 600; letter-spacing: 1.5px; margin-bottom: 6px; }
@@ -89,7 +89,7 @@
 .dw-search-close { border: 1px solid var(--color-border); border-radius: 5px; padding: 4px 7px; font-size: 11px; cursor: pointer; }
 .dw-search-box input { width: 100%; border: 1px solid var(--color-border); background: var(--color-surface-2); color: var(--color-heading); border-radius: 8px; font-size: 14px; padding: 13px; }
 .dw-search-box input:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
-.dw-search-caption { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--color-text-dim); margin: 20px 0 8px; }
+.dw-search-caption { font-size: 12px; font-weight: 600; color: var(--color-text-dim); margin: 20px 0 8px; }
 .dw-search-box ul { list-style: none; padding: 0; margin: 0; }
 .dw-search-box li button { width: 100%; display: flex; align-items: center; gap: 16px; padding: 12px 10px; border-radius: 6px; text-align: left; cursor: pointer; }
 .dw-search-box li button[aria-selected="true"] { background: var(--color-surface-2); box-shadow: inset 3px 0 var(--color-accent); }
@@ -114,9 +114,9 @@
 .dw-topbar-control:hover, .dw-topbar-control[aria-expanded="true"] { color: var(--color-heading); background: var(--color-surface-2); border-color: var(--color-border); }
 .dw-topbar .dw-level-hud { border-radius: 7px; box-shadow: none; background: transparent; border-color: transparent; }
 .dw-topbar .dw-level-hud:hover { border-color: var(--color-border); background: var(--color-surface-2); }
-.dw-topbar-sync { display: inline-flex; align-items: center; gap: 6px; color: var(--color-text-dim); font-size: 10px; white-space: nowrap; padding-inline: 8px; }
-.dw-topbar-sync::before { content: ''; width: 4px; height: 4px; background: currentColor; border-radius: 50%; }
-.dw-topbar-sync.is-local { color: var(--color-warn); }
+.dw-connection { flex-shrink: 0; padding: 8px 20px; font-size: 13px; line-height: 1.45; color: var(--color-heading); background: color-mix(in srgb, var(--color-warn) 14%, var(--color-surface)); border-bottom: 1px solid color-mix(in srgb, var(--color-warn) 35%, var(--color-border)); animation: dw-fade-in .2s ease-out; }
+.dw-connection[data-tone="ok"] { background: color-mix(in srgb, var(--color-success, #1f9d55) 12%, var(--color-surface)); border-bottom-color: color-mix(in srgb, var(--color-success, #1f9d55) 35%, var(--color-border)); }
+.dw-connection[hidden] { display: none; }
 .dw-topbar-theme { margin-left: 4px; }
 .dw-topbar-activity { border-radius: 10px; box-shadow: 0 12px 36px color-mix(in srgb, var(--color-heading) 12%, transparent); }
 .dw-topbar :is(a, button):focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }
@@ -149,4 +149,19 @@
   .dw-search-result-group { display: none; }
   .dw-search-box footer > span:last-child { display: none; }
 }
-@media (prefers-reduced-motion: reduce) { .dw-sidebar * { transition: none; } }
+/* Navigation motion. Disclosures open to their natural height where the browser supports animating
+   to `auto` (details::details-content); elsewhere they open instantly as before. */
+.dw-sidebar { interpolate-size: allow-keywords; }
+.dw-nav-disclosure::details-content { block-size: 0; overflow: clip; transition: block-size .22s cubic-bezier(.2,.7,.2,1), content-visibility .22s allow-discrete; }
+.dw-nav-disclosure[open]::details-content { block-size: auto; }
+.dw-nav-chevron { transition: transform .22s cubic-bezier(.2,.7,.2,1); }
+.dw-nav-link { transition: background-color .15s, color .15s, box-shadow .2s; }
+.dw-account-menu[open] .dw-account-popover { animation: dw-pop-in .16s cubic-bezier(.2,.7,.2,1); transform-origin: bottom left; }
+@keyframes dw-pop-in { from { opacity: 0; transform: translateY(4px) scale(.98); } }
+.dw-drawer-scrim { animation: dw-fade-in .2s ease-out; }
+@keyframes dw-fade-in { from { opacity: 0; } }
+.dw-search-dialog[open] { animation: dw-pop-in .16s cubic-bezier(.2,.7,.2,1); }
+@media (prefers-reduced-motion: reduce) {
+  .dw-sidebar *, .dw-sidebar *::details-content { transition: none; animation: none; }
+  .dw-drawer-scrim, .dw-search-dialog[open] { animation: none; }
+}

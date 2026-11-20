@@ -2,7 +2,7 @@
 .resource-page { color: var(--color-heading); }
 .resource-masthead { position: relative; isolation: isolate; overflow: hidden; display: grid; grid-template-columns: 1.6fr 1fr; align-items: center; gap: 2rem; margin-bottom: 1.5rem; padding: 2rem clamp(1.25rem, 3vw, 2.25rem); border: 1px solid var(--chrome-line); border-radius: 16px; color: var(--chrome-ink); background: radial-gradient(60% 140% at 100% 0%, color-mix(in srgb, var(--color-accent) 30%, transparent), transparent 65%), var(--chrome-bg); box-shadow: 0 22px 50px -38px #000; }
 .resource-masthead::before { content: ""; position: absolute; inset: 0; z-index: -1; opacity: .3; background-image: linear-gradient(var(--chrome-line) 1px, transparent 1px), linear-gradient(90deg, var(--chrome-line) 1px, transparent 1px); background-size: 40px 40px; mask-image: radial-gradient(70% 100% at 80% 30%, #000, transparent 75%); }
-.resource-eyebrow { font-size: .72rem; letter-spacing: .16em; text-transform: uppercase; color: var(--chrome-highlight); font-weight: 700; }
+.resource-eyebrow { font-size: .72rem; color: var(--chrome-highlight); font-weight: 700; }
 .resource-masthead h1 { margin: .5rem 0 .6rem; font-family: var(--font-display); font-size: clamp(1.9rem, 3.4vw, 2.6rem); font-weight: 700; line-height: 1.1; letter-spacing: -.03em; color: var(--chrome-ink); }
 .resource-masthead h1 em { color: var(--chrome-highlight); font-weight: 700; }
 .resource-introduction { max-width: 52ch; font-size: .95rem; line-height: 1.7; color: var(--chrome-text); }

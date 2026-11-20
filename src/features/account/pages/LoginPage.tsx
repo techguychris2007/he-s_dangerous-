@@ -137,7 +137,6 @@ export default function LoginPage() {
         <Link to="/welcome" className="dw-brand"><Logo className="dw-brand-mark" /><span>DARKWORLD<small>CYBERSECURITY ACADEMY</small></span></Link>
         <div className="dw-auth-story-copy">
           <div className="dw-entry-world dw-auth-world" aria-hidden="true" />
-          <p className="dw-eyebrow">Knowledge. Practice. Progress.</p>
           <h2>Build skills<br />that stand up<br /><em>to practice.</em></h2>
           <p>Learn the foundations, work through guided challenges and investigate security incidents in a dedicated learning workspace.</p>
           <ul className="dw-auth-benefits"><li>Structured lessons, from fundamentals onward</li><li>Terminal, coding and investigation labs</li><li>Saved progress and a portfolio of your work</li></ul>
@@ -151,7 +150,6 @@ export default function LoginPage() {
           <Link to="/welcome" className="dw-back">← Back to academy</Link>
         </div>
         <div className="dw-auth-form">
-          <p className="dw-eyebrow">Your learning workspace</p>
           <h1 id="auth-title">{mode === 'signup' ? 'Start your journey.' : mode === 'reset' ? 'Reset your password.' : 'Welcome back.'}</h1>
           <p className="dw-auth-description">{mode === 'signup' ? 'Create an account to save your progress as you learn.' : mode === 'reset' ? 'Enter your account email. We’ll send you a reset link.' : 'Sign in to pick up where you left off.'}</p>
           {mode !== 'reset' && <div className="dw-auth-tabs" aria-label="Account options">

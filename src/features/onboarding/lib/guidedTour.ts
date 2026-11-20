@@ -24,19 +24,19 @@ export const TOUR_STEPS: readonly TourStep[] = [
   },
   {
     id: 'tabs', guide: 'byte', target: '[data-tour="tabs"]', title: 'Your way around',
-    body: 'This menu reaches every part of the academy. Overview is your base: your next room, streak and XP are always here.',
+    body: 'This menu reaches every part of the academy. Overview is your base: your next lab, streak and XP are always here.',
   },
   {
     id: 'learn', guide: 'sentinel', target: '[data-tour="tab-learn"]', title: 'Start in Learn',
-    body: 'Lessons and learning paths live here. New to security? Begin with Pre-security: it starts from zero and builds every skill the labs rely on.',
+    body: 'Lessons and learning paths live here. New to security? Begin with Foundations: it starts from zero and builds every skill the labs rely on.',
   },
   {
     id: 'practice', guide: 'vex', target: '[data-tour="tab-practice"]', title: 'Practise on real systems',
-    body: 'Rooms give you real terminals, live websites and SIEM consoles. Everything is sandboxed, so experiment freely. Capture flags to earn XP.',
+    body: 'Labs give you real terminals, live websites and SIEM consoles. Everything is sandboxed, so experiment freely. Capture flags to earn XP.',
   },
   {
     id: 'search', guide: 'beacon', target: '[data-tour="tools"] .dw-search-trigger', title: 'Find anything fast',
-    body: 'Search jumps straight to any lesson, room or page. Press {shortcut} from anywhere in the academy.',
+    body: 'Search jumps straight to any lesson, lab or page. Press {shortcut} from anywhere in the academy.',
   },
   {
     id: 'dig', guide: 'dig', target: '.dig-floating-launcher', optional: true, title: 'Ask dig when you’re stuck',
@@ -48,7 +48,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
   },
   {
     id: 'finish', guide: 'sentinel', title: 'You’re ready, {handle}',
-    body: 'Start with Pre-security for a guided first step, or explore on your own. Your progress, XP and streak save automatically.',
+    body: 'Start with Foundations for a guided first step, or explore on your own. Your progress, XP and streak save automatically.',
   },
 ];
 

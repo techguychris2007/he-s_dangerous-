@@ -22,7 +22,7 @@ import type { RoadmapTrack } from '../../../shared/types/domain';
 const ALL_CODE_TASKS = [...PYTHON_TASKS, ...CPP_TASKS, ...JS_TASKS, ...SECURITY_TASKS, ...ML_TASKS];
 
 const TRACK_LABEL: Record<string, string> = {
-  presecurity: 'Pre-security Track',
+  presecurity: 'Foundations Track',
   defensive: 'Defensive Security Track',
   ml: 'Machine Learning Track',
   security: 'Offensive Security Track',

@@ -140,15 +140,15 @@ export default function LabsIndexPage() {
         <section className="dw-catalog-hero" aria-labelledby="rooms-title">
           <div className="dw-catalog-hero__head">
             <div>
-              <p className="dw-catalog-eyebrow">Hands-on rooms</p>
-              <h1 id="rooms-title">Rooms</h1>
-              <p className="dw-catalog-lede">{LABS.length} guided rooms across Linux, networks, web, Active Directory, cloud, SOC, forensics and more. Pick a district on the map, clear its rooms, and light it up.</p>
+              <p className="dw-catalog-eyebrow">Hands-on labs</p>
+              <h1 id="rooms-title">Labs</h1>
+              <p className="dw-catalog-lede">{LABS.length} guided labs across Linux, networks, web, Active Directory, cloud, SOC, forensics and more. Pick a district on the map, clear its labs, and light it up.</p>
             </div>
             <dl className="dw-catalog-stats">
-              <div><dt>Rooms</dt><dd>{LABS.length}</dd></div>
+              <div><dt>Labs</dt><dd>{LABS.length}</dd></div>
               <div><dt>Cleared</dt><dd>{totalDone}</dd></div>
               <div><dt>OSINT cases</dt><dd>{osintDone}/{OSINT_LABS.length}</dd></div>
-              <div className="dw-catalog-stats__progress"><dt>World progress</dt><dd>{overallPct}%</dd><span role="progressbar" aria-label="Overall room completion" aria-valuenow={overallPct} aria-valuemin={0} aria-valuemax={100}><i style={{ width: `${overallPct}%` }} /></span></div>
+              <div className="dw-catalog-stats__progress"><dt>World progress</dt><dd>{overallPct}%</dd><span role="progressbar" aria-label="Overall lab completion" aria-valuenow={overallPct} aria-valuemin={0} aria-valuemax={100}><i style={{ width: `${overallPct}%` }} /></span></div>
             </dl>
           </div>
 
@@ -158,7 +158,7 @@ export default function LabsIndexPage() {
               <p className="dw-catalog-eyebrow">District intel</p>
               <div className="dw-district-intel__head">
                 <IsoBlock width={72} depth={14} tone={intel.rooms > 0 && intel.done >= intel.rooms ? 'done' : 'progress'} crest={<ModuleIcon icon={filter === 'All' ? 'flag' : categoryIconKey(filter)} />} />
-                <div><h2>{filter === 'All' ? 'Whole world' : filter}</h2><p>{intel.rooms} rooms · {intel.done} cleared</p></div>
+                <div><h2>{filter === 'All' ? 'Whole world' : filter}</h2><p>{intel.rooms} labs · {intel.done} cleared</p></div>
               </div>
               <div className="dw-district-intel__bar"><i style={{ width: `${intel.pct}%` }} /></div>
               <ul className="dw-district-intel__split">
@@ -166,20 +166,20 @@ export default function LabsIndexPage() {
               </ul>
               <div className="dw-district-intel__guide">
                 <CharacterAvatar id={guide} size={44} decorative />
-                <p><strong>{CHARACTERS[guide].name}</strong>{filter === 'All' ? 'Choose a district on the map to focus the catalog.' : `${intel.rooms - intel.done} rooms left to clear in ${filter}.`}</p>
+                <p><strong>{CHARACTERS[guide].name}</strong>{filter === 'All' ? 'Choose a district on the map to focus the catalog.' : `${intel.rooms - intel.done} labs left to clear in ${filter}.`}</p>
               </div>
               <div className="dw-district-intel__actions">
-                <button type="button" onClick={scrollToRooms}>Browse rooms ↓</button>
+                <button type="button" onClick={scrollToRooms}>Browse labs ↓</button>
                 {filter !== 'All' && <button type="button" className="is-quiet" onClick={() => handleSetFilter('All')}>Show all</button>}
               </div>
             </aside>
           </div>
         </section>
 
-        <section aria-label="Find and filter rooms" className="dw-catalog-toolbar">
+        <section aria-label="Find and filter labs" className="dw-catalog-toolbar">
           <div className="dw-catalog-search">
             <IconSearch className="h-4 w-4" />
-            <input type="text" value={search} onChange={handleSearchChange} placeholder="Search rooms by name or category…" aria-label="Search rooms" />
+            <input type="text" value={search} onChange={handleSearchChange} placeholder="Search labs by name or category…" aria-label="Search labs" />
             {search && <button onClick={clearSearch} aria-label="Clear search"><IconX className="h-3.5 w-3.5" /></button>}
           </div>
           <div className="dw-segment" role="group" aria-label="Filter by difficulty">
@@ -188,7 +188,7 @@ export default function LabsIndexPage() {
           <div className="dw-segment" role="group" aria-label="Filter by status">
             {STATUSES.map((st) => <button key={st} onClick={() => { setStatusFilter(st); setVisibleCount(PAGE_SIZE); }} aria-pressed={statusFilter === st}>{st}</button>)}
           </div>
-          <span className="dw-catalog-count" aria-live="polite">{filtered.length} {filtered.length === 1 ? 'room' : 'rooms'}</span>
+          <span className="dw-catalog-count" aria-live="polite">{filtered.length} {filtered.length === 1 ? 'lab' : 'labs'}</span>
           {isFiltering && <button className="dw-catalog-clear" onClick={clearAll}>Clear filters</button>}
         </section>
 
@@ -207,14 +207,14 @@ export default function LabsIndexPage() {
         )}
 
         <div id="room-results" className="dw-section-head">
-          <div><p className="dw-catalog-eyebrow dw-catalog-eyebrow--ink">{filter === 'All' ? 'All districts' : filter}</p><h2>Rooms</h2></div>
+          <div><p className="dw-catalog-eyebrow dw-catalog-eyebrow--ink">{filter === 'All' ? 'All districts' : filter}</p><h2>Labs</h2></div>
           <span>Showing {Math.min(visibleCount, filtered.length)} of {filtered.length}</span>
         </div>
 
         {filtered.length === 0 ? (
           <div className="dw-catalog-empty">
             <CharacterAvatar id={guide} size={56} decorative />
-            <p>{search_ ? <>No rooms match &ldquo;{search}&rdquo;{filter !== 'All' && <> in {filter}</>}.</> : <>No rooms match these filters.</>}</p>
+            <p>{search_ ? <>No labs match &ldquo;{search}&rdquo;{filter !== 'All' && <> in {filter}</>}.</> : <>No labs match these filters.</>}</p>
             {isFiltering && <button onClick={clearAll}>Clear all filters</button>}
           </div>
         ) : (

@@ -11,7 +11,7 @@
 .dw-brand-mark { width: 47px; height: 53px; }
 .dw-brand > span { font-size: 20px; font-weight: 800; letter-spacing: .12em; }
 .dw-brand small { display: block; margin-top: 5px; font-size: 9px; font-weight: 600; letter-spacing: .2em; opacity: .65; }
-.dw-eyebrow { font-size: 11.5px; line-height: 1.6; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--entry-blue); }
+.dw-eyebrow { font-size: 14px; line-height: 1.5; font-weight: 600; color: var(--entry-blue); }
 .dw-button { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 46px; padding: 12px 20px; border: 1px solid transparent; border-radius: 10px; font-size: 14px; line-height: 1.5; font-weight: 650; transition: background .15s, border-color .15s; }
 .dw-button-primary { background: var(--entry-blue); color: #fff; }
 .dw-button-primary:hover { background: var(--color-accent-dim); }

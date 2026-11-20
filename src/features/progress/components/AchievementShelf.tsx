@@ -17,7 +17,7 @@ export default function AchievementShelf({ achievements, total }: AchievementShe
     <section className="dw-shelf mb-10 overflow-hidden rounded-[14px] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[0_2px_10px_-8px_var(--color-heading)]">
       <div className="flex flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-5">
         <div>
-          <p className="mb-1 text-2xs font-bold uppercase tracking-[.16em] text-[var(--color-accent-dim)]">Learning record</p>
+          <p className="mb-1 text-xs font-semibold text-[var(--color-accent-dim)]">Learning record</p>
           <h2 className="text-base font-bold tracking-[-.02em] text-[var(--color-heading)]">Achievements</h2>
         </div>
         <div className="flex items-center gap-3">
@@ -44,7 +44,7 @@ export default function AchievementShelf({ achievements, total }: AchievementShe
             <b className="font-semibold text-[var(--color-heading)]">No awards yet.</b> Complete a lesson or capture a lab flag to earn your first achievement.
           </p>
           <Link to="/labs" className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3.5 text-xs font-bold text-white hover:brightness-110">
-            Find a room <IconArrowRight className="h-3.5 w-3.5" />
+            Find a lab <IconArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
       ) : (
@@ -58,7 +58,7 @@ export default function AchievementShelf({ achievements, total }: AchievementShe
                   <IconCheck className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-success)]" />
                 </div>
                 <p className="mt-1 line-clamp-2 text-xs leading-5 text-[var(--color-text-dim)]">{achievement.description}</p>
-                <span className="achievement-award__label">{achievementAward(achievement.id).label}</span><p className="achievement-award__status mt-2 text-2xs font-bold uppercase tracking-[.14em]">Awarded</p>
+                <span className="achievement-award__label">{achievementAward(achievement.id).label}</span><p className="achievement-award__status mt-2 text-xs font-semibold">Awarded</p>
               </div>
             </article>
           ))}

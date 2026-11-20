@@ -38,7 +38,7 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
     return (
       <div className="min-h-screen w-full flex items-center justify-center p-6 bg-[var(--chrome-bg)]">
         <div className="max-w-lg w-full rounded-xl border border-[var(--chrome-line-strong)] bg-[var(--chrome-raise)] p-7 text-center">
-          <p className="text-2xs font-bold uppercase tracking-[0.16em] text-[var(--chrome-highlight)] mb-3">Connection interrupted</p>
+          <p className="text-sm font-semibold text-[var(--chrome-highlight)] mb-3">Connection interrupted</p>
           <h1 className="text-xl font-bold text-[var(--chrome-ink)] mb-2">This page needs a fresh start</h1>
           <p className="text-sm text-[var(--chrome-text)] mb-4 leading-relaxed">
             We couldn’t display this page. Try reloading it, or return to your dashboard to continue learning.

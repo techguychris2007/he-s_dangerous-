@@ -35,11 +35,11 @@ export default function LabLearningBridge({ scenario }: { scenario: { category: 
   const isEnhancedSimulator = Boolean(scenario.webApplication || scenario.directoryMap);
   return (
     <section className="mb-6 rounded-2xl border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/5 p-4">
-      <p className="mb-2 text-2xs font-bold uppercase tracking-widest text-[var(--color-accent-dim)]">How to think about this lab</p>
+      <p className="mb-2 text-xs font-semibold text-[var(--color-accent-dim)]">How to think about this lab</p>
       <p className="text-sm leading-6 text-[var(--color-text)]">{copy.mentalModel}</p>
       <div className="mt-4 grid gap-3">
         <div>
-          <h3 className="mb-1 text-xs font-bold uppercase tracking-wide text-[var(--color-heading)]">Beginner moves</h3>
+          <h3 className="mb-1 text-xs font-semibold text-[var(--color-heading)]">Beginner moves</h3>
           <ul className="space-y-1 text-xs leading-5 text-[var(--color-text-dim)]">
             {copy.beginnerMoves.map(item => <li key={item}>• {item}</li>)}
           </ul>

@@ -56,8 +56,8 @@ export default function DeleteAccountCard() {
   };
 
   return (
-    <section aria-labelledby="delete-account-title" className="mt-8 rounded-2xl border border-[var(--color-danger)]/40 p-5">
-      <h2 id="delete-account-title" className="text-sm font-bold text-[var(--color-heading)] uppercase tracking-wide mb-2">Delete account</h2>
+    <section aria-labelledby="delete-account-title" className="mt-8 rounded-lg border border-[var(--color-danger)]/40 p-5">
+      <h2 id="delete-account-title" className="text-sm font-semibold text-[var(--color-heading)] mb-2">Delete account</h2>
       <p className="text-sm text-[var(--color-text)] leading-relaxed">
         Permanently delete your DarkWorld account and everything linked to it: progress, flags, XP, achievements, write-ups saved to your account, lab comments, ratings and feedback. This cannot be undone.
       </p>

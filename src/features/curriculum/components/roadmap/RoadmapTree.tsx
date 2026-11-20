@@ -118,7 +118,7 @@ export default function RoadmapTree({ onOpen }: { onOpen: (track: RoadmapTrack) 
       <div className="rm-trunk" style={{ '--tone': 'var(--color-success)' } as React.CSSProperties}>
         <header className="rm-trunk__head">
           <CharacterAvatar id="byte" size={40} decorative />
-          <span><b>Pre-security</b> · {preDone}/{pre.length} modules</span>
+          <span><b>Foundations</b> · {preDone}/{pre.length} modules</span>
           <button type="button" onClick={() => onOpen('presecurity')} className="rm-branch__open">View path →</button>
         </header>
         <ol className="rm-trunk__list">

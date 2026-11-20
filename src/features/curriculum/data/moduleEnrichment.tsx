@@ -79,7 +79,7 @@ const defaultMastery: MasteryBrief = {
 
 const masteryByModule: Record<string, Partial<MasteryBrief>> = {
   presecurity: {
-    whyItMatters: 'Pre-security is where beginners learn the language of systems, networks, files, evidence and tools. A learner who understands these basics will not be lost when an offensive or defensive lab asks them to inspect packets, read logs, use a shell or explain what a tool proved.',
+    whyItMatters: 'The Foundations path is where beginners learn the language of systems, networks, files, evidence and tools. A learner who understands these basics will not be lost when an offensive or defensive lab asks them to inspect packets, read logs, use a shell or explain what a tool proved.',
     mentalModel: 'Treat each pre-security lesson as a tool literacy exercise: what does the tool show, what does it hide, what question can it answer and what evidence should be saved?',
     practiceSteps: ['Define the tool in plain language.', 'Open a simple sample and identify one visible artifact.', 'Use one filter, query or command option.', 'Write the observation as evidence rather than opinion.'],
   },
@@ -143,30 +143,30 @@ export function ModuleEnrichment({ moduleId, lessonTitle }: { moduleId: string; 
   const bridge = beginnerBridge[moduleId] ?? (moduleId.startsWith('pre-') ? beginnerBridge.presecurity : moduleId.startsWith('defensive-') ? beginnerBridge.defensive : (moduleId.startsWith('advanced-') || moduleId.startsWith('identity-') || moduleId.startsWith('software-') || moduleId.startsWith('post-') ? beginnerBridge.redteam : undefined));
   const mastery = resolveMastery(moduleId);
   return <section className="prose-hh mt-12 border-t border-[var(--color-border)] pt-8" aria-label="Extended study studio">
-    <p className="!mt-0 text-xs font-bold uppercase tracking-widest text-[var(--color-accent)]">Beginner bridge · apply this lesson</p>
+    <p className="!mt-0 text-xs font-semibold text-[var(--color-accent)]">Beginner bridge · apply this lesson</p>
     {bridge && <div className="not-prose mb-8 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-2)] p-5">
       <h2 className="m-0 font-display text-xl font-bold tracking-tight text-[var(--color-heading)]">Before this lesson feels easy, make these pieces click</h2>
       <div className="mt-5 grid gap-4 lg:grid-cols-3">
-        <div><p className="mb-2 text-[10px] font-black uppercase tracking-[0.18em] text-[var(--color-accent-dim)]">Assumed basics</p><ul className="space-y-2 text-sm leading-6 text-[var(--color-text)]">{bridge.assumes.map(item => <li key={item}>• {item}</li>)}</ul></div>
-        <div><p className="mb-2 text-[10px] font-black uppercase tracking-[0.18em] text-[var(--color-accent-dim)]">Core terms</p><dl className="space-y-2 text-sm">{bridge.terms.map(([term, meaning]) => <div key={term}><dt className="font-bold text-[var(--color-heading)]">{term}</dt><dd className="leading-6 text-[var(--color-text-dim)]">{meaning}</dd></div>)}</dl></div>
-        <div><p className="mb-2 text-[10px] font-black uppercase tracking-[0.18em] text-[var(--color-accent-dim)]">Repeatable workflow</p><ol className="list-decimal space-y-2 pl-4 text-sm leading-6 text-[var(--color-text)]">{bridge.workflow.map(item => <li key={item}>{item}</li>)}</ol></div>
+        <div><p className="mb-2 text-[10px] font-black text-[var(--color-accent-dim)]">Assumed basics</p><ul className="space-y-2 text-sm leading-6 text-[var(--color-text)]">{bridge.assumes.map(item => <li key={item}>• {item}</li>)}</ul></div>
+        <div><p className="mb-2 text-[10px] font-black text-[var(--color-accent-dim)]">Core terms</p><dl className="space-y-2 text-sm">{bridge.terms.map(([term, meaning]) => <div key={term}><dt className="font-bold text-[var(--color-heading)]">{term}</dt><dd className="leading-6 text-[var(--color-text-dim)]">{meaning}</dd></div>)}</dl></div>
+        <div><p className="mb-2 text-[10px] font-black text-[var(--color-accent-dim)]">Repeatable workflow</p><ol className="list-decimal space-y-2 pl-4 text-sm leading-6 text-[var(--color-text)]">{bridge.workflow.map(item => <li key={item}>{item}</li>)}</ol></div>
       </div>
       <p className="mt-5 rounded-xl border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/5 p-3 text-sm leading-6 text-[var(--color-text)]"><strong>Beginner self-check:</strong> {bridge.check}</p>
     </div>}
     <div className="not-prose mb-8 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-sm">
-      <p className="m-0 text-[10px] font-black uppercase tracking-[0.18em] text-[var(--color-accent)]">Professional mastery layer</p>
+      <p className="m-0 text-[10px] font-black text-[var(--color-accent)]">Professional mastery layer</p>
       <h2 className="mt-2 font-display text-xl font-bold tracking-tight text-[var(--color-heading)]">What a learner should understand after “{lessonTitle}”</h2>
       <p className="mt-3 text-sm leading-6 text-[var(--color-text)]">{mastery.whyItMatters}</p>
       <p className="mt-3 rounded-xl border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/5 p-3 text-sm leading-6 text-[var(--color-text)]"><strong>Mental model:</strong> {mastery.mentalModel}</p>
       <div className="mt-5 grid gap-4 lg:grid-cols-3">
-        <div><p className="mb-2 text-[10px] font-black uppercase tracking-[0.18em] text-[var(--color-accent-dim)]">Practice progression</p><ol className="list-decimal space-y-2 pl-4 text-sm leading-6 text-[var(--color-text)]">{mastery.practiceSteps.map(item => <li key={item}>{item}</li>)}</ol></div>
-        <div><p className="mb-2 text-[10px] font-black uppercase tracking-[0.18em] text-[var(--color-accent-dim)]">Evidence standard</p><ul className="space-y-2 text-sm leading-6 text-[var(--color-text)]">{mastery.evidenceStandard.map(item => <li key={item}>• {item}</li>)}</ul></div>
-        <div><p className="mb-2 text-[10px] font-black uppercase tracking-[0.18em] text-[var(--color-accent-dim)]">Professional habits</p><ul className="space-y-2 text-sm leading-6 text-[var(--color-text)]">{mastery.professionalHabits.map(item => <li key={item}>• {item}</li>)}</ul></div>
+        <div><p className="mb-2 text-[10px] font-black text-[var(--color-accent-dim)]">Practice progression</p><ol className="list-decimal space-y-2 pl-4 text-sm leading-6 text-[var(--color-text)]">{mastery.practiceSteps.map(item => <li key={item}>{item}</li>)}</ol></div>
+        <div><p className="mb-2 text-[10px] font-black text-[var(--color-accent-dim)]">Evidence standard</p><ul className="space-y-2 text-sm leading-6 text-[var(--color-text)]">{mastery.evidenceStandard.map(item => <li key={item}>• {item}</li>)}</ul></div>
+        <div><p className="mb-2 text-[10px] font-black text-[var(--color-accent-dim)]">Professional habits</p><ul className="space-y-2 text-sm leading-6 text-[var(--color-text)]">{mastery.professionalHabits.map(item => <li key={item}>• {item}</li>)}</ul></div>
       </div>
     </div>
 
     {studio && <>
-      <p className="!mt-0 text-xs font-bold uppercase tracking-widest text-[var(--color-accent)]">Extended study · apply this lesson</p>
+      <p className="!mt-0 text-xs font-semibold text-[var(--color-accent)]">Extended study · apply this lesson</p>
       <h2>{studio[0]}</h2><p>{studio[1]}</p>
       <h3>Practice brief</h3><p>{studio[2]}</p>
       <p><strong>Connect it to “{lessonTitle}”:</strong> choose one specific claim from this lesson. State its prerequisites, show an example that supports it and a boundary case where it no longer holds. Reference the relevant command, diagram or protocol behavior rather than repeating the definition.</p>

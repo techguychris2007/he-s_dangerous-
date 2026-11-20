@@ -152,7 +152,7 @@
 .dw-podium__avatar { display: grid; place-items: center; border-radius: 999px; box-shadow: 0 0 0 3px var(--color-surface), 0 0 0 5px var(--tone); }
 .dw-podium__name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; color: var(--color-heading); }
 .dw-podium__points { font: 600 .9rem/1.2 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--color-accent-dim); }
-.dw-podium__label { font-size: .65rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--color-text-dim); }
+.dw-podium__label { font-size: .65rem; font-weight: 600; color: var(--color-text-dim); }
 @media (max-width: 479px) {
   .dw-podium { gap: .4rem; }
   .dw-podium__spot { padding-inline: .35rem; }

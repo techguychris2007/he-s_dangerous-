@@ -93,7 +93,7 @@ export default function ElasticConsole({
       {/* Document table */}
       <div className="flex-1 overflow-y-auto">
         <table className="w-full text-sm">
-          <thead className="sticky top-0 bg-[#fafbfd] text-[#69707d] text-xs font-semibold uppercase tracking-wide border-b border-black/10">
+          <thead className="sticky top-0 bg-[#fafbfd] text-[#69707d] text-xs font-semibold border-b border-black/10">
             <tr>
               <th className="text-left px-3 py-2 w-6" />
               <th className="text-left px-3 py-2 whitespace-nowrap">@timestamp</th>
@@ -119,7 +119,7 @@ export default function ElasticConsole({
                   {isOpen && (
                     <tr className="bg-[#f5f7fa] border-b border-black/5">
                       <td colSpan={4} className="px-3 py-3">
-                        <div className="text-xs font-bold text-[#69707d] uppercase tracking-wide mb-1">JSON</div>
+                        <div className="text-xs font-semibold text-[#69707d] mb-1">JSON</div>
                         <pre className="text-xs font-mono text-[#1a1c21] whitespace-pre-wrap break-all bg-white border border-black/10 rounded p-2.5">
 {`{
   "@timestamp": "${e.timestamp ?? ''}",

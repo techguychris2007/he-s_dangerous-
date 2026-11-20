@@ -222,7 +222,7 @@ function Tour({ steps, handle, onFinish }: { steps: TourStep[]; handle: string; 
             {index > 0 && !last && <button type="button" className="dw-tour__button is-quiet" onClick={back}>Back</button>}
             {last && <button type="button" className="dw-tour__button is-quiet" onClick={() => onFinish('completed')}>Explore on my own</button>}
             {last
-              ? <button ref={primaryRef} type="button" className="dw-tour__button is-primary" onClick={() => onFinish('completed', TOUR_START_PATH)}>Start with Pre-security</button>
+              ? <button ref={primaryRef} type="button" className="dw-tour__button is-primary" onClick={() => onFinish('completed', TOUR_START_PATH)}>Start with Foundations</button>
               : <button ref={primaryRef} type="button" className="dw-tour__button is-primary" onClick={next}>{index === 0 ? 'Show me around' : 'Next'}</button>}
           </div>
         </footer>

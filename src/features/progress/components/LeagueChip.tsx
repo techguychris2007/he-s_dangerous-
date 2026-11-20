@@ -6,7 +6,7 @@ export function LeagueChip({ points }: { points: number }) {
   const { league } = leagueFor(points);
   return (
     <span
-      className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-2xs font-black uppercase tracking-[.1em]"
+      className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-black"
       style={{ color: league.color, borderColor: `color-mix(in srgb, ${league.color} 40%, transparent)`, background: `color-mix(in srgb, ${league.color} 10%, transparent)` }}
     >
       <IconShield className="h-3 w-3" />{league.name}
@@ -26,7 +26,7 @@ export function LeagueCard({ points }: { points: number }) {
           <IconShield className="h-7 w-7" />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-2xs font-black uppercase tracking-[.18em] text-[var(--color-text-dim)]">Your league</p>
+          <p className="text-xs font-black text-[var(--color-text-dim)]">Your league</p>
           <h2 id="league-title" className="text-xl font-black text-[var(--color-heading)]">{league.name} league</h2>
           <p className="text-xs text-[var(--color-text-dim)]">{next ? `${next.min - points} more lab points to reach ${next.name}.` : 'Top league reached. Hold your place.'}</p>
         </div>

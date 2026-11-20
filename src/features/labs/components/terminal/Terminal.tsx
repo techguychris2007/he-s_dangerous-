@@ -283,7 +283,7 @@ export default function Terminal({ ref, scenario, onFlagCaptured, onTranscriptCh
               type="button"
               onClick={(event) => { event.stopPropagation(); runShortcut(command); }}
               disabled={busy || engineRef.current.isAwaitingPassword()}
-              className="rounded-md border border-white/10 px-2 py-1 text-2xs font-semibold uppercase tracking-wide text-[var(--term-muted)] hover:border-[var(--color-accent)]/50 hover:text-[var(--term-output)] disabled:cursor-not-allowed disabled:opacity-40"
+              className="rounded-md border border-white/10 px-2 py-1 text-xs font-semibold text-[var(--term-muted)] hover:border-[var(--color-accent)]/50 hover:text-[var(--term-output)] disabled:cursor-not-allowed disabled:opacity-40"
             >
               {command}
             </button>
@@ -291,7 +291,7 @@ export default function Terminal({ ref, scenario, onFlagCaptured, onTranscriptCh
           <button
             type="button"
             onClick={(event) => { event.stopPropagation(); clearTerminal(); }}
-            className="rounded-md border border-white/10 px-2 py-1 text-2xs font-semibold uppercase tracking-wide text-[var(--term-muted)] hover:border-[var(--color-accent)]/50 hover:text-[var(--term-output)]"
+            className="rounded-md border border-white/10 px-2 py-1 text-xs font-semibold text-[var(--term-muted)] hover:border-[var(--color-accent)]/50 hover:text-[var(--term-output)]"
           >
             clear
           </button>
@@ -311,7 +311,7 @@ export default function Terminal({ ref, scenario, onFlagCaptured, onTranscriptCh
             type="button"
             onClick={(event) => { event.stopPropagation(); runShortcut(command); }}
             disabled={busy || engineRef.current.isAwaitingPassword()}
-            className="rounded-md border border-white/10 px-2 py-1.5 text-2xs font-semibold uppercase tracking-wide text-[var(--term-muted)] disabled:opacity-40"
+            className="rounded-md border border-white/10 px-2 py-1.5 text-xs font-semibold text-[var(--term-muted)] disabled:opacity-40"
           >
             {command === 'objectives' ? 'goals' : command}
           </button>
@@ -319,7 +319,7 @@ export default function Terminal({ ref, scenario, onFlagCaptured, onTranscriptCh
         <button
           type="button"
           onClick={(event) => { event.stopPropagation(); clearTerminal(); }}
-          className="rounded-md border border-white/10 px-2 py-1.5 text-2xs font-semibold uppercase tracking-wide text-[var(--term-muted)]"
+          className="rounded-md border border-white/10 px-2 py-1.5 text-xs font-semibold text-[var(--term-muted)]"
         >
           clear
         </button>
@@ -361,7 +361,7 @@ export default function Terminal({ ref, scenario, onFlagCaptured, onTranscriptCh
           <button
             type="button"
             onClick={(event) => { event.stopPropagation(); focusInput(); }}
-            className="sm:hidden rounded-md border border-white/10 px-2 py-1 text-2xs font-semibold uppercase tracking-wide text-[var(--term-muted)]"
+            className="sm:hidden rounded-md border border-white/10 px-2 py-1 text-xs font-semibold text-[var(--term-muted)]"
           >
             focus
           </button>

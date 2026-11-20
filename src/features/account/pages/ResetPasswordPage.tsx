@@ -49,7 +49,6 @@ export default function ResetPasswordPage() {
       <section className="dw-auth-main" aria-labelledby="reset-title">
         <Link to="/login" className="dw-back">← Back to sign in</Link>
         <div className="dw-auth-form">
-          <p className="dw-eyebrow">Your learning workspace</p>
           <h1 id="reset-title">Set a new password.</h1>
           {auth.loading ? <p role="status" className="dw-auth-description">Checking your recovery session…</p> : !auth.user ? (
             <>

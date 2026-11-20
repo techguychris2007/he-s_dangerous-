@@ -55,7 +55,7 @@ function GuestUpgradeCard() {
   }
 
   return (
-    <div className="premium-card rounded-2xl border border-[var(--color-gold)]/40 bg-[var(--color-gold-soft)] p-5 mb-8">
+    <div className="premium-card rounded-lg border border-[var(--color-gold)]/40 bg-[var(--color-gold-soft)] p-5 mb-8">
       <div className="flex items-center gap-2 text-sm font-bold text-[var(--color-gold-dim)] mb-1">
         <IconLock className="w-4 h-4" /> Guest account — save your progress
       </div>
@@ -189,10 +189,10 @@ export default function ProfilePage() {
 
       <RankCard />
 
-      <div className="mb-8 flex flex-wrap items-center gap-6 premium-card rounded-2xl border border-[var(--color-border)] p-6">
+      <div className="mb-8 flex flex-wrap items-center gap-6 premium-card rounded-lg border border-[var(--color-border)] p-6">
         <DarkWorldBadge className="h-36 w-36 shrink-0" />
         <div className="min-w-0 flex-1">
-          <p className="mb-1 text-2xs font-semibold uppercase tracking-widest text-[var(--color-accent-dim)]">Our community mark</p>
+          <p className="mb-1 text-sm font-semibold text-[var(--color-accent-dim)]">Our community mark</p>
           <h2 className="text-lg font-bold text-[var(--color-heading)]">The DarkWorld badge</h2>
           <p className="mt-2 text-xs leading-6 text-[var(--color-text-dim)]">A shared identity for curious builders, testers, and defenders. Use this platform badge alongside your own portfolio; individual lab certificates record your learning progress.</p>
           <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-semibold text-[var(--color-accent)]">
@@ -220,7 +220,7 @@ export default function ProfilePage() {
 
       <div className="mb-8">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-bold text-[var(--color-heading)] uppercase tracking-wide">Achievements</h2>
+          <h2 className="text-sm font-semibold text-[var(--color-heading)]">Achievements</h2>
           <span className="text-xs font-mono text-[var(--color-text-dim)]">
             {unlockedAchievements.length}/{ACHIEVEMENTS.length} unlocked
           </span>
@@ -241,7 +241,7 @@ export default function ProfilePage() {
                 <div className="min-w-0">
                   <div className="text-sm font-bold text-[var(--color-heading)] leading-tight">{a.title}</div>
                   <div className="text-xs text-[var(--color-text-dim)] leading-snug mt-0.5">{a.description}</div>
-                  <span className="achievement-award__label">{achievementAward(a.id).label}</span><div className={`mt-2 text-2xs font-black uppercase tracking-[.14em] ${unlocked ? 'achievement-award__status' : 'text-[var(--color-text-dim)]'}`}>
+                  <span className="achievement-award__label">{achievementAward(a.id).label}</span><div className={`mt-2 text-xs font-black ${unlocked ? 'achievement-award__status' : 'text-[var(--color-text-dim)]'}`}>
                     {unlocked ? 'Awarded' : 'Locked'}
                   </div>
                 </div>
@@ -252,7 +252,7 @@ export default function ProfilePage() {
       </div>
 
       <div className="mb-8">
-        <h2 className="text-sm font-bold text-[var(--color-heading)] uppercase tracking-wide mb-3">
+        <h2 className="text-sm font-semibold text-[var(--color-heading)] mb-3">
           How You Actually Learn
         </h2>
         <p className="text-xs text-[var(--color-text-dim)] mb-3 leading-relaxed">
@@ -260,7 +260,7 @@ export default function ProfilePage() {
           how often you got there without leaning on a hint or the reference solution.
         </p>
         {attemptedTaskIds.length === 0 ? (
-          <div className="premium-card rounded-2xl border-dashed p-4 text-sm text-[var(--color-text-dim)]">
+          <div className="premium-card rounded-lg border-dashed p-4 text-sm text-[var(--color-text-dim)]">
             Attempt a Code Portal task to start building this picture.
           </div>
         ) : (
@@ -280,7 +280,7 @@ export default function ProfilePage() {
         )}
       </div>
 
-      <div className="premium-card rounded-2xl p-5 text-sm text-[var(--color-text-dim)] leading-relaxed">
+      <div className="premium-card rounded-lg p-5 text-sm text-[var(--color-text-dim)] leading-relaxed">
         Everything here — lessons, labs, quizzes, your streak, achievements, and Code Portal learning-insight
         stats — syncs to your account, so it follows you across devices as long as you're signed in. Your
         display name is taken straight from your account rather than stored separately.

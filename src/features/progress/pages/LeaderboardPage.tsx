@@ -340,7 +340,7 @@ function StandingCard({
           </span>
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-2xs font-black uppercase tracking-[.18em] text-[var(--color-text-dim)]">Your standing</p>
+          <p className="text-xs font-black text-[var(--color-text-dim)]">Your standing</p>
           <h2 id="standing-title" className="text-xl font-black text-[var(--color-heading)] truncate">{name || 'Learner'}</h2>
           <p className="text-xs text-[var(--color-text-dim)] flex items-center gap-1.5 flex-wrap">
             <span style={{ color: league.color }} className="font-bold">{league.name} league</span>
@@ -433,7 +433,7 @@ function OptInSwitch({ checked, onChange }: { checked: boolean; onChange: (v: bo
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="premium-card rounded-xl px-3 py-2.5">
-      <dt className="text-2xs font-bold uppercase tracking-wide text-[var(--color-text-dim)] truncate">{label}</dt>
+      <dt className="text-xs font-semibold text-[var(--color-text-dim)] truncate">{label}</dt>
       <dd className="font-mono text-lg font-black text-[var(--color-heading)]">{value}</dd>
     </div>
   );
@@ -463,7 +463,7 @@ function LeagueLadder({ perLeague, yourPoints }: { perLeague: { league: (typeof 
   const current = leagueFor(yourPoints).league.name;
   return (
     <section aria-labelledby="ladder-title" className="mb-6">
-      <h2 id="ladder-title" className="text-xs font-bold uppercase tracking-wide text-[var(--color-text-dim)] mb-2">League ladder</h2>
+      <h2 id="ladder-title" className="text-xs font-semibold text-[var(--color-text-dim)] mb-2">League ladder</h2>
       <ol className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
         {perLeague.map(({ league, count }) => {
           const isCurrent = league.name === current;

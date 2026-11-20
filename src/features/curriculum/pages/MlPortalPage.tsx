@@ -56,7 +56,7 @@ export default function MlPortalPage() {
       <div className="portal-masthead relative overflow-hidden border-b border-[var(--color-border)]" style={{ background: 'var(--color-navy)' }}>
         <span className="portal-masthead__crew" aria-hidden="true"><CharacterAvatar id="beacon" size={168} decorative /></span>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <div className="text-[var(--color-accent-dim)] font-mono text-xs tracking-[0.2em] uppercase mb-3">Data science &amp; machine learning</div>
+          <div className="text-[var(--color-accent-dim)] font-mono text-xs mb-3">Data science &amp; machine learning</div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-3">Machine Learning</h1>
           <p className="text-white/70 max-w-2xl leading-relaxed mb-6">
             {ML_MODULES.length} modules from Python and statistics foundations through classical ML, neural networks, NLP,
@@ -65,9 +65,9 @@ export default function MlPortalPage() {
           </p>
           <Link to="/library?track=machine-learning" className="inline-flex items-center rounded-xl border border-white/25 px-4 py-2 text-sm font-semibold text-white hover:bg-white/10 mb-5">Explore the ML library &rarr;</Link>
           <div className="flex flex-wrap gap-3">
-            <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3"><div className="text-lg font-bold text-white font-mono">{ML_LESSONS.length}</div><div className="text-2xs text-white/60 uppercase tracking-wide">Lessons</div></div>
-            <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3"><div className="text-lg font-bold text-white font-mono">{tasksDone}/{ML_TASKS.length}</div><div className="text-2xs text-white/60 uppercase tracking-wide">Python labs solved</div></div>
-            <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3"><div className="text-lg font-bold text-white font-mono">{LIVE_DEMO_COUNT}</div><div className="text-2xs text-white/60 uppercase tracking-wide">Live demos</div></div>
+            <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3"><div className="text-lg font-bold text-white font-mono">{ML_LESSONS.length}</div><div className="text-xs text-white/60">Lessons</div></div>
+            <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3"><div className="text-lg font-bold text-white font-mono">{tasksDone}/{ML_TASKS.length}</div><div className="text-xs text-white/60">Python labs solved</div></div>
+            <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3"><div className="text-lg font-bold text-white font-mono">{LIVE_DEMO_COUNT}</div><div className="text-xs text-white/60">Live demos</div></div>
           </div>
         </div>
       </div>

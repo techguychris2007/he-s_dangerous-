@@ -81,7 +81,7 @@ export default function CertificatesPage() {
 
       {earned.length > 0 && (
         <section className="mb-12">
-          <h2 className="mb-5 text-xs font-bold uppercase tracking-[0.14em] text-[var(--color-text-dim)]">Earned</h2>
+          <h2 className="mb-5 text-xs font-semibold text-[var(--color-text-dim)]">Earned</h2>
           <div className="flex flex-col gap-10">
             {earned.map((row) => (
               <article key={row.path.track}>
@@ -105,7 +105,7 @@ export default function CertificatesPage() {
       )}
 
       <section>
-        <h2 className="mb-5 text-xs font-bold uppercase tracking-[0.14em] text-[var(--color-text-dim)]">
+        <h2 className="mb-5 text-xs font-semibold text-[var(--color-text-dim)]">
           {earned.length > 0 ? 'Keep going' : 'Paths to complete'}
         </h2>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -132,7 +132,7 @@ export default function CertificatesPage() {
                 {status.completed > 0 ? 'Continue this path' : 'Start this path'}
                 <IconArrowRight className="h-4 w-4" />
               </Link>
-              <p className="mt-3 text-2xs uppercase tracking-wide text-[var(--color-text-dim)]">
+              <p className="mt-3 text-xs text-[var(--color-text-dim)]">
                 {status.remaining} lesson{status.remaining === 1 ? '' : 's'} left to earn this certificate
               </p>
             </div>

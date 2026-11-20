@@ -26,7 +26,7 @@ export interface ContinueTarget {
   guide: CharacterId;
   /** ModuleIcon key for the mission block. */
   icon?: string;
-  /** Short kind label, e.g. "Room" or "Lesson". */
+  /** Short kind label, e.g. "Lab" or "Lesson". */
   kind?: string;
 }
 
@@ -74,7 +74,7 @@ export function ContinueCard({ next }: { next: ContinueTarget }) {
         <IsoBlock width={132} depth={22} tone={pct > 0 ? 'progress' : 'idle'} glow crest={<ModuleIcon icon={next.icon ?? 'route'} />} />
       </div>
       <div className="dw-mission__body">
-        <p className="dw-mission__label"><span />Pick up where you left off{next.kind ? ` · ${next.kind}` : ''}</p>
+        <p className="dw-mission__label">Pick up where you left off{next.kind ? ` · ${next.kind}` : ''}</p>
         <h2 id="dw-continue-title">{next.title}</h2>
         <p className="dw-mission__detail">{next.detail}</p>
         <div className="dw-mission__progress">
@@ -163,11 +163,11 @@ export function WeekCard() {
     <section className="dw-card" aria-labelledby="dw-week-title">
       <div className="flex items-center justify-between gap-2">
         <p id="dw-week-title" className="dw-card__label">Your week</p>
-        <span className="dw-card__meta" title="Every 7 active days in a row earns a freeze that covers one missed day.">{streak.freezes}/{MAX_FREEZES} streak freezes</span>
+        <span className="dw-card__meta" title="Every 7 active days in a row earns a rest day that covers one missed day.">{streak.freezes}/{MAX_FREEZES} rest days</span>
       </div>
       <ol className="dw-week" aria-label="Activity this week">
         {days.map((d) => (
-          <li key={d.key} data-state={d.state} data-today={d.today} aria-label={`${d.full}: ${d.state === 'frozen' ? 'covered by a streak freeze' : d.state}`}>
+          <li key={d.key} data-state={d.state} data-today={d.today} aria-label={`${d.full}: ${d.state === 'frozen' ? 'covered by a rest day' : d.state}`}>
             <span aria-hidden="true" />{d.day}
           </li>
         ))}

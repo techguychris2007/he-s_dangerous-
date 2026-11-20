@@ -22,8 +22,8 @@ export interface CertificatePath {
 export const CERTIFICATE_PATHS: CertificatePath[] = [
   {
     track: 'presecurity',
-    name: 'Pre-Security',
-    credential: 'Pre-Security Foundations',
+    name: 'Foundations',
+    credential: 'Security Foundations',
     summary: 'Computer, network and operating-system foundations with safe, disciplined lab practice.',
     skills: ['Networking fundamentals', 'Linux & Windows', 'Web & scripting basics', 'Lab safety'],
     accent: 'foundation',

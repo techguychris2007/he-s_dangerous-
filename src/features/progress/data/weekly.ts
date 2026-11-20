@@ -24,7 +24,7 @@ function missionsFor(week: string, progress: Pick<ProgressState, 'activityDates'
   const inWeek = (date: string) => weekStart(date) === week;
   return [
     { id: 'active', label: 'Be active on 4 days', target: 4, current: new Set(progress.activityDates.filter(inWeek)).size },
-    { id: 'rooms', label: 'Clear 3 rooms', target: 3, current: Object.values(progress.labCompletedAt).filter((at) => inWeek(localDate(new Date(at)))).length },
+    { id: 'rooms', label: 'Clear 3 labs', target: 3, current: Object.values(progress.labCompletedAt).filter((at) => inWeek(localDate(new Date(at)))).length },
     { id: 'daily', label: 'Clear a Daily Op', target: 1, current: dailies.filter(inWeek).length },
   ];
 }

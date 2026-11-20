@@ -387,7 +387,7 @@ function GenericConsole({ scenario, onFlagCaptured, onTranscriptChange, onResult
         />
         <button
           onClick={() => run(query)}
-          className={`px-3.5 py-1.5 rounded ${b.buttonBg} ${b.buttonText} text-xs font-bold uppercase tracking-wide hover:brightness-110 transition shrink-0`}
+          className={`px-3.5 py-1.5 rounded ${b.buttonBg} ${b.buttonText} text-xs font-semibold hover:brightness-110 transition shrink-0`}
         >
           {b.searchLabel}
         </button>
@@ -409,7 +409,7 @@ function GenericConsole({ scenario, onFlagCaptured, onTranscriptChange, onResult
           </div>
         ) : (
           <table className="w-full text-xs font-mono">
-            <thead className={`sticky top-0 ${b.headerBg} text-slate-400 uppercase text-2xs tracking-wider`}>
+            <thead className={`sticky top-0 ${b.headerBg} text-slate-400 text-xs`}>
               <tr>
                 {b.columns === 'severity' && <th className="text-left px-3 py-2">Severity</th>}
                 <th className="text-left px-3 py-2">Timestamp</th>

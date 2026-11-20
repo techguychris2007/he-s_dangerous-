@@ -53,7 +53,7 @@ export default function SiemLabCard({ lab }: { lab: LabCardData }) {
               {tool.short}
             </div>
             <div className="min-w-0">
-              <div className="truncate text-2xs font-semibold uppercase tracking-[.1em] text-[var(--color-text-dim)]">Investigation case</div>
+              <div className="truncate text-xs font-semibold text-[var(--color-text-dim)]">Investigation case</div>
               <div className="mt-1 flex flex-wrap items-center gap-1.5">
                 <span className="text-xs font-semibold text-[var(--color-heading)]">{tool.label}</span>
                 <span aria-hidden className="text-[var(--color-border)]">·</span>
