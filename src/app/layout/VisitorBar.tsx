@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 export default function VisitorBar() {
   return (
     <p className="dw-visitor-bar" role="note">
-      You’re browsing without an account. Lessons and labs open once you <Link to="/login?mode=signup">create a free account</Link>, and your progress is saved from the first flag.
+      You’re browsing as a guest. <Link to="/login?mode=signup">Create a free account</Link> to open lessons and labs and keep your progress.
     </p>
   );
 }

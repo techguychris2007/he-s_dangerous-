@@ -126,3 +126,9 @@ assert.equal(peekReturnTo(), '/lab/web-live-meridian-billing');
 assert.equal(takeReturnTo(), '/lab/web-live-meridian-billing');
 assert.equal(takeReturnTo(), '/', 'The return path applies once');
 for (const unsafe of ['//evil.example', 'https://evil.example', '/\\evil.example', '/login?mode=signup', '/welcome']) { rememberReturnTo(unsafe); assert.equal(takeReturnTo(), '/', 'Unsafe or entry-page return path accepted: ' + unsafe); }
+
+// The welcome page reads precomputed counts so phones skip the full catalogue download.
+{
+  const { catalogueCounts, render, target } = require('../scripts/catalogue-counts.cjs');
+  assert.equal(fs.readFileSync(target, 'utf8'), render(catalogueCounts()), 'Catalogue counts are stale: run node scripts/catalogue-counts.cjs');
+}

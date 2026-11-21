@@ -1,4 +1,3 @@
-import { LearningShell } from './layout/LearningNavigation';
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { HashRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { isVisitorPath } from './layout/visitorPaths';
@@ -21,6 +20,8 @@ import ResetPasswordPage from '../features/account/pages/ResetPasswordPage';
 
 // ─── Lazily loaded: every app page (only parsed/executed when navigated to) ──
 const AppLayout = lazy(() => import('./layout/AppLayout'));
+// Lazy so the first page a visitor sees does not download the whole curriculum the top bar searches.
+const LearningShell = lazy(() => import('./layout/LearningNavigation').then(module => ({ default: module.LearningShell })));
 const IntroPage = lazy(() => import('../features/marketing/pages/IntroPage'));
 const HomePage = lazy(() => import('../features/curriculum/pages/HomePage'));
 const ModulePage = lazy(() => import('../features/curriculum/pages/ModulePage'));

@@ -92,7 +92,7 @@ export default function AppLayout() {
         <Sidebar onNavigate={() => setMobileOpen(false)} />
       </div>}
       {!learning && mobileOpen && (
-        <div aria-hidden className="dw-drawer-scrim fixed inset-0 bg-black/45 z-20 lg:hidden" onClick={() => setMobileOpen(false)} />
+        <div aria-hidden className="dw-drawer-scrim fixed inset-0 bg-black/45 z-[25] lg:hidden" onClick={() => setMobileOpen(false)} />
       )}
       <div inert={!learning && mobileOpen && !desktop} className="flex-1 flex flex-col min-w-0">
         <LearningNavigation menuOpen={mobileOpen} onMenuClick={!learning ? () => setMobileOpen(o => !o) : undefined}/>

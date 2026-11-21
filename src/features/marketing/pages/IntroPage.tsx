@@ -1,11 +1,10 @@
 import type { CSSProperties } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../../account/state/authStore';
-import { MODULES, ROADMAP } from '../../curriculum/data/curriculum';
+import { CATALOGUE_COUNTS } from '../data/catalogueCounts';
 import { CHARACTERS, type CharacterId } from '../../../shared/characters/characters';
 import { LEAGUES, RANK_STEP, rankForLevel } from '../../progress/data/levels';
 import { CONTRIBUTORS } from '../data/contributors';
-import { useLabsData } from '../../labs/state/useLabsData';
 import Logo from '../../../shared/components/layout/Logo';
 import CharacterAvatar from '../../../shared/characters/CharacterAvatar';
 import IsoBlock, { type IsoTone } from '../../../shared/components/IsoBlock';
@@ -69,11 +68,9 @@ const countWord = (n: number) => COUNT_WORDS[n] ?? String(n);
 export default function IntroPage() {
   const owner = useIsOwner();
   const auth = useAuth();
-  const labsData = useLabsData();
   if (!auth.loading && auth.user) return <Navigate to="/" replace />;
-  const lessons = MODULES.reduce((total, module) => total + module.lessons.length, 0);
-  const rooms = labsData?.LABS.length;
-  const modulesIn = (track: RoadmapTrack) => ROADMAP.filter((s) => s.track === track && s.moduleSlug).length;
+  const { labs: rooms, lessons, modules } = CATALOGUE_COUNTS;
+  const modulesIn = (track: RoadmapTrack) => (CATALOGUE_COUNTS.modulesByTrack as Record<string, number>)[track] ?? 0;
   const jump = (id: string) => (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
     document.getElementById(id)?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
@@ -107,7 +104,7 @@ export default function IntroPage() {
               <Link to="/login?mode=signup" className="ln-btn ln-btn--primary ln-btn--lg">Start learning free <IconArrowRight className="h-4 w-4" /></Link>
               <Link to="/labs" className="ln-btn ln-btn--ghost ln-btn--lg">Browse the labs</Link>
             </div>
-            <p className="ln-facts">{rooms ?? '600+'} labs · {lessons} lessons · {MODULES.length} modules · 38 casebook episodes. You can look through all of it before you sign up.</p>
+            <p className="ln-facts">{rooms} labs · {lessons} lessons · {modules} modules · 38 casebook episodes. You can look through all of it before you sign up.</p>
           </div>
           <HeroScene />
         </div>
@@ -117,7 +114,7 @@ export default function IntroPage() {
         <div className="ln-head">
           <h2 id="how-title">How a lab works</h2>
           <p>The same three steps take you from your first terminal command to a full incident investigation.</p>
-          <Link to="/labs" className="ln-link">See all {rooms ?? '600+'} labs <IconArrowRight className="h-4 w-4" /></Link>
+          <Link to="/labs" className="ln-link">See all {rooms} labs <IconArrowRight className="h-4 w-4" /></Link>
         </div>
         <ol className="ln-how__steps">
           {STEPS.map((step) => (

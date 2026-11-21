@@ -46,7 +46,7 @@ export default function AcademySearch({ compact = false, adaptive = false, onNav
   return <>
     <button type="button" className={'dw-search-trigger' + (compact ? ' dw-search-trigger-compact' : '') + (adaptive ? ' dw-search-trigger-adaptive' : '')} onClick={show} aria-label="Search academy" aria-haspopup="dialog">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg>
-      {!compact && <><span>Search academy</span><kbd>{/Mac|iPhone|iPad/.test(navigator.platform) ? '⌘ K' : 'Ctrl K'}</kbd></>}
+      {!compact && <><span>Search<span className="dw-search-trigger__rest"> academy</span></span><kbd>{/Mac|iPhone|iPad/.test(navigator.platform) ? '⌘ K' : 'Ctrl K'}</kbd></>}
     </button>
     {createPortal(<dialog ref={dialog} className="dw-search-dialog" aria-labelledby={listId + '-title'} onCancel={() => setOpen(false)} onClose={() => setOpen(false)} onClick={event => { if (event.target === event.currentTarget) setOpen(false); }} onKeyDown={event => { if (event.key === 'Escape') event.stopPropagation(); }}>
       <div className="dw-search-box">
