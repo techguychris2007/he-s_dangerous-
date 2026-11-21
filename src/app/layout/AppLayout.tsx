@@ -3,6 +3,8 @@ import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import LearningNavigation from './LearningNavigation';
 import ConnectionNotice from './ConnectionNotice';
+import VisitorBar from './VisitorBar';
+import { useIsVisitor } from './visitorAccess';
 import { isLearningWorkspace } from './learningWorkspace';
 import Companion from '../../features/progress/components/companion/Companion';
 import XpToaster from '../../features/progress/components/XpToaster';
@@ -16,6 +18,7 @@ export default function AppLayout() {
   const navRef = useRef<HTMLDivElement>(null);
   const { pathname } = useLocation();
   const learning = isLearningWorkspace(pathname);
+  const visitor = useIsVisitor();
   useEffect(() => { setMobileOpen(false); }, [pathname]);
   const fixedWorkspace = /^\/(lab|siem-lab)\//.test(pathname);
 
@@ -67,10 +70,13 @@ export default function AppLayout() {
       >
         Skip to main content
       </a>
-      <Companion />
-      <XpToaster />
-      <HandleWelcome />
-      <GuidedTour />
+      {/* Personal pieces (crew companion, XP toasts, handle welcome, the tour) wait for an account. */}
+      {!visitor && <>
+        <Companion />
+        <XpToaster />
+        <HandleWelcome />
+        <GuidedTour />
+      </>}
       {!learning && <div
         id="platform-navigation"
         ref={navRef}
@@ -86,11 +92,12 @@ export default function AppLayout() {
         <Sidebar onNavigate={() => setMobileOpen(false)} />
       </div>}
       {!learning && mobileOpen && (
-        <div aria-hidden className="dw-drawer-scrim fixed inset-0 bg-black/45 z-20 lg:hidden" onClick={() => setMobileOpen(false)} />
+        <div aria-hidden className="dw-drawer-scrim fixed inset-0 bg-black/45 z-[25] lg:hidden" onClick={() => setMobileOpen(false)} />
       )}
       <div inert={!learning && mobileOpen && !desktop} className="flex-1 flex flex-col min-w-0">
         <LearningNavigation menuOpen={mobileOpen} onMenuClick={!learning ? () => setMobileOpen(o => !o) : undefined}/>
         <ConnectionNotice />
+        {visitor && <VisitorBar />}
         <main id="main-content" tabIndex={-1} className={`flex-1 min-h-0 ${fixedWorkspace ? 'overflow-hidden' : 'overflow-y-auto'}`}>
           {/* h-full passes main's height through to pages like LabPage/CodeTaskPage that render
               their own `h-full flex` workspace layout and need a definite height to fill. */}

@@ -8,6 +8,7 @@ import Logo from '../../shared/components/layout/Logo';
 import { OperatorAvatar } from '../../shared/characters/CharacterAvatar';
 import { useHandle } from '../../features/account/state/useHandle';
 import { visibleLearningPaths } from './navigation';
+import { useIsVisitor } from './visitorAccess';
 import { useIsOwner } from '../../features/account/lib/ownerAccess';
 import { IconDashboard, IconFlask, IconChart, IconMap, IconCheck, IconCalendar, IconTrophy, IconBook, IconMegaphone, IconUser, IconShieldCheck, IconHelp, IconMail, IconCode, IconGear, IconRoute, IconLayers, IconCertificate } from '../../shared/components/layout/icons';
 import './navigation.css';
@@ -59,13 +60,15 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
     return <NavLink key={to} to={to} end={to === '/'} onClick={onNavigate} data-tour={tour} className={({ isActive }) => 'dw-nav-link' + (isActive ? ' is-active' : '')}><Icon className="dw-nav-icon"/><span>{label}</span></NavLink>;
   }
   const owner = useIsOwner();
+  // Visitors see only what they can open (layout/visitorAccess.ts); personal pages wait for an account.
+  const visitor = useIsVisitor();
   return <aside className="dw-sidebar">
     <div className="dw-sidebar-header">
-      <NavLink to="/" onClick={onNavigate} className="dw-sidebar-brand" aria-label="DarkWorld overview"><Logo className="h-11 w-11 shrink-0"/><span><strong>DarkWorld</strong><small>CYBER ACADEMY</small></span></NavLink>
+      <NavLink to={visitor ? '/welcome' : '/'} onClick={onNavigate} className="dw-sidebar-brand" aria-label={visitor ? 'DarkWorld home' : 'DarkWorld overview'}><Logo className="h-11 w-11 shrink-0"/><span><strong>DarkWorld</strong><small>CYBER ACADEMY</small></span></NavLink>
     </div>
     <div className="dw-sidebar-scroll">
       <nav aria-label="Academy navigation" data-tour="tabs">
-        <div className="dw-nav-section dw-nav-workspace">{link('/', 'Overview', IconDashboard)}{link('/my-learning', 'My learning', IconRoute, 'tab-learn')}</div>
+        {!visitor && <div className="dw-nav-section dw-nav-workspace">{link('/', 'Overview', IconDashboard)}{link('/my-learning', 'My learning', IconRoute, 'tab-learn')}</div>}
         <div className="dw-nav-section"><p className="dw-nav-label">Learn</p>
           <details className="dw-nav-disclosure" open={location.pathname === '/roadmap'}>
             <summary><IconMap className="dw-nav-icon"/><span>Learning paths</span><span className="dw-nav-chevron" aria-hidden="true">⌄</span></summary>
@@ -76,8 +79,8 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         <div className="dw-nav-section"><p className="dw-nav-label">Practice</p>
           {link('/labs', 'Labs', IconFlask, 'tab-practice')}{link('/soc-portal', 'SOC casebooks', IconShieldCheck)}{link('/code-portal', 'Coding practice', IconCode)}{owner && link('/build-portal', 'Build projects', IconLayers)}
         </div>
-        <div className="dw-nav-section"><p className="dw-nav-label">Reference</p>{link('/library', 'Library', IconBook)}{link('/resources', 'Resources', IconBook)}</div>
-        <details className="dw-nav-disclosure dw-nav-activity" open={activityLinks.some(([to]) => location.pathname === to)}><summary><IconTrophy className="dw-nav-icon"/><span>Activity & community</span><span className="dw-nav-chevron" aria-hidden="true">⌄</span></summary><div className="dw-nav-sublist">{activityLinks.map(([to, label, Icon]) => link(to, label, Icon))}</div></details>
+        <div className="dw-nav-section"><p className="dw-nav-label">Reference</p>{link('/library', 'Library', IconBook)}{!visitor && link('/resources', 'Resources', IconBook)}</div>
+        {!visitor && <details className="dw-nav-disclosure dw-nav-activity" open={activityLinks.some(([to]) => location.pathname === to)}><summary><IconTrophy className="dw-nav-icon"/><span>Activity & community</span><span className="dw-nav-chevron" aria-hidden="true">⌄</span></summary><div className="dw-nav-sublist">{activityLinks.map(([to, label, Icon]) => link(to, label, Icon))}</div></details>}
         {isAdmin(auth.user) && <div className="dw-nav-section"><p className="dw-nav-label">Staff</p>{link('/admin', 'Admin dashboard', IconGear)}</div>}
       </nav>
       {currentModule && <section className="dw-nav-module" aria-label="Current module">
@@ -89,6 +92,6 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         </details>
       </section>}
     </div>
-    <div className="dw-sidebar-footer"><details ref={accountRef} className="dw-account-menu"><summary><OperatorAvatar seed={handleSeed} size={34} /><span className="dw-account-name"><strong>{handle}</strong><small>{auth.isGuest ? 'Guest workspace' : name}</small></span><span aria-hidden="true">⌃</span></summary><div className="dw-account-popover"><p>Your account</p>{accountLinks.map(([to, label, Icon]) => <NavLink key={to} to={to} className="dw-nav-link" onClick={event => { event.currentTarget.closest('details')?.removeAttribute('open'); onNavigate?.(); }}><Icon className="dw-nav-icon"/><span>{label}</span></NavLink>)}<button type="button" className="dw-nav-link dw-sign-out" onClick={async () => { await auth.signOut(); navigate('/welcome'); onNavigate?.(); }}>Sign out <span aria-hidden="true">↗</span></button></div></details></div>
+    <div className="dw-sidebar-footer">{visitor ? <p className="dw-sidebar-visitor">Have an account? <NavLink to="/login" onClick={onNavigate}>Sign in</NavLink></p> : <details ref={accountRef} className="dw-account-menu"><summary><OperatorAvatar seed={handleSeed} size={34} /><span className="dw-account-name"><strong>{handle}</strong><small>{auth.isGuest ? 'Guest workspace' : name}</small></span><span aria-hidden="true">⌃</span></summary><div className="dw-account-popover"><p>Your account</p>{accountLinks.map(([to, label, Icon]) => <NavLink key={to} to={to} className="dw-nav-link" onClick={event => { event.currentTarget.closest('details')?.removeAttribute('open'); onNavigate?.(); }}><Icon className="dw-nav-icon"/><span>{label}</span></NavLink>)}<button type="button" className="dw-nav-link dw-sign-out" onClick={async () => { await auth.signOut(); navigate('/welcome'); onNavigate?.(); }}>Sign out <span aria-hidden="true">↗</span></button></div></details>}</div>
   </aside>;
 }

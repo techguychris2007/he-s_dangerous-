@@ -139,23 +139,8 @@ export async function paymentHistory(): Promise<Payment[]> {
   return (data as Payment[] | null) ?? [];
 }
 
-const RETURN_KEY = 'darkworld.afterLogin';
-const RETURN_PATHS = new Set(['/pricing', '/billing']);
-
-/** Remembers where to go after signing in, so choosing a plan while signed out ends on Pricing. */
-export function rememberReturnTo(path: string) {
-  try { if (RETURN_PATHS.has(path)) sessionStorage.setItem(RETURN_KEY, path); } catch { /* optional */ }
-}
-
-export function takeReturnTo(): string {
-  try {
-    const path = sessionStorage.getItem(RETURN_KEY);
-    sessionStorage.removeItem(RETURN_KEY);
-    return path && RETURN_PATHS.has(path) ? path : '/';
-  } catch {
-    return '/';
-  }
-}
+// Choosing a plan while signed out ends on Pricing after sign-in (src/shared/lib/returnTo.ts).
+export { rememberReturnTo, takeReturnTo } from '../../../shared/lib/returnTo';
 
 export function formatCedis(pesewas: number): string {
   const cedis = pesewas / 100;

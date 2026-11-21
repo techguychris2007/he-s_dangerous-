@@ -1,6 +1,7 @@
-import { LearningShell } from './layout/LearningNavigation';
 import { lazy, Suspense, useEffect, useState } from 'react';
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { isVisitorPath } from './layout/visitorPaths';
+import { peekReturnTo, rememberReturnTo, takeReturnTo } from '../shared/lib/returnTo';
 import InstallPrompt from '../features/offline/components/InstallPrompt';
 import { ProgressContext, useProgressState, useProgress } from '../features/progress/state/progressStore';
 import { AuthContext, useAuthState, useAuth } from '../features/account/state/authStore';
@@ -19,6 +20,8 @@ import ResetPasswordPage from '../features/account/pages/ResetPasswordPage';
 
 // ─── Lazily loaded: every app page (only parsed/executed when navigated to) ──
 const AppLayout = lazy(() => import('./layout/AppLayout'));
+// Lazy so the first page a visitor sees does not download the whole curriculum the top bar searches.
+const LearningShell = lazy(() => import('./layout/LearningNavigation').then(module => ({ default: module.LearningShell })));
 const IntroPage = lazy(() => import('../features/marketing/pages/IntroPage'));
 const HomePage = lazy(() => import('../features/curriculum/pages/HomePage'));
 const ModulePage = lazy(() => import('../features/curriculum/pages/ModulePage'));
@@ -71,12 +74,37 @@ function RequireOwner({ children }: { children: React.ReactNode }) {
 function RequireLogin({ children }: { children: React.ReactNode }) {
   const auth = useAuth();
   const ownerContent = useOwnerContent();
+  const location = useLocation();
   if (auth.loading) return <FullScreenLoader />;
-  if (!auth.user || auth.user.is_anonymous) return <Navigate to="/welcome" replace />;
+  if (!auth.user || auth.user.is_anonymous) {
+    // Visitors may look around the catalogues before signing up (layout/visitorAccess.ts).
+    if (isVisitorPath(location.pathname)) return <>{children}</>;
+    if (location.pathname === '/') return <Navigate to="/welcome" replace />;
+    return <SignUpFirst to={location.pathname + location.search} />;
+  }
   // Owner accounts wait for their private content so every page sees the full curriculum.
   const owner = isOwnerEmail(auth.user.email);
   if (owner && (ownerContent.status === 'idle' || ownerContent.status === 'loading')) return <FullScreenLoader />;
   return <>{children}{owner && ownerContent.status === 'unavailable' && <OwnerContentNotice message={ownerContent.error} />}</>;
+}
+
+/** A visitor opened a lesson, lab or personal page: remember it, ask them to create an account, and
+ *  ReturnAfterSignIn brings them back to it. Writing the same value on a re-render is harmless. */
+function SignUpFirst({ to }: { to: string }) {
+  rememberReturnTo(to);
+  return <Navigate to="/login?mode=signup" replace />;
+}
+
+/** Finishes the trip SignUpFirst started when sign-in completes away from the login form, as after
+ *  Google or GitHub, which return to the site root. */
+function ReturnAfterSignIn() {
+  const auth = useAuth();
+  const navigate = useNavigate();
+  const signedIn = Boolean(auth.user && !auth.user.is_anonymous);
+  useEffect(() => {
+    if (signedIn && peekReturnTo()) navigate(takeReturnTo(), { replace: true });
+  }, [signedIn, navigate]);
+  return null;
 }
 
 function OwnerContentNotice({ message }: { message: string }) {
@@ -243,6 +271,7 @@ function App() {
         <ProgressSync />
         <InstallPrompt />
         <HashRouter>
+          <ReturnAfterSignIn />
           <Routes>
             <Route path="/welcome" element={<Suspense fallback={<FullScreenLoader />}><IntroPage /></Suspense>} />
             {/* Pricing and Billing exist only once paid plans are switched on (src/features/billing/lib/billing.ts). */}

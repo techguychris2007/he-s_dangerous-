@@ -104,3 +104,62 @@
   .learning-navigation--with-sidebar .dw-search-trigger.dw-search-trigger-adaptive > span { display: inline; }
   .learning-navigation--with-sidebar .dw-search-trigger.dw-search-trigger-adaptive > kbd { display: inline; font-size: 11px; }
 }
+
+/* ── Phones: one slim top bar and a tab bar under the thumb ─────────────────────────────────────
+   Below 768px the destinations move to a fixed bar at the bottom, where they all fit without
+   scrolling, and the top bar keeps one row: menu, page title, a labelled Search and the account.
+   Lesson, lab and editor workspaces keep their single slim row and get no tab bar, so the terminal
+   or editor keeps the whole height. --dw-tabbar tells pages and floating buttons how much to clear. */
+:root { --dw-tabbar: 0px; }
+.learning-navigation__menu-theme { display: none !important; }
+@media (max-width: 767px) {
+  body:has(.learning-navigation:not(.learning-navigation--compact)) { --dw-tabbar: calc(58px + env(safe-area-inset-bottom)); }
+  .learning-navigation:not(.learning-navigation--compact) { flex-wrap: nowrap; gap: 6px; min-height: 56px; padding: 6px 10px 6px max(10px, env(safe-area-inset-left)); }
+  .learning-navigation:not(.learning-navigation--compact) .learning-navigation__brand > span { display: none; }
+  .learning-navigation:not(.learning-navigation--compact) .learning-navigation__brand img,
+  .learning-navigation:not(.learning-navigation--compact) .learning-navigation__brand svg { width: 34px; height: 34px; }
+  .learning-navigation--with-sidebar:not(.learning-navigation--compact) .learning-navigation__brand { display: none; }
+  .learning-navigation:not(.learning-navigation--compact) .learning-navigation__title { display: block; flex: 1; min-width: 0; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--chrome-ink); }
+  .learning-navigation:not(.learning-navigation--compact) .learning-navigation__tools { margin-left: 0; gap: 2px; }
+  .learning-navigation:not(.learning-navigation--compact) .learning-navigation__dig span { display: none; }
+  .learning-navigation:not(.learning-navigation--compact) .learning-navigation__dig { padding: 1px; border-radius: 10px; }
+  .learning-navigation:not(.learning-navigation--compact) .learning-navigation__dig .dig-avatar { width: 30px; height: 30px; }
+  .learning-navigation:not(.learning-navigation--compact) .dw-level-hud { padding-inline: 4px; }
+  .learning-navigation:not(.learning-navigation--compact) .dw-level-hud__streak { display: none; }
+  .learning-navigation:not(.learning-navigation--compact) .dw-search-trigger.dw-search-trigger-adaptive { width: auto; height: 36px; padding: 0 11px; gap: 6px; border-radius: 9px; font-size: 13px; }
+  .learning-navigation:not(.learning-navigation--compact) .dw-search-trigger.dw-search-trigger-adaptive > span { display: inline; }
+  .learning-navigation .dw-search-trigger__rest { display: none; }
+  .learning-navigation:not(.learning-navigation--compact) .learning-navigation__theme { display: none; }
+
+  .learning-navigation:not(.learning-navigation--compact) nav {
+    position: fixed; inset: auto 0 0; z-index: 40; order: 0; width: auto; margin: 0;
+    display: flex; justify-content: space-around; gap: 0; overflow: visible;
+    padding: 4px max(4px, env(safe-area-inset-right)) env(safe-area-inset-bottom) max(4px, env(safe-area-inset-left));
+    background: color-mix(in srgb, var(--chrome-bg) 94%, transparent); border-top: 1px solid var(--chrome-line-strong);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  }
+  .learning-navigation:not(.learning-navigation--compact) .learning-navigation__link {
+    flex: 1 1 0; min-width: 0; height: 54px; justify-content: center; gap: 3px; padding: 0 2px;
+    font-size: 11px; font-weight: 500; white-space: nowrap; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+    transition: color .15s, transform .12s;
+  }
+  .learning-navigation:not(.learning-navigation--compact) .learning-navigation__link:active { transform: scale(.94); }
+  .learning-navigation:not(.learning-navigation--compact) .learning-navigation__symbol { width: 52px; height: 28px; border: 0; border-radius: 14px; background: transparent; box-shadow: none; transform: none; transition: background-color .2s, color .2s; }
+  .learning-navigation:not(.learning-navigation--compact) .learning-navigation__link:hover .learning-navigation__symbol { transform: none; }
+  .learning-navigation:not(.learning-navigation--compact) .learning-navigation__symbol svg { width: 20px; height: 20px; filter: none; }
+  .learning-navigation:not(.learning-navigation--compact) .learning-navigation__link.is-current { color: var(--chrome-ink); font-weight: 600; }
+  .learning-navigation:not(.learning-navigation--compact) .learning-navigation__link.is-current .learning-navigation__symbol { background: var(--chrome-active); color: var(--chrome-highlight); }
+  .learning-navigation:not(.learning-navigation--compact) .learning-navigation__link.is-current::after { display: none; }
+
+  /* The account menu opens as a sheet above the tab bar instead of a narrow dropdown. */
+  .learning-navigation:not(.learning-navigation--compact) .learning-navigation__menu { position: fixed; inset: auto 8px calc(var(--dw-tabbar) + 8px); top: auto; width: auto; max-height: calc(100dvh - var(--dw-tabbar) - 80px); }
+  .learning-navigation__menu a, .learning-navigation__menu button { padding-block: 11px; font-size: 14px; }
+  .learning-navigation:not(.learning-navigation--compact) .learning-navigation__menu-theme { display: block !important; }
+
+  .learning-shell__content, #main-content { padding-bottom: var(--dw-tabbar); scroll-padding-bottom: var(--dw-tabbar); }
+  .dw-completion { bottom: calc(var(--dw-tabbar) + 16px); }
+}
+@media (max-width: 767px) and (prefers-reduced-motion: reduce) {
+  .learning-navigation .learning-navigation__link, .learning-navigation .learning-navigation__symbol { transition: none; }
+  .learning-navigation .learning-navigation__link:active { transform: none; }
+}

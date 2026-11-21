@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../state/authStore';
-import { takeReturnTo } from '../../billing/lib/billing';
+import { peekReturnTo, takeReturnTo } from '../../../shared/lib/returnTo';
 import Logo from '../../../shared/components/layout/Logo';
 import '../../../shared/styles/entry-pages.css';
 import CharacterAvatar from '../../../shared/characters/CharacterAvatar';
@@ -29,6 +29,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
+  // Set when a visitor was sent here from a lesson or lab they tried to open (src/shared/lib/returnTo.ts).
+  const [continuing] = useState(() => peekReturnTo() !== null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
@@ -140,7 +142,7 @@ export default function LoginPage() {
           <h2>Build skills<br />that stand up<br /><em>to practice.</em></h2>
           <p>Learn the foundations, work through guided challenges and investigate security incidents in a dedicated learning workspace.</p>
           <ul className="dw-auth-benefits"><li>Structured lessons, from fundamentals onward</li><li>Terminal, coding and investigation labs</li><li>Saved progress and a portfolio of your work</li></ul>
-          <div className="dw-auth-crew"><CharacterAvatar id="sentinel" size={52} decorative /><p><strong>SENTINEL · SOC LEAD</strong>Your desk is ready, operator. Sign in and pick up the case where you left it.</p></div>
+          <div className="dw-auth-crew"><CharacterAvatar id="sentinel" size={52} decorative /><p><strong>Sentinel, SOC lead</strong>Your desk is ready, operator. Sign in and pick up the case where you left it.</p></div>
         </div>
         <p className="dw-auth-footnote">Works on your computer, tablet and phone. Your progress follows you.</p>
       </aside>
@@ -151,7 +153,7 @@ export default function LoginPage() {
         </div>
         <div className="dw-auth-form">
           <h1 id="auth-title">{mode === 'signup' ? 'Start your journey.' : mode === 'reset' ? 'Reset your password.' : 'Welcome back.'}</h1>
-          <p className="dw-auth-description">{mode === 'signup' ? 'Create an account to save your progress as you learn.' : mode === 'reset' ? 'Enter your account email. We’ll send you a reset link.' : 'Sign in to pick up where you left off.'}</p>
+          <p className="dw-auth-description">{mode === 'reset' ? 'Enter your account email. We’ll send you a reset link.' : continuing ? 'Lessons and labs need a free account so your progress, flags and XP are saved. You’ll go straight back to the page you were on.' : mode === 'signup' ? 'Create an account to save your progress as you learn.' : 'Sign in to pick up where you left off.'}</p>
           {mode !== 'reset' && <div className="dw-auth-tabs" aria-label="Account options">
             <button type="button" disabled={busy} aria-pressed={mode === 'signin'} onClick={() => switchMode('signin')}>Sign in</button>
             <button type="button" disabled={busy} aria-pressed={mode === 'signup'} onClick={() => switchMode('signup')}>Create account</button>
