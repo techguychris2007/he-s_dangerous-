@@ -87,3 +87,28 @@ input, select, textarea { accent-color: var(--color-accent); }
 }
 .portal-masthead__crew { position: absolute; top: 50%; right: max(2.5rem, calc((100vw - 72rem) / 2)); z-index: 0; transform: translateY(-50%); filter: drop-shadow(0 18px 30px #0009); pointer-events: none; }
 @media (max-width: 1180px) { .portal-masthead__crew { display: none; } }
+
+/* ── Page headers: one solid band ───────────────────────────────────────────────────────────────
+   Every page header (portals, labs, rooms, resources, SOC season, resume card) used to carry its own
+   coloured glows and a grid overlay. They now share one flat chrome band with a hairline edge, so
+   the content is what stands out. :root raises specificity above the feature stylesheets, which
+   load later. */
+:root :is(.portal-masthead, .dw-phero, .dw-room-hero, .dw-catalog-hero, .resource-masthead, .workspace-header, .dw-camp) {
+  background: var(--chrome-bg) !important;
+  border-color: var(--chrome-line-strong) !important;
+  box-shadow: none;
+}
+:root :is(.portal-masthead, .dw-phero, .dw-room-hero, .dw-catalog-hero, .resource-masthead, .workspace-header, .dw-camp)::before,
+:root :is(.portal-masthead, .dw-phero, .dw-room-hero, .dw-catalog-hero, .resource-masthead, .workspace-header, .dw-camp)::after {
+  background-image: none !important;
+}
+:root .academy-resume { background: var(--chrome-bg); }
+
+/* Direction icons on links and buttons: SVG arrows from the icon set instead of Unicode glyphs.
+   They sit on the text baseline and nudge 2px in their direction on hover. */
+.dw-arrow, .dw-arrow-back { display: inline-block; flex-shrink: 0; width: 1em; height: 1em; vertical-align: -.14em; transition: transform .15s ease-out; }
+.dw-arrow { margin-inline-start: .35em; }
+.dw-arrow-back { margin-inline-end: .35em; }
+a:hover > .dw-arrow, button:hover > .dw-arrow { transform: translateX(2px); }
+a:hover > .dw-arrow-back, button:hover > .dw-arrow-back { transform: translateX(-2px); }
+@media (prefers-reduced-motion: reduce) { .dw-arrow, .dw-arrow-back { transition: none; } }

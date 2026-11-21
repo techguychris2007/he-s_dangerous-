@@ -75,7 +75,7 @@ export default function RoadmapPage() {
       })}
     </div>
     {active.value === 'defensive' && <p className="mt-6 text-xs leading-6 text-[var(--color-text-dim)]">Milestones describe curriculum progress and practice outcomes. Real SOC responsibilities also depend on supervised experience, your employer’s role definitions, and assessment of your judgment.</p>}
-    {active.value === 'presecurity' && <div className="mt-8 grid gap-4 sm:grid-cols-2">{[['security', 'Explore offensive security', 'Test systems and document their trust boundaries.'], ['defensive', 'Explore defensive security', 'Investigate alerts and protect critical services.']].map(([track, title, text]) => <Link key={track} to={`/roadmap?track=${track}`} className="learning-next-path"><h3 className="mb-2 font-semibold text-[var(--color-heading)]">{title} →</h3><p className="text-xs text-[var(--color-text-dim)]">{text}</p></Link>)}</div>}
+    {active.value === 'presecurity' && <div className="mt-8 grid gap-4 sm:grid-cols-2">{[['security', 'Explore offensive security', 'Test systems and document their trust boundaries.'], ['defensive', 'Explore defensive security', 'Investigate alerts and protect critical services.']].map(([track, title, text]) => <Link key={track} to={`/roadmap?track=${track}`} className="learning-next-path"><h3 className="mb-2 font-semibold text-[var(--color-heading)]">{title}</h3><p className="text-xs text-[var(--color-text-dim)]">{text}</p></Link>)}</div>}
     </>}
   </div>;
 }

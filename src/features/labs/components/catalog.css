@@ -21,7 +21,7 @@
 .dw-catalog-hero__world { display: grid; grid-template-columns: minmax(0, 1fr) 290px; gap: 1rem; align-items: center; margin-top: 1rem; }
 @media (max-width: 1180px) { .dw-catalog-hero__world { grid-template-columns: minmax(0, 1fr); } }
 
-.dw-district-intel { padding: 1.1rem; border: 1px solid var(--chrome-line-strong); border-radius: 12px; background: color-mix(in srgb, var(--chrome-raise) 92%, transparent); backdrop-filter: blur(6px); }
+.dw-district-intel { padding: 1.1rem; border: 1px solid var(--chrome-line-strong); border-radius: 12px; background: var(--chrome-raise); }
 .dw-district-intel__head { display: flex; align-items: center; gap: .9rem; margin-top: .6rem; }
 .dw-district-intel__head h2 { margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--chrome-ink); }
 .dw-district-intel__head p { margin: .15rem 0 0; font-size: .8rem; color: var(--chrome-muted); }
@@ -39,7 +39,7 @@
 .dw-district-intel__actions .is-quiet { flex: 0 0 auto; color: var(--chrome-text); background: transparent; border: 1px solid var(--chrome-line-strong); }
 
 /* Sticky filter bar */
-.dw-catalog-toolbar { position: sticky; top: 0; z-index: 30; display: flex; flex-wrap: wrap; align-items: center; gap: .6rem .8rem; margin-bottom: 1.5rem; padding: .7rem; border: 1px solid var(--color-border); border-radius: 12px; background: color-mix(in srgb, var(--color-surface) 94%, transparent); backdrop-filter: blur(10px); box-shadow: 0 10px 30px -24px var(--color-heading); }
+.dw-catalog-toolbar { position: sticky; top: 0; z-index: 30; display: flex; flex-wrap: wrap; align-items: center; gap: .6rem .8rem; margin-bottom: 1.5rem; padding: .7rem; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); box-shadow: 0 10px 30px -24px var(--color-heading); }
 .dw-catalog-search { position: relative; display: flex; align-items: center; gap: .5rem; flex: 1 1 18rem; min-width: 0; height: 2.6rem; padding: 0 .8rem; border: 1px solid var(--color-border); border-radius: 9px; background: var(--color-bg); color: var(--color-text-dim); }
 .dw-catalog-search:focus-within { border-color: var(--color-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 18%, transparent); }
 .dw-catalog-search input { flex: 1; min-width: 0; border: 0; outline: none !important; background: transparent; font-size: .9rem; color: var(--color-heading); }

@@ -40,7 +40,7 @@ export default function AchievementShelf({ achievements, total }: AchievementShe
               <AchievementMark key={id} achievementId={id} icon={icon} unlocked={false} size="sm"/>
             ))}
           </div>
-          <p className="min-w-0 flex-1 text-sm leading-6 text-[var(--color-text-dim)]">
+          <p className="min-w-0 flex-1 basis-56 text-sm leading-6 text-[var(--color-text-dim)]">
             <b className="font-semibold text-[var(--color-heading)]">No awards yet.</b> Complete a lesson or capture a lab flag to earn your first achievement.
           </p>
           <Link to="/labs" className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3.5 text-xs font-bold text-white hover:brightness-110">

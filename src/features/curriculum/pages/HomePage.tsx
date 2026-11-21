@@ -4,7 +4,7 @@ import { MODULES, ROADMAP, findModule } from '../data/curriculum';
 import { useProgress } from '../../progress/state/progressStore';
 import { useLabsData, retryLabsData } from '../../labs/state/useLabsData';
 import { ACHIEVEMENTS } from '../../progress/data/achievements';
-import { IconBook, IconFlask, IconFlag, ModuleIcon } from '../../../shared/components/layout/icons';
+import { IconBook, IconFlask, IconFlag, ModuleIcon, IconArrowRight } from '../../../shared/components/layout/icons';
 import IsoBlock, { type IsoTone } from '../../../shared/components/IsoBlock';
 import type { RoadmapTrack } from '../../../shared/types/domain';
 import CharacterAvatar from '../../../shared/characters/CharacterAvatar';
@@ -25,6 +25,14 @@ const PATHS: { track: RoadmapTrack; label: string; title: string; icon: string; 
   { track: 'programming', label: 'Automate', title: 'Programming', icon: 'python', guide: 'cipher', tone: 'analysis' },
   { track: 'software', label: 'Build & ship', title: 'Software engineering', icon: 'engineering', guide: 'cipher', tone: 'analysis' },
 ];
+
+/** Mastery tier for a topic, from the share of its labs cleared. */
+const TIERS = ['Not started', 'Novice', 'Practitioner', 'Specialist', 'Expert', 'Master'];
+function masteryTier({ done, total }: { done: number; total: number }): number {
+  if (!total || done <= 0) return 0;
+  if (done >= total) return 5;
+  return 1 + Math.min(3, Math.floor((4 * done) / total));
+}
 
 /** Sort key for the skills list: in progress (0), not started (1), finished (2). */
 function skillRank({ done, total }: { done: number; total: number }): number {
@@ -159,7 +167,7 @@ export default function HomePage() {
           <section className="dw-dash__section" aria-labelledby="dw-tracks-title">
             <div className="dw-dash__head">
               <div><p>Your journey</p><h2 id="dw-tracks-title">Learning paths</h2></div>
-              <Link to="/roadmap">View roadmap →</Link>
+              <Link to="/roadmap">View roadmap<IconArrowRight className="dw-arrow" /></Link>
             </div>
             <div className="dw-tracks">
               {paths.map((path) => {
@@ -184,7 +192,7 @@ export default function HomePage() {
           <section className="dw-dash__section" aria-labelledby="dw-skills-title">
             <div className="dw-dash__head">
               <div><p>By topic</p><h2 id="dw-skills-title">Skills</h2></div>
-              <Link to="/labs">All labs →</Link>
+              <Link to="/labs">All labs<IconArrowRight className="dw-arrow" /></Link>
             </div>
             <div className="dw-skills">
               {!labsLoaded
@@ -195,6 +203,7 @@ export default function HomePage() {
                     <strong>{category}</strong>
                     <em>{done}/{total}</em>
                     <i><b style={{ width: `${total ? (100 * done) / total : 0}%` }} /></i>
+                    <small className="dw-skill__tier" data-tier={masteryTier({ done, total })}>{TIERS[masteryTier({ done, total })]}</small>
                   </Link>
                 ))}
             </div>

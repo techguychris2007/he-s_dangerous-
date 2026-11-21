@@ -29,7 +29,7 @@ export default function TaskList({ title, tasks, onOpen }: { title: string; task
               </button>
                 <div className="dw-task__body" id={`${id}-panel-${index}`} aria-labelledby={`${id}-stage-${index}`} hidden={!expanded}>
                   <div><span className="dw-plan-reason">Why this stage matters</span><p>{task.detail || 'Use this stage to collect the evidence needed for the mission. Check the result before moving to the next step.'}</p></div>
-                  <button type="button" className="dw-task__go" onClick={() => onOpen(index)}>{task.done ? 'Review this stage' : 'Open this stage'} <span aria-hidden="true">↗</span></button>
+                  <button type="button" className="dw-task__go" onClick={() => onOpen(index)}>{task.done ? 'Review this stage' : 'Open this stage'}</button>
                 </div>
             </li>
           );

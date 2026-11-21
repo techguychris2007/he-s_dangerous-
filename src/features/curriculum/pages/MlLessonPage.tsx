@@ -128,7 +128,7 @@ export default function MlLessonPage() {
 
           <nav aria-label="Previous and next lessons" className="reader-pagination">
             {prev ? <Link to={`/ml-lesson/${prev.id}`}><span>Previous lesson</span><span dangerouslySetInnerHTML={{ __html: prev.title }} /></Link> : <Link to="/ml-portal"><span>Back to roadmap</span>Machine Learning Roadmap</Link>}
-            {next ? <Link to={`/ml-lesson/${next.id}`}><span>Next lesson →</span><span dangerouslySetInnerHTML={{ __html: next.title }} /></Link> : <Link to="/ml-portal"><span>Continue your path →</span>Review the full ML roadmap</Link>}
+            {next ? <Link to={`/ml-lesson/${next.id}`}><span>Next lesson</span><span dangerouslySetInnerHTML={{ __html: next.title }} /></Link> : <Link to="/ml-portal"><span>Continue your path</span>Review the full ML roadmap</Link>}
           </nav>
         </main>
       </div>

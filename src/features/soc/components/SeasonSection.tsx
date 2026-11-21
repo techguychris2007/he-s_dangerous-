@@ -7,7 +7,7 @@ import { workbookProof } from '../engine/workbookAssessment';
 import CharacterAvatar from '../../../shared/characters/CharacterAvatar';
 import IsoBlock, { type IsoTone } from '../../../shared/components/IsoBlock';
 import { DifficultyBars } from '../../labs/components/room/RoomHero';
-import { IconCheck, IconCrown } from '../../../shared/components/layout/icons';
+import { IconCheck, IconCrown, IconArrowRight } from '../../../shared/components/layout/icons';
 import './season-section.css';
 
 function episodeProgress(lab: SiemLabScenario, flagsOf: (id: string) => string[]): { done: number; total: number } {
@@ -120,7 +120,7 @@ export default function SeasonSection({ episodes }: { episodes: SiemLabScenario[
             <CharacterAvatar id={guide} size={40} decorative />
             <p><strong>{CHARACTERS[guide].name}</strong>{p.done === p.total && p.total > 0 ? 'Case closed. Review your findings any time.' : p.done > 0 ? `${p.total - p.done} findings still open on this case.` : 'Fresh case. Start with the timeline, then pivot on what stands out.'}</p>
           </div>
-          <Link to={`/siem-lab/${lab.id}`} className="dw-camp__cta">{p.total > 0 && p.done === p.total ? 'Review case' : p.done > 0 ? 'Resume case' : 'Open case'} →</Link>
+          <Link to={`/siem-lab/${lab.id}`} className="dw-camp__cta">{p.total > 0 && p.done === p.total ? 'Review case' : p.done > 0 ? 'Resume case' : 'Open case'}<IconArrowRight className="dw-arrow" /></Link>
         </aside>
       </div>
     </section>

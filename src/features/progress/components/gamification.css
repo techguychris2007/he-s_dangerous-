@@ -1,4 +1,4 @@
-/* XP, levels and ranks: TopBar HUD, XP toasts, Profile rank card, leaderboard podium.
+/* XP, levels and ranks: TopBar HUD, XP toasts, Profile rank card.
    Platform tokens only — flat fills, no gradients, no glows. */
 
 .dw-xp-bar {
@@ -131,33 +131,6 @@
 .dw-rank-ladder li b { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 600; margin-right: .3rem; }
 .dw-rank-ladder li[data-state='earned'] { color: var(--color-heading); }
 .dw-rank-ladder li[data-state='current'] { color: #fff; border-color: var(--color-accent); background: var(--color-accent); font-weight: 600; }
-
-/* ── Leaderboard podium ─────────────────────────────────────── */
-.dw-podium { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: end; gap: .75rem; margin: 0 0 1.25rem; padding: 0; list-style: none; }
-.dw-podium__spot {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: .3rem;
-  min-width: 0;
-  padding: 1.1rem .75rem 1rem;
-  border-radius: 1rem;
-  border: 1px solid var(--color-border);
-  border-top: 3px solid var(--tone);
-  background: var(--color-surface);
-  text-align: center;
-}
-.dw-podium__spot[data-place='1'] { padding-top: 1.6rem; padding-bottom: 1.4rem; }
-.dw-podium__medal { display: grid; place-items: center; width: 1.6rem; height: 1.6rem; border-radius: 999px; font-size: .75rem; font-weight: 700; color: var(--color-surface); background: var(--tone); }
-.dw-podium__avatar { display: grid; place-items: center; border-radius: 999px; box-shadow: 0 0 0 3px var(--color-surface), 0 0 0 5px var(--tone); }
-.dw-podium__name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; color: var(--color-heading); }
-.dw-podium__points { font: 600 .9rem/1.2 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--color-accent-dim); }
-.dw-podium__label { font-size: .65rem; font-weight: 600; color: var(--color-text-dim); }
-@media (max-width: 479px) {
-  .dw-podium { gap: .4rem; }
-  .dw-podium__spot { padding-inline: .35rem; }
-  .dw-podium__spot .inline-flex { display: none; }
-}
 
 @media (prefers-reduced-motion: reduce) {
   .dw-xp-toast { animation: none; }

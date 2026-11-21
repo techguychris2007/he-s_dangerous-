@@ -173,7 +173,7 @@ function LessonReader({ mod, lesson }: { mod: ModuleMeta; lesson: LessonMeta }) 
             </section>
             <nav aria-label="Previous and next lessons" className="reader-pagination">
               {prev ? <Link to={`/module/${mod.slug}/lesson/${prev.slug}`}><span>Previous lesson</span>{prev.title}</Link> : <Link to={`/module/${mod.slug}`}><span>Back to module</span>{mod.title}</Link>}
-              {next ? <Link to={`/module/${mod.slug}/lesson/${next.slug}`}><span>Next lesson →</span>{next.title}</Link> : <Link to={`/roadmap?track=${track}`}><span>Continue your path →</span>Explore the roadmap</Link>}
+              {next ? <Link to={`/module/${mod.slug}/lesson/${next.slug}`}><span>Next lesson</span>{next.title}</Link> : <Link to={`/roadmap?track=${track}`}><span>Continue your path</span>Explore the roadmap</Link>}
             </nav>
           </div>
         </div>

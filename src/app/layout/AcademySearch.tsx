@@ -58,7 +58,7 @@ export default function AcademySearch({ compact = false, adaptive = false, onNav
         }}/>
         <p className="dw-search-caption">{query ? 'Matching destinations' : 'Start here'}</p>
         <ul id={listId} role="listbox" aria-label="Academy destinations">
-          {results.map((result, index) => <li key={result.to} role="presentation"><button id={listId + '-' + index} type="button" role="option" aria-selected={index === active} tabIndex={-1} onMouseMove={() => setActive(index)} onMouseDown={event => event.preventDefault()} onClick={() => choose(index)}><span><strong>{result.title}</strong><small>{result.description}</small></span><span className="dw-search-result-group">{result.group}<span aria-hidden="true"> ↗</span></span></button></li>)}
+          {results.map((result, index) => <li key={result.to} role="presentation"><button id={listId + '-' + index} type="button" role="option" aria-selected={index === active} tabIndex={-1} onMouseMove={() => setActive(index)} onMouseDown={event => event.preventDefault()} onClick={() => choose(index)}><span><strong>{result.title}</strong><small>{result.description}</small></span><span className="dw-search-result-group">{result.group}</span></button></li>)}
         </ul>
         {!results.length && <div className="dw-search-empty" role="status"><strong>No matching pages or lessons</strong><p>Try a topic such as Linux, networking or Python.</p></div>}
         <footer><span><kbd>↑</kbd> <kbd>↓</kbd> to move</span><span><kbd>Enter</kbd> to open</span><span>Pages · Modules · Lessons</span></footer>

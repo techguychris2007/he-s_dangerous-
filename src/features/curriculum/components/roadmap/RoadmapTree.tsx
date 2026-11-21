@@ -78,7 +78,7 @@ function Branch({ branch, onOpen }: { branch: (typeof BRANCHES)[number]; onOpen:
         <div className="min-w-0">
           <h3 id={`rm-${branch.track}`}>{branch.title}</h3>
           <p>{branch.blurb}</p>
-          <button type="button" onClick={() => onOpen(branch.track)} className="rm-branch__open">{completeCount}/{stages.length} modules · View path →</button>
+          <button type="button" onClick={() => onOpen(branch.track)} className="rm-branch__open">{completeCount}/{stages.length} modules · View path</button>
         </div>
       </header>
       <ol className="rm-branch__list">
@@ -119,7 +119,7 @@ export default function RoadmapTree({ onOpen }: { onOpen: (track: RoadmapTrack) 
         <header className="rm-trunk__head">
           <CharacterAvatar id="byte" size={40} decorative />
           <span><b>Foundations</b> · {preDone}/{pre.length} modules</span>
-          <button type="button" onClick={() => onOpen('presecurity')} className="rm-branch__open">View path →</button>
+          <button type="button" onClick={() => onOpen('presecurity')} className="rm-branch__open">View path</button>
         </header>
         <ol className="rm-trunk__list">
           {pre.map((stage, i) => <li key={stage.title}><StageCard stage={stage} tone="var(--color-success)" upNext={i === preNext} /></li>)}
