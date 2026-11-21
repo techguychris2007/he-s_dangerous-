@@ -20,7 +20,8 @@ mock('../src/features/progress/components/LevelHud.tsx', { __esModule: true, def
 mock('../src/shared/state/theme.ts', { useTheme: () => ({ theme: 'dark', toggle: () => {} }) });
 mock('../src/features/offline/components/InstallAppButton.tsx', { __esModule: true, default: () => null });
 mock('../src/features/labs/components/CyberLabAI.tsx', { __esModule: true, default: () => null });
-mock('../src/features/account/state/authStore.ts', { useAuth: () => ({ user: null, signOut: async () => {} }) });
+// A signed-in learner: visitors get a reduced bar without dig (src/app/layout/visitorAccess.ts).
+mock('../src/features/account/state/authStore.ts', { useAuth: () => ({ loading: false, user: { id: 'learner', email: 'learner@example.com', is_anonymous: false }, signOut: async () => {} }) });
 const { default: Navigation, LearningShell } = require('../src/app/layout/LearningNavigation.tsx');
 const header = renderToStaticMarkup(React.createElement(MemoryRouter, { initialEntries: ['/module/linux/lesson/ssh'] }, React.createElement(Navigation)));
 assert.ok(header.includes('Platform navigation'));

@@ -110,3 +110,19 @@ assert.equal(shouldReloadForStaleBuild(1_000_000, 1_030_000), false, 'A second f
 assert.equal(shouldReloadForStaleBuild(1_000_000, 1_070_000), true);
 
 console.log('Navigation passed: every destination resolves; track parameters, lesson lookup, normalization, staff and owner-only filtering verified; guided tour targets, start rules, memory and card placement verified; stale-build reload guard verified.');
+
+// Visitors may browse the catalogues; workspaces and personal pages need an account.
+const { isVisitorPath } = require('../src/app/layout/visitorPaths.ts');
+for (const open of ['/roadmap', '/module/intro-to-cybersecurity', '/labs', '/library', '/soc-portal', '/code-portal']) assert.ok(isVisitorPath(open), 'Visitors should be able to browse ' + open);
+for (const closed of ['/', '/lab/web-live-meridian-billing', '/module/x/lesson/y', '/library/some-book', '/progress', '/profile', '/admin', '/my-learning', '/siem-lab/x', '/code-task/x']) assert.equal(isVisitorPath(closed), false, 'Visitors must sign up before opening ' + closed);
+for (const path of ['/roadmap', '/labs', '/library', '/soc-portal', '/code-portal']) assert.ok(routes.some(route => matchPath(route, path)), 'Visitor path has no route: ' + path);
+
+// After sign-up a visitor returns to the page they tried to open, and only to an in-app page.
+const sessionMemory = new Map();
+globalThis.sessionStorage = { getItem: k => sessionMemory.get(k) ?? null, setItem: (k, v) => sessionMemory.set(k, String(v)), removeItem: k => sessionMemory.delete(k) };
+const { rememberReturnTo, peekReturnTo, takeReturnTo } = require('../src/shared/lib/returnTo.ts');
+rememberReturnTo('/lab/web-live-meridian-billing');
+assert.equal(peekReturnTo(), '/lab/web-live-meridian-billing');
+assert.equal(takeReturnTo(), '/lab/web-live-meridian-billing');
+assert.equal(takeReturnTo(), '/', 'The return path applies once');
+for (const unsafe of ['//evil.example', 'https://evil.example', '/\\evil.example', '/login?mode=signup', '/welcome']) { rememberReturnTo(unsafe); assert.equal(takeReturnTo(), '/', 'Unsafe or entry-page return path accepted: ' + unsafe); }
