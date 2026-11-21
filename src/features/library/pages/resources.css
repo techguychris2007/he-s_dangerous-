@@ -14,7 +14,7 @@
 .resource-masthead aside a:hover { filter: brightness(1.08); }
 .resource-masthead aside small { display: block; margin-top: .6rem; font-size: .72rem; color: var(--chrome-muted); }
 
-.resource-controls { position: sticky; top: 0; z-index: 20; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .8rem; margin-bottom: 1.5rem; padding: .6rem; border: 1px solid var(--color-border); border-radius: 12px; background: color-mix(in srgb, var(--color-surface) 94%, transparent); backdrop-filter: blur(10px); }
+.resource-controls { position: sticky; top: 0; z-index: 20; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .8rem; margin-bottom: 1.5rem; padding: .6rem; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); }
 .resource-controls nav { display: inline-flex; flex-wrap: wrap; gap: 0; padding: 3px; border: 1px solid var(--color-border); border-radius: 9px; background: var(--color-bg); }
 .resource-controls button { padding: .45rem .8rem; border-radius: 7px; color: var(--color-text-dim); font-size: .82rem; font-weight: 600; }
 .resource-controls button:hover { color: var(--color-heading); }

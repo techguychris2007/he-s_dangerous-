@@ -81,6 +81,22 @@ export default function RoomWorld({ districts, selected, onSelect }: { districts
           })}
         </div>
       </div>
+      {/* Phones: the isometric map would have to scroll sideways, so the districts become a list. */}
+      <ul className="rw-list" aria-label="Room districts">
+        {districts.map((d) => {
+          const isOn = selected === d.category;
+          const pct = d.total ? Math.round((100 * d.done) / d.total) : 0;
+          return (
+            <li key={d.category}>
+              <button type="button" className={isOn ? 'is-selected' : undefined} onClick={() => onSelect(isOn ? 'All' : d.category)} aria-pressed={isOn}>
+                <span className="rw-list__icon" aria-hidden="true"><ModuleIcon icon={categoryIconKey(d.category)} /></span>
+                <span className="rw-list__text"><strong>{d.category}</strong><small>{d.done} of {d.total} cleared</small></span>
+                <span className="rw-list__bar" aria-hidden="true"><span style={{ width: `${pct}%` }} /></span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }

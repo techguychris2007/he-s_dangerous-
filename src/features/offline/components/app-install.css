@@ -5,7 +5,7 @@
 .dw-app-update-dot { width:6px; height:6px; border-radius:50%; background:var(--chrome-highlight); }
 .dw-entry-install { position:fixed; right:22px; bottom:20px; z-index:40; }
 .dw-app-dialog { position:fixed; inset:7vh 0 auto; width:min(780px,calc(100vw - 40px)); max-height:86vh; padding:0; margin:0 auto; overflow:auto; overscroll-behavior:contain; border:1px solid var(--color-border); border-radius:14px; background:var(--color-surface); color:var(--color-text); box-shadow:0 25px 100px #0005; }
-.dw-app-dialog::backdrop { background:color-mix(in srgb, var(--chrome-bg) 70%, transparent); backdrop-filter:blur(4px); }
+.dw-app-dialog::backdrop { background:color-mix(in srgb, var(--chrome-bg) 70%, transparent); }
 .dw-app-dialog > header { display:flex; align-items:center; gap:14px; padding:24px 28px; border-bottom:1px solid var(--color-border); }
 .dw-app-dialog header p { font-size:9px; letter-spacing:1.6px; font-weight:650; color:var(--color-text-dim); margin-bottom:5px; }
 .dw-app-dialog h2 { font-size:21px; font-weight:650; letter-spacing:-.5px; color:var(--color-heading); line-height:1.3; }
