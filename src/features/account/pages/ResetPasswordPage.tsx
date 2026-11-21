@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../state/authStore';
 import Logo from '../../../shared/components/layout/Logo';
-import { IconLock } from '../../../shared/components/layout/icons';
+import { IconLock, IconArrowRight, IconArrowLeft } from '../../../shared/components/layout/icons';
 import '../../../shared/styles/entry-pages.css';
 import CharacterAvatar from '../../../shared/characters/CharacterAvatar';
 
@@ -47,18 +47,18 @@ export default function ResetPasswordPage() {
         <p className="dw-auth-footnote">Use a password you don’t use anywhere else.</p>
       </aside>
       <section className="dw-auth-main" aria-labelledby="reset-title">
-        <Link to="/login" className="dw-back">← Back to sign in</Link>
+        <Link to="/login" className="dw-back"><IconArrowLeft className="dw-arrow-back" />Back to sign in</Link>
         <div className="dw-auth-form">
           <h1 id="reset-title">Set a new password.</h1>
           {auth.loading ? <p role="status" className="dw-auth-description">Checking your recovery session…</p> : !auth.user ? (
             <>
               <p className="dw-auth-description">This reset link is invalid or has expired. Request a new one from the sign-in page.</p>
-              <Link to="/login" className="dw-button dw-button-primary dw-auth-wide">Back to sign in<span aria-hidden="true">→</span></Link>
+              <Link to="/login" className="dw-button dw-button-primary dw-auth-wide">Back to sign in<IconArrowRight className="dw-arrow" /></Link>
             </>
           ) : done ? (
             <>
               <p role="status" className="dw-auth-info dw-auth-gap">Password updated. You’re signed in with your new password.</p>
-              <button type="button" className="dw-button dw-button-primary dw-auth-wide" onClick={() => navigate('/', { replace: true })}>Continue to dashboard<span aria-hidden="true">→</span></button>
+              <button type="button" className="dw-button dw-button-primary dw-auth-wide" onClick={() => navigate('/', { replace: true })}>Continue to dashboard<IconArrowRight className="dw-arrow" /></button>
             </>
           ) : (
             <>
@@ -67,7 +67,7 @@ export default function ResetPasswordPage() {
                 <label><span>New password</span><div className="dw-field"><IconLock className="h-4 w-4" /><input autoFocus type="password" autoComplete="new-password" required minLength={6} disabled={submitting} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 6 characters" /></div></label>
                 <label><span>Confirm new password</span><div className="dw-field"><IconLock className="h-4 w-4" /><input type="password" autoComplete="new-password" required disabled={submitting} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Re-enter your password" /></div></label>
                 {error && <p role="alert" className="dw-auth-error">{error}</p>}
-                <button className="dw-button dw-button-primary" type="submit" disabled={submitting}>{submitting ? 'Updating…' : 'Update password'}<span aria-hidden="true">→</span></button>
+                <button className="dw-button dw-button-primary" type="submit" disabled={submitting}>{submitting ? 'Updating…' : 'Update password'}<IconArrowRight className="dw-arrow" /></button>
               </form>
             </>
           )}

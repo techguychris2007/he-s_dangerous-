@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import type { CharacterId } from '../../../../shared/characters/characters';
 import CharacterAvatar from '../../../../shared/characters/CharacterAvatar';
 import IsoBlock, { type IsoTone } from '../../../../shared/components/IsoBlock';
-import { IconBookmark, IconCopy, ModuleIcon } from '../../../../shared/components/layout/icons';
+import { IconBookmark, IconCopy, ModuleIcon, IconArrowRight } from '../../../../shared/components/layout/icons';
 import './room-hero.css';
 
 import type { Difficulty } from '../../data/rooms';
@@ -88,7 +88,7 @@ const RoomHero = forwardRef<HTMLButtonElement, RoomHeroProps>(function RoomHero(
           </div>
         </div>
         <div className="dw-room-hero__actions">
-          <button ref={primaryRef} type="button" className="dw-room-hero__primary" onClick={onPrimary}>{primaryLabel} →</button>
+          <button ref={primaryRef} type="button" className="dw-room-hero__primary" onClick={onPrimary}>{primaryLabel}<IconArrowRight className="dw-arrow" /></button>
           {onToggleSave && (
             <button type="button" onClick={onToggleSave} aria-pressed={saved}>
               <IconBookmark className="w-4 h-4" filled={saved} />{saved ? 'Saved' : 'Save lab'}

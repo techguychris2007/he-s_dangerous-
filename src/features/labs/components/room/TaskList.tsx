@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { IconCheck } from '../../../../shared/components/layout/icons';
+import { IconCheck, IconArrowRight } from '../../../../shared/components/layout/icons';
 import './room-hero.css';
 
 /** A room's steps as task cards: a numbered header that expands to the task's
@@ -29,7 +29,7 @@ export default function TaskList({ title, tasks, onOpen }: { title: string; task
               {expanded && (
                 <div className="dw-task__body">
                   {task.detail && <p>{task.detail}</p>}
-                  <button type="button" className="dw-task__go" onClick={() => onOpen(index)}>{task.done ? 'Review in workspace' : 'Open in workspace'} →</button>
+                  <button type="button" className="dw-task__go" onClick={() => onOpen(index)}>{task.done ? 'Review in workspace' : 'Open in workspace'}<IconArrowRight className="dw-arrow" /></button>
                 </div>
               )}
             </li>

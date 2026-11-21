@@ -5,7 +5,7 @@ import { peekReturnTo, takeReturnTo } from '../../../shared/lib/returnTo';
 import Logo from '../../../shared/components/layout/Logo';
 import '../../../shared/styles/entry-pages.css';
 import CharacterAvatar from '../../../shared/characters/CharacterAvatar';
-import { IconUser, IconLock, IconMail } from '../../../shared/components/layout/icons';
+import { IconUser, IconLock, IconMail, IconArrowLeft } from '../../../shared/components/layout/icons';
 
 type Mode = 'signin' | 'signup' | 'reset';
 
@@ -103,7 +103,7 @@ export default function LoginPage() {
       if (needsEmailConfirm) {
         setSearchParams({});
         setPassword(''); setConfirmPassword('');
-        setInfo('Account created — check your email to confirm it before signing in.');
+        setInfo('Account created. Check your email to confirm it, then sign in.');
         return;
       }
       navigate(takeReturnTo(), { replace: true });
@@ -138,8 +138,7 @@ export default function LoginPage() {
       <aside className="dw-auth-story">
         <Link to="/welcome" className="dw-brand"><Logo className="dw-brand-mark" /><span>DARKWORLD<small>CYBERSECURITY ACADEMY</small></span></Link>
         <div className="dw-auth-story-copy">
-          <div className="dw-entry-world dw-auth-world" aria-hidden="true" />
-          <h2>Build skills<br />that stand up<br /><em>to practice.</em></h2>
+          <h2>Build security skills that hold up in practice.</h2>
           <p>Learn the foundations, work through guided challenges and investigate security incidents in a dedicated learning workspace.</p>
           <ul className="dw-auth-benefits"><li>Structured lessons, from fundamentals onward</li><li>Terminal, coding and investigation labs</li><li>Saved progress and a portfolio of your work</li></ul>
           <div className="dw-auth-crew"><CharacterAvatar id="sentinel" size={52} decorative /><p><strong>Sentinel, SOC lead</strong>Your desk is ready, operator. Sign in and pick up the case where you left it.</p></div>
@@ -149,10 +148,10 @@ export default function LoginPage() {
       <section className="dw-auth-main" aria-labelledby="auth-title">
         <div className="dw-auth-topbar">
           <Link to="/welcome" className="dw-brand dw-auth-mobile-brand" aria-label="DarkWorld home"><Logo className="dw-brand-mark" /><span>DARKWORLD</span></Link>
-          <Link to="/welcome" className="dw-back">← Back to academy</Link>
+          <Link to="/welcome" className="dw-back"><IconArrowLeft className="h-4 w-4" />Back to home</Link>
         </div>
         <div className="dw-auth-form">
-          <h1 id="auth-title">{mode === 'signup' ? 'Start your journey.' : mode === 'reset' ? 'Reset your password.' : 'Welcome back.'}</h1>
+          <h1 id="auth-title">{mode === 'signup' ? 'Create your account' : mode === 'reset' ? 'Reset your password' : 'Sign in to DarkWorld'}</h1>
           <p className="dw-auth-description">{mode === 'reset' ? 'Enter your account email. We’ll send you a reset link.' : continuing ? 'Lessons and labs need a free account so your progress, flags and XP are saved. You’ll go straight back to the page you were on.' : mode === 'signup' ? 'Create an account to save your progress as you learn.' : 'Sign in to pick up where you left off.'}</p>
           {mode !== 'reset' && <div className="dw-auth-tabs" aria-label="Account options">
             <button type="button" disabled={busy} aria-pressed={mode === 'signin'} onClick={() => switchMode('signin')}>Sign in</button>
@@ -166,7 +165,7 @@ export default function LoginPage() {
             {mode === 'signin' && <button type="button" disabled={busy} className="dw-forgot" onClick={() => switchMode('reset')}>Forgot password?</button>}
             {error && <p role="alert" className="dw-auth-error">{error}</p>}
             {info && <p role="status" className="dw-auth-info">{info}</p>}
-            <button className="dw-button dw-button-primary" type="submit" disabled={busy}>{submitting ? 'Please wait…' : mode === 'signup' ? 'Create account' : mode === 'reset' ? 'Send reset link' : 'Sign in'}<span aria-hidden="true">→</span></button>
+            <button className="dw-button dw-button-primary" type="submit" disabled={busy}>{submitting ? 'Please wait…' : mode === 'signup' ? 'Create account' : mode === 'reset' ? 'Send reset link' : 'Sign in'}</button>
           </form>
           {mode === 'reset' ? <button type="button" disabled={busy} className="dw-text-button" onClick={() => switchMode('signin')}>Back to sign in</button> : <>
             <div className="dw-auth-divider"><span>or</span></div>
@@ -180,7 +179,7 @@ export default function LoginPage() {
             </div>
           </>}
         </div>
-        <p className="dw-auth-footer">DarkWorld Academy · Learn with purpose.<br /><a href="/privacy.html">Privacy policy</a> · <a href="/terms.html">Terms of service</a></p>
+        <p className="dw-auth-footer"><a href="/privacy.html">Privacy policy</a> · <a href="/terms.html">Terms of service</a></p>
       </section>
     </main>
   );

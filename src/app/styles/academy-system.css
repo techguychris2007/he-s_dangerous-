@@ -103,3 +103,12 @@ input, select, textarea { accent-color: var(--color-accent); }
   background-image: none !important;
 }
 :root .academy-resume { background: var(--chrome-bg); }
+
+/* Direction icons on links and buttons: SVG arrows from the icon set instead of Unicode glyphs.
+   They sit on the text baseline and nudge 2px in their direction on hover. */
+.dw-arrow, .dw-arrow-back { display: inline-block; flex-shrink: 0; width: 1em; height: 1em; vertical-align: -.14em; transition: transform .15s ease-out; }
+.dw-arrow { margin-inline-start: .35em; }
+.dw-arrow-back { margin-inline-end: .35em; }
+a:hover > .dw-arrow, button:hover > .dw-arrow { transform: translateX(2px); }
+a:hover > .dw-arrow-back, button:hover > .dw-arrow-back { transform: translateX(-2px); }
+@media (prefers-reduced-motion: reduce) { .dw-arrow, .dw-arrow-back { transition: none; } }

@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import type { LabEntry } from '../data/labs';
 import { useLabProgress, useProgressActions } from '../../progress/state/progressStore';
-import { IconBookmark, IconCheck, IconStar, ModuleIcon } from '../../../shared/components/layout/icons';
+import { IconBookmark, IconCheck, IconStar, ModuleIcon, IconArrowRight } from '../../../shared/components/layout/icons';
 import { DifficultyBars } from './room/RoomHero';
 import { getLabIconKey } from '../data/labIcon';
 import type { LabRatingSummary } from '../lib/labRatings';
@@ -50,7 +50,7 @@ export default memo(function LabCard({
   if (variant === 'task') return <article className="task-lab-row">
     <span className="task-lab-icon" aria-hidden="true"><ModuleIcon icon={techIcon} className="h-5 w-5" /></span>
     <div className="task-lab-content"><div className="task-lab-meta">{required !== 'free' && <PlanBadge plan={required} locked={locked} />}<span>{lab.scenario.category}</span><span>·</span><span>{lab.scenario.difficulty}</span><span>·</span><span>+{xpReward} XP</span></div><Link to={labUrl} className="task-lab-title">{lab.scenario.title}</Link><p className="line-clamp-2">{lab.scenario.briefing}</p><div className="task-lab-status"><span>{status}</span><span>{Math.min(captured, total)} of {total} flags captured</span>{done && <span className="text-[var(--color-success)]">Completed ✓</span>}</div></div>
-    <div className="task-lab-actions"><Link to={labUrl}>{ctaLabel} →</Link><button onClick={() => toggleBookmark(lab.scenario.id)} aria-pressed={bookmarked} aria-label={`${bookmarked ? 'Remove bookmark from' : 'Bookmark'} ${lab.scenario.title}`} className={bookmarked ? 'text-[var(--color-gold-dim)]' : 'text-[var(--color-text-dim)]'}><IconBookmark className="h-4 w-4" filled={bookmarked} /></button></div>
+    <div className="task-lab-actions"><Link to={labUrl}>{ctaLabel}<IconArrowRight className="dw-arrow" /></Link><button onClick={() => toggleBookmark(lab.scenario.id)} aria-pressed={bookmarked} aria-label={`${bookmarked ? 'Remove bookmark from' : 'Bookmark'} ${lab.scenario.title}`} className={bookmarked ? 'text-[var(--color-gold-dim)]' : 'text-[var(--color-text-dim)]'}><IconBookmark className="h-4 w-4" filled={bookmarked} /></button></div>
   </article>;
 
   return (
@@ -94,7 +94,7 @@ export default memo(function LabCard({
       )}
 
       <Link to={labUrl} className="dw-room-card__cta" data-done={done}>
-        {done && <IconCheck className="h-4 w-4" />}{locked ? `Unlock with ${required === 'max' ? 'Max' : 'Pro'}` : ctaLabel} →
+        {done && <IconCheck className="h-4 w-4" />}{locked ? `Unlock with ${required === 'max' ? 'Max' : 'Pro'}` : ctaLabel}<IconArrowRight className="dw-arrow" />
       </Link>
     </article>
   );

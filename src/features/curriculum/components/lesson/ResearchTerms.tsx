@@ -1,4 +1,5 @@
 import './research-terms.css';
+import { IconArrowRight } from '../../../../shared/components/layout/icons';
 
 export function openTermResearch(term?: string) {
   window.dispatchEvent(new CustomEvent('darkworld:research-term', { detail: term
@@ -9,7 +10,7 @@ export function openTermResearch(term?: string) {
 export default function ResearchTerms({ terms = [] }: { terms?: string[] }) {
   return <section className="reader-research" aria-label="Explore concepts with dig">
     <div><strong>Build your understanding</strong><p>Choose a term or bring your own question to dig. Review its explanation against the lesson and cited sources.</p></div>
-    <div className="reader-research__actions">{terms.slice(0, 8).map(term => <button key={term} type="button" onClick={() => openTermResearch(term)}>{term}<span aria-hidden="true">↗</span></button>)}<button type="button" className="reader-research__open" onClick={() => openTermResearch()}>Explore with dig <span aria-hidden="true">→</span></button></div>
+    <div className="reader-research__actions">{terms.slice(0, 8).map(term => <button key={term} type="button" onClick={() => openTermResearch(term)}>{term}</button>)}<button type="button" className="reader-research__open" onClick={() => openTermResearch()}>Explore with dig<IconArrowRight className="dw-arrow" /></button></div>
     <small>Opens a draft question. Nothing is sent until you choose Send. Online explanations use hosted AI; offline library search requires prepared books.</small>
   </section>;
 }

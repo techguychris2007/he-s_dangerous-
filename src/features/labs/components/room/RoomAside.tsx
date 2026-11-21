@@ -4,6 +4,7 @@ import { CHARACTERS } from '../../../../shared/characters/characters';
 import CharacterAvatar from '../../../../shared/characters/CharacterAvatar';
 import { DifficultyBars, type RoomHeroProps } from './RoomHero';
 import './room-hero.css';
+import { IconArrowLeft } from '../../../../shared/components/layout/icons';
 
 export interface RoomAsideProps {
   difficulty: RoomHeroProps['difficulty'];
@@ -65,7 +66,7 @@ export default function RoomAside({ difficulty, minutes, xp, facts, outcomes, ou
         </div>
       </section>
 
-      <Link to={backTo} className="dw-room-aside__back">← {backLabel}</Link>
+      <Link to={backTo} className="dw-room-aside__back"><IconArrowLeft className="dw-arrow-back" />{backLabel}</Link>
     </aside>
   );
 }

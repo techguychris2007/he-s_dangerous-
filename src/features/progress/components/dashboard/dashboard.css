@@ -176,13 +176,16 @@
 .dw-skills { display: grid; gap: .35rem 1.25rem; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); padding: .8rem; border: 1px solid var(--color-border); border-radius: 14px; background: var(--color-surface); }
 .dw-skill { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; align-items: center; gap: .2rem .65rem; padding: .45rem .5rem; border-radius: 9px; text-decoration: none; }
 .dw-skill:hover { background: var(--color-surface-2); }
-.dw-skill__icon { grid-row: span 2; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; color: var(--chrome-highlight); background: var(--chrome-bg); }
+.dw-skill__icon { grid-row: span 3; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; color: var(--chrome-highlight); background: var(--chrome-bg); }
 .dw-skill[data-done='true'] .dw-skill__icon { color: #04140a; background: var(--color-success); }
 .dw-skill strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .88rem; font-weight: 600; color: var(--color-heading); }
 .dw-skill em { font-style: normal; font-family: var(--font-mono); font-size: .76rem; color: var(--color-text-dim); }
 .dw-skill i { grid-column: 2 / -1; display: block; height: 4px; border-radius: 99px; background: var(--color-surface-2); overflow: hidden; }
 .dw-skill i b { display: block; height: 100%; background: var(--color-accent); }
 .dw-skill[data-done='true'] i b { background: var(--color-success); }
+.dw-skill__tier { grid-column: 2 / -1; font-size: .75rem; font-weight: 600; color: var(--color-text-dim); }
+.dw-skill__tier[data-tier='3'], .dw-skill__tier[data-tier='4'] { color: var(--color-accent-dim); }
+.dw-skill__tier[data-tier='5'] { color: var(--color-success); }
 .dw-skill--ghost { height: 46px; border-radius: 9px; background: var(--color-surface-2); animation: dw-pulse 1.4s ease-in-out infinite; }
 @keyframes dw-pulse { 50% { opacity: .5; } }
 @media (prefers-reduced-motion: reduce) { .dw-skill--ghost { animation: none; } .dw-track { transition: none; } }

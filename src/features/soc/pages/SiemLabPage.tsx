@@ -15,7 +15,7 @@ import CyberLabAI from '../../labs/components/CyberLabAI';
 import LabComments from '../../labs/components/LabComments';
 import ShareWriteupModal from '../../labs/components/ShareWriteupModal';
 import LabLearningBridge from '../../labs/components/LabLearningBridge';
-import { IconFlag, IconCheck } from '../../../shared/components/layout/icons';
+import { IconFlag, IconCheck, IconArrowLeft } from '../../../shared/components/layout/icons';
 
 const TOOL_LABEL: Record<string, string> = {
   suricata: 'Suricata',
@@ -145,7 +145,7 @@ export default function SiemLabPage() {
 
   if (siemScenario?.investigation) return (
     <div className="investigation-casefile">
-      <header className="investigation-casefile-header"><div><Link to="/soc-portal">← Back to SOC Portal</Link><h1>{scenario.title}</h1></div><button type="button" onClick={() => setSharing(true)}>{done ? 'Evidence notebook & certificate' : 'Evidence notebook'}</button></header>
+      <header className="investigation-casefile-header"><div><Link to="/soc-portal"><IconArrowLeft className="dw-arrow-back" />Back to SOC Portal</Link><h1>{scenario.title}</h1></div><button type="button" onClick={() => setSharing(true)}>{done ? 'Evidence notebook & certificate' : 'Evidence notebook'}</button></header>
       <InvestigationWorkbench key={siemScenario.id} scenario={siemScenario} completed={progress.labFlags[siemScenario.id] ?? []} onComplete={onFlagCaptured} onTranscriptChange={transcript => { transcriptRef.current = transcript; }} />
       {sharing && <ShareWriteupModal entry={{ slug: scenario.id, scenario: { id: scenario.id, title: scenario.title, category: 'SOC', difficulty: scenario.difficulty, totalFlags: scenario.totalFlags, briefing: scenario.briefing, objectives: scenario.objectives } }} onClose={() => setSharing(false)} />}
     </div>

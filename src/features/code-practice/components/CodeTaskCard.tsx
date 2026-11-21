@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import type { CodeLanguage, CodeTask } from '../tasks/codeTypes';
 import { useProgress } from '../../progress/state/progressStore';
 import IsoBlock from '../../../shared/components/IsoBlock';
-import { IconCheck, IconCode, ModuleIcon } from '../../../shared/components/layout/icons';
+import { IconCheck, IconCode, ModuleIcon, IconArrowRight } from '../../../shared/components/layout/icons';
 import { codeTaskXp } from '../../progress/data/xp';
 import './practice-card.css';
 
@@ -46,7 +46,7 @@ export default function CodeTaskCard({ task }: { task: CodeTask }) {
       <footer className="dw-pcard__foot">
         <span><IconCode className="h-3.5 w-3.5" />Auto-graded</span>
         <span className="dw-pcard__xp">+{codeTaskXp(0, false)} XP</span>
-        <Link to={url} className="dw-pcard__cta">{done ? 'Review' : started ? 'Continue' : 'Solve'} <span aria-hidden>→</span></Link>
+        <Link to={url} className="dw-pcard__cta">{done ? 'Review' : started ? 'Continue' : 'Solve'}<IconArrowRight className="dw-arrow" /></Link>
       </footer>
     </article>
   );

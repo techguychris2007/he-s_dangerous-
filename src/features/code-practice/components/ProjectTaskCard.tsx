@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import type { SeTaskMeta } from '../tasks/seTasks/taskIndex';
 import { useProgress } from '../../progress/state/progressStore';
 import IsoBlock from '../../../shared/components/IsoBlock';
-import { IconCheck, IconLayers, ModuleIcon } from '../../../shared/components/layout/icons';
+import { IconCheck, IconLayers, ModuleIcon, IconArrowRight } from '../../../shared/components/layout/icons';
 import { codeTaskXp } from '../../progress/data/xp';
 import './practice-card.css';
 
@@ -35,7 +35,7 @@ export default function ProjectTaskCard({ task }: { task: SeTaskMeta }) {
       <footer className="dw-pcard__foot">
         <span><IconLayers className="h-3.5 w-3.5" />{task.fileCount} files</span>
         <span className="dw-pcard__xp">+{codeTaskXp(0, false)} XP</span>
-        <Link to={url} className="dw-pcard__cta">{done ? 'Review' : started ? 'Continue' : 'Start project'} <span aria-hidden>→</span></Link>
+        <Link to={url} className="dw-pcard__cta">{done ? 'Review' : started ? 'Continue' : 'Start project'}<IconArrowRight className="dw-arrow" /></Link>
       </footer>
     </article>
   );

@@ -60,8 +60,7 @@
 .dw-auth-story-copy { margin-block: auto; padding-block: 32px; }
 .dw-auth-world { height: clamp(110px, 16vh, 150px); margin-block: 0 28px; opacity: .6; }
 .dw-auth-story .dw-eyebrow { color: var(--chrome-highlight); }
-.dw-auth-story h2 { font-size: clamp(36px, 4vw, 58px); line-height: 1.15; letter-spacing: -.04em; margin-top: 22px; }
-.dw-auth-story em { color: var(--chrome-highlight); }
+.dw-auth-story h2 { max-width: 14ch; font-size: clamp(32px, 3.4vw, 48px); font-weight: 600; line-height: 1.15; letter-spacing: -.02em; margin-top: 0; }
 .dw-auth-story-copy > p:not(.dw-eyebrow) { margin-top: 24px; font-size: 14px; line-height: 1.85; max-width: 380px; color: var(--chrome-text); }
 .dw-auth-benefits { padding: 0; margin: 32px 0 0; list-style: none; border-top: 1px solid var(--chrome-line-strong); }
 .dw-auth-benefits li { padding: 14px 0; border-bottom: 1px solid var(--chrome-line-strong); font-size: 14px; color: var(--chrome-text); }
@@ -69,10 +68,14 @@
 .dw-auth-main { padding: 36px 48px 24px; display: flex; flex-direction: column; align-items: center; background: var(--color-surface); }
 .dw-auth-topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; }
 .dw-auth-mobile-brand { display: none; }
-.dw-back { font-size: 13px; color: var(--entry-muted); padding: 8px 0; }
-.dw-back:hover { color: var(--entry-ink); }
+.dw-back { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px 0 10px; margin-left: auto; border: 1px solid var(--entry-line); border-radius: 6px; font-size: 14px; font-weight: 500; color: var(--entry-ink); background: var(--color-surface); transition: border-color .15s ease-out, background-color .15s ease-out; }
+.dw-back svg { color: var(--entry-muted); transition: transform .15s ease-out; }
+.dw-back:hover { border-color: color-mix(in srgb, var(--entry-blue) 45%, var(--entry-line)); background: var(--color-bg); }
+.dw-back:hover svg { transform: translateX(-2px); color: var(--entry-ink); }
+.dw-back:focus-visible { outline: 2px solid var(--entry-blue); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .dw-back, .dw-back svg { transition: none; } }
 .dw-auth-form { width: 100%; max-width: 390px; margin-block: auto; padding-block: 36px; }
-.dw-auth-form h1 { font-size: 34px; letter-spacing: -.035em; margin-top: 12px; }
+.dw-auth-form h1 { font-size: 28px; font-weight: 600; letter-spacing: -.02em; margin-top: 0; }
 .dw-auth-description { color: var(--entry-muted); font-size: 15px; line-height: 1.8; margin-top: 12px !important; }
 .dw-auth-tabs { display: flex; border-bottom: 1px solid var(--entry-line); margin-top: 30px; margin-bottom: 26px; }
 .dw-auth-tabs button { flex: 1; font-size: 14px; padding: 12px; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--entry-muted); font-weight: 600; }
@@ -112,4 +115,4 @@
 .dw-auth-crew { display: flex; align-items: center; gap: 14px; margin-top: 28px; padding: 14px 16px; border: 1px solid var(--chrome-line-strong); border-radius: 10px; background: var(--chrome-raise); }
 .dw-auth-crew p { font-size: 14px; line-height: 1.6; color: var(--chrome-text); }
 .dw-auth-crew strong { display: block; color: var(--chrome-ink); font-size: 12px; letter-spacing: .04em; margin-bottom: 2px; }
-@media (max-height: 980px) { .dw-auth-world { display: none; } .dw-auth-story h2 { font-size: clamp(32px, 3.4vw, 50px); } }
+@media (max-height: 980px) { .dw-auth-world { display: none; } .dw-auth-story h2 { font-size: clamp(30px, 3vw, 44px); } }

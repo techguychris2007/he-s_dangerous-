@@ -10,7 +10,7 @@ import SiemLabCard from '../components/SiemLabCard';
 import SeasonSection from '../components/SeasonSection';
 import LabCard from '../../labs/components/LabCard';
 import PortalNavigation from '../../../app/layout/PortalNavigation';
-import { IconFlag, IconTerminal } from '../../../shared/components/layout/icons';
+import { IconFlag, IconTerminal, IconArrowRight } from '../../../shared/components/layout/icons';
 import LessonPath from '../../curriculum/components/learning/LessonPath';
 import '../../labs/components/catalog.css';
 
@@ -85,7 +85,7 @@ export default function SocPortalPage() {
             Another {terminalLabs.length} terminal investigations develop practical evidence analysis and
             assessment skills alongside the SIEM workspaces.
           </p>
-          <Link to="/roadmap?track=defensive" className="mb-6 inline-flex rounded-lg border border-white/25 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/20">Follow the defensive security roadmap →</Link>
+          <Link to="/roadmap?track=defensive" className="mb-6 inline-flex rounded-lg border border-white/25 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/20">Follow the defensive security roadmap<IconArrowRight className="dw-arrow" /></Link>
           <div className="flex flex-wrap gap-4">
             <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
               <div className="text-lg font-bold text-white">{lessonsDone}/{totalLessons}</div>

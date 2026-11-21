@@ -4,7 +4,7 @@ import { MODULES } from '../../curriculum/data/curriculum';
 import { useProgress } from '../../progress/state/progressStore';
 import { useAuth } from '../state/authStore';
 import { ACHIEVEMENTS, computeStreak } from '../../progress/data/achievements';
-import { IconUser, IconFlag, IconCheck, IconBookmark, IconCode, IconLightning, IconLock } from '../../../shared/components/layout/icons';
+import { IconUser, IconFlag, IconCheck, IconBookmark, IconCode, IconLightning, IconLock, IconArrowRight } from '../../../shared/components/layout/icons';
 import StatCard from '../../../shared/components/StatCard';
 import DarkWorldBadge from '../../../shared/components/DarkWorldBadge';
 import { achievementAward } from '../../progress/data/achievementAwards';
@@ -196,9 +196,9 @@ export default function ProfilePage() {
           <h2 className="text-lg font-bold text-[var(--color-heading)]">The DarkWorld badge</h2>
           <p className="mt-2 text-xs leading-6 text-[var(--color-text-dim)]">A shared identity for curious builders, testers, and defenders. Use this platform badge alongside your own portfolio; individual lab certificates record your learning progress.</p>
           <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-semibold text-[var(--color-accent)]">
-            <Link to="/certificates">Path certificates · {certsEarned} of {certificatePaths.length} earned →</Link>
-            <a href={`${import.meta.env.BASE_URL}darkworld-badge.png`} download="darkworld-badge.png">Download badge · PNG →</a>
-            <a href={`${import.meta.env.BASE_URL}darkworld-badge.svg`} download="darkworld-badge.svg">Vector · SVG →</a>
+            <Link to="/certificates">Path certificates · {certsEarned} of {certificatePaths.length} earned<IconArrowRight className="dw-arrow" /></Link>
+            <a href={`${import.meta.env.BASE_URL}darkworld-badge.png`} download="darkworld-badge.png">Download badge · PNG<IconArrowRight className="dw-arrow" /></a>
+            <a href={`${import.meta.env.BASE_URL}darkworld-badge.svg`} download="darkworld-badge.svg">Vector · SVG<IconArrowRight className="dw-arrow" /></a>
           </div>
         </div>
       </div>

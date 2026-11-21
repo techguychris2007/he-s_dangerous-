@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useProgress } from '../../progress/state/progressStore';
-import { IconCheck, IconFlag, IconRadar } from '../../../shared/components/layout/icons';
+import { IconCheck, IconFlag, IconRadar, IconArrowRight } from '../../../shared/components/layout/icons';
 
 interface LabCardData {
   id: string;
@@ -87,7 +87,7 @@ export default function SiemLabCard({ lab }: { lab: LabCardData }) {
 
       <div className="border-t border-[var(--color-border)] px-4 py-3 sm:px-5">
         <Link to={url} className="inline-flex h-9 w-full items-center justify-center rounded-md bg-[var(--color-accent)] px-4 text-sm font-semibold text-white transition hover:bg-[var(--color-accent-dim)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2">
-          <IconFlag className="mr-2 h-3.5 w-3.5" /> {done ? 'Review case' : captured > 0 ? 'Continue case' : 'Open case'} <span className="ml-1" aria-hidden>→</span>
+          <IconFlag className="mr-2 h-3.5 w-3.5" /> {done ? 'Review case' : captured > 0 ? 'Continue case' : 'Open case'}<IconArrowRight className="dw-arrow" />
         </Link>
       </div>
     </article>

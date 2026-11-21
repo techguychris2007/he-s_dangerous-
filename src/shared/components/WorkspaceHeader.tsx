@@ -6,11 +6,11 @@ import './workspace-header.css';
 /** Standard page banner: the navy chrome band every top-level page opens with, so titles, eyebrows
  *  and summary stats sit at one size and position platform-wide. `guide` puts a crew member on the
  *  right edge; `children` is the summary stat (a <strong> value plus a <span> caption). */
-export default function WorkspaceHeader({ eyebrow, title, description, guide, children }: { eyebrow: string; title: ReactNode; description: ReactNode; guide?: CharacterId; children?: ReactNode }) {
+export default function WorkspaceHeader({ eyebrow, title, description, guide, children }: { eyebrow?: string; title: ReactNode; description: ReactNode; guide?: CharacterId; children?: ReactNode }) {
   return (
     <header className="workspace-header">
       <div className="workspace-header-copy">
-        <p className="workspace-eyebrow">{eyebrow}</p>
+        {eyebrow && <p className="workspace-eyebrow">{eyebrow}</p>}
         <h1>{title}</h1>
         <div className="workspace-description">{description}</div>
       </div>

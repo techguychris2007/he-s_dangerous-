@@ -6,7 +6,7 @@ import { useLabsData } from '../../../labs/state/useLabsData';
 import { SIEM_LABS } from '../../../soc/engine/siemScenarios';
 import { LESSON_CODE_TASKS } from '../../../code-practice/tasks/lessonCodeTasks';
 import { answerMask, isCapturedFlag, isCorrectAnswer, lessonQuestions } from '../../data/lessonQuestions';
-import { IconCheck, IconFlag, IconCode, IconTrophy, IconSearch } from '../../../../shared/components/layout/icons';
+import { IconCheck, IconFlag, IconCode, IconTrophy, IconSearch, IconArrowRight } from '../../../../shared/components/layout/icons';
 import IsoBlock from '../../../../shared/components/IsoBlock';
 import { LESSON_XP, QUIZ_MAX_XP } from '../../../progress/data/levels';
 import './lesson-tasks.css';
@@ -169,7 +169,7 @@ export default function LessonTasks({ lesson, labSlugs }: { lesson: LessonMeta; 
               <div className="lt__item-head">
                 <span className="lt__num">{ok ? <IconCheck className="h-3.5 w-3.5" /> : n}</span>
                 <span className="lt__tag">{t.kind === 'code' ? <IconCode className="h-3 w-3" /> : <IconFlag className="h-3 w-3" />}{tag}</span>
-                <Link to={link} className="lt__lab">{t.title} <span aria-hidden>↗</span></Link>
+                <Link to={link} className="lt__lab">{t.title}</Link>
               </div>
               <p className="lt__prompt">
                 {t.kind === 'terminal' && <>Solve the lab and submit a flag you captured there.</>}
@@ -188,7 +188,7 @@ export default function LessonTasks({ lesson, labSlugs }: { lesson: LessonMeta; 
                   {t.kind === 'siem' ? (
                     <span className="lt__meter"><i><b style={{ width: `${t.total ? (100 * Math.min(progress.flagCount(t.id), t.total)) / t.total : 0}%` }} /></i>{progress.flagCount(t.id)}/{t.total} findings</span>
                   ) : <span>Not solved yet</span>}
-                  <Link to={link}>{t.kind === 'code' ? <><IconCode className="h-3.5 w-3.5" />Open task</> : 'Open case'} →</Link>
+                  <Link to={link}>{t.kind === 'code' ? <><IconCode className="h-3.5 w-3.5" />Open task</> : 'Open case'}<IconArrowRight className="dw-arrow" /></Link>
                 </div>
               )}
               {errors[key] && <p className="lt__error" role="alert">{errors[key]}</p>}

@@ -1,4 +1,4 @@
-import { IconCheck, IconFlag } from '../../../../shared/components/layout/icons';
+import { IconCheck, IconFlag, IconArrowRight } from '../../../../shared/components/layout/icons';
 import './completion-notice.css';
 
 export default function CompletionNotice({ title, nextTitle, completedCount, onNext, onDismiss }: {
@@ -16,6 +16,6 @@ export default function CompletionNotice({ title, nextTitle, completedCount, onN
       <div className="dw-completion__record"><IconFlag aria-hidden="true" /><span>{completedCount} {completedCount === 1 ? 'lab completed' : 'labs completed'}</span><span>Progress saved on this device</span></div>
     </div>
     {nextTitle && <div className="dw-completion__next"><span>Suggested next lab</span><strong>{nextTitle}</strong></div>}
-    <div className="dw-completion__actions">{nextTitle && <button type="button" onClick={onNext} className="dw-completion__primary">Continue learning <span aria-hidden="true">→</span></button>}<button type="button" onClick={onDismiss} className="dw-completion__secondary">Stay in this lab</button></div>
+    <div className="dw-completion__actions">{nextTitle && <button type="button" onClick={onNext} className="dw-completion__primary">Continue learning<IconArrowRight className="dw-arrow" /></button>}<button type="button" onClick={onDismiss} className="dw-completion__secondary">Stay in this lab</button></div>
   </aside>;
 }

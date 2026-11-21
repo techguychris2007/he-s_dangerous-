@@ -5,7 +5,7 @@ import { ML_UNITS as ML_MODULES } from '../data/mlLessons/units';
 import { ML_TASKS } from '../../code-practice/tasks/ownerTasks';
 import { useProgress } from '../../progress/state/progressStore';
 import PortalNavigation from '../../../app/layout/PortalNavigation';
-import { IconCheck, IconCode, IconLightning } from '../../../shared/components/layout/icons';
+import { IconCheck, IconCode, IconLightning, IconArrowRight } from '../../../shared/components/layout/icons';
 import OfflineRuntimeCard from '../../offline/components/OfflineRuntimeCard';
 import CharacterAvatar from '../../../shared/characters/CharacterAvatar';
 import LessonPath, { type PathNode } from '../components/learning/LessonPath';
@@ -114,7 +114,7 @@ export default function MlPortalPage() {
                         {lesson.demo && <em className="is-demo"><IconLightning className="h-3 w-3" />Live demo</em>}
                       </span>
                     </span>
-                    <span className="ml-card__go" aria-hidden="true">→</span>
+                   <IconArrowRight className="dw-arrow" />
                   </Link>
                 );
               })}
