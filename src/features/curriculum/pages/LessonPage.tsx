@@ -22,6 +22,7 @@ import { planForLesson, usePlanAccess } from '../../billing/lib/billing';
 import { PlanLoading, UpgradePanel } from '../../billing/components/PlanGate';
 import { loadPaidLesson, unlockedLesson } from '../../billing/lib/paidContent';
 import '../../billing/components/billing.css';
+import { useReadableOnPhones } from '../../../shared/hooks/useReadableOnPhones';
 
 export default function LessonPage() {
   const { moduleSlug, lessonSlug } = useParams();
@@ -63,6 +64,7 @@ function LessonReader({ mod, lesson }: { mod: ModuleMeta; lesson: LessonMeta }) 
   const progress = useProgress();
   const contentRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  useReadableOnPhones(contentRef);
   const [readingProgress, setReadingProgress] = useState(0);
   const [fontSize, setFontSize] = useState(() => {
     try { const size = Number(localStorage.getItem('darkworld.reader.fontSize')); return [18, 20, 22].includes(size) ? size : (size === 19 ? 20 : size === 21 ? 22 : 18); }

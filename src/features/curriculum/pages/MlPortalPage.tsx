@@ -51,7 +51,7 @@ export default function MlPortalPage() {
   });
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--color-bg)' }}>
+    <div className="min-h-full" style={{ background: 'var(--color-bg)' }}>
       <PortalNavigation />
       <div className="portal-masthead relative overflow-hidden border-b border-[var(--color-border)]" style={{ background: 'var(--color-navy)' }}>
         <span className="portal-masthead__crew" aria-hidden="true"><CharacterAvatar id="beacon" size={168} decorative /></span>

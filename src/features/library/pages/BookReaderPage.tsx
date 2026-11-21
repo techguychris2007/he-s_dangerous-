@@ -165,7 +165,7 @@ export default function BookReaderPage() {
     const nextBook = index >= 0 && index < siblings.length - 1 ? siblings[index + 1] : undefined;
 
     return (
-      <div className="min-h-screen" style={{ background: 'var(--color-bg)' }}>
+      <div className="min-h-full" style={{ background: 'var(--color-bg)' }}>
         <div
           className="relative overflow-hidden border-b border-[var(--color-border)]"
           style={{ background: 'linear-gradient(180deg, var(--color-navy) 0%, var(--color-navy-dim) 100%)' }}
@@ -401,7 +401,7 @@ export default function BookReaderPage() {
   const voiceChoices = englishVoices.length > 0 ? englishVoices : voices;
 
   return (
-    <div className="book-reading min-h-screen flex flex-col" style={{ background: 'var(--color-bg)' }}>
+    <div className="book-reading min-h-full flex flex-col" style={{ background: 'var(--color-bg)' }}>
       <div className="border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 sm:px-6 py-3 sm:py-4">
         <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
           <div>

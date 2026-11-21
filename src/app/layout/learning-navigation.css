@@ -2,7 +2,7 @@
 .learning-navigation__brand { display: inline-flex; align-items: center; gap: 10px; color: var(--chrome-ink); text-decoration: none; flex-shrink: 0; font-size: 18px; font-weight: 700; letter-spacing: -.3px; }
 .learning-navigation__brand small { display: block; margin-top: 4px; color: var(--chrome-muted); font-size: 8px; font-weight: 500; letter-spacing: 1.4px; }
 .learning-navigation nav { display: flex; align-items: center; justify-content: center; gap: 8px; margin-inline: auto; }
-.learning-navigation__link { min-width: 64px; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 2px 6px 5px; color: var(--chrome-muted); font-size: 11px; font-weight: 500; text-decoration: none; border-radius: 8px; position: relative; }
+.learning-navigation__link { min-width: 64px; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 2px 6px 5px; color: var(--chrome-muted); font-size: max(11px, var(--dw-min-text)); font-weight: 500; text-decoration: none; border-radius: 8px; position: relative; }
 .learning-navigation__symbol { position: relative; display: grid; place-items: center; width: 35px; height: 32px; border-radius: 8px; background: var(--chrome-raise); border: 1px solid var(--chrome-line-strong); transition: background-color .15s, border-color .15s, color .15s; }
 .learning-navigation__symbol svg { width: 20px; height: 20px; }
 .learning-navigation__link:hover, .learning-navigation__link.is-current { color: var(--chrome-ink); }
@@ -36,7 +36,7 @@
 .learning-navigation .dw-level-hud__badge { background: var(--chrome-raise); color: var(--chrome-highlight); border-color: var(--chrome-line-strong); }
 .learning-navigation .dw-level-hud__streak { border-color: var(--chrome-line-strong); }
 .learning-navigation :is(a, button):focus-visible { outline: 2px solid var(--chrome-highlight); outline-offset: 4px; }
-.learning-shell { display: flex; flex-direction: column; height: 100dvh; min-width: 0; background: var(--color-bg); }
+.learning-shell { display: flex; flex-direction: column; height: var(--app-height); min-width: 0; background: var(--color-bg); }
 .learning-shell__content { flex: 1; min-height: 0; overflow: auto; }
 .learning-shell__skip { position: fixed; top: -100px; left: 16px; z-index: 100; padding: 8px 14px; background: var(--color-surface); color: var(--color-heading); }
 .learning-shell__skip:focus { top: 8px; }
@@ -102,7 +102,7 @@
   .learning-navigation--with-sidebar .learning-navigation__tools, .learning-navigation--overview.learning-navigation--with-sidebar .learning-navigation__tools { margin-left: 0; gap: 6px; padding-left: 0; border-left: 0; }
   .learning-navigation--with-sidebar .dw-search-trigger.dw-search-trigger-adaptive { width: clamp(220px, 22vw, 320px); height: 38px; margin-right: 6px; padding: 8px 12px; gap: 10px; border-radius: 9px; font-size: 13px; }
   .learning-navigation--with-sidebar .dw-search-trigger.dw-search-trigger-adaptive > span { display: inline; }
-  .learning-navigation--with-sidebar .dw-search-trigger.dw-search-trigger-adaptive > kbd { display: inline; font-size: 11px; }
+  .learning-navigation--with-sidebar .dw-search-trigger.dw-search-trigger-adaptive > kbd { display: inline; font-size: max(11px, var(--dw-min-text)); }
 }
 
 /* ── Phones: one slim top bar and a tab bar under the thumb ─────────────────────────────────────
@@ -139,7 +139,7 @@
   }
   .learning-navigation:not(.learning-navigation--compact) .learning-navigation__link {
     flex: 1 1 0; min-width: 0; height: 54px; justify-content: center; gap: 3px; padding: 0 2px;
-    font-size: 11px; font-weight: 500; white-space: nowrap; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+    font-size: max(11px, var(--dw-min-text)); font-weight: 500; white-space: nowrap; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
     transition: color .15s, transform .12s;
   }
   .learning-navigation:not(.learning-navigation--compact) .learning-navigation__link:active { transform: scale(.94); }
@@ -161,4 +161,19 @@
 @media (max-width: 767px) and (prefers-reduced-motion: reduce) {
   .learning-navigation .learning-navigation__link, .learning-navigation .learning-navigation__symbol { transition: none; }
   .learning-navigation .learning-navigation__link:active { transform: none; }
+}
+
+/* Phones in a lesson, lab or editor: the slim row keeps only what fits in 320-430px — logo mark,
+   search, dig and account. The level badge and theme switch are reachable from the account menu. */
+@media (max-width: 767px) {
+  .learning-navigation--compact { gap: 8px; padding: 4px max(10px, env(safe-area-inset-right)) 4px max(10px, env(safe-area-inset-left)); }
+  .learning-navigation--compact .learning-navigation__brand > span { display: none; }
+  .learning-navigation--compact .learning-navigation__tools { margin-left: auto; gap: 2px; min-width: 0; }
+  .learning-navigation--compact .learning-navigation__theme,
+  .learning-navigation--compact .dw-level-hud { display: none; }
+  .learning-navigation--compact .learning-navigation__dig span { display: none; }
+  .learning-navigation--compact .learning-navigation__dig { padding: 1px; }
+  .learning-navigation--compact .learning-navigation__menu-theme { display: block !important; }
+  .learning-navigation--compact nav { scrollbar-width: none; }
+  .learning-navigation--compact nav::-webkit-scrollbar { display: none; }
 }

@@ -12,7 +12,7 @@
 .rw-district:focus-visible .iso-block__top { stroke: var(--chrome-highlight); stroke-width: 3; }
 .rw-label { position: absolute; z-index: 100; display: grid; justify-items: center; min-width: 112px; padding: 3px 10px 4px; border: 1px solid var(--chrome-line-strong); border-radius: 8px; transform: translateX(-50%); text-align: center; white-space: nowrap; background: color-mix(in srgb, var(--chrome-bg) 88%, transparent); pointer-events: none; }
 .rw-label strong { font-size: 12.5px; font-weight: 700; line-height: 1.35; color: var(--chrome-ink); }
-.rw-label small { font-family: var(--font-mono); font-size: 10.5px; color: var(--chrome-muted); }
+.rw-label small { font-family: var(--font-mono); font-size: max(10.5px, var(--dw-min-text)); color: var(--chrome-muted); }
 .rw-label.is-selected { border-color: var(--color-accent); background: var(--color-accent); }
 .rw-label.is-selected strong, .rw-label.is-selected small { color: #fff; }
 @media (prefers-reduced-motion: reduce) { .rw-district__block { transition: none; } }

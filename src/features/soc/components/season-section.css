@@ -41,8 +41,8 @@
 .dw-ep__num { font-family: var(--font-mono); font-size: 15px; font-weight: 700; margin-top: -8%; }
 .dw-ep.is-boss .iso-block { --crest1: color-mix(in srgb, var(--color-gold) 55%, #ffffff); --crest2: var(--color-gold); --crest3: color-mix(in srgb, var(--color-gold) 80%, #1a1205); --crest4: color-mix(in srgb, var(--color-gold) 50%, #0b0802); --crest-rim: #2a1d08; }
 .dw-ep__label { position: absolute; top: 24px; left: 0; z-index: 50; display: grid; justify-items: center; width: 92px; transform: translateX(-50%); text-align: center; pointer-events: none; }
-.dw-ep__label strong { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 11px; font-weight: 600; line-height: 1.28; color: var(--chrome-text); text-shadow: 0 1px 2px #000; }
-.dw-ep__label small { margin-top: 1px; font-family: var(--font-mono); font-size: 10.5px; color: var(--chrome-muted); }
+.dw-ep__label strong { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: max(11px, var(--dw-min-text)); font-weight: 600; line-height: 1.28; color: var(--chrome-text); text-shadow: 0 1px 2px #000; }
+.dw-ep__label small { margin-top: 1px; font-family: var(--font-mono); font-size: max(10.5px, var(--dw-min-text)); color: var(--chrome-muted); }
 .dw-ep.is-focus .dw-ep__label strong { color: #fff; }
 .dw-ep.is-focus .dw-ep__label small { color: var(--chrome-highlight); }
 

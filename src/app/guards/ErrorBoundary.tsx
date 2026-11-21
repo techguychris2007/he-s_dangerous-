@@ -36,7 +36,7 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
     if (!error) return this.props.children;
 
     return (
-      <div className="min-h-screen w-full flex items-center justify-center p-6 bg-[var(--chrome-bg)]">
+      <div className="min-h-[var(--app-height)] w-full flex items-center justify-center p-6 bg-[var(--chrome-bg)]">
         <div className="max-w-lg w-full rounded-xl border border-[var(--chrome-line-strong)] bg-[var(--chrome-raise)] p-7 text-center">
           <p className="text-sm font-semibold text-[var(--chrome-highlight)] mb-3">Connection interrupted</p>
           <h1 className="text-xl font-bold text-[var(--chrome-ink)] mb-2">This page needs a fresh start</h1>

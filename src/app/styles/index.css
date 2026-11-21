@@ -148,7 +148,8 @@ body {
   height: 100%;
   overflow: hidden; /* Stops page-level dragging/swiping */
   overscroll-behavior: none; /* Prevents rubber-band spring effects */
-  touch-action: pan-x pan-y;
+  /* manipulation keeps pinch-zoom (pan-x pan-y blocked it) and drops the double-tap delay. */
+  touch-action: manipulation;
   position: fixed; /* Locks main container frame */
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
@@ -168,6 +169,16 @@ body {
   --sab: env(safe-area-inset-bottom, 0px);
   --sal: env(safe-area-inset-left, 0px);
   --sar: env(safe-area-inset-right, 0px);
+  /* Usable height of the app below the notch. body is padded by the top inset, so a shell that
+     was 100dvh tall overflowed the screen by that much and its bottom was cut off on iPhones.
+     The bottom inset is left to each bar (the phone tab bar, workspace footers) to clear itself. */
+  --app-height: calc(100dvh - var(--sat));
+  /* Smallest text on phones. Labels written at 9-11px are raised to this on small screens. */
+  --dw-min-text: 0px;
+}
+@media (max-width: 767px) {
+  :root { --dw-min-text: 12px; --text-2xs: 0.75rem; }
+  .text-\[10px\], .text-\[11px\] { font-size: 12px; }
 }
 
 /* AI companion answers (Reading Companion, CyberLab AI) — deliberately larger and more visible than
@@ -188,7 +199,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
   transition: background-color 0.15s ease, color 0.15s ease;
   padding-top: var(--sat);
-  padding-bottom: var(--sab);
   padding-left: var(--sal);
   padding-right: var(--sar);
 }
@@ -447,4 +457,11 @@ main h1, main h2, main h3, .page-title {
   select {
     font-size: 16px !important;
   }
+}
+
+/* Full-screen rooms (lab missions, casebooks, investigation focus) cover the whole screen, so they
+   clear the notch and home indicator themselves. */
+:root .dw-mission-room, :root .dw-case-room, :root .investigation-focus {
+  padding-top: var(--sat);
+  padding-bottom: var(--sab);
 }
