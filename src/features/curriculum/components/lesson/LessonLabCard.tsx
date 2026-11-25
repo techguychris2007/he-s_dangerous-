@@ -72,7 +72,7 @@ export default function LessonLabCard({ labSlug }: { labSlug: string }) {
             </div>
           </div>
         </div>
-        <div className="relative flex items-center gap-2 shrink-0">
+        <div className="lesson-lab-card__actions relative flex flex-wrap items-center gap-2 max-w-full">
           <Link
             to={`/lab/${entry.slug}`}
             className="lesson-lab-card__secondary flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-colors"

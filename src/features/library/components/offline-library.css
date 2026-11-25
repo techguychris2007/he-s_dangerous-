@@ -51,9 +51,13 @@
   .dw-codetask--learning .dw-ide__panel { flex-basis: clamp(120px, 22vh, 200px); }
 }
 @media (prefers-reduced-motion: reduce) { .learning-quick-nav { scroll-behavior: auto; } }
-/* Phones: one row that scrolls sideways instead of two pinned rows eating the reading height. */
+/* Phones: the controls wrap to a second row so none is hidden off the edge. */
 @media (max-width: 767px) {
-  .lesson-reader > .learning-quick-nav { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding: 8px max(12px, var(--sal)); gap: 6px; }
-  .lesson-reader > .learning-quick-nav::-webkit-scrollbar { display: none; }
-  .lesson-reader > .learning-quick-nav :is(button, a) { flex-shrink: 0; white-space: nowrap; min-height: 36px; display: inline-flex; align-items: center; }
+  .lesson-reader > .learning-quick-nav { flex-wrap: wrap; padding: 8px max(12px, var(--sal)); gap: 6px; }
+  .lesson-reader > .learning-quick-nav :is(button, a) { min-width: 0; min-height: 44px; display: inline-flex; align-items: center; }
+}
+/* Below 400px the wrapped row is about 111px, too tall to keep pinned between the top and bottom bars,
+   so it scrolls away with the page. From 414px it fits one row and stays sticky. */
+@media (max-width: 400px) {
+  .lesson-reader > .learning-quick-nav { position: static; }
 }

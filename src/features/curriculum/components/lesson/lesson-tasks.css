@@ -1,6 +1,6 @@
 /* End-of-lesson tasks: a navy mission header with a trophy block and progress pips,
    then numbered task cards — typed answers, flag capture, code tasks and SOC cases. */
-.lt { display: grid; gap: .9rem; }
+.lt { grid-template-columns: minmax(0, 1fr); display: grid; gap: .9rem; }
 
 .lt__head { position: relative; display: flex; align-items: center; gap: 1rem; padding: 1rem 1.2rem 1rem .9rem; border-radius: 14px; overflow: hidden; color: var(--chrome-ink); background: radial-gradient(70% 140% at 0% 0%, color-mix(in srgb, var(--color-accent) 32%, transparent), transparent 65%), var(--chrome-bg); box-shadow: 0 16px 36px -28px #000; }
 .lt[data-complete='true'] .lt__head { background: radial-gradient(70% 140% at 0% 0%, color-mix(in srgb, var(--color-success) 30%, transparent), transparent 65%), var(--chrome-bg); }
@@ -18,7 +18,7 @@
 .lt__win { display: flex; align-items: center; gap: .7rem; padding: .75rem 1rem; border: 1px solid color-mix(in srgb, var(--color-success) 45%, var(--color-border)); border-radius: 12px; font-size: .9rem; color: var(--color-heading); background: color-mix(in srgb, var(--color-success) 10%, var(--color-surface)); animation: lt-pop .4s ease; }
 .lt__win svg { flex-shrink: 0; color: var(--color-success); }
 
-.lt__list { display: grid; gap: .75rem; margin: 0; padding: 0; list-style: none; }
+.lt__list { grid-template-columns: minmax(0, 1fr); display: grid; gap: .75rem; margin: 0; padding: 0; list-style: none; }
 .lt__item { --kind: var(--color-accent); position: relative; padding: .95rem 1.1rem 1.05rem; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); box-shadow: inset 3px 0 0 var(--kind); transition: border-color .2s, box-shadow .2s; }
 .lt__item[data-kind='terminal'], .lt__item[data-kind='siem'] { --kind: var(--color-gold); }
 .lt__item[data-kind='code'] { --kind: #8fd3ff; }
