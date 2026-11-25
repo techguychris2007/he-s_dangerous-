@@ -59,7 +59,7 @@ export default function AppLayout() {
   }, [pathname]);
 
   return (
-    <div className={`app-shell-bg flex h-[100dvh] w-full max-w-full overflow-hidden academy-shell`}>
+    <div className={`app-shell-bg flex h-[var(--app-height)] w-full max-w-full overflow-hidden academy-shell`}>
       {/* First focusable element in the app — invisible until it receives keyboard focus, so a
           keyboard user can jump straight past the full sidebar nav instead of tabbing through it
           on every single page. */}

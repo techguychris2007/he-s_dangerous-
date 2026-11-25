@@ -130,7 +130,7 @@ function FullScreenLoader() {
     return () => window.clearTimeout(timer);
   }, []);
   return (
-    <div role="status" className="min-h-screen w-full flex flex-col gap-4 items-center justify-center" style={{ background: '#0a1420' }}>
+    <div role="status" className="min-h-[var(--app-height)] w-full flex flex-col gap-4 items-center justify-center" style={{ background: '#0a1420' }}>
       <div aria-hidden="true" className="w-8 h-8 rounded-full border-2 border-[#c9a15f] border-t-transparent animate-spin motion-reduce:animate-none" />
       <p className="text-sm text-[var(--chrome-text)]">Opening DarkWorld…</p>
       {slow && <div className="text-center text-sm text-[var(--chrome-text)]">

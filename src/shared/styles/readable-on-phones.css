@@ -1,0 +1,64 @@
+/* Phone reading helpers — see src/shared/hooks/useReadableOnPhones.ts. */
+
+/* Wide content never pushes the page sideways; it scrolls inside its own box. */
+.lesson-body table:not([data-dw-stack="yes"]) { display: block; max-width: 100%; overflow-x: auto; }
+.lesson-body img, .lesson-body svg { max-width: 100%; height: auto; }
+
+@media (max-width: 767px) {
+  /* Stacked tables: every row becomes a card; each cell shows its column header above the value. */
+  table[data-dw-stack="yes"], table[data-dw-stack="yes"] tbody, table[data-dw-stack="yes"] tr,
+  table[data-dw-stack="yes"] td, table[data-dw-stack="yes"] tbody th { display: block; width: 100%; }
+  table[data-dw-stack="yes"] { border: 0; }
+  table[data-dw-stack="yes"] thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  table[data-dw-stack="yes"] tr {
+    margin: 0 0 12px; border: 1px solid var(--color-border); border-radius: 10px; overflow: hidden;
+    background: var(--color-surface);
+  }
+  table[data-dw-stack="yes"] tbody tr:nth-child(even) td { background: transparent; }
+  table[data-dw-stack="yes"] td, table[data-dw-stack="yes"] tbody th {
+    min-width: 0; padding: 8px 12px; border: 0; border-top: 1px solid var(--color-border); text-align: left;
+  }
+  table[data-dw-stack="yes"] tr > :first-child { border-top: 0; }
+  table[data-dw-stack="yes"] tbody th, table[data-dw-stack="yes"] tr > td:first-child {
+    background: var(--color-surface-2); color: var(--color-heading); font-weight: 700;
+  }
+  table[data-dw-stack="yes"] [data-label]::before {
+    content: attr(data-label); display: block; margin-bottom: 2px;
+    font-size: 12px; font-weight: 600; letter-spacing: .02em; color: var(--color-text-dim);
+  }
+  .lesson-table-wrap:has(table[data-dw-stack="yes"]) { border: 0; overflow: visible; }
+
+  .dw-expand-button {
+    display: inline-flex; align-items: center; gap: 6px; margin: -10px 0 18px; min-height: 36px; padding: 0 14px;
+    border: 1px solid var(--color-border); border-radius: 9px; background: var(--color-surface);
+    color: var(--color-heading); font-size: 13px; font-weight: 600;
+  }
+}
+.dw-expand-button { display: none; }
+@media (max-width: 767px) { .dw-expand-button { display: inline-flex; } }
+
+/* Full-screen viewer. touch-action keeps pinch-zoom available inside it. */
+.dw-expand-dialog {
+  position: fixed; inset: 0; width: 100vw; max-width: none; height: 100dvh; max-height: none; margin: 0; padding: 0;
+  border: 0; background: var(--color-bg); color: var(--color-text);
+  display: flex; flex-direction: column;
+}
+.dw-expand-dialog:not([open]) { display: none; }
+.dw-expand-dialog::backdrop { background: rgb(0 0 0 / .6); }
+.dw-expand-dialog__bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: calc(env(safe-area-inset-top) + 8px) max(14px, env(safe-area-inset-right)) 8px max(14px, env(safe-area-inset-left));
+  border-bottom: 1px solid var(--color-border); background: var(--color-surface);
+}
+.dw-expand-dialog__bar p { margin: 0; font-size: 12px; color: var(--color-text-dim); }
+.dw-expand-dialog__bar button {
+  min-height: 40px; padding: 0 16px; border-radius: 9px; border: 1px solid var(--color-border);
+  background: var(--color-surface-2); color: var(--color-heading); font-weight: 600;
+}
+.dw-expand-dialog__body {
+  flex: 1; min-height: 0; overflow: auto; touch-action: pan-x pan-y pinch-zoom; overscroll-behavior: contain;
+  padding: 16px max(16px, env(safe-area-inset-right)) calc(16px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+}
+.dw-expand-dialog__body pre, .dw-expand-dialog__body table { width: max-content; min-width: 100%; max-width: none; overflow: visible; }
+.dw-expand-dialog__body img, .dw-expand-dialog__body svg { width: auto; max-width: none; min-width: 100%; height: auto; }
+.dw-expand-dialog__body > * { width: max-content; min-width: 100%; max-width: none; margin: 0; overflow: visible; }

@@ -36,7 +36,7 @@
 }
 
 /* ── Cyber-name welcome ─────────────────────────────────────── */
-.dw-handle-backdrop { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: 1rem; background: color-mix(in srgb, var(--color-navy) 70%, transparent); }
+.dw-handle-backdrop { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: 1rem; background: color-mix(in srgb, var(--color-navy) 70%, transparent); backdrop-filter: blur(6px); }
 .dw-handle-dialog {
   display: grid;
   justify-items: center;

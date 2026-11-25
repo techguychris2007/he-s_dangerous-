@@ -5,7 +5,7 @@
 /* Catches clicks so the page behind stays put. Dims the screen only for the centred steps; when an
    element is spotlighted, the spotlight's own shadow does the dimming. */
 .dw-tour__shade { position: absolute; inset: 0; background: transparent; }
-.dw-tour__shade.is-dim { background: color-mix(in srgb, var(--color-navy, #0b1022) 72%, transparent); }
+.dw-tour__shade.is-dim { background: color-mix(in srgb, var(--color-navy, #0b1022) 72%, transparent); backdrop-filter: blur(3px); }
 
 .dw-tour__spotlight {
   position: fixed; border-radius: 14px; pointer-events: none;

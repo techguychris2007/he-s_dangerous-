@@ -46,3 +46,8 @@ src/assets/banners/generated/
 # Editor and agent workspaces
 /.antigravity/
 *.code-workspace
+
+# promo video workspace
+video/node_modules/
+video/out/
+video/.remotion/

@@ -55,7 +55,7 @@
 @media (max-width: 640px) { .dw-ide__btn span:not(.dw-ide__play) { display: none; } .dw-ide__btn--primary span { display: inline !important; } .dw-ide__btn kbd { display: none; } .dw-ide__status > span:last-child { display: none; } }
 
 /* Task page */
-.dw-codetask { display: flex; flex-direction: column; height: 100dvh; min-height: 0; background: var(--color-bg); }
+.dw-codetask { display: flex; flex-direction: column; height: var(--app-height); min-height: 0; background: var(--color-bg); }
 .dw-codetask__head { flex-shrink: 0; position: relative; isolation: isolate; overflow: hidden; padding: .9rem clamp(1rem, 2vw, 1.5rem) 1rem; border-bottom: 1px solid var(--chrome-line); color: var(--chrome-ink); background: radial-gradient(70% 140% at 100% 0%, color-mix(in srgb, var(--color-accent) 28%, transparent), transparent 60%), var(--chrome-bg); }
 .dw-codetask__crumbs { display: flex; flex-wrap: wrap; gap: .35rem; margin: 0 0 .55rem; padding: 0; list-style: none; font-size: .75rem; color: var(--chrome-muted); }
 .dw-codetask__crumbs a { color: var(--chrome-text); text-decoration: none; }

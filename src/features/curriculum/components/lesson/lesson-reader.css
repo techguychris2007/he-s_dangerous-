@@ -1,5 +1,5 @@
 .lesson-reader { background: var(--color-bg); position: relative; }
-.lesson-reader { --reader-size: 18px; font-family: var(--font-sans); }
+.lesson-reader { --reader-size: 18px; font-family: 'Ubuntu', var(--font-sans), sans-serif; }
 .reader-progress { position: sticky; top: 0; height: 3px; z-index: 10; background: var(--color-border); }
 .reader-progress span { display: block; height: 100%; background: var(--color-accent); transition: width .15s; }
 .reader-layout { max-width: 1240px; margin: 0 auto; padding: 36px clamp(20px, 3vw, 48px) 64px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 48px; }
@@ -7,19 +7,19 @@
 .reader-header { padding-bottom: 28px; border-bottom: 1px solid var(--color-border); margin-bottom: 32px; }
 .reader-back { display: inline-block; font-size: 12px; color: var(--color-text-dim); margin-bottom: 32px; }
 .reader-back:hover { color: var(--color-accent); }
-.reader-eyebrow { font-size: 10px; font-weight: 700; color: var(--color-accent-dim); margin-bottom: 12px; }
+.reader-eyebrow { font-size: max(10px, var(--dw-min-text)); font-weight: 700; color: var(--color-accent-dim); margin-bottom: 12px; }
 .reader-eyebrow span { padding: 0 8px; color: var(--color-text-dim); }
 .reader-header h1 { font-family: var(--font-display); color: var(--color-heading); font-size: clamp(1.8rem, 2.6vw, 2.7rem); font-weight: 750; line-height: 1.17; letter-spacing: -.035em; text-wrap: balance; margin-bottom: 18px; }
 .reader-summary { color: var(--color-text-dim); font-size: 15px; line-height: 1.8; }
-.reader-meta { display: flex; flex-wrap: wrap; gap: 16px; margin: 22px 0; font-size: 11px; font-weight: 600; color: var(--color-text-dim); }
+.reader-meta { display: flex; flex-wrap: wrap; gap: 16px; margin: 22px 0; font-size: max(11px, var(--dw-min-text)); font-weight: 600; color: var(--color-text-dim); }
 .reader-meta span + span { border-left: 1px solid var(--color-border); padding-left: 16px; }
 .reader-briefing { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 24px 0; }
 .reader-briefing-card { border: 1px solid color-mix(in srgb, var(--color-border) 78%, var(--color-accent)); border-radius: 18px; background: linear-gradient(145deg, color-mix(in srgb, var(--color-surface) 94%, var(--color-accent)), var(--color-surface-2)); padding: 18px; box-shadow: 0 18px 48px rgba(0,0,0,.14); }
-.reader-briefing-card > span { display: block; margin-bottom: 9px; color: var(--color-accent-dim); font-size: 10px; font-weight: 800; }
+.reader-briefing-card > span { display: block; margin-bottom: 9px; color: var(--color-accent-dim); font-size: max(10px, var(--dw-min-text)); font-weight: 800; }
 .reader-briefing-card p { margin: 0; color: var(--color-text); font-size: 13px; line-height: 1.7; }
 .reader-briefing-card ul { margin: 0; padding-left: 18px; color: var(--color-text); font-size: 13px; line-height: 1.7; }
 .reader-briefing-card li + li { margin-top: 6px; }
-.reader-controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; font-size: 11px; color: var(--color-text-dim); }
+.reader-controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; font-size: max(11px, var(--dw-min-text)); color: var(--color-text-dim); }
 .reader-controls label { display: flex; align-items: center; gap: 8px; }
 .reader-controls select, .reader-controls button { background: var(--color-surface); border: 1px solid var(--color-border); color: var(--color-text); border-radius: 6px; padding: 7px 10px; }
 .lesson-body { overflow-wrap: anywhere; }
@@ -33,7 +33,7 @@
 .lesson-body :is(th, td) { padding: 13px 16px; min-width: 140px; border-bottom: 1px solid var(--color-border); line-height: 1.65; }
 .lesson-body td { vertical-align: top; }
 .lesson-body blockquote { border-left: 3px solid var(--color-accent); padding: 16px 22px; background: var(--color-surface); border-radius: 0 8px 8px 0; margin: 24px 0; }
-.lesson-panel-kicker { margin: 0 0 8px !important; color: var(--color-accent-dim) !important; font-size: 10px !important; font-weight: 800 !important; line-height: 1.4 !important; }
+.lesson-panel-kicker { margin: 0 0 8px !important; color: var(--color-accent-dim) !important; font-size: max(10px, var(--dw-min-text)) !important; font-weight: 800 !important; line-height: 1.4 !important; }
 .lesson-tool-workflow, .lesson-key-terms { margin: 32px 0; padding: 24px; border: 1px solid color-mix(in srgb, var(--color-border) 82%, var(--color-accent)); border-radius: 24px; background: radial-gradient(circle at top left, color-mix(in srgb, var(--color-accent) 10%, transparent), transparent 38%), var(--color-surface); }
 .lesson-tool-workflow h2, .lesson-key-terms h2 { margin-top: 0 !important; }
 .lesson-workflow-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); margin-top: 18px; }
@@ -50,14 +50,14 @@
 .reader-outline { display: none; }
 .reader-outline-inner { position: sticky; top: 30px; max-height: calc(100dvh - 130px); overflow-y: auto; }
 .reader-toc { display: flex; flex-direction: column; border-left: 1px solid var(--color-border); }
-.reader-toc button { text-align: left; padding: 8px 14px; font-size: 11px; line-height: 1.6; color: var(--color-text-dim); border-left: 2px solid transparent; margin-left: -1px; }
+.reader-toc button { text-align: left; padding: 8px 14px; font-size: max(11px, var(--dw-min-text)); line-height: 1.6; color: var(--color-text-dim); border-left: 2px solid transparent; margin-left: -1px; }
 .reader-toc button:hover { color: var(--color-heading); background: var(--color-surface); }
 .reader-toc button[aria-current] { color: var(--color-accent-dim); border-left-color: var(--color-accent); background: var(--color-surface); }
-.reader-toc .reader-toc-subsection { padding-left: 25px; font-size: 10px; }
+.reader-toc .reader-toc-subsection { padding-left: 25px; font-size: max(10px, var(--dw-min-text)); }
 .reader-mobile-outline { margin-bottom: 28px; padding: 14px; border: 1px solid var(--color-border); border-radius: 10px; font-size: 13px; }
 .reader-mobile-outline summary { cursor: pointer; color: var(--color-heading); font-weight: 600; }
 .reader-mobile-outline nav { margin-top: 14px; }
-.reader-module-progress { margin-top: 30px; border-top: 1px solid var(--color-border); padding-top: 20px; display: flex; flex-direction: column; gap: 10px; font-size: 11px; color: var(--color-text-dim); }
+.reader-module-progress { margin-top: 30px; border-top: 1px solid var(--color-border); padding-top: 20px; display: flex; flex-direction: column; gap: 10px; font-size: max(11px, var(--dw-min-text)); color: var(--color-text-dim); }
 .reader-module-progress progress { width: 100%; height: 5px; accent-color: var(--color-accent); }
 .reader-module-progress a { color: var(--color-accent); }
 .reader-practice { margin-top: 48px; border-top: 1px solid var(--color-border); padding-top: 32px; scroll-margin-top: 25px; }
@@ -69,7 +69,7 @@
 .reader-pagination a { color: var(--color-heading); font-size: 13px; line-height: 1.6; }
 .reader-pagination a:last-child { text-align: right; }
 .reader-pagination a:hover { color: var(--color-accent); }
-.reader-pagination span { display: block; font-size: 10px; color: var(--color-text-dim); margin-bottom: 6px; }
+.reader-pagination span { display: block; font-size: max(10px, var(--dw-min-text)); color: var(--color-text-dim); margin-bottom: 6px; }
 @media (min-width: 1400px) {
   .reader-layout:not(.reader-layout-wide) { grid-template-columns: minmax(0, 1fr) 210px; }
   .reader-outline { display: block; }
@@ -305,7 +305,7 @@
 .lesson-reader .reader-layout > .min-w-0 { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 16px; padding: clamp(20px, 1.5vw, 28px); }
 .lesson-reader .reader-room { margin: 0 0 30px; padding: 28px 28px 0; border-radius: 12px; overflow: hidden; border: 1px solid var(--chrome-line-strong); background: var(--chrome-bg); }
 .lesson-reader .reader-room__head { gap: 18px; }
-.lesson-reader .reader-room__head h1 { font-family: var(--font-sans); font-size: clamp(1.7rem, 2.5vw, 2.25rem); line-height: 1.25; text-wrap: pretty; }
+.lesson-reader .reader-room__head h1 { font-family: 'Ubuntu', sans-serif; font-size: clamp(1.7rem, 2.5vw, 2.25rem); line-height: 1.25; text-wrap: pretty; }
 .lesson-reader .reader-room__crumbs { font-size: .75rem; line-height: 1.8; margin-bottom: 20px; }
 .lesson-reader .reader-room__summary { font-size: .95rem; line-height: 1.75; }
 .lesson-reader .reader-room__meta { font-size: .73rem; gap: 8px 16px; margin-top: 18px; }
@@ -314,12 +314,12 @@
 .lesson-reader .reader-room__progress { margin: 0 -28px; height: 25px; }
 .lesson-reader .reader-room__progress b { font-size: .64rem; font-weight: 500; letter-spacing: .03em; }
 .lesson-reader .reader-objectives { background: transparent; border: 0; border-bottom: 1px solid var(--color-border); border-radius: 0; padding: 0 0 24px; box-shadow: none; margin: 0 0 24px; }
-.lesson-reader .reader-objectives h2 { font: 650 1rem/1.5 var(--font-sans); margin-bottom: 12px; }
+.lesson-reader .reader-objectives h2 { font: 650 1rem/1.5 'Ubuntu', sans-serif; margin-bottom: 12px; }
 .lesson-reader .reader-objectives li { font-size: .92rem; line-height: 1.8; }
-.lesson-reader .lesson-body { color: var(--color-text); font-family: var(--font-sans); }
+.lesson-reader .lesson-body { color: var(--color-text); font-family: 'Ubuntu', sans-serif; }
 .lesson-reader .lesson-body .prose-hh :is(p, li), .lesson-reader .prerequisite-primer p { font-size: var(--reader-size); line-height: 1.9; }
 .lesson-reader .lesson-body .prose-hh p { margin-bottom: 1.3em; }
-.lesson-reader .lesson-body .prose-hh :is(h2, h3), .lesson-reader .prerequisite-primer h3 { font-family: var(--font-sans); color: var(--color-heading); text-wrap: pretty; }
+.lesson-reader .lesson-body .prose-hh :is(h2, h3), .lesson-reader .prerequisite-primer h3 { font-family: 'Ubuntu', sans-serif; color: var(--color-heading); text-wrap: pretty; }
 .lesson-reader .lesson-body .prose-hh h2 { font-size: 1.5rem; margin: 2.4rem 0 1rem; padding: 0; border: 0; line-height: 1.4; }
 .lesson-reader .lesson-body .prose-hh h3 { font-size: 1.15rem; margin: 1.8rem 0 .8rem; line-height: 1.5; }
 .lesson-reader .prerequisite-primer { border: 0; border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); padding: 24px 0; border-radius: 0; background: transparent; box-shadow: none; }
@@ -328,7 +328,7 @@
 .lesson-reader .prerequisite-primer section:first-of-type { margin-top: 0; }
 .lesson-reader .reader-outline-inner { top: 24px; padding: 20px 0; }
 .lesson-reader .reader-outline .reader-eyebrow { font-size: .67rem; color: var(--color-text-dim); letter-spacing: .1em; }
-.lesson-reader .reader-toc button { font-family: var(--font-sans); font-size: .78rem; padding: 10px 14px; line-height: 1.65; }
+.lesson-reader .reader-toc button { font-family: 'Ubuntu', sans-serif; font-size: .78rem; padding: 10px 14px; line-height: 1.65; }
 .lesson-reader .reader-toc .reader-toc-subsection { font-size: .73rem; padding-left: 24px; }
 .lesson-reader .reader-toc button[aria-current] { border-left-color: var(--color-accent); background: var(--color-surface); color: var(--color-heading); font-weight: 600; }
 .lesson-reader .ml-lesson-section { padding-bottom: 26px; margin-bottom: 26px; }
@@ -354,7 +354,7 @@
   .lesson-reader .reader-room__head { flex-wrap: wrap; }
 }
 /* Books retain their original PDF typography; only the surrounding controls change. */
-.book-reading { font-family: var(--font-sans); }
+.book-reading { font-family: 'Ubuntu', var(--font-sans), sans-serif; }
 .book-reading > div:first-child { padding: 22px 30px; border-bottom-color: var(--color-border); }
 .book-reading > div:first-child h1 { font-size: clamp(1.15rem, 2vw, 1.6rem); line-height: 1.45; margin: 8px 0; }
 .book-reading > div:first-child p { font-size: .83rem; line-height: 1.7; }
@@ -377,3 +377,23 @@
 @media (max-width: 760px) { .lesson-reader-large .lesson-code pre { font-size: 15px; } }
 
 .reader-prerequisite { margin: 0 0 24px; padding: 14px 18px; border-left: 3px solid var(--color-border); color: var(--color-text-dim); font-size: .9em; line-height: 1.75; }
+
+/* ── Reading measure on laptops and desktops ────────────────────────────────────────────────────
+   Without a cap, lesson lines ran to ~155 characters on a 1366px laptop. Prose and the blocks around it
+   stop at one centred column of about 70 characters of Ubuntu (31 × the reader size: 558px at Standard;
+   it follows the Text size setting). The lesson header band keeps its full width. Code, tables and
+   figures may run to 1.6 columns and still scroll sideways inside themselves; phones are unaffected. */
+.lesson-reader { --measure: calc(var(--reader-size) * 31); }
+@media (min-width: 768px) {
+  .lesson-reader .lesson-body .prose-hh :is(p, ul, ol, h2, h3, h4, blockquote, details, dl),
+  .lesson-reader .lesson-body .prose-hh > div:not(.lesson-table-wrap, .wide),
+  .lesson-reader .lesson-body .prose-hh > :is(article, section) > div:not(.lesson-table-wrap, .wide),
+  .lesson-reader .lesson-body .prose-hh > section:has(> details),
+  .lesson-reader :is(.reader-objectives, .reader-research, .reader-prerequisite, .prerequisite-primer, .reader-practice, .reader-questions, .reader-pagination) {
+    max-width: var(--measure);
+    margin-inline: auto;
+  }
+  .lesson-reader .lesson-body :is(pre, table, figure, .lesson-table-wrap, .wide) { max-width: min(100%, calc(var(--measure) * 1.6)); margin-inline: auto; }
+  /* Text inside wide content follows its container, not the measure. */
+  .lesson-reader .lesson-body .prose-hh :is(pre, table, figure, .wide) :is(p, ul, ol, details) { max-width: none; margin-inline: 0; }
+}

@@ -90,7 +90,7 @@ export default function BuildPortalPage() {
   });
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--color-bg)' }}>
+    <div className="min-h-full" style={{ background: 'var(--color-bg)' }}>
       <PortalNavigation />
       <PortalHero
         eyebrow="Software engineering practice"

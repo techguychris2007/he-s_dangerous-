@@ -157,7 +157,7 @@ export default function CodePortalPage() {
   const currentModule = codeModules.findIndex((m) => m.lessons.some((l) => !progress.isLessonComplete(l.id)));
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg)]">
+    <div className="min-h-full bg-[var(--color-bg)]">
       <PortalNavigation />
       <PortalHero
         eyebrow="Programming for cybersecurity"

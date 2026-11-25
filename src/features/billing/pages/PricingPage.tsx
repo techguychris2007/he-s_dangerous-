@@ -75,7 +75,7 @@ export default function PricingPage() {
   const current = entitlement.plan;
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--color-bg, var(--color-surface))' }}>
+    <div className="min-h-full" style={{ background: 'var(--color-bg, var(--color-surface))' }}>
       <header className="flex items-center justify-between gap-4 px-4 sm:px-8 py-4 border-b border-[var(--color-border)]">
         <Link to={entitlement.signedIn ? '/' : '/welcome'} className="flex items-center gap-2 font-bold text-[var(--color-heading)]"><Logo className="h-8 w-8" /><span>DarkWorld Academy</span></Link>
         <nav className="flex items-center gap-4 text-sm font-semibold">

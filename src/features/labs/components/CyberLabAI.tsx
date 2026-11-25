@@ -172,7 +172,7 @@ export default function CyberLabAI({ getContext, presentation = 'dock', floating
 
   return (
     <>
-      <div aria-hidden className="fixed inset-0 bg-black/40 z-40 lg:hidden" onClick={close} />
+      <div aria-hidden className="fixed inset-0 bg-black/40 backdrop-blur-xs z-40 lg:hidden" onClick={close} />
       <div className={panelIsFloating ? 'fixed bottom-5 right-5 z-50 w-[400px] max-w-[calc(100vw-2.5rem)] h-[650px] max-h-[calc(100dvh-110px)] rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] flex flex-col overflow-hidden shadow-2xl' : 'fixed inset-x-0 bottom-0 z-50 h-[82vh] rounded-t-2xl border-t lg:border-t-0 lg:border-l border-[var(--color-border)] bg-[var(--color-surface)] flex flex-col overflow-hidden shadow-2xl lg:relative lg:inset-auto lg:z-auto lg:h-full lg:w-[380px] lg:rounded-none lg:shadow-none shrink-0'}>
         {movable && <div className="dig-placement-controls"><button type="button" onClick={() => setDocked(value => !value)} aria-pressed={docked}>{docked ? 'Float chat' : 'Dock on right'}</button></div>}
         <AiChatWindow

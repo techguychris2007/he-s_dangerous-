@@ -30,8 +30,8 @@ export default defineConfig(({ mode }) => ({
         start_url: '/',
         scope: '/',
         display: 'standalone',
-        background_color: '#0e1116',
-        theme_color: '#0e1116',
+        background_color: '#0a1420',
+        theme_color: '#101827',
         orientation: 'any',
         shortcuts: [
           { name: 'My learning', url: '/#/my-learning', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },

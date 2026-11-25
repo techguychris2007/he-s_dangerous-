@@ -64,7 +64,7 @@ export default function SocPortalPage() {
   }, [socModules, allLabsDone, progress.labFlags, progress.completedLessons]);
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--color-bg)' }}>
+    <div className="min-h-full" style={{ background: 'var(--color-bg)' }}>
       <PortalNavigation />
       <div
         className="portal-masthead relative overflow-hidden border-b border-[var(--color-border)]"

@@ -13,12 +13,14 @@ import CharacterAvatar from '../../../shared/characters/CharacterAvatar';
 import CodeTaskCard from '../../code-practice/components/CodeTaskCard';
 import { codeTaskXp } from '../../progress/data/xp';
 import '../components/lesson/lesson-reader.css';
+import { useReadableOnPhones } from '../../../shared/hooks/useReadableOnPhones';
 
 export default function MlLessonPage() {
   const { lessonId } = useParams();
   const progress = useProgress();
   const lesson = lessonId ? findMlLesson(lessonId) : undefined;
   const contentRef = useRef<HTMLDivElement>(null);
+  useReadableOnPhones(contentRef);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [textSize, setTextSize] = useState(18);
   const [readingProgress, setReadingProgress] = useState(0);

@@ -5,6 +5,9 @@ import type { PDFDocumentProxy } from 'pdfjs-dist';
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.mjs', import.meta.url).toString();
 
 const SCALE = 1.4;
+/** Zoom steps relative to "fit width" (1). Phones fit a whole page into ~360px, which makes book
+ *  text unreadable; zooming widens the page and the reader scrolls sideways. */
+const ZOOM_STEPS = [1, 1.25, 1.5, 2, 2.5, 3];
 
 export interface PdfViewerHandle {
   scrollToPage: (pageNum: number) => void;
@@ -33,6 +36,8 @@ const PdfViewer = forwardRef<PdfViewerHandle, PdfViewerProps>(function PdfViewer
   const pageElsRef = useRef<(HTMLDivElement | null)[]>([]);
   const docRef = useRef<PDFDocumentProxy | null>(null);
   const renderedRef = useRef<Set<number>>(new Set());
+  const [zoom, setZoom] = useState(1);
+  const zoomRef = useRef(1);
   const [numPages, setNumPages] = useState(0);
   const [pageSize, setPageSize] = useState({ width: 0, height: 0 });
   const [currentPage, setCurrentPage] = useState(1);
@@ -83,7 +88,8 @@ const PdfViewer = forwardRef<PdfViewerHandle, PdfViewerProps>(function PdfViewer
     // the canvas's backing pixel buffer matches CSS pixels 1:1 and the browser has to upscale
     // it for a >1x-density screen, which is exactly what reads as "blurry."
     const dpr = window.devicePixelRatio || 1;
-    const renderViewport = page.getViewport({ scale: SCALE * dpr });
+    // Cap the backing buffer so a zoomed page on a 3x phone screen does not exhaust canvas memory.
+    const renderViewport = page.getViewport({ scale: Math.min(SCALE * dpr * zoomRef.current, 6) });
     canvas.width = renderViewport.width;
     canvas.height = renderViewport.height;
     canvas.style.width = '100%';
@@ -101,6 +107,12 @@ const PdfViewer = forwardRef<PdfViewerHandle, PdfViewerProps>(function PdfViewer
       }
     }
   };
+
+  useEffect(() => {
+    if (zoomRef.current === zoom) return;
+    zoomRef.current = zoom;
+    renderedRef.current = new Set();
+  }, [zoom]);
 
   useEffect(() => {
     if (status !== 'ready' || !containerRef.current) return;
@@ -125,7 +137,7 @@ const PdfViewer = forwardRef<PdfViewerHandle, PdfViewerProps>(function PdfViewer
     }
     return () => observer.disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, numPages]);
+  }, [status, numPages, zoom]);
 
   useEffect(() => {
     if (status !== 'ready') return;
@@ -204,25 +216,8 @@ const PdfViewer = forwardRef<PdfViewerHandle, PdfViewerProps>(function PdfViewer
 
   return (
     <div className="flex flex-col h-full">
-      <div ref={containerRef} className="flex-1 overflow-auto flex flex-col items-center gap-4 py-6 bg-[var(--color-surface-2)]">
-        {status === 'loading' && <div className="text-sm text-[var(--color-text-dim)] py-10">Loading book&hellip;</div>}
-        {status === 'ready' &&
-          Array.from({ length: numPages }).map((_, index) => (
-            <div
-              key={index}
-              ref={(el) => {
-                pageElsRef.current[index] = el;
-              }}
-              data-page-index={index}
-              className="shadow-lg rounded bg-white"
-              style={{ width: pageSize.width, maxWidth: '100%', aspectRatio: `${pageSize.width} / ${pageSize.height}` }}
-            >
-              <canvas className="block" />
-            </div>
-          ))}
-      </div>
       {status === 'ready' && (
-        <div className="py-2 flex items-center justify-center gap-1.5 text-xs font-mono text-[var(--color-text-dim)] border-t border-[var(--color-border)] bg-[var(--color-surface)]">
+        <div className="sticky top-0 z-10 py-1.5 flex flex-wrap items-center justify-center gap-1.5 text-xs font-mono text-[var(--color-text-dim)] border-b border-[var(--color-border)] bg-[var(--color-surface)]">
           Page{' '}
           {editingPage ? (
             <input
@@ -256,8 +251,29 @@ const PdfViewer = forwardRef<PdfViewerHandle, PdfViewerProps>(function PdfViewer
             </button>
           )}{' '}
           / {numPages}
+          <span className="mx-2 h-4 w-px bg-[var(--color-border)]" aria-hidden="true" />
+          <button type="button" onClick={() => setZoom(z => ZOOM_STEPS[Math.max(0, ZOOM_STEPS.indexOf(z) - 1)])} disabled={zoom === ZOOM_STEPS[0]} aria-label="Zoom out" className="grid h-9 w-9 place-items-center rounded-lg border border-[var(--color-border)] text-base text-[var(--color-heading)] disabled:opacity-40">−</button>
+          <button type="button" onClick={() => setZoom(1)} aria-label="Fit page to width" className="min-w-[3.5rem] rounded-lg px-1 py-2 text-[var(--color-heading)]">{Math.round(zoom * 100)}%</button>
+          <button type="button" onClick={() => setZoom(z => ZOOM_STEPS[Math.min(ZOOM_STEPS.length - 1, ZOOM_STEPS.indexOf(z) + 1)])} disabled={zoom === ZOOM_STEPS.at(-1)} aria-label="Zoom in" className="grid h-9 w-9 place-items-center rounded-lg border border-[var(--color-border)] text-base text-[var(--color-heading)] disabled:opacity-40">+</button>
         </div>
       )}
+      <div ref={containerRef} className="flex-1 overflow-auto flex flex-col items-start gap-4 py-6 px-2 sm:px-0 bg-[var(--color-surface-2)]">
+        {status === 'loading' && <div className="text-sm text-[var(--color-text-dim)] py-10">Loading book&hellip;</div>}
+        {status === 'ready' &&
+          Array.from({ length: numPages }).map((_, index) => (
+            <div
+              key={index}
+              ref={(el) => {
+                pageElsRef.current[index] = el;
+              }}
+              data-page-index={index}
+              className="shadow-lg rounded bg-white mx-auto shrink-0"
+              style={{ width: zoom === 1 ? pageSize.width : `calc(min(${pageSize.width}px, 100%) * ${zoom})`, maxWidth: zoom === 1 ? '100%' : 'none', aspectRatio: `${pageSize.width} / ${pageSize.height}` }}
+            >
+              <canvas className="block" />
+            </div>
+          ))}
+      </div>
     </div>
   );
 });
