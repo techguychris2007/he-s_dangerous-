@@ -82,7 +82,7 @@ export default function AiReadingCompanion({ bookTitle, currentPage, viewerRef }
     return (
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-[calc(var(--dw-tabbar,0px)+1.25rem)] right-5 z-40 flex items-center gap-2 pl-3 pr-4 py-3 rounded-full shadow-lg bg-[var(--color-accent)] text-white font-semibold text-sm hover:brightness-110 transition"
+        className="fixed bottom-5 right-5 z-40 flex items-center gap-2 pl-3 pr-4 py-3 rounded-full shadow-lg bg-[var(--color-accent)] text-white font-semibold text-sm hover:brightness-110 transition"
       >
         <DigAvatar size={38} />
         Ask dig
@@ -91,7 +91,7 @@ export default function AiReadingCompanion({ bookTitle, currentPage, viewerRef }
   }
 
   return (
-    <div className="fixed bottom-[calc(var(--dw-tabbar,0px)+1.25rem)] right-5 z-40 w-[380px] max-w-[calc(100vw-2.5rem)] h-[560px] max-h-[calc(100vh-4rem)] rounded-2xl shadow-2xl border border-[var(--color-border)] bg-[var(--color-surface)] flex flex-col overflow-hidden">
+    <div className="fixed bottom-5 right-5 z-40 w-[380px] max-w-[calc(100vw-2.5rem)] h-[560px] max-h-[calc(100vh-4rem)] rounded-2xl shadow-2xl border border-[var(--color-border)] bg-[var(--color-surface)] flex flex-col overflow-hidden">
       <AiChatWindow
         title="dig"
         subtitle={currentPage > 0 ? `${bookTitle} — page ${currentPage}` : `Library research — ${bookTitle}`}
