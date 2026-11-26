@@ -47,3 +47,12 @@
 .dw-libcard small { font-size: .84rem; line-height: 1.55; color: var(--color-text-dim); }
 .dw-libcard b { display: inline-flex; align-items: center; gap: .35rem; flex-shrink: 0; margin-left: auto; font-size: .85rem; color: var(--color-accent-dim); }
 @media (max-width: 640px) { .dw-libcard { flex-wrap: wrap; } .dw-libcard b { margin-left: 0; } }
+
+/* Wider screens: the footer's short labels ("2 files", "+40 XP", "Start project") never break mid-phrase
+   or squash the button; if a narrow card can't fit them, whole items move to a second line. */
+@media (min-width: 768px) {
+  .dw-pcard__foot { flex-wrap: wrap; gap: .5rem .45rem; padding-inline: .95rem; }
+  .dw-pcard__foot > * { white-space: nowrap; flex-shrink: 0; }
+  .dw-pcard__xp { line-height: 1.5; }
+  .dw-pcard__cta { line-height: 1; padding: 0 .7rem; }
+}
