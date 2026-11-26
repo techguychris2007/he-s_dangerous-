@@ -378,22 +378,3 @@
 
 .reader-prerequisite { margin: 0 0 24px; padding: 14px 18px; border-left: 3px solid var(--color-border); color: var(--color-text-dim); font-size: .9em; line-height: 1.75; }
 
-/* ── Reading measure on laptops and desktops ────────────────────────────────────────────────────
-   Without a cap, lesson lines ran to ~155 characters on a 1366px laptop. Prose and the blocks around it
-   stop at one centred column of about 70 characters of Ubuntu (31 × the reader size: 558px at Standard;
-   it follows the Text size setting). The lesson header band keeps its full width. Code, tables and
-   figures may run to 1.6 columns and still scroll sideways inside themselves; phones are unaffected. */
-.lesson-reader { --measure: calc(var(--reader-size) * 31); }
-@media (min-width: 768px) {
-  .lesson-reader .lesson-body .prose-hh :is(p, ul, ol, h2, h3, h4, blockquote, details, dl),
-  .lesson-reader .lesson-body .prose-hh > div:not(.lesson-table-wrap, .wide),
-  .lesson-reader .lesson-body .prose-hh > :is(article, section) > div:not(.lesson-table-wrap, .wide),
-  .lesson-reader .lesson-body .prose-hh > section:has(> details),
-  .lesson-reader :is(.reader-objectives, .reader-research, .reader-prerequisite, .prerequisite-primer, .reader-practice, .reader-questions, .reader-pagination) {
-    max-width: var(--measure);
-    margin-inline: auto;
-  }
-  .lesson-reader .lesson-body :is(pre, table, figure, .lesson-table-wrap, .wide) { max-width: min(100%, calc(var(--measure) * 1.6)); margin-inline: auto; }
-  /* Text inside wide content follows its container, not the measure. */
-  .lesson-reader .lesson-body .prose-hh :is(pre, table, figure, .wide) :is(p, ul, ol, details) { max-width: none; margin-inline: 0; }
-}
